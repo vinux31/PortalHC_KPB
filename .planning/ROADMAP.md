@@ -117,7 +117,7 @@
   4. Jawaban hasil auto-generate tetap menghasilkan sesi ber-`IsManualEntry=true` + AuditLog (sintetis namun terlacak); diverifikasi end-to-end skor yang tampil di hasil = skor preview. *(INJ-08, INJ-09)*
   5. `dotnet build` 0 error + `dotnet test` + `dotnet run` (localhost:5277) + Playwright e2e: input asli per pekerja → skor dihitung benar; auto-gen skor target → preview skor final aktual tampil → commit → hasil match. *(INJ-08, INJ-09 — Razor + JS runtime → Playwright wajib)*
 **Plans:** 3 plans (3 wave, sequential - file-overlap intra-phase)
-- [ ] 395-01-PLAN.md - Wave 1: fondasi server-side (BuildAutoGenAnswers subset-sum + ComputeAutoGenSeed SHA-256 + rule TextAnswer-wajib D-04) + unit test pure (INJ-08, INJ-09)
+- [x] 395-01-PLAN.md - Wave 1: fondasi server-side (BuildAutoGenAnswers subset-sum + ComputeAutoGenSeed SHA-256 + rule TextAnswer-wajib D-04) + unit test pure (INJ-08, INJ-09)
 - [ ] 395-02-PLAN.md - Wave 2: controller (PreviewInjectScore dry-run + ParseAnswerVms + MapToRequest isi Answers + wire #btnInject to InjectBatchAsync commit) + DTO/VM + integration test preview==commit (INJ-08, INJ-09)
 - [ ] 395-03-PLAN.md - Wave 3: view Step-5 sub-komponen 1-pekerja-per-layar + #AnswersJson serialize + preview JS + LBL-02 carry-in + e2e + checkpoint human-verify (INJ-08, INJ-09)
 **UI hint:** yes
@@ -173,7 +173,7 @@
 |-------|----------------|--------|-----------|
 | 393. Backend core inject (INJ-01, INJ-02) | 3/3 | Complete    | 2026-06-17 |
 | 394. Page + Setup Room + authoring soal (INJ-03..07) | 4/4 | Complete    | 2026-06-18 |
-| 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 0/? | Not started | - |
+| 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 1/3 | In Progress|  |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 0/? | Not started | - |
 | 397. Link Pre/Post ke room existing (INJ-12) | 0/? | Not started | - |
 | 398. Test + UAT "seakan online" (INJ-13) | 0/? | Not started | - |

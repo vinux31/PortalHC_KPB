@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: verifying
-stopped_at: Phase 395 context finalized (3 open Q locked)
-last_updated: "2026-06-18T02:26:52.810Z"
+status: executing
+stopped_at: Completed 395-01-PLAN.md
+last_updated: "2026-06-18T03:50:57.801Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 29
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_plans: 10
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State: Portal HC KPB
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 394 — page-setup-room-authoring-soal
+**Current focus:** Phase 395 — mode-jawaban-input-asli-auto-generate
 
 ## Current Position
 
-Phase: 395
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 395 (mode-jawaban-input-asli-auto-generate) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-06-18
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
@@ -36,7 +36,9 @@ Last activity: 2026-06-18
 
 ## Next Action
 
-Milestone v32.2 baru dibuat — define requirements → roadmap. **Next: tulis REQUIREMENTS.md (INJ-*) → spawn roadmapper (fase 393-398) → approve → commit.** Setelah roadmap: `/gsd-discuss-phase 393` atau `/gsd-plan-phase 393`. Tiap fase: `dotnet build` + `dotnet run` (localhost:5277) + Playwright lokal sebelum commit → branch main → notify IT (migration=FALSE). ❌ tidak ada edit di Dev/Prod (CLAUDE.md Develop Workflow). v32.0 sisa (verify/secure/validate 392 + audit-milestone) non-blocking untuk v32.2.
+**Phase 395 Plan 01 SELESAI** (2 commits: 561944f7 test/RED + c79d27a4 feat/GREEN; SUMMARY @ `.planning/phases/395-mode-jawaban-input-asli-auto-generate/395-01-SUMMARY.md`). Fondasi server-side auto-gen siap: `BuildAutoGenAnswers` + `ComputeAutoGenSeed` (SHA-256) + `AutoGenResult` + rule D-04 TextAnswer-wajib. 30 unit test GREEN; fast suite 381/381; 0 migration.
+
+**Next: execute Plan 02 (395-02-PLAN.md — controller)** — `ParseAnswerVms` (paralel `ParseQuestionVms`) + `PreviewInjectScore` action (dry-run via `AssessmentScoreAggregator.Compute`, RBAC Admin/HC + antiforgery, NO CertNumberHelper) + isi `MapToRequest:116` `Answers` (server-otoritas: panggil `BuildAutoGenAnswers(seed)` ulang untuk worker auto) + wire `#btnInject` → `InjectBatchAsync` (commit pertama milestone). Lalu Plan 03 (view + carry-in LBL-02). Tiap perubahan view: build+run main tree (localhost:5277, AD-off) + Playwright. ❌ tidak ada edit di Dev/Prod (CLAUDE.md). Notify IT migration=FALSE saat phase selesai.
 
 ⚠️ **Catatan env e2e (Plan 02):** app TIDAK pakai runtime Razor compilation (`AddControllersWithViews` tanpa `AddRazorRuntimeCompilation`) → view embedded saat build. Untuk verifikasi e2e perubahan view, WAJIB jalankan build/app dari **main working tree** (bukan worktree sibling `PortalHC_KPB-ITHandoff` yang pre-Plan-01). Carry DEF-392-01 (shared `initFormLoading` disable tombol pada submit-divalidasi-gagal — infra bersama, future phase).
 
@@ -116,6 +118,7 @@ Milestone v32.2 baru dibuat — define requirements → roadmap. **Next: tulis R
 
 ### Decisions (persist across milestones)
 
+- [v32.2 / 395-01 INJ-09 fondasi auto-gen]: `BuildAutoGenAnswers` (static-pure di `InjectAssessmentService`, reuse Phase 396) = subset-sum hit-target: greedy `OrderByDescending(ScoreValue)` + seeded-shuffle dalam grup ScoreValue-sama (variasi pola D-07) + smallest-such trim + **WAJIB re-cek `floor((int)((double)total/max*100))` SETELAH seleksi** (boundary off-by-one — JANGAN percaya `k=ceil(target*N/100)` di mixed-weight). `CeilingPercent`=`floor(Σ(MC+MA ScoreValue)/maxScore*100)` (denominator selalu termasuk essay, samakan Aggregator:35/58); `target>ceiling` → `TargetReachable=false` (D-08.3 BLOCKING, best-effort=semua MC/MA benar untuk laporkan ceiling, **JANGAN cap diam-diam** — integritas sertifikasi). forced-correct pre-scan: MC semua-opsi-benar / soal ≤1 opsi → selalu benar; MA salah via `{1 opsi salah}` atau proper-subset `OrderBy(TempId)`. Essay TIDAK di-emit (D-08). `ComputeAutoGenSeed`=**SHA-256** (`System.Security.Cryptography.SHA256` — PERTAMA dipakai di repo; non-secret, hanya determinisme) atas kanonik (NIP+Title+Category+CompletedAt **date-only**+target, pemisah **U+001F**) → `BitConverter.ToInt32 & 0x7FFFFFFF`; **BUKAN** `string.GetHashCode()` (randomized per-proses → preview≠commit). Rule **D-04 TextAnswer-wajib** di `PreflightValidateAsync` essay branch ber-guard `EssayScore.HasValue` (engaged; skip=omit & auto-gen essay tak di-emit → tak terblokir; BUKAN global). Dikunci **30 unit test murni** (no DB, no `[Trait Integration]`, masuk fast suite; map pola→in-memory PackageQuestion/Response→`AssessmentScoreAggregator.Compute` buktikan preview==commit). Fast suite **381/381 GREEN** (baseline 351+30, no regression); **0 migration** (probe `_verify395p1` Up/Down KOSONG → remove; snapshot di-restore krn `ef` rewrite cosmetic `ToTable("X")`→`ToTable("X",(string)null)`). Commits `561944f7` (test/RED) + `c79d27a4` (feat/GREEN). **DEVIASI Rule-3 (blocking):** literal U+001F (unit-separator) merusak Edit exact-match → metode duplikat + brace tak seimbang sementara → bersih via Python by-line-range + verify codepoint `0x1f` (semantik sesuai plan). **Carry-in LBL-02** (`injTypeLabel`/validasi view "Pilihan Ganda"→"Single Answer") di-DEFER ke Plan 03 (file view bukan scope Plan 01). INJ-08/INJ-09 BELUM mark-complete (span 3 plan; selesai saat Plan 03 ship UI). **Next: Plan 02 controller** (`ParseAnswerVms` + `PreviewInjectScore` dry-run + `MapToRequest:116` server-otoritas + wire `#btnInject`→`InjectBatchAsync`).
 - [v32.0 / 392-02 WRKR-03 — PHASE 392 CLOSE]: Playwright e2e (`tests/e2e/createworker-392.spec.ts`, AD-off, `--workers=1`) **GREEN 3/3** (setup + TEST A static guard + TEST B runtime) buktikan `/Admin/CreateWorker` usable runtime: field `#FullName`/`#Email` bisa diketik (tidak readonly), `#Email` `type="email"`, `window.jQuery.validator` ter-load (D-05 client-side aktif via `_ValidationScriptsPartial` di `@section Scripts`), `.field-validation-error` span muncul saat submit invalid (tetap di CreateWorker), cascade Bagian→Unit bangun opsi Unit runtime, create sukses (redirect ManageWorkers + Success flash "berhasil" + baris DB). **TEST A** static source-grep guard: CreateWorker.cshtml TAK punya `readonly=`/`bg-light` (editable di AD mode BY CONSTRUCTION — tutup bug readonly-AD yang run AD-off tak bisa exercise, Pitfall F-NEW-04) + `type="email"` + `_ValidationScriptsPartial` ada. **Teardown** self-cleaning `afterAll` (jalan walau gagal) via `DeleteWorker` POST (anti-forgery token + Identity cascade roles) → verifikasi `SELECT COUNT(*) FROM Users WHERE Email LIKE 'e2e-cw-%@local.test'` = **0** (0 residu, 0 orphan role); SEED_JOURNAL Phase 392 → CLEANED. **DEVIASI Rule 3 (blocking env-correction):** app awal di :5277 ternyata dari **worktree SIBLING `PortalHC_KPB-ITHandoff`** (branch ITHandoff HEAD `f648cc00`, BUKAN ancestor Plan-01 `0d788e8a`) → CreateWorker.cshtml-nya masih `readonly="@(isAdMode?...)"` + tanpa validation scripts → `jQuery.validator` undefined → TEST B gagal. Root cause: app pakai `AddControllersWithViews()` **tanpa** `AddRazorRuntimeCompilation` (no `RuntimeCompilation` package) → **view embedded saat build**, edit/commit `.cshtml` tak pengaruhi binary stale/sibling. Resolusi: `dotnet build HcPortal.csproj` (0 error) main-tree → stop app ITHandoff → run `HcPortal.exe` main-tree :5277 AD-off (DB SQLEXPRESS sama) → `_ValidationScriptsPartial` ter-serve SETELAH jQuery + `validator===true` → spec hijau. **DEF-392-01 (deferred, deferred-items.md):** `wwwroot/js/shared-loading.js` `initFormLoading` men-disable tombol submit pada submit yang DIBATALKAN validasi (preventDefault tak hentikan listener native lain) → tombol nyangkut disabled; infra bersama pra-existing (`8c504bc3`), OUT OF SCOPE view-only 392 → spec reload halaman antara fase validasi & create (bukan masking). **Scope-lock D-08:** `git diff --quiet -- Controllers/WorkerController.cs Models/ManageUserViewModel.cs Views/Admin/EditWorker.cshtml` = `ZERO_DIFF_OK`; `dotnet build` 0 error; `dotnet test --filter Category!=Integration` **347/347 GREEN** (no regression, baseline sama Phase 387); **0 migration**. Commit `840fab21` (test). **PHASE 392 SELESAI** (2/2 plans; WRKR-01/02/03 closed: Plan 01 `0d788e8a` view + Plan 02 `840fab21` e2e). **Handoff:** push `main` + notify IT flag migration=FALSE. ❌ JANGAN edit Dev/Prod. **Lesson:** verifikasi e2e perubahan VIEW pada app tanpa runtime-compilation WAJIB build+run dari working tree yang benar (binary stale/sibling diam-diam membatalkan verifikasi runtime).
 - [v32.0 / phasing]: 2 fitur file-disjoint & independen (1.1 `AssessmentAdminController.cs` BULK ASSIGN; 1.2 `Views/Admin/CreateWorker.cshtml` view-only) → split alami 2 fase (391 + 392), boleh paralel. Konteks: `AssessmentSession` = per-peserta (tambah peserta = INSERT sesi baru, BUKAN tabel join). `/Admin/CreateWorker` = buat akun pegawai (`ApplicationUser`), BUKAN peserta assessment. PART-02 fix = jangan biarkan guard `Completed` (L1992) salah-blokir penambahan saat grup masih aktif/window terbuka (BUKAN hapus guard total — hard-block penambahan saat InProgress = OUT, keputusan user fleksibel). PART-03 = notice informatif ganti `TempData["Warning"]` kosmetik. 0 migration.
 - [v31.0 / 387-04 verifikasi proporsional D-09 — PHASE 387 CLOSE]: 3 jalur verifikasi sesuai kedalaman tiap fix (unit untuk logic, Playwright untuk a11y render runtime, manual untuk SignalR/cert/timer LOW tanpa harness). **Task 1** `HcPortal.Tests/PostLisensorPolishTests.cs` (baru) — fixture disposable `HcPortalDB_Test_{guid}` (`IAsyncLifetime` MigrateAsync→EnsureDeletedAsync, `[Trait Category=Integration]` di-exclude fast suite, `HcPortalDB_Dev` TAK disentuh — T-387-09 mitigasi), logika guard/cell direplikasi data-level PERSIS seperti controller (pola SubmitResurrectionTests): PXF-06 guard status (`S.Completed` reject / `S.PendingGrading` allow EssayScore), PXF-09 essay cell (`"Skor: X/Y"` / `"Tidak dijawab"` / `"Belum dinilai"`), PXF-12 `answers.ContainsKey` absent→PackageOptionId unchanged. 8 facts positive+negative → **8/8 PASS**. **Task 2** `tests/e2e/aria-opsi-387.spec.ts` (baru) — assert `aria-label` berisi "opsi A" RUNTIME di Results + ExamSummary (D-09 MANDATORY: a11y Razor dinamis, grep+build INSUFFICIENT — lesson Phase 354) → **3/3 PASS** `--workers=1`. **Task 3 checkpoint human-verify — APPROVED** (T-387-10 mitigasi: 3 LOW tanpa harness verified manual): browser+SignalR+DB localhost:5277 AD-off shared-memory SQL; snapshot→mutate→RESTORE `C:\Temp .bak` per CLAUDE.md Seed Workflow, `docs/SEED_JOURNAL.md` CLEANED 0 residue. **PXF-08** finalize sesi 169 "TEST E2E Campur 2026-06-15" (essay 10/10, GenerateCertificate=1, IsPassed) → `NomorSertifikat`="KPB/005/VI/2026" ter-assign (retry-loop generate+persist), session→Completed, no certError saat sukses (dikonfirmasi DB 2× finalize). **PXF-10** klien SignalR `/hubs/assessment` JoinMonitor batchKey tepat "TEST E2E Campur 2026-06-15|OJT|2026-06-15" → grup monitor terima `workerSubmitted` live `{sessionId:169, workerName:"Admin KPB", score:100, result:"Pass", status:"Completed"}` tanpa refresh (percobaan-1 meleset hanya karena Title ber-suffix tanggal → re-join key tepat tertangkap bersih). **PXF-13** A/B `SaveTextAnswer` sesi admin-owned: (A) StartedAt=2020+Dur=1min EXPIRED→tulis DITOLAK TextAnswer UNCHANGED; (B) StartedAt=now+Dur=60min NOT expired→tulis SUKSES — guard mirror verbatim `SaveMultipleAnswer`. Semua mutasi (sesi 169 + responses) di-RESTORE; SEED_JOURNAL CLEANED. **PXF-06 fact=guard status** menyelaraskan redirect 387-01 (WR-01/WR-02 sudah cover build+grep di 387-01). Verif fase: fast suite **347/347 GREEN** + build 0 error + 0 migration; `HcPortalDB_Dev` untouched. Commits `46bd422d` (Task1 unit) + `3b4db3a2` (Task2 Playwright); Task 3 verify-only. **No deviation.** **PHASE 387 SELESAI** (4/4 plans; 7 REQ PXF-06/08/09/10/11/12/13 closed; 0 migration). **Handoff:** deploy IT KEDUA pasca-acara terpisah dari bundle 385+386 — gabung → push `origin/ITHandoff` (BUKAN sekarang, keputusan developer) → notify IT flag migration=FALSE. ❌ JANGAN edit Dev/Prod.
@@ -140,6 +143,6 @@ Milestone v32.2 baru dibuat — define requirements → roadmap. **Next: tulis R
 
 Last activity: 2026-06-17
 
-Stopped at: Phase 395 context finalized (3 open Q locked)
+Stopped at: Completed 395-01-PLAN.md
 
 Next action: milestone v32.2 — selesaikan REQUIREMENTS.md (INJ-*) + roadmap (393-398), lalu **`/gsd-discuss-phase 393`** atau **`/gsd-plan-phase 393`** (Backend core inject). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
