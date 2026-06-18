@@ -1,15 +1,17 @@
-// Phase 399 Plan 01 Task 5 — WAVE 0 SCAFFOLD (RED, skip-with-reason).
-// Kontrak test MU-01/MU-02 write-through set + mirror. Diisi/diaktifkan plan 02 T1 saat
-// helper SyncUserUnitsAsync(user, units, primaryUnit) di WorkerController sudah ada.
-//
-// Behavior yang dikontrak (plan 02):
+// Phase 399 Plan 02 Task 1 — MU-01/MU-02 write-through set + mirror (GREEN).
+// Menguji WorkerController.SyncUserUnitsAsync(ctx, user, units, primaryUnit) — single-source write-through.
 //   - Set >1 unit dalam 1 Bagian ter-persist ke UserUnits (1 baris per unit).
 //   - Tepat 1 baris IsPrimary=1.
 //   - Mirror: ApplicationUser.Unit == baris IsPrimary (invariant #3).
 // Strategy: InMemory DB (Guid per test). InMemory TIDAK enforce filtered-unique index
-// (Pitfall 3) — enforce SQL-riil resmi di Phase 404 QA-01.
+// (Pitfall 3) — enforce SQL-riil resmi di Phase 404 QA-01. Helper TIDAK SaveChanges → test commit.
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using HcPortal.Controllers;
 using HcPortal.Data;
+using HcPortal.Models;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -22,25 +24,77 @@ public class UserUnitsWriteThroughTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T1 (SyncUserUnitsAsync write-through)")]
-    public void SyncUserUnits_PersistsMultipleUnits_InOneSection()
+    private static async Task<ApplicationUser> SeedUserAsync(ApplicationDbContext ctx, string? section = "Bagian1")
     {
-        // Arrange/Act/Assert diisi plan 02: panggil SyncUserUnitsAsync(user, ["UnitA","UnitB"], "UnitA")
-        // → UserUnits berisi 2 baris (UnitA, UnitB) untuk user.Id.
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        var u = new ApplicationUser
+        {
+            Id = Guid.NewGuid().ToString(),
+            UserName = "wt-" + Guid.NewGuid().ToString("N")[..8],
+            Email = "wt@test.local",
+            FullName = "Write Through",
+            Section = section
+        };
+        ctx.Users.Add(u);
+        await ctx.SaveChangesAsync();
+        return u;
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T1 (tepat 1 IsPrimary)")]
-    public void SyncUserUnits_SetsExactlyOnePrimary()
+    [Fact]
+    public async Task SyncUserUnits_PersistsMultipleUnits_InOneSection()
     {
-        // plan 02: tepat 1 baris IsPrimary=1 (== primaryUnit arg, atau first bila invalid/null).
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        await using var ctx = InMemoryContext();
+        var user = await SeedUserAsync(ctx);
+
+        await WorkerController.SyncUserUnitsAsync(ctx, user, new List<string> { "UnitA", "UnitB" }, "UnitA");
+        await ctx.SaveChangesAsync();
+
+        var rows = await ctx.UserUnits.Where(uu => uu.UserId == user.Id).ToListAsync();
+        Assert.Equal(2, rows.Count);
+        Assert.Contains(rows, r => r.Unit == "UnitA");
+        Assert.Contains(rows, r => r.Unit == "UnitB");
+        Assert.All(rows, r => Assert.True(r.IsActive));
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T1 (mirror ApplicationUser.Unit)")]
-    public void SyncUserUnits_MirrorsPrimaryToApplicationUserUnit()
+    [Fact]
+    public async Task SyncUserUnits_SetsExactlyOnePrimary()
     {
-        // plan 02: user.Unit == baris IsPrimary (invariant #3 write-through).
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        await using var ctx = InMemoryContext();
+        var user = await SeedUserAsync(ctx);
+
+        await WorkerController.SyncUserUnitsAsync(ctx, user, new List<string> { "UnitA", "UnitB" }, "UnitB");
+        await ctx.SaveChangesAsync();
+
+        var rows = await ctx.UserUnits.Where(uu => uu.UserId == user.Id).ToListAsync();
+        Assert.Equal(1, rows.Count(r => r.IsPrimary));
+        Assert.Equal("UnitB", rows.Single(r => r.IsPrimary).Unit);
+    }
+
+    [Fact]
+    public async Task SyncUserUnits_NullOrInvalidPrimary_DefaultsToFirstChecked()
+    {
+        await using var ctx = InMemoryContext();
+        var user = await SeedUserAsync(ctx);
+
+        // primary null → first checked ("UnitA") jadi primary (D-02)
+        await WorkerController.SyncUserUnitsAsync(ctx, user, new List<string> { "UnitA", "UnitB" }, null);
+        await ctx.SaveChangesAsync();
+
+        var rows = await ctx.UserUnits.Where(uu => uu.UserId == user.Id).ToListAsync();
+        Assert.Equal("UnitA", rows.Single(r => r.IsPrimary).Unit);
+    }
+
+    [Fact]
+    public async Task SyncUserUnits_MirrorsPrimaryToApplicationUserUnit()
+    {
+        await using var ctx = InMemoryContext();
+        var user = await SeedUserAsync(ctx);
+
+        await WorkerController.SyncUserUnitsAsync(ctx, user, new List<string> { "UnitA", "UnitB" }, "UnitB");
+        await ctx.SaveChangesAsync();
+
+        // Mirror invariant #3: user.Unit == baris IsPrimary
+        var primaryRow = await ctx.UserUnits.SingleAsync(uu => uu.UserId == user.Id && uu.IsPrimary);
+        Assert.Equal(primaryRow.Unit, user.Unit);
+        Assert.Equal("UnitB", user.Unit);
     }
 }

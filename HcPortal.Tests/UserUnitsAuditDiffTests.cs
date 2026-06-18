@@ -1,12 +1,15 @@
-// Phase 399 Plan 01 Task 5 — WAVE 0 SCAFFOLD (RED, skip-with-reason).
-// Kontrak test MU-02 audit set-diff (D-12). Diisi/diaktifkan plan 02 T1.
-//
-// Behavior yang dikontrak (plan 02):
+// Phase 399 Plan 02 Task 1 — MU-02 audit set-diff (D-12) (GREEN).
+// Menguji nilai return List<string> changes dari WorkerController.SyncUserUnitsAsync.
 //   - set-diff hasilkan entri "Unit +'X'" (added), "Unit -'Y'" (removed),
 //     "Primary: 'A' → 'B'" (primary changed) — bukan scalar "Unit: 'a' → 'b'".
 // Strategy: InMemory DB (Guid per test). SyncUserUnitsAsync return List<string> changes.
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using HcPortal.Controllers;
 using HcPortal.Data;
+using HcPortal.Models;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -19,17 +22,49 @@ public class UserUnitsAuditDiffTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T1 (set-diff added/removed)")]
-    public void Diff_ReportsAddedAndRemovedUnits()
+    private static async Task<ApplicationUser> SeedUserWithUnitsAsync(
+        ApplicationDbContext ctx, params (string unit, bool primary)[] units)
     {
-        // plan 02: old={A,B}, new={A,C} → changes berisi "Unit +'C'" dan "Unit -'B'".
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        var u = new ApplicationUser
+        {
+            Id = Guid.NewGuid().ToString(),
+            UserName = "ad-" + Guid.NewGuid().ToString("N")[..8],
+            Email = "ad@test.local",
+            FullName = "Audit Diff",
+            Section = "Bagian1",
+            Unit = units.FirstOrDefault(x => x.primary).unit
+        };
+        ctx.Users.Add(u);
+        foreach (var (unit, primary) in units)
+            ctx.UserUnits.Add(new UserUnit { UserId = u.Id, Unit = unit, IsPrimary = primary, IsActive = true });
+        await ctx.SaveChangesAsync();
+        return u;
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T1 (set-diff primary-changed)")]
-    public void Diff_ReportsPrimaryChange()
+    [Fact]
+    public async Task Diff_ReportsAddedAndRemovedUnits()
     {
-        // plan 02: primary A→B → changes berisi "Primary: 'A' → 'B'".
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        await using var ctx = InMemoryContext();
+        var user = await SeedUserWithUnitsAsync(ctx, ("UnitA", true), ("UnitB", false));
+
+        // old={A,B}, new={A,C} → "Unit +'UnitC'" dan "Unit -'UnitB'"
+        var changes = await WorkerController.SyncUserUnitsAsync(ctx, user, new List<string> { "UnitA", "UnitC" }, "UnitA");
+
+        Assert.Contains("Unit +'UnitC'", changes);
+        Assert.Contains("Unit -'UnitB'", changes);
+        // bukan scalar lama
+        Assert.DoesNotContain(changes, c => c.StartsWith("Unit: '"));
+    }
+
+    [Fact]
+    public async Task Diff_ReportsPrimaryChange()
+    {
+        await using var ctx = InMemoryContext();
+        var user = await SeedUserWithUnitsAsync(ctx, ("UnitA", true), ("UnitB", false));
+
+        // primary A→B
+        var changes = await WorkerController.SyncUserUnitsAsync(ctx, user, new List<string> { "UnitA", "UnitB" }, "UnitB");
+
+        Assert.Contains("Primary: 'UnitA' → 'UnitB'", changes);
     }
 }

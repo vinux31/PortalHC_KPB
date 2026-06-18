@@ -36,6 +36,129 @@ namespace HcPortal.Controllers
         protected new ViewResult View(string viewName) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml");
         protected new ViewResult View(string viewName, object? model) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml", model);
 
+        // ============================================================
+        // Phase 399 (MU-01/02/04/05/07) — multi-unit write-through helpers (single-source, testable)
+        // ============================================================
+
+        /// <summary>
+        /// Phase 399 (MU-04) — parse 1 sel Unit Excel/import jadi daftar unit.
+        /// Pipe-delimited "UnitA|UnitB|UnitC" → split('|') + trim + dedup (OrdinalIgnoreCase); first=primary (D-04).
+        /// Backward-compat: "UnitA" (tanpa pipe) → ["UnitA"] (D-05). Empty/"|"/whitespace → [].
+        /// </summary>
+        public static List<string> ParseUnitCell(string? cell)
+        {
+            return (cell ?? "")
+                .Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Phase 399 (MU-05) — validasi server-side: tiap unit ∈ unit-Bagian + primary ∈ checked-set.
+        /// Returns daftar pesan error (kosong = valid). JANGAN trust client checkbox-list (mass-assignment guard).
+        /// </summary>
+        public static List<string> ValidateUnitsInSection(
+            List<string> validUnits, List<string> units, string? primaryUnit, string? sectionName)
+        {
+            var errors = new List<string>();
+            var invalid = (units ?? new()).Where(u => !validUnits.Contains(u)).ToList();
+            if (invalid.Any())
+                errors.Add($"Unit tidak valid untuk '{sectionName}': {string.Join(", ", invalid)}");
+            // primary harus ∈ checked-set (server-side; jangan percaya client)
+            if ((units?.Any() ?? false) && !string.IsNullOrEmpty(primaryUnit) && !units.Contains(primaryUnit))
+                errors.Add("Pilih salah satu Unit sebagai Unit Utama.");
+            return errors;
+        }
+
+        /// <summary>
+        /// Phase 399 (MU-01/02) — WRITE-THROUGH terpusat: replace-set baris UserUnits + mirror ApplicationUser.Unit.
+        /// Strategy replace-set: RemoveRange lama + Add baru dalam 1 SaveChanges → EF emit DELETE sebelum INSERT
+        /// (tidak ada window 2-primary vs filtered-unique). Helper TIDAK SaveChanges — caller yang commit.
+        /// Mengembalikan set-diff (D-12) untuk audit: "Unit +'X'" / "Unit -'Y'" / "Primary: 'A' → 'B'".
+        /// </summary>
+        public static async Task<List<string>> SyncUserUnitsAsync(
+            ApplicationDbContext context, ApplicationUser user, List<string> units, string? primaryUnit)
+        {
+            var changes = new List<string>();
+            var existing = await context.UserUnits.Where(uu => uu.UserId == user.Id).ToListAsync();
+            var oldSet = existing.Select(e => e.Unit).ToHashSet();
+            var cleaned = (units ?? new()).Distinct().ToList();
+            var newSet = cleaned.ToHashSet();
+
+            foreach (var added in newSet.Except(oldSet)) changes.Add($"Unit +'{added}'");
+            foreach (var removed in oldSet.Except(newSet)) changes.Add($"Unit -'{removed}'");
+
+            // D-02 deterministik: primary = arg bila valid (∈ set), else unit tercentang pertama; null bila 0 unit.
+            var primary = (primaryUnit != null && newSet.Contains(primaryUnit))
+                ? primaryUnit : cleaned.FirstOrDefault();
+            var oldPrimary = existing.FirstOrDefault(e => e.IsPrimary)?.Unit;
+            if (oldPrimary != primary) changes.Add($"Primary: '{oldPrimary}' → '{primary}'");
+
+            context.UserUnits.RemoveRange(existing);
+            foreach (var u in newSet)
+                context.UserUnits.Add(new UserUnit
+                {
+                    UserId = user.Id,
+                    Unit = u,
+                    IsPrimary = (u == primary),
+                    IsActive = true
+                });
+
+            user.Unit = primary;   // MIRROR (invariant #3); null bila 0 unit
+            return changes;
+        }
+
+        /// <summary>Hasil evaluasi guard hapus-unit (MU-07).</summary>
+        public enum RemoveUnitOutcome { Allowed, Blocked, NeedConfirm, Deactivated }
+
+        public record RemoveUnitGuardResult(RemoveUnitOutcome Outcome, string? Message, CoachCoacheeMapping? MappingToDeactivate);
+
+        /// <summary>
+        /// Phase 399 (MU-07) — guard hapus-unit ASIMETRIS (D-10/D-11), dievaluasi sebelum SyncUserUnitsAsync.
+        /// - PTA aktif + unit-PROTON-teresolusi ∈ removed → HARD-BLOCK (D-11). Resolusi unit PROTON (Pitfall 4 — PTA
+        ///   tak punya kolom Unit): activeMapping.AssignmentUnit ?? oldPrimary.
+        /// - Mapping coach aktif (AssignmentUnit ∈ removed) tanpa PTA terkait → confirm→auto-deactivate (D-10):
+        ///   ConfirmedDeactivate=false → NeedConfirm (re-prompt); true → Deactivated (caller set IsActive/EndDate).
+        /// Caller TIDAK mutasi DB di sini (kecuali set IsActive saat Deactivated, dalam tx-nya).
+        /// </summary>
+        public static async Task<RemoveUnitGuardResult> EvaluateRemoveUnitGuardAsync(
+            ApplicationDbContext context, string userId, string? oldPrimary,
+            List<string> removed, bool confirmedDeactivate)
+        {
+            if (removed == null || !removed.Any())
+                return new RemoveUnitGuardResult(RemoveUnitOutcome.Allowed, null, null);
+
+            var activeMapping = await context.CoachCoacheeMappings
+                .FirstOrDefaultAsync(m => m.CoacheeId == userId && m.IsActive);
+            var hasActivePta = await context.ProtonTrackAssignments
+                .AnyAsync(a => a.CoacheeId == userId && a.IsActive);
+
+            // Resolusi unit PROTON (Pitfall 4): AssignmentUnit ?? oldPrimary
+            var protonUnit = activeMapping?.AssignmentUnit ?? oldPrimary;
+
+            // HARD-BLOCK (D-11) — Open Q1: (a) AssignmentUnit∈removed; ATAU (b) AssignmentUnit==null && oldPrimary∈removed.
+            // Juga menutup Open Q2 (kosongkan SEMUA unit saat PTA aktif → protonUnit pasti ∈ removed → block).
+            if (hasActivePta && protonUnit != null && removed.Contains(protonUnit))
+            {
+                return new RemoveUnitGuardResult(RemoveUnitOutcome.Blocked,
+                    $"Tidak bisa menghapus Unit '{protonUnit}': masih ada PROTON tahun-berjalan aktif. " +
+                    "Tutup atau bypass PROTON terlebih dahulu melalui halaman PROTON.", null);
+            }
+
+            // AUTO-DEACTIVATE-after-confirm (D-10) — mapping coach aktif AssignmentUnit∈removed, tanpa PTA terkait.
+            if (activeMapping?.AssignmentUnit != null && removed.Contains(activeMapping.AssignmentUnit))
+            {
+                if (!confirmedDeactivate)
+                    return new RemoveUnitGuardResult(RemoveUnitOutcome.NeedConfirm,
+                        $"Mapping coach aktif unit '{activeMapping.AssignmentUnit}' akan dinonaktifkan", activeMapping);
+
+                return new RemoveUnitGuardResult(RemoveUnitOutcome.Deactivated,
+                    $"Mapping coach unit '{activeMapping.AssignmentUnit}' dinonaktifkan (hapus unit)", activeMapping);
+            }
+
+            return new RemoveUnitGuardResult(RemoveUnitOutcome.Allowed, null, null);
+        }
+
         public async Task<IActionResult> ManageWorkers(string? search, string? sectionFilter, string? unitFilter, string? roleFilter, bool showInactive = false)
         {
             var currentUser = await _userManager.GetUserAsync(User);
