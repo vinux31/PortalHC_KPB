@@ -523,6 +523,36 @@ namespace HcPortal.Services
                 }
             }
 
+            // 6. Anti-dobel-link per-pekerja (D-08) — bila pekerja sudah punya sibling TIPE-SAMA di grup target
+            //    (2 Pre / 1 user = ambigu gain-score by UserId), tolak pekerja itu. Daftar LENGKAP (no early-return).
+            //    Default BLOK (UI-SPEC N4) → masuk reject-all path InjectBatchAsync (:49-68).
+            if (req.LinkTargetRepId.HasValue
+                && (req.AssessmentType == AssessmentConstants.AssessmentType.PreTest
+                    || req.AssessmentType == AssessmentConstants.AssessmentType.PostTest))
+            {
+                var (groupId, _, _, _, rep) = await ResolveLinkContextAsync(req.LinkTargetRepId, req.AssessmentType);
+                if (rep != null && groupId.HasValue)
+                {
+                    var injectUserIds = usersByNip.Values.Select(u => u.Id).ToList();
+                    var nipByUserId = usersByNip.ToDictionary(kv => kv.Value.Id, kv => kv.Key);
+                    var existingSameType = await _context.AssessmentSessions
+                        .Where(s => s.LinkedGroupId == groupId.Value
+                                 && s.AssessmentType == req.AssessmentType   // TIPE SAMA = ambigu
+                                 && injectUserIds.Contains(s.UserId))
+                        .Select(s => s.UserId).Distinct().ToListAsync();
+                    var labelType = req.AssessmentType == AssessmentConstants.AssessmentType.PreTest ? "Pre-Test" : "Post-Test";
+                    foreach (var userId in existingSameType)
+                    {
+                        var nip = nipByUserId.TryGetValue(userId, out var n) ? n : userId;
+                        errors.Add(new InjectRowError
+                        {
+                            Nip = nip,
+                            Message = $"Pekerja NIP {nip} sudah memiliki {labelType} di grup target — tidak dapat ditautkan dua kali."
+                        });
+                    }
+                }
+            }
+
             return (errors, usersByNip);
         }
 
@@ -616,6 +646,83 @@ namespace HcPortal.Services
                          && s.Schedule.Date == repDate)
                 .ToListAsync();
             return (rep.Id, opposite, true, targetSessions, rep);
+        }
+
+        /// <summary>
+        /// Phase 397 D-07 — Ringkasan PAIRING dry-run (NO write DB). Reuse <see cref="ResolveLinkContextAsync"/>
+        /// (sumber kebenaran Kasus A/B sama dengan commit → preview == commit). Hitung berapa pekerja akan
+        /// ter-pair ke sibling tipe-lawan, berapa unpaired (D-03), apakah menyentuh online (Kasus B, D-07),
+        /// peringatan tanggal janggal (D-11, skip bila CompletedAt sibling null — Open Q 2), dan daftar
+        /// anti-dobel-link (D-08 daftar LENGKAP). TIDAK memanggil SaveChangesAsync.
+        /// </summary>
+        public async Task<InjectPairingPreview> PreviewPairingAsync(
+            int? linkTargetRepId, string injectAssessmentType,
+            IReadOnlyList<string> injectUserIds, DateTime injectCompletedAt)
+        {
+            var result = new InjectPairingPreview();
+            if (!linkTargetRepId.HasValue
+                || (injectAssessmentType != AssessmentConstants.AssessmentType.PreTest
+                    && injectAssessmentType != AssessmentConstants.AssessmentType.PostTest))
+                return result;   // HasLink=false (D-04 skip)
+
+            result.HasLink = true;
+            var ctx = await ResolveLinkContextAsync(linkTargetRepId, injectAssessmentType);
+            if (ctx.rep == null) return result;   // target tak valid → no pairing
+
+            // Sesi tipe-lawan di grup target (Kasus A: by LinkedGroupId; Kasus B: SEMUA sesi room standalone).
+            var targetSessions = await _context.AssessmentSessions.AsNoTracking()
+                .Where(s => ctx.kasusB
+                        ? ctx.targetSessions.Select(t => t.Id).Contains(s.Id)
+                        : (s.LinkedGroupId == ctx.groupId && s.AssessmentType == ctx.opposite))
+                .Select(s => new { s.UserId, s.CompletedAt })
+                .ToListAsync();
+
+            var injectIdSet = injectUserIds.ToHashSet();
+            // 1 sibling per UserId (online normalnya 1 tipe-lawan per user per grup).
+            var siblingByUser = targetSessions
+                .GroupBy(t => t.UserId)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            result.Paired = injectUserIds.Count(uid => siblingByUser.ContainsKey(uid));   // LinkedSessionId terisi
+            result.Unpaired = injectUserIds.Count - result.Paired;                        // D-03 sisi tunggal
+            result.WillTouchOnline = ctx.kasusB;                                          // Kasus B banner (D-07)
+
+            // D-11 date warn — bandingkan tanggal Pre vs Post; warn HANYA bila keduanya non-null & Pre > Post.
+            //   inject Pre  → Pre date = injectCompletedAt ; Post date = sibling.CompletedAt
+            //   inject Post → Post date = injectCompletedAt ; Pre date = sibling.CompletedAt
+            bool injectIsPre = injectAssessmentType == AssessmentConstants.AssessmentType.PreTest;
+            foreach (var uid in injectUserIds)
+            {
+                if (!siblingByUser.TryGetValue(uid, out var sib) || !sib.CompletedAt.HasValue) continue;
+                var preDate = injectIsPre ? injectCompletedAt : sib.CompletedAt.Value;
+                var postDate = injectIsPre ? sib.CompletedAt.Value : injectCompletedAt;
+                if (preDate > postDate) { result.DateWarn = true; break; }
+            }
+
+            // D-08 anti-dobel-link — pekerja punya sibling TIPE-SAMA di grup target (daftar LENGKAP).
+            var sameTypeUserIds = await _context.AssessmentSessions.AsNoTracking()
+                .Where(s => s.LinkedGroupId == ctx.groupId
+                         && s.AssessmentType == injectAssessmentType
+                         && injectIdSet.Contains(s.UserId))
+                .Select(s => s.UserId).Distinct().ToListAsync();
+            if (sameTypeUserIds.Count > 0)
+            {
+                var nipByUserId = await _context.Users.AsNoTracking()
+                    .Where(u => sameTypeUserIds.Contains(u.Id) && u.NIP != null)
+                    .ToDictionaryAsync(u => u.Id, u => u.NIP!);
+                var labelType = injectIsPre ? "Pre-Test" : "Post-Test";
+                foreach (var uid in sameTypeUserIds)
+                {
+                    var nip = nipByUserId.TryGetValue(uid, out var n) ? n : uid;
+                    result.DoubleLinkErrors.Add(new InjectRowError
+                    {
+                        Nip = nip,
+                        Message = $"Pekerja NIP {nip} sudah memiliki {labelType} di grup target — tidak dapat ditautkan dua kali."
+                    });
+                }
+            }
+
+            return result;   // NO SaveChanges — dry-run
         }
 
         // =====================================================================
