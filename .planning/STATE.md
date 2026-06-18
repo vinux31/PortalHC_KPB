@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: ready_to_plan
-stopped_at: Phase 399 COMPLETE — all gates passed (verifier 6/6, secure 18/18 threats_open:0, validate 0-gaps, UAT 3/3 browser-verified); ready to plan Wave 1 {400,401,403}
-last_updated: "2026-06-18T06:55:43.611Z"
+status: verifying
+stopped_at: Phase 400 context gathered
+last_updated: "2026-06-18T07:37:09.966Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 30
@@ -129,6 +129,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Completed 399-04-PLAN.md (phase 399 ready_for_verification)
+Stopped at: Phase 400 context gathered
 
 Next action: `/gsd-plan-phase 399` (Foundation — Wave 0 solo, migration=TRUE). Lalu Wave 1 {400, 401, 403} paralel, Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
