@@ -21,6 +21,33 @@ async function loginAny(page: Page, accountKey: AccountKey) {
   ]);
 }
 
+async function authorMcQuestion(page: Page) {
+  await page.selectOption('#QuestionType', 'MultipleChoice');
+  await page.fill('#questionText', 'Soal alur inject?');
+  await page.fill('#option_A', 'Jawaban A');
+  await page.fill('#option_B', 'Jawaban B');
+  await page.check('#correct_A');
+  await page.click('#injAddQuestionBtn');
+}
+
+// Drive the full 6-step wizard with valid data, landing on the Konfirmasi panel.
+async function fillWizardToConfirm(page: Page, title: string) {
+  await page.fill('#Title', title);
+  await page.selectOption('#Category', { index: 1 });
+  await page.click('#btnNext1');
+  await expect(page.locator('#step-2')).toBeVisible();
+  await page.locator('#userCheckboxContainer .user-checkbox').first().check();
+  await page.click('#btnNext2');
+  await expect(page.locator('#step-3')).toBeVisible();
+  await authorMcQuestion(page);
+  await page.click('#btnNext3');
+  await expect(page.locator('#step-4')).toBeVisible();
+  await page.click('#btnNext4');
+  await expect(page.locator('#step-5')).toBeVisible();
+  await page.click('#btnNext5');
+  await expect(page.locator('#step-6')).toBeVisible();
+}
+
 // ── INJ-03: RBAC + page (implemented Plan 394-01) ──────────────────────────────
 test.describe('INJ-03 RBAC + page', () => {
   test('RBAC Admin reaches page', async ({ page }) => {
@@ -208,7 +235,39 @@ test.describe('INJ-07 cert radio', () => {
   });
 });
 
-// ── D-07: step5 placeholder + no DB write (implemented Plan 394-04) ─────────────
-test.describe('D-07 step5 placeholder + no DB write', () => {
-  test.skip('step5 placeholder navigable', async () => { /* Plan 394-04: #step5Placeholder navigable + confirm summary + 0 DB write */ });
+// ── D-07: step5 placeholder + confirm + no DB write (implemented Plan 394-04) ────
+test.describe('D-07 step5 placeholder + confirm', () => {
+  test('step5 placeholder navigable', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    await page.fill('#Title', 'ZZ Step5 ' + Date.now());
+    await page.selectOption('#Category', { index: 1 });
+    await page.click('#btnNext1');
+    await page.locator('#userCheckboxContainer .user-checkbox').first().check();
+    await page.click('#btnNext2');
+    await authorMcQuestion(page);
+    await page.click('#btnNext3');
+    await page.click('#btnNext4');
+    await expect(page.locator('#step-5')).toBeVisible();
+    await expect(page.locator('#step5Placeholder')).toBeVisible();
+    await expect(page.locator('#step5Placeholder')).toContainText('tahap berikutnya');
+    await page.click('#btnNext5');
+    await expect(page.locator('#step-6')).toBeVisible();
+  });
+
+  test('confirm summary', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    const title = 'ZZ Confirm ' + Date.now();
+    await fillWizardToConfirm(page, title);
+    await expect(page.locator('#sum-title')).toHaveText(title);
+    await expect(page.locator('#sum-worker-count')).toContainText('1');
+    await expect(page.locator('#sum-soal-count')).toHaveText('1');
+    await expect(page.locator('#btnInject')).toBeVisible();
+    // edit-from-confirm jumps to step 1, then returns to confirm via Selanjutnya
+    await page.locator('.edit-from-confirm[data-step="1"]').click();
+    await expect(page.locator('#step-1')).toBeVisible();
+    await page.click('#btnNext1');
+    await expect(page.locator('#step-6')).toBeVisible();
+  });
 });

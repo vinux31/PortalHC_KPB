@@ -400,7 +400,10 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-4"><i class="bi bi-pencil-square text-primary me-2"></i>Langkah 5: Jawaban</h5>
-                    <p class="text-muted">Pengisian jawaban per-pekerja diisi pada tahap berikut (Phase 395).</p>
+                    @* Seam Phase 395: tabel jawaban per-pekerja menggantikan #step5Placeholder tanpa menyentuh pills/nav *@
+                    <div id="step5Placeholder" class="alert alert-info">
+                        <i class="bi bi-hourglass-split me-2"></i>Pengisian jawaban per-pekerja tersedia pada tahap berikutnya. Selesaikan Setup, Pekerja, dan Soal terlebih dahulu.
+                    </div>
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev5">
                             <i class="bi bi-arrow-left me-1"></i>Sebelumnya
@@ -418,7 +421,56 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-4"><i class="bi bi-check2-circle text-primary me-2"></i>Langkah 6: Konfirmasi</h5>
-                    <p class="text-muted">Ringkasan Setup/Pekerja/Soal/Sertifikat diisi pada tahap berikut.</p>
+                    <p class="text-muted mb-4">Periksa kembali data sebelum meng-inject.</p>
+
+                    <!-- Setup Room -->
+                    <div class="card mb-3">
+                        <div class="card-header d-flex align-items-center">
+                            <strong>Setup Room</strong>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto edit-from-confirm" data-step="1"><i class="bi bi-pencil me-1"></i>Edit</button>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">Judul</dt><dd class="col-sm-8" id="sum-title"></dd>
+                                <dt class="col-sm-4">Kategori</dt><dd class="col-sm-8" id="sum-category"></dd>
+                                <dt class="col-sm-4">Tipe</dt><dd class="col-sm-8" id="sum-type"></dd>
+                                <dt class="col-sm-4">Tanggal Ujian</dt><dd class="col-sm-8" id="sum-date"></dd>
+                                <dt class="col-sm-4">Durasi</dt><dd class="col-sm-8" id="sum-duration"></dd>
+                                <dt class="col-sm-4">Pass Percentage</dt><dd class="col-sm-8" id="sum-pass"></dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Pekerja -->
+                    <div class="card mb-3">
+                        <div class="card-header d-flex align-items-center">
+                            <strong>Pekerja</strong>
+                            <span class="badge bg-secondary ms-2" id="sum-worker-count"></span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto edit-from-confirm" data-step="2"><i class="bi bi-pencil me-1"></i>Edit</button>
+                        </div>
+                        <div class="card-body" id="sum-worker-list"></div>
+                    </div>
+
+                    <!-- Soal -->
+                    <div class="card mb-3">
+                        <div class="card-header d-flex align-items-center">
+                            <strong>Soal</strong>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto edit-from-confirm" data-step="3"><i class="bi bi-pencil me-1"></i>Edit</button>
+                        </div>
+                        <div class="card-body">
+                            <span id="sum-soal-count">0</span> soal · Total <span id="sum-soal-poin">0</span> poin
+                        </div>
+                    </div>
+
+                    <!-- Sertifikat -->
+                    <div class="card mb-3">
+                        <div class="card-header d-flex align-items-center">
+                            <strong>Sertifikat</strong>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto edit-from-confirm" data-step="4"><i class="bi bi-pencil me-1"></i>Edit</button>
+                        </div>
+                        <div class="card-body"><span id="sum-cert"></span></div>
+                    </div>
+
                     <div class="d-flex justify-content-between mt-4 mb-3">
                         <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev6">
                             <i class="bi bi-arrow-left me-1"></i>Sebelumnya
@@ -539,13 +591,45 @@
         return valid;
     }
 
-    // ---- populateSummary (stub — Plan 04 fills confirm summary via .textContent) ----
-    function populateSummary() { }
+    // ---- populateSummary (Plan 04: confirm summary via .textContent — XSS-safe) ----
+    function populateSummary() {
+        function setText(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+        function selText(id) { var el = document.getElementById(id); return (el && el.options[el.selectedIndex]) ? el.options[el.selectedIndex].text : ''; }
+        function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+        setText('sum-title', val('Title'));
+        setText('sum-category', selText('Category'));
+        setText('sum-type', selText('assessmentTypeInput'));
+        setText('sum-date', val('CompletedAt'));
+        setText('sum-duration', val('DurationMinutes') + ' menit');
+        setText('sum-pass', val('PassPercentage') + '%');
+        var checked = Array.from(document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked'));
+        setText('sum-worker-count', checked.length + ' peserta');
+        injRenderSelectedNames(document.getElementById('sum-worker-list'), checked);
+        setText('sum-soal-count', injQuestions.length);
+        setText('sum-soal-poin', injQuestions.reduce(function (s, q) { return s + (q.ScoreValue || 0); }, 0));
+        var certChecked = document.querySelector('input[name="CertMode"]:checked');
+        var certLabel = 'Tanpa Sertifikat';
+        if (certChecked) {
+            var lbl = document.querySelector('label[for="' + certChecked.id + '"]');
+            if (lbl) certLabel = lbl.textContent.trim();
+        }
+        setText('sum-cert', certLabel);
+    }
 
     // ---- wiring ----
     document.querySelectorAll('.btn-next').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            if (validateStep(currentStep)) goToStep(currentStep + 1);
+            if (validateStep(currentStep)) {
+                if (returnToConfirm) { returnToConfirm = false; goToStep(6); }
+                else goToStep(currentStep + 1);
+            }
+        });
+    });
+    document.querySelectorAll('.edit-from-confirm').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            returnToConfirm = true;
+            var step = parseInt(btn.getAttribute('data-step'), 10);
+            if (!isNaN(step)) goToStep(step);
         });
     });
     document.querySelectorAll('.btn-prev').forEach(function (btn) {
