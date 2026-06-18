@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
-stopped_at: Phase 396 UI-SPEC approved
-last_updated: "2026-06-18T05:07:36.425Z"
-last_activity: 2026-06-18 -- Phase 396 planning complete
+stopped_at: Phase 397 context gathered
+last_updated: "2026-06-18T06:29:28.533Z"
+last_activity: 2026-06-18 -- Phase 396 execution started
 progress:
   total_phases: 29
   completed_phases: 3
   total_plans: 15
-  completed_plans: 10
-  percent: 67
+  completed_plans: 11
+  percent: 73
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 395 — mode-jawaban-input-asli-auto-generate
+**Current focus:** Phase 396 — import-excel-retire-bulkbackfill
 
 ## Current Position
 
-Phase: 396
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-18 -- Phase 396 planning complete
+Phase: 396 (import-excel-retire-bulkbackfill) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 396
+Last activity: 2026-06-18 -- Phase 396 execution started
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 
@@ -145,6 +145,6 @@ Last activity: 2026-06-18 -- Phase 396 planning complete
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 396 UI-SPEC approved
+Stopped at: Phase 397 context gathered
 
 Next action: **Task 3 checkpoint human-verify** Phase 395 Plan 03. App live http://localhost:5277 (main tree, AD-off). Verifikasi browser Langkah 5 + commit "seakan online" (lihat 395-03-SUMMARY "Checkpoint Pending" + 395-03-PLAN Task 3 how-to-verify). Pilih pekerja BER-NIP (rino.prasetyo/iwan3). Ketik "approved" → resume: mark INJ-08/INJ-09 complete + `state advance-plan` + close phase 395 + notify IT migration=FALSE. Atau jelaskan masalah → fix. ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
