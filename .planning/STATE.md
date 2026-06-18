@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: executing
-stopped_at: Completed 397-03-PLAN.md (Wave 2 controller wiring — SearchLinkTargets + MapToRequest link + PreviewPairing + UnlinkInjectGroup; fast 390/390 + 397 integration 15/15 + 0 migration)
-last_updated: "2026-06-18T10:58:20.177Z"
-last_activity: 2026-06-18
+status: planning
+stopped_at: Completed 397-04-PLAN.md (INJ-12 COMPLETE; human-verify APPROVED 9/9; phase 397 ready_for_verification)
+last_updated: "2026-06-18T11:44:52.699Z"
+last_activity: 2026-06-18 -- 397-04 Wave 4 view/e2e + human-verify APPROVED 9/9 → INJ-12 COMPLETE
 progress:
   total_phases: 29
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 19
-  completed_plans: 18
-  percent: 95
+  completed_plans: 19
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -21,20 +21,26 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 397 — link-pre-post-ke-room-existing
+**Current focus:** Phase 397 — link-pre-post-ke-room-existing (4/4 SELESAI → ready_for_verification)
 
 ## Current Position
 
-Phase: 397 (link-pre-post-ke-room-existing) — EXECUTING
-Plan: 4 of 4
-Status: 397-03 SELESAI (Wave 2 controller/preview wiring: SearchLinkTargets JSON picker + MapToRequest req.LinkTargetRepId + PreviewPairing dry-run D-07 + UnlinkInjectGroup POST D-12; build green + fast 390/390 + 397 integration 15/15 + 0 migration; commits 14102d02+65595e75). Next: 397-04 (Wave 3 view/modal/chip/preview/unlink + Playwright).
-Last activity: 2026-06-18 -- 397-03 Wave 2 controller HTTP seam selesai
+Phase: 397 (link-pre-post-ke-room-existing) — 4/4 PLAN SELESAI → READY FOR VERIFICATION
+Plan: 4 of 4 (COMPLETE)
+Status: 397-04 SELESAI (Wave 4 view/modal/chip/pairing/unlink + Playwright e2e 6/6 + 0 migration; commits `47b0e875` [N1-N5 UI: roomPickerModal/btnCariRoom/selectedRoomChip/LinkedTargetRepId/previewPairingSummary/unlinkConfirmModal] + `7ecd0ef3` [Rule-3 surface resolvedGroupId post-commit via InjectResult.LinkedGroupId+TempData untuk host unlink N5] + `2d19bf07` [e2e cross-grouping §13]). **Checkpoint Task 4 human-verify APPROVED** — orchestrator-driven live browser UAT (admin@pertamina.com, AD-off, localhost:5277, DB snapshot/restore per CLAUDE.md Seed Workflow, SEED_JOURNAL Phase 397 CLEANED) **9/9 PASS**: (1) Cari-Room conditional Pre/Post + hint tipe-lawan, Standard hidden; (2) modal hanya tipe-lawan + debounced search; (3) badge Kasus A "Sudah ber-grup"/Kasus B "Standalone"; (4) chip + hidden #LinkedTargetRepId=173 + Ganti/remove; (5) pairing summary 1 ter-pair/0 tanpa pasangan; (6) banner Kasus B "Data online akan disentuh… skor/jawaban/status TIDAK diubah"; (7) date-warn Pre>Post; (8) **KRITIS §13 commit** inject Pre (Id174) + online Post (Id173) share LinkedGroupId=173 + same UserId, online Score=85+Status=Completed UNCHANGED, audit LinkPrePost ×1, cross inject↔online grouping utuh; (9) unlink via Bootstrap confirm modal (bukan native) → 173/174 link columns NULL + Score utuh + audit LinkPrePostUndo ×2. DB restored ke baseline (sessions 60→60, 0 link audit, 0 baris UAT). **INJ-12 COMPLETE lintas plan 01-04** (TDD lock → service → controller → view+e2e). Unlink host LOCKED di success surface post-commit wizard (D-12), monitoring OUT OF SCOPE. 0 migration (git diff Migrations/ Data/ kosong). SUMMARY @ `.planning/phases/397-link-pre-post-ke-room-existing/397-04-SUMMARY.md`. Phase-level completion (transition 397→398) dimiliki orchestrator pasca-verifikasi.
+Last activity: 2026-06-18 -- 397-04 Wave 4 view/e2e + human-verify APPROVED 9/9 → INJ-12 COMPLETE
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 
 **v32.0 (Phases 391+392) COMPLETE local 2026-06-17 — belum diarsip** (dir phases 391/392 masih live; `/gsd-complete-milestone` belum dijalankan, atas keputusan user). Sisa v32.0: secure/validate 392 + audit-milestone + notify IT (migration=FALSE) — non-blocking untuk v32.2.
 
 ## Next Action
+
+**Phase 397 SELESAI 4/4 plan — INJ-12 COMPLETE → ready_for_verification.** Next: orchestrator jalankan verify (gsd-verifier) untuk Phase 397, lalu (opsional) secure + validate, kemudian transition → **Phase 398** (Test + UAT "seakan online", INJ-13 — E2E full lifecycle inject→/CMP/Records+/CMP/Results per-soal+sertifikat + regression suite + audit milestone v32.2). Saat push: notify IT (commit hash; migration=FALSE — git diff Migrations/ Data/ kosong sepanjang fase). Branch main. ❌ tidak ada edit Dev/Prod. ⚠️ 394+395+396+397 belum di-push (deploy bareng). Plan 04 detail di Current Position di atas + SUMMARY `397-04-SUMMARY.md`.
+
+---
+
+_(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 **Phase 397 Plan 02 SELESAI (Wave 1 GREEN — implementasi service INJ-12)** — 3 commits: `af28e9db` feat (Task 1 per-worker bidirectional + Kasus A/B + write-to-online) + `a5c3b050` feat (Task 2 anti-double preflight D-08 + `PreviewPairingAsync` D-07 dry-run) + `e474dda5` feat (Task 3 `UnlinkInjectGroupAsync` D-12 atomic revert). SUMMARY @ `.planning/phases/397-link-pre-post-ke-room-existing/397-02-SUMMARY.md`. **Hanya `Services/InjectAssessmentService.cs` (+343/-2); 0 migration** (no `Migrations/`/`Data/` diff). `dotnet build HcPortal.csproj` **0 error**; 5 Wave-0 397 suite **GREEN 15/15** (`InjectLink` 4 + `AntiDoubleLink` 1 + `PreviewPairing` 4 + `CrossGrouping` 3 KRITIS §13 + `UnlinkInject` 3; real SQLEXPRESS, `HcPortalDB_Dev` untouched) + fast suite **389/389 GREEN** (no regression 395/396). **Yang dibangun:** (1) ganti broadcast `:120` → resolusi sibling **by-UserId** per-pekerja SETELAH SaveChanges (D-02) + write-back bidirectional online. (2) `ResolveLinkContextAsync` (privat, **server re-resolve dari `req.LinkTargetRepId`**, T-397-06; sumber tunggal Kasus A/B → preview==commit): Kasus A adopt `rep.LinkedGroupId` tak-sentuh-online / Kasus B `resolvedGroupId=rep.Id`(RepresentativeId) tulis stiker `LinkedGroupId` ke **SEMUA** sesi room target (Pitfall 2; key **Title+Category+Schedule.Date** — LOCKED, WAJIB cocok picker Plan 03). (3) audit `"LinkPrePost"` per sesi online dimutasi (D-09) gated `!IsManualEntry` ⇒ inject↔inject 0 audit (D-10); `mutatedOnlineSessionIds` HashSet dedup paired-sticker. (4) anti-double D-08 di `PreflightValidateAsync` (daftar lengkap, masuk reject-all path, pesan BI memuat NIP). (5) `PreviewPairingAsync(int?,string,IReadOnlyList<string>,DateTime)→InjectPairingPreview` dry-run **NO write** (Paired/Unpaired/WillTouchOnline/DateWarn skip-when-null Open Q 2/DoubleLinkErrors). (6) `UnlinkInjectGroupAsync(int,string,string)→InjectResult` atomic revert bidirectional + Kasus B stiker via heuristik single-type (Open Q 1 opt-b) + audit `"LinkPrePostUndo"`; IDOR guard load `IsManualEntry`; bogus group → `Success=false` state utuh. **Skor/status/jawaban online TAK disentuh** (T-397-04). **1 deviasi Rule-3** (non-scope): helper `ResolveLinkContextAsync` di-add di Task 1 (bukan Task 2) demi compile-order — Task 1 inline sudah memanggilnya, jadi "refactor to call helper" Task 2 = no-op. Audit ActionType: `LinkPrePost`(11)/`LinkPrePostUndo`(15) ≤ MaxLength(50). Branch main; notify IT migration=FALSE.
 
@@ -157,6 +163,6 @@ Last activity: 2026-06-18 -- 397-03 Wave 2 controller HTTP seam selesai
 
 Last activity: 2026-06-18
 
-Stopped at: Completed 397-03-PLAN.md (Wave 2 controller wiring — SearchLinkTargets + MapToRequest link + PreviewPairing + UnlinkInjectGroup; fast 390/390 + 397 integration 15/15 + 0 migration)
+Stopped at: Completed 397-04-PLAN.md (INJ-12 COMPLETE; human-verify APPROVED 9/9; phase 397 ready_for_verification)
 
 Next action: **`/gsd-execute-phase 397` lanjut Plan 02 (Wave 1 — implementasi service INJ-12, GREEN gate)** — implement di `Services/InjectAssessmentService.cs`: `UnlinkInjectGroupAsync` BARU (D-12, mirror atomic+audit `DeleteAssessmentGroup`) + `PreviewPairingAsync` BARU (D-07 dry-run NO write) + resolusi link per-pekerja di `InjectBatchAsync` digerakkan `req.LinkTargetRepId` (ganti broadcast `:120` → sibling by-UserId; Kasus A adopt / Kasus B tulis-ke-SEMUA-sesi-target + bidirectional write-back + audit `"LinkPrePost"`; anti-double preflight D-08 daftar-lengkap; audit `"LinkPrePostUndo"` saat unlink) → 5 file RED + fast suite GREEN. **Gate verifikasi Wave 1:** `dotnet test --filter "FullyQualifiedName~InjectLink"` / `~AntiDoubleLink` / `~PreviewPairing` / `~CrossGrouping` / `~UnlinkInject` (real SQLEXPRESS) + `dotnet test` penuh. 0 migration (kolom `LinkedGroupId`/`LinkedSessionId` sudah ada). Branch main. ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). Plan 03 = controller (SearchLinkTargets JSON + UnlinkInjectGroup endpoint + extend PreviewInjectScore/MapToRequest); Plan 04 = view modal/chip + Playwright. Setelah fase 397: Phase 398 (test+UAT seakan-online). Sisa 396: secure/validate/verifier sudah TUNTAS (HEAD `b465a5ab`); notify IT (migration=FALSE).

@@ -35,7 +35,7 @@
 
 ### Link Pre/Post ke Room Existing (INJ) — fase 397
 
-- [ ] **INJ-12**: HC dapat **mencari & memilih assessment room existing** untuk menautkan sesi inject Pre/Post (`LinkedGroupId` + `LinkedSessionId`, reuse query `ManageAssessmentTab_Assessment`) — mendukung skenario **silang inject↔online** (mis. Pre di-inject, Post = assessment online asli, atau sebaliknya).
+- [x] **INJ-12**: HC dapat **mencari & memilih assessment room existing** untuk menautkan sesi inject Pre/Post (`LinkedGroupId` + `LinkedSessionId`, reuse query `ManageAssessmentTab_Assessment`) — mendukung skenario **silang inject↔online** (mis. Pre di-inject, Post = assessment online asli, atau sebaliknya).
 
 ### Verifikasi "Seakan Online" (INJ) — fase 398
 
@@ -75,7 +75,7 @@
 | INJ-09 | Phase 395 | Complete |
 | INJ-10 | Phase 396 | Complete |
 | INJ-11 | Phase 396 | Complete |
-| INJ-12 | Phase 397 | Pending |
+| INJ-12 | Phase 397 | Complete |
 | INJ-13 | Phase 398 | Pending |
 
 **Coverage: 13/13 v32.2 requirements mapped ✓ — Orphans: 0 — Duplicates: 0**
