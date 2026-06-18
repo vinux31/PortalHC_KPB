@@ -95,6 +95,18 @@
     }
 }
 
+@{
+    var orphanCount = ViewBag.OrphanUnitMappings as int? ?? 0;
+    if (orphanCount > 0)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>@orphanCount mapping aktif</strong> memiliki Unit penugasan kosong atau bukan anggota Unit aktif coachee — coachee ini tidak muncul di surface PROTON. Perbaiki Unit coachee atau Edit mapping.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+}
+
 @if (TempData["ImportError"] != null)
 {
     <div class="alert alert-danger alert-dismissible fade show">
