@@ -1392,6 +1392,8 @@ namespace HcPortal.Controllers
                     // (renewal = perpanjangan tahun yang SUDAH dilewati).
                     bool isRenewal = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue;
 
+                    // Phase 401 (D-03): actor untuk gate-block AuditLog (resolve sekali sebelum loop).
+                    var actor = await _userManager.GetUserAsync(User);
                     var filtered = new List<string>();
                     foreach (var uid in UserIds)
                     {
@@ -1408,11 +1410,20 @@ namespace HcPortal.Controllers
                         // (b) Deliverable 100% per-unit (D-02). Fallback: track 0 deliverable → eligible (D-08).
                         if (trackHasDeliverables)
                         {
+                            // Phase 401 (PSU-01): resolusi unit PROTON HANYA dari AssignmentUnit (fallback User.Unit DIBUANG — ambigu multi-unit).
                             var resolvedUnit = await _context.CoachCoacheeMappings
                                 .Where(m => m.CoacheeId == uid && m.IsActive).Select(m => m.AssignmentUnit).FirstOrDefaultAsync();
                             if (string.IsNullOrWhiteSpace(resolvedUnit))
-                                resolvedUnit = await _context.Users.Where(u => u.Id == uid).Select(u => u.Unit).FirstOrDefaultAsync();
-                            if (string.IsNullOrWhiteSpace(resolvedUnit)) { gateSkippedNotHundred++; continue; }
+                            {
+                                // PSU-05 / D-02: gate penerbitan session/cert — BLOCK (tak boleh terbit dgn unit ter-resolve dari primary).
+                                // D-03 channel = AuditLog persisted (event langka & signifikan) + LogWarning.
+                                await _auditLog.LogAsync(actor?.Id ?? "system", actor?.FullName ?? actor?.UserName ?? "system",
+                                    "ProtonUnitUnresolved",
+                                    $"Coachee {uid} di-skip dari gate eligibility exam (penerbitan session/cert): AssignmentUnit kosong — tak boleh resolve dari Unit primary.",
+                                    targetType: "CoachCoacheeMapping");
+                                _logger.LogWarning("Cert-gate skip: coachee {Uid} AssignmentUnit kosong (BLOCK penerbitan).", uid);
+                                gateSkippedNotHundred++; continue;
+                            }
                             var unitDeliverableIds = await _context.ProtonDeliverableList
                                 .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
                                          && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim())
