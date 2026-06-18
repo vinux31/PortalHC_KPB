@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v32.1
 milestone_name: Perbaikan Teks & Desain
-status: executing
-stopped_at: Phase 390.1 COMPLETE — DSN-07 import-button DOMContentLoaded fix shipped (V-18 PASS runtime, 0 failed, code review clean, verify 4/4)
-last_updated: "2026-06-17T11:36:32.583Z"
-last_activity: 2026-06-17 -- Phase 390.1 execution started
+status: complete
+stopped_at: v32.1 CLOSED 2026-06-18 — archived milestones/v32.1-* (7/7 REQ PASSED, 0 migration). NOT pushed (close bareng v32.3). Next milestone v32.3 (phase 399).
+last_updated: "2026-06-18T02:11:45.736Z"
+last_activity: 2026-06-18
 progress:
   total_phases: 25
   completed_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md
 Phase: 390.1 (fix-import-excel-button-auto-enable-on-coachcoacheemapping-v) — EXECUTING
 Plan: 1 of 1
 Status: Executing Phase 390.1
-Last activity: 2026-06-17 -- Phase 390.1 execution started
+Last activity: 2026-06-18
 
 ## Next Action
 

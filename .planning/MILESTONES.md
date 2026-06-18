@@ -1,5 +1,20 @@
 # Milestones
 
+## v32.1 Perbaikan Teks & Desain (Shipped: 2026-06-18)
+
+**Phases completed:** 4 phases (388-390 + 390.1), 7 plans — **0 migration, 0 backend** (pure UI/teks 3 surface). Audit PASSED 7/7 REQ.
+
+**Key accomplishments:**
+
+- LBL-03: label "Batas Nilai Kelulusan" (bukan "Nilai Kelulusan") di kartu ringkasan `Views/CMP/Results.cshtml`; nilai persen tak berubah.
+- DSN-01/02/03 (Phase 389, risk tertinggi): redesign `CoachCoacheeMapping` → accordion card per coach (avatar inisial + nama + section + badge beban warna-ikut-threshold) + toolbar diseragamkan + hapus dead-`onclick` "Tambah Mapping". Behavior parity (modal/AJAX/collapse) terjaga.
+- DSN-04/05 (Phase 388): `CoachWorkload` polish — filter bar + section "Saran Penyeimbangan" dibungkus card konsisten + hapus inline magic-number font-size + spacing.
+- DSN-06 (Phase 390): Test & UAT behavior parity penutup — semua aksi existing (assign/edit/nonaktif/graduated/hapus/reactivate/import/export) lolos Playwright + UAT browser.
+- DSN-07 (Phase 390.1): import-button auto-enable via DOMContentLoaded fix (V-18 PASS runtime, verify 4/4, SECURED 2/2).
+- Verifikasi: gsd-verifier 389-VERIFICATION 5/5, audit milestone PASSED (7/7 REQ + DSN-07 bonus, integration 12/12 wired, nyquist all-compliant). Known deferred at close: 44 artifact (43 quick-task lama selesai + 1 todo cleanup DB lokal) — lihat STATE.md Deferred Items.
+
+---
+
 ## v31.0 Hotfix Pra-Ujian Lisensor (Shipped: 2026-06-15)
 
 **Phases completed:** 6 phases, 12 plans, 28 tasks
