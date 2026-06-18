@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: executing
-stopped_at: Phase 397 context gathered
-last_updated: "2026-06-18T06:29:52.712Z"
-last_activity: 2026-06-18
+status: Plan 396-01 SHIPPED (Wave 0 TDD lock, RED); next = Plan 396-02 (implement InjectExcelHelper → GREEN)
+stopped_at: Phase 397 UI-SPEC approved
+last_updated: "2026-06-18T06:39:29.858Z"
+last_activity: 2026-06-18 -- Phase 396 Plan 01 complete (failing InjectExcelHelper unit suite + DTO/VM contracts)
 progress:
   total_phases: 29
   completed_phases: 3
@@ -146,6 +146,6 @@ Last activity: 2026-06-18 -- Phase 396 Plan 01 complete (failing InjectExcelHelp
 
 Last activity: 2026-06-18
 
-Stopped at: Completed 396-01-PLAN.md (Wave 0 TDD lock — RED unit suite + DTO/VM contracts)
+Stopped at: Phase 397 UI-SPEC approved
 
 Next action: **`/gsd-execute-phase 396` lanjut Plan 02** — implement `Helpers/InjectExcelHelper.cs` (`GenerateTemplate`/`ParseMatrix` kontrak dikunci `396-01-SUMMARY.md`) sampai `InjectExcelHelperTests` GREEN + restore fast suite (verification §3). Lalu Plan 03 (controller endpoints DownloadInjectTemplate/UploadInjectExcel), Plan 04 (view Step5Method toggle + panel Excel), Plan 05 (retire BulkBackfill D-10/D-11 + test). 0 migration sepanjang fase. Branch main. ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
