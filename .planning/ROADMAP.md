@@ -88,7 +88,8 @@
   2. Rollup tingkat **Bagian** (completion%/pass-rate/denominator) menghitung tiap pekerja multi-unit **sekali saja** (dedup) — tidak ada double-count yang menggelembungkan/mengempiskan persentase. *(MU-06)*
   3. CMP analytics/renewal **tidak berubah** perilakunya (tetap atribusi primary, D1=b — verifikasi tak ada drift). *(MU-06)*
   4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: fixture pekerja {X,Y} tampil di filter unit-X dan unit-Y; rollup Bagian dedup terverifikasi (count benar). *(MU-06)*
-**Plans:** TBD
+**Plans:** 1 plan
+- [ ] 400-01-PLAN.md — Wave 1: predikat unit set-aware (3 lokasi: GetWorkersInSection + ManageWorkers + ExportWorkers) + kolom Unit kontekstual D-02 + batch-load dict + ~7 unit test (MU-06) [migration=FALSE]
 **UI hint:** yes
 
 ### Phase 401: PROTON Unit-Resolution Hardening
