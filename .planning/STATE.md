@@ -4,14 +4,14 @@ milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
 stopped_at: Phase 394 UI-SPEC approved
-last_updated: "2026-06-18T00:40:37.375Z"
+last_updated: "2026-06-18T00:58:11.720Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 29
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 5
+  percent: 71
 ---
 
 # Project State: Portal HC KPB
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 394 (page-setup-room-authoring-soal) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-06-18
 

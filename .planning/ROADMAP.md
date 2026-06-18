@@ -99,7 +99,7 @@
   6. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright: kartu Section C → page terbuka (Admin/HC), role lain 403; setup room tersimpan; authoring soal MC/MA/Essay berfungsi; worker picker tolak NIP tak dikenal; toggle sertifikat 3 mode. *(INJ-03..07 — Razor + JS runtime → Playwright wajib, pelajaran Phase 354)*
 **Plans:** 4 plans
 - [x] 394-01-PLAN.md — Wave 1: fondasi (controller RBAC + ViewModel + Section-C card + wizard 6-pill scaffold + Wave 0 test scaffolds) (INJ-03)
-- [ ] 394-02-PLAN.md — Wave 2: Step-1 Setup Room (field mirror + Cek Judul + backdate) + Step-2 worker picker (reuse, strip Proton) (INJ-04, INJ-06)
+- [x] 394-02-PLAN.md — Wave 2: Step-1 Setup Room (field mirror + Cek Judul + backdate) + Step-2 worker picker (reuse, strip Proton) (INJ-04, INJ-06)
 - [ ] 394-03-PLAN.md — Wave 3: Step-3 authoring soal (partial + client-state REWIRE, never CreateQuestion) + Step-4 cert radio 3-mode (INJ-05, INJ-07)
 - [ ] 394-04-PLAN.md — Wave 4: Step-5 placeholder + Step-6 confirm + POST VM→InjectRequest (UserId→NIP, no commit) + 0-migration gate (INJ-03..07)
 **UI hint:** yes
@@ -169,7 +169,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 393. Backend core inject (INJ-01, INJ-02) | 3/3 | Complete    | 2026-06-17 |
-| 394. Page + Setup Room + authoring soal (INJ-03..07) | 1/4 | In Progress|  |
+| 394. Page + Setup Room + authoring soal (INJ-03..07) | 2/4 | In Progress|  |
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 0/? | Not started | - |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 0/? | Not started | - |
 | 397. Link Pre/Post ke room existing (INJ-12) | 0/? | Not started | - |
