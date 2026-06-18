@@ -51,7 +51,7 @@
 ### Phases
 
 - [x] **Phase 399: Foundation — Junction UserUnits + Primary-Mirror + Multi-Select UI + Display (MU-01/02/03/04/05/07)** — Model `UserUnit` + `DbSet` + index (filtered-unique primary) + migration `AddUserUnitsTable` + backfill 1 primary-row/pekerja existing; kontrak write-through primary-mirror di Worker Create/Edit/Import (set `UserUnits` + mirror `ApplicationUser.Unit` = primary, recompute saat primary dihapus); UI **Bagian single + Unit multi-select** (cascade Bagian→unit-anak); display **semua unit** (primary ditandai) di Profil/WorkerDetail/Settings/ManageWorkers/export Excel/Home/`_PSign`; Bulk Import multi-unit; validasi tiap junction-write `Unit ∈ unit-Bagian`; audit-log set-diff; guard hapus-unit (blok bila dirujuk `AssignmentUnit`/`ProtonTrackAssignment` aktif). **migration=TRUE** (junction + backfill). Wave 0 — solo, semua nunggu. (completed 2026-06-18)
-- [ ] **Phase 400: Membership Listing Set-Aware + Rollup Dedup (MU-06)** — `WorkerDataService.GetWorkersInSection` + role-filter + tabel CMP records **set-aware** (pekerja multi-unit muncul di tiap unit-nya) + dedup rollup tingkat Bagian (completion%/denominator tidak hitung pekerja ganda). CMP analytics/renewal TIDAK diubah (D1=b primary). 0 migration. Wave 1 (paralel dgn 401/403, depends 399).
+- [x] **Phase 400: Membership Listing Set-Aware + Rollup Dedup (MU-06)** — `WorkerDataService.GetWorkersInSection` + role-filter + tabel CMP records **set-aware** (pekerja multi-unit muncul di tiap unit-nya) + dedup rollup tingkat Bagian (completion%/denominator tidak hitung pekerja ganda). CMP analytics/renewal TIDAK diubah (D1=b primary). 0 migration. Wave 1 (paralel dgn 401/403, depends 399). (completed 2026-06-18, UAT approved)
 - [ ] **Phase 401: PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07)** — Resolve unit PROTON dari **`AssignmentUnit` eksplisit** (drop fallback `User.Unit` ambigu di 5/6 resolver); switch filter axis coachee-scope/BypassList ke `AssignmentUnit`; validasi `AssignmentUnit ∈ coachee.UserUnits` + bypass `TargetUnit ∈ worker.UserUnits` + org-tree; 6 read-path **skip + audit-warn** bila `AssignmentUnit` kosong (gate eligibility exam tak boleh terbit dgn unit primary); `CleanupCoachCoacheeMappingOrg` + Import **no-clobber** ke primary (UserUnits-aware); reactivation guard (no-clobber + validasi unit aktif + assignment unit-match). 0 migration. Wave 1 (paralel dgn 400/403, depends 399).
 - [ ] **Phase 402: Coaching Cross-Unit Mapping (CXU-01/02/03/04/05)** — Eligible-coachee set-aware = semua coachee 1 Bagian lintas-unit (`coachee.Section == coach.Section`); server guard coachee ⊆ Bagian coach (tolak cross-Bagian); `AssignmentUnit` **per-coachee** (map `coacheeId→unit`, dropdown unit per-baris dari `coachee.UserUnits`, validasi per PSU-03); relax JS lock single-unit-per-batch → level Bagian; self-scope coaching-role multi-unit (`unit=user.Unit` → `IN(coach.UserUnits)` di `CDPController` 305/326/636 + post-filter 490-491). 0 migration. Wave 2 (SERIAL setelah 401 — shared file + butuh aturan AssignmentUnit dari 401).
 - [ ] **Phase 403: OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02)** — Rename/reparent unit cascade ke `UserUnits.Unit` + recompute primary-mirror; delete-guard scan `UserUnits` (termasuk membership sekunder, bukan cuma scalar `Users.Unit`); reparent unit lintas-Bagian **hard-BLOCK** bila `UserUnits` pekerja terpecah ke >1 Bagian (jaga Invariant #1); `PreviewEditCascade` hitung baris `UserUnits` terdampak (preview == actual). File `OrganizationController` terisolasi. 0 migration. Wave 1 (paralel dgn 400/401, depends 399).
@@ -89,7 +89,7 @@
   3. CMP analytics/renewal **tidak berubah** perilakunya (tetap atribusi primary, D1=b — verifikasi tak ada drift). *(MU-06)*
   4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: fixture pekerja {X,Y} tampil di filter unit-X dan unit-Y; rollup Bagian dedup terverifikasi (count benar). *(MU-06)*
 **Plans:** 1 plan
-- [ ] 400-01-PLAN.md — Wave 1: predikat unit set-aware (3 lokasi: GetWorkersInSection + ManageWorkers + ExportWorkers) + kolom Unit kontekstual D-02 + batch-load dict + ~7 unit test (MU-06) [migration=FALSE]
+- [x] 400-01-PLAN.md — Wave 1: predikat unit set-aware (3 lokasi: GetWorkersInSection + ManageWorkers + ExportWorkers) + kolom Unit kontekstual D-02 + batch-load dict + ~7 unit test (MU-06) [migration=FALSE]
 **UI hint:** yes
 
 ### Phase 401: PROTON Unit-Resolution Hardening
@@ -161,7 +161,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 4/4 | Complete    | 2026-06-18 |
-| 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 0/0 | Not started | - |
+| 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 1/1 | Complete   | 2026-06-18 |
 | 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 0/0 | Not started | - |
 | 402. Coaching Cross-Unit Mapping (CXU-01..05) | 0/0 | Not started | - |
 | 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 0/0 | Not started | - |
@@ -177,7 +177,7 @@
 | MU-04 | 399 | Bulk Import multi-unit (kolom/format unit ganda, validasi anak Bagian) | Pending |
 | MU-05 | 399 | Migration backfill 1 primary-row/pekerja + validasi `Unit ∈ unit-Bagian` tiap junction-write | Pending |
 | MU-07 | 399 | Guard hapus-unit (blok bila dirujuk `AssignmentUnit`/`ProtonTrackAssignment` aktif) | Pending |
-| MU-06 | 400 | `WorkerDataService.GetWorkersInSection` + role-filter + CMP records set-aware + rollup dedup | Pending |
+| MU-06 | 400 | `WorkerDataService.GetWorkersInSection` + role-filter + CMP records set-aware + rollup dedup | Complete |
 | PSU-01 | 401 | Resolve unit PROTON dari `AssignmentUnit` (drop fallback `User.Unit`); T1@X→T2@Y sekuensial | Pending |
 | PSU-02 | 401 | Filter coachee/tim/bypass pakai `AssignmentUnit` (BypassList, coachee-scope CDP) | Pending |
 | PSU-03 | 401 | Validasi `AssignmentUnit ∈ coachee.UserUnits` + bypass `TargetUnit ∈ worker.UserUnits` + org | Pending |
