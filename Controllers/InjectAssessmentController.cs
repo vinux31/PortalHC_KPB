@@ -232,6 +232,42 @@ namespace HcPortal.Controllers
             return Json(rows);   // Json, BUKAN PartialView (Pitfall 6)
         }
 
+        // POST /Admin/PreviewPairing — ringkasan PAIRING dry-run (D-07, INJ-12 Surface 5). Companion terpisah
+        // dari PreviewInjectScore (skor per-pekerja); pairing = batch-level. View Wave 3 panggil saat room
+        // tertaut untuk render #previewPairingSummary. Reuse PreviewPairingAsync (sumber Kasus A/B sama dgn
+        // commit → preview == commit; NO write). RBAC Admin,HC (T-397-09) + CSRF (T-397-10).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PreviewPairing([FromBody] PreviewPairingRequest req)
+        {
+            req ??= new PreviewPairingRequest();
+            var summary = await _injectService.PreviewPairingAsync(
+                req.LinkTargetRepId,
+                req.AssessmentType ?? "Standard",
+                req.UserIds ?? new List<string>(),
+                req.CompletedAt);
+            return Json(summary);   // InjectPairingPreview — dry-run, NO SaveChanges
+        }
+
+        // POST /Admin/UnlinkInjectGroup — lepas tautan grup inject pasca-commit (D-12, INJ-12 Surface 8).
+        // RBAC Admin,HC (T-397-09) + CSRF (T-397-10). Actor di-resolve seperti commit POST. IDOR guard di service
+        // (hanya sesi IsManualEntry yang di-load/revert — T-397-12). Skor/jawaban/status online TIDAK disentuh.
+        // Return Json({ ok, message }) — BUKAN RedirectToAction (Wave 3 JS panggil via fetch & harap bentuk JSON
+        // untuk toast + reset UI tautan in-place). Notice Bahasa Indonesia (CLAUDE.md).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnlinkInjectGroup(int injectGroupId)
+        {
+            var actorUserId = _userManager.GetUserId(User) ?? "";
+            var actorName = User?.Identity?.Name ?? actorUserId;
+            var res = await _injectService.UnlinkInjectGroupAsync(injectGroupId, actorUserId, actorName);
+            if (res.Success) TempData["Success"] = res.Message ?? "Tautan dilepas.";
+            else TempData["Error"] = res.Message ?? "Gagal melepas tautan.";
+            return Json(new { ok = res.Success, message = res.Message ?? (res.Success ? "Tautan dilepas." : "Gagal melepas tautan.") });
+        }
+
         // POST /Admin/DownloadInjectTemplate — bangun template .xlsx 2-sheet dari soal authored + pekerja terpilih.
         // POST (bukan GET) karena membawa #QuestionsJson + UserIds (terlalu besar untuk query string) + antiforgery.
         // 0 DB write — hanya baca Users untuk NIP+Nama. RBAC Admin,HC (T-396-05) + CSRF (T-396-06).
@@ -594,5 +630,16 @@ namespace HcPortal.Controllers
                 .ThenBy(c => c.Name)
                 .ToListAsync();
         }
+    }
+
+    // Phase 397 D-07 — payload PreviewPairing (batch-level pairing dry-run). Terpisah dari InjectPreviewRequest
+    // (per-pekerja skor) agar 395/396 preview==commit skor tak teregresi. Server re-resolve link dari
+    // LinkTargetRepId (Tampering guard); UserIds = user.Id (picker value); CompletedAt = backdate room inject.
+    public class PreviewPairingRequest
+    {
+        public int? LinkTargetRepId { get; set; }
+        public string AssessmentType { get; set; } = "Standard";
+        public List<string> UserIds { get; set; } = new();
+        public DateTime CompletedAt { get; set; }
     }
 }
