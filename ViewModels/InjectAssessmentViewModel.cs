@@ -41,6 +41,11 @@ namespace HcPortal.ViewModels
         /// Hanya memengaruhi isi #AnswersJson klien; tidak masuk InjectRequest/service.</summary>
         public string? Step5Method { get; set; }
 
+        /// <summary>Phase 397 — RepresentativeId room target dari chip picker (D-05). null = belum tertaut (skip, D-04).
+        /// Server re-resolve LinkedGroupId/LinkedSessionId otoritatif (Surface 7) — JANGAN trust nilai mentah.
+        /// VM-only layer (ikut precedent Step5Method) — di-map ke InjectRequest.LinkTargetRepId di MapToRequest.</summary>
+        public int? LinkedTargetRepId { get; set; }
+
         /// <summary>Soal authored (pre-persist) — mirror <see cref="InjectQuestionSpec"/>.</summary>
         public class InjectQuestionVM
         {

@@ -62,8 +62,25 @@ namespace HcPortal.Models
         public InjectCertMode CertMode { get; set; } = InjectCertMode.None;
         public int? LinkedGroupId { get; set; }
         public int? LinkedSessionId { get; set; }
+
+        // 397 link resolution — server RE-RESOLVES the actual LinkedGroupId/LinkedSessionId from this hint
+        // (Tampering guard T-397-01: never trust client LinkedGroupId raw — Surface 7). null = no link
+        // (standalone, D-04). Kasus A/B di-derive SERVER dari LinkedGroupId room target — JANGAN tambah flag client.
+        public int? LinkTargetRepId { get; set; }   // RepresentativeId of the target room chosen in picker
+
         public List<InjectQuestionSpec> Questions { get; set; } = new();
         public List<InjectWorkerSpec> Workers { get; set; } = new();
+    }
+
+    /// <summary>397 D-07 — pairing summary dari dry-run preview (NO write). Dilengkapi controller PreviewInjectScore extend.</summary>
+    public class InjectPairingPreview
+    {
+        public bool HasLink { get; set; }                 // false → tak ada room tertaut (skip ringkasan, D-04)
+        public int Paired { get; set; }                   // pekerja punya sibling tipe-lawan di grup target (LinkedSessionId terisi)
+        public int Unpaired { get; set; }                 // D-03 sisi tunggal
+        public bool WillTouchOnline { get; set; }         // Kasus B (target.LinkedGroupId == null) → banner D-07
+        public bool DateWarn { get; set; }                // D-11 Pre.CompletedAt > Post.CompletedAt
+        public List<InjectRowError> DoubleLinkErrors { get; set; } = new();   // D-08 daftar LENGKAP (Nip+Message Bahasa Indonesia)
     }
 
     /// <summary>Satu error per-baris (NIP) untuk D-03 reject-all.</summary>
