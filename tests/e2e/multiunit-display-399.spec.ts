@@ -57,7 +57,7 @@ async function pickSectionWithUnits(page: Page, minUnits: number): Promise<{ sec
 // Return { nip, fullName }.
 async function createWorker(
   page: Page,
-  opts: { units: string[]; primaryIndex: number },
+  opts: { section?: string; units: string[]; primaryIndex: number },
 ): Promise<{ nip: string; fullName: string }> {
   const stamp = Date.now().toString().slice(-9) + Math.floor(Math.random() * 90 + 10);
   const nip = 'D399' + stamp;
@@ -77,7 +77,13 @@ async function createWorker(
   }
 
   if (opts.units.length > 0) {
-    // Bagian sudah ter-select oleh pemanggil (pickSectionWithUnits). Centang unit by value.
+    // Pilih Bagian (re-select; createWorker buka form fresh) → cascade render checkbox-list unit.
+    if (opts.section) {
+      await page.locator('#sectionSelect').selectOption(opts.section);
+      // tunggu cascade render checkbox unit pertama muncul
+      await expect(page.locator('#unitMultiContainer .uu-check').first()).toBeVisible();
+    }
+    // Centang unit by value (nilai bisa mengandung tanda kurung — attribute selector quoted aman).
     for (const u of opts.units) {
       await page.locator('#unitMultiContainer .uu-check[value="' + u + '"]').check();
     }
@@ -118,7 +124,7 @@ test.describe('Phase 399 — Multi-unit DISPLAY (MU-03)', () => {
     const unitA = pick!.units[0];
     const unitB = pick!.units[1];
     // primary = unitB (index 1) untuk bukti penanda primary bukan sekadar unit pertama
-    const w = await createWorker(page, { units: [unitA, unitB], primaryIndex: 1 });
+    const w = await createWorker(page, { section: pick!.section, units: [unitA, unitB], primaryIndex: 1 });
 
     const row = await findWorkerRow(page, w.nip);
     await expect(row).toHaveCount(1);
@@ -148,7 +154,7 @@ test.describe('Phase 399 — Multi-unit DISPLAY (MU-03)', () => {
     const unitA = pick!.units[0];
     const unitB = pick!.units[1];
     // primary = unitB; karena ordering primary-first, badge unitB harus muncul SEBELUM unitA di DOM
-    const w = await createWorker(page, { units: [unitA, unitB], primaryIndex: 1 });
+    const w = await createWorker(page, { section: pick!.section, units: [unitA, unitB], primaryIndex: 1 });
 
     const row = await findWorkerRow(page, w.nip);
     await row.locator('a[href*="WorkerDetail"]').click();
@@ -171,7 +177,7 @@ test.describe('Phase 399 — Multi-unit DISPLAY (MU-03)', () => {
 
     const unitA = pick!.units[0];
     const unitB = pick!.units[1];
-    const w = await createWorker(page, { units: [unitA, unitB], primaryIndex: 0 });
+    const w = await createWorker(page, { section: pick!.section, units: [unitA, unitB], primaryIndex: 0 });
 
     const row = await findWorkerRow(page, w.nip);
     await expect(row).toHaveCount(1);
@@ -210,5 +216,71 @@ test.describe('Phase 399 — Multi-unit DISPLAY (MU-03)', () => {
     const primCount = await page.locator('.badge.text-success .bi-star-fill').count();
     const emptyCount = await page.locator('text=Belum diisi').count();
     expect(primCount + emptyCount).toBeGreaterThanOrEqual(1);
+  });
+
+  // D-07 (_PSign cetak, LOCKED): login sbg pekerja 2-unit → Profile/_PSign tampil SEMUA unit
+  // primary-first COMMA-JOIN (teks polos, BUKAN primary-only, BUKAN badge). Bukti D-07.
+  test('D-07 _PSign all-units primary-first comma-join (login pekerja 2-unit)', async ({ page, context }) => {
+    await page.goto('/Admin/CreateWorker');
+    const pick = await pickSectionWithUnits(page, 2);
+    test.skip(pick === null, 'butuh Bagian dgn ≥2 unit');
+
+    const unitA = pick!.units[0];
+    const unitB = pick!.units[1];
+    // primary = unitB
+    const w = await createWorker(page, { section: pick!.section, units: [unitA, unitB], primaryIndex: 1 });
+
+    // login sbg pekerja baru (email = NIP-derived; password Test123!). Logout admin dulu.
+    const workerEmail = 'disp399_' + w.nip.replace('D399', '') + '@pertamina.test';
+    await context.clearCookies();
+    await page.goto('/Account/Login');
+    await page.fill('input[name="email"]', workerEmail);
+    await page.fill('input[name="password"]', 'Test123!');
+    await Promise.all([
+      page.waitForURL(url => !url.toString().includes('/Account/Login'), { timeout: 15_000 }),
+      page.click('button[type="submit"]'),
+    ]);
+
+    await page.goto('/Account/Profile');
+    // _PSign card (.psign-label) memuat SEMUA unit primary-first comma-join (unitB, unitA) sebagai teks polos.
+    const psignText = (await page.locator('.psign-badge .psign-label').allInnerTexts()).join(' | ');
+    expect(psignText).toContain(unitA);
+    expect(psignText).toContain(unitB);
+    // primary-first: unitB (primary) muncul SEBELUM unitA dalam string comma-join
+    const joinedLabel = (await page.locator('.psign-badge .psign-label')
+      .filter({ hasText: unitB }).first().innerText());
+    expect(joinedLabel).toContain(',');                       // comma-join (≥2 unit)
+    expect(joinedLabel.indexOf(unitB)).toBeLessThan(joinedLabel.indexOf(unitA)); // primary-first
+    // _PSign cetak = teks polos, TIDAK ada badge/bintang di kartu
+    await expect(page.locator('.psign-badge .badge')).toHaveCount(0);
+    await expect(page.locator('.psign-badge .bi-star-fill')).toHaveCount(0);
+  });
+
+  // D-08 (Excel export, D-08): export worker → kolom Unit (col 7) = unit primary-first comma-join.
+  test('D-08 Excel export kolom unit primary-first comma-join', async ({ page }) => {
+    await page.goto('/Admin/CreateWorker');
+    const pick = await pickSectionWithUnits(page, 2);
+    test.skip(pick === null, 'butuh Bagian dgn ≥2 unit');
+
+    const unitA = pick!.units[0];
+    const unitB = pick!.units[1];
+    const w = await createWorker(page, { section: pick!.section, units: [unitA, unitB], primaryIndex: 1 });
+
+    // download Excel ter-filter by NIP pekerja baru (kolom unit = primary-first comma-join)
+    const resp = await page.request.get('/Admin/ExportWorkers?search=' + encodeURIComponent(w.nip));
+    expect(resp.ok()).toBeTruthy();
+    expect(resp.headers()['content-type'] ?? '').toContain('spreadsheet'); // xlsx, bukan redirect login
+    const buf = await resp.body();
+
+    // xlsx = ZIP; teks sel string tersimpan di xl/sharedStrings.xml. Parse via JSZip (akurat & stabil).
+    const JSZip = require('jszip');
+    const zip = await JSZip.loadAsync(buf);
+    const sharedStrings = await zip.file('xl/sharedStrings.xml').async('string');
+    // string comma-join unit primary-first muncul utuh di sharedStrings (mis. "unitB, unitA").
+    const expectedJoin = unitB + ', ' + unitA;   // primary (unitB) first lalu sekunder (unitA)
+    expect(sharedStrings).toContain(expectedJoin);
+    // kedua unit hadir; comma-join (bukan dua sel terpisah / primary-only)
+    expect(sharedStrings).toContain(unitA);
+    expect(sharedStrings).toContain(unitB);
   });
 });
