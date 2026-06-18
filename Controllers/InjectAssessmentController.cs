@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using HcPortal.Models;
 using HcPortal.Data;
 using HcPortal.Services;
@@ -43,17 +44,98 @@ namespace HcPortal.Controllers
             return View(new InjectAssessmentViewModel());
         }
 
-        // POST /Admin/InjectAssessment — Plan 04 mengisi pemetaan VM→InjectRequest + UserId→NIP.
-        // STUB di Plan 01: re-render view + notice; TIDAK memanggil service commit batch (commit = Phase 395).
+        // POST /Admin/InjectAssessment — petakan VM→InjectRequest + UserId→NIP.
+        // D-07: TIDAK memanggil service commit batch (jawaban per-pekerja + commit = Phase 395).
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> InjectAssessment(InjectAssessmentViewModel vm)
         {
-            // D-07: belum ada commit di 394 (jawaban per-pekerja diisi Phase 395).
-            TempData["Info"] = "Lengkapi jawaban dulu (tahap berikutnya) sebelum meng-inject.";
+            // UserId→NIP (single query) — picker checkbox value = user.Id, service keys on NIP (Pitfall 2).
+            var userIds = vm.UserIds ?? new List<string>();
+            var userIdToNip = await _context.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.NIP ?? "");
+
+            var req = MapToRequest(vm, userIdToNip);
+
+            // D-07: belum commit di 394 — jawaban per-pekerja diisi Phase 395.
+            TempData["Info"] = $"Setup tersimpan: {req.Workers.Count} pekerja, {req.Questions.Count} soal. Lengkapi jawaban pada tahap berikutnya untuk meng-inject.";
             await PopulateFeedAsync();
             return View(vm);
+        }
+
+        // Pure mapping VM→InjectRequest (testable; no DB). Questions diambil dari QuestionsJson (Plan 03)
+        // bila ada, jika tidak fallback ke vm.Questions (bound list). Workers di-resolve UserId→NIP via dict.
+        // Answers SELALU kosong di 394 (jawaban = Phase 395). CertPermanent → CertValidUntil null (D-10).
+        public static InjectRequest MapToRequest(
+            InjectAssessmentViewModel vm,
+            IReadOnlyDictionary<string, string> userIdToNip)
+        {
+            var questionVms = ParseQuestionVms(vm);
+
+            var req = new InjectRequest
+            {
+                Title = vm.Title ?? "",
+                Category = vm.Category ?? "",
+                AssessmentType = vm.AssessmentType ?? "Standard",
+                CompletedAt = vm.CompletedAt,
+                DurationMinutes = vm.DurationMinutes,
+                PassPercentage = vm.PassPercentage,
+                AllowAnswerReview = vm.AllowAnswerReview,
+                CertMode = vm.CertMode,
+                Questions = questionVms.Select((q, i) => new InjectQuestionSpec
+                {
+                    QuestionText = q.QuestionText ?? "",
+                    QuestionType = q.QuestionType ?? "MultipleChoice",
+                    ScoreValue = q.ScoreValue,
+                    Order = i,
+                    ElemenTeknis = q.ElemenTeknis,
+                    Rubrik = q.Rubrik,
+                    TempId = q.TempId,
+                    Options = (q.Options ?? new()).Select(o => new InjectOptionSpec
+                    {
+                        OptionText = o.OptionText ?? "",
+                        IsCorrect = o.IsCorrect,
+                        TempId = o.TempId
+                    }).ToList()
+                }).ToList()
+            };
+
+            var certValidUntil = vm.CertPermanent
+                ? (DateOnly?)null
+                : (vm.CertValidUntil.HasValue ? DateOnly.FromDateTime(vm.CertValidUntil.Value) : (DateOnly?)null);
+
+            foreach (var userId in (vm.UserIds ?? new List<string>()))
+            {
+                if (!userIdToNip.TryGetValue(userId, out var nip) || string.IsNullOrWhiteSpace(nip))
+                    continue;   // null-NIP user diabaikan (surfaced saat commit 395)
+                req.Workers.Add(new InjectWorkerSpec
+                {
+                    Nip = nip,
+                    Answers = new(),   // kosong di 394
+                    ManualCertNumber = vm.CertMode == InjectCertMode.Manual ? vm.ManualCertNumber : null,
+                    CertValidUntil = certValidUntil
+                });
+            }
+
+            return req;
+        }
+
+        // Sumber soal: QuestionsJson (Plan 03) prioritas; fallback vm.Questions (bound list).
+        private static List<InjectAssessmentViewModel.InjectQuestionVM> ParseQuestionVms(InjectAssessmentViewModel vm)
+        {
+            if (!string.IsNullOrWhiteSpace(vm.QuestionsJson))
+            {
+                try
+                {
+                    var parsed = JsonSerializer.Deserialize<List<InjectAssessmentViewModel.InjectQuestionVM>>(
+                        vm.QuestionsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (parsed != null) return parsed;
+                }
+                catch (JsonException) { /* malformed → fallback */ }
+            }
+            return vm.Questions ?? new();
         }
 
         // Feed dropdown/picker — mirror AssessmentAdminController.CreateAssessment GET (sans Proton/renewal/parent-cat).
