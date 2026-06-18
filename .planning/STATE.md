@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: verifying
-stopped_at: Phase 400 UI-SPEC approved
-last_updated: "2026-06-18T07:52:39.083Z"
+stopped_at: Phase 401 context gathered
+last_updated: "2026-06-18T09:55:53.908Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 30
   completed_phases: 1
-  total_plans: 4
+  total_plans: 5
   completed_plans: 4
-  percent: 100
+  percent: 80
 ---
 
 # Project State: Portal HC KPB
@@ -129,6 +129,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 400 UI-SPEC approved
+Stopped at: Phase 401 context gathered
 
 Next action: `/gsd-plan-phase 399` (Foundation — Wave 0 solo, migration=TRUE). Lalu Wave 1 {400, 401, 403} paralel, Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
