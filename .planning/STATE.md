@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: planning
-stopped_at: Phase 399 context gathered
-last_updated: "2026-06-18T03:49:56.307Z"
-last_activity: 2026-06-18 — Roadmap v32.3 dibuat
+status: executing
+stopped_at: Phase 399 UI-SPEC approved
+last_updated: "2026-06-18T04:45:03.621Z"
+last_activity: 2026-06-18 -- Phase 399 planning complete
 progress:
-  total_phases: 31
+  total_phases: 30
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -26,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: Not started (roadmap complete, belum di-plan)
 Plan: —
-Status: Ready to plan (ROADMAP.md fase 399-404 dibuat; 24/24 REQ mapped; REQUIREMENTS traceability confirmed)
-Last activity: 2026-06-18 — Roadmap v32.3 dibuat
+Status: Ready to execute
+Last activity: 2026-06-18 -- Phase 399 planning complete
 
 ## Next Action
 
@@ -120,6 +121,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 399 context gathered
+Stopped at: Phase 399 UI-SPEC approved
 
 Next action: `/gsd-plan-phase 399` (Foundation — Wave 0 solo, migration=TRUE). Lalu Wave 1 {400, 401, 403} paralel, Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
