@@ -1,0 +1,92 @@
+// Phase 394 (Inject Assessment Manual "Seakan Online") — verifikasi runtime wizard /Admin/InjectAssessment (Razor + JS).
+// Pola login dari assessment-title-flexible.spec.ts (accounts fixture, /Account/Login).
+// Pre-req: server localhost:5277 jalan dari MAIN tree (Authentication__UseActiveDirectory=false).
+//   Razor di-embed saat build (AddControllersWithViews tanpa RuntimeCompilation) → WAJIB run app dari main tree
+//   pasca-edit view (lesson Phase 354/392). Login admin@pertamina.com / 123456 (lihat helpers/accounts.ts).
+// Run: cd tests && npx playwright test e2e/inject-assessment-394.spec.ts --workers=1
+//
+// Cakupan per-plan (Wave): 394-01 implement RBAC + wizard-nav; 394-02 unskip cek-judul/backdate/picker;
+//   394-03 unskip authoring/cert-radio; 394-04 unskip step5/confirm/no-DB-write.
+import { test, expect, type Page } from '@playwright/test';
+import { accounts, AccountKey } from '../helpers/accounts';
+
+async function loginAny(page: Page, accountKey: AccountKey) {
+  const { email, password } = accounts[accountKey];
+  await page.goto('/Account/Login');
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
+  await Promise.all([
+    page.waitForURL(url => !url.toString().includes('/Account/Login'), { timeout: 15_000 }),
+    page.click('button[type="submit"]'),
+  ]);
+}
+
+// ── INJ-03: RBAC + page (implemented Plan 394-01) ──────────────────────────────
+test.describe('INJ-03 RBAC + page', () => {
+  test('RBAC Admin reaches page', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    await expect(page.locator('#wizardStepNav')).toBeVisible({ timeout: 15_000 });
+    expect(page.url()).toContain('InjectAssessment');
+  });
+
+  test('RBAC HC reaches page', async ({ page }) => {
+    await loginAny(page, 'hc');
+    await page.goto('/Admin/InjectAssessment');
+    await expect(page.locator('#wizardStepNav')).toBeVisible({ timeout: 15_000 });
+    expect(page.url()).toContain('InjectAssessment');
+  });
+
+  test('RBAC Coachee denied', async ({ page }) => {
+    await loginAny(page, 'coachee');
+    await page.goto('/Admin/InjectAssessment');
+    // Server-side [Authorize(Roles="Admin, HC")] → redirect AccessDenied/Login; wizard must NOT render.
+    await expect(page.locator('#wizardStepNav')).toHaveCount(0);
+  });
+
+  test('wizard nav 6 pills', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    await expect(page.locator('#wizardStepNav')).toBeVisible({ timeout: 15_000 });
+    // 6 pills present
+    for (let i = 1; i <= 6; i++) {
+      await expect(page.locator(`#pill-${i}`)).toHaveCount(1);
+    }
+    // step-1 visible initially; step-2 hidden
+    await expect(page.locator('#step-1')).toBeVisible();
+    await expect(page.locator('#step-2')).toBeHidden();
+    // forward nav: click Selanjutnya on step 1 → step-2 visible + pill-1 marked completed (bg-success)
+    await page.click('#btnNext1');
+    await expect(page.locator('#step-2')).toBeVisible();
+    await expect(page.locator('#pill-1')).toHaveClass(/bg-success/);
+    // back nav: a .btn-prev returns to step-1
+    await page.locator('#step-2 .btn-prev').first().click();
+    await expect(page.locator('#step-1')).toBeVisible();
+  });
+});
+
+// ── INJ-04: setup room + cek judul (implemented Plan 394-02) ────────────────────
+test.describe('INJ-04 setup + cek judul', () => {
+  test.skip('cek judul', async () => { /* Plan 394-02: #btnCheckTitle → GET CheckTitleAvailability → #titleCheckResult */ });
+  test.skip('backdate guard', async () => { /* Plan 394-02: #CompletedAt max=today, future date → is-invalid */ });
+});
+
+// ── INJ-06: worker picker (implemented Plan 394-02) ─────────────────────────────
+test.describe('INJ-06 worker picker', () => {
+  test.skip('picker search/select', async () => { /* Plan 394-02: #userSearchInput filter + .user-checkbox + count badge */ });
+});
+
+// ── INJ-05: authoring soal (implemented Plan 394-03) ────────────────────────────
+test.describe('INJ-05 authoring', () => {
+  test.skip('authoring type toggle + add soal', async () => { /* Plan 394-03: applyQTypeSwitch + injAddQuestionBtn → injQuestions[] */ });
+});
+
+// ── INJ-07: sertifikat radio 3-mode (implemented Plan 394-03) ───────────────────
+test.describe('INJ-07 cert radio', () => {
+  test.skip('cert radio 3-mode toggle', async () => { /* Plan 394-03: CertMode Auto/Manual/Tanpa → conditional blocks */ });
+});
+
+// ── D-07: step5 placeholder + no DB write (implemented Plan 394-04) ─────────────
+test.describe('D-07 step5 placeholder + no DB write', () => {
+  test.skip('step5 placeholder navigable', async () => { /* Plan 394-04: #step5Placeholder navigable + confirm summary + 0 DB write */ });
+});
