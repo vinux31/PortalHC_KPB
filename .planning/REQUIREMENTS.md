@@ -19,9 +19,9 @@
 
 - [x] **INJ-03**: Admin & HC dapat membuka page `/Admin/InjectAssessment` dari menu Kelola Data (Section C: Assessment & Training), dengan RBAC `Admin,HC`.
 - [x] **INJ-04**: HC dapat mengatur **setting room inject** mirip `CreateAssessment` — judul, kategori, jadwal/`CompletedAt` (di-backdate ke tanggal ujian luring), durasi, `PassPercentage`, `AllowAnswerReview`, tipe (`Standard`/`Pre`/`Post`).
-- [ ] **INJ-05**: HC dapat **menulis soal** (MultipleChoice / MultipleAnswer / Essay) beserta opsi + kunci (`IsCorrect`) + `ScoreValue` + `ElemenTeknis` + `Rubrik` langsung di alur page inject (reuse komponen authoring `ManagePackages`).
+- [x] **INJ-05**: HC dapat **menulis soal** (MultipleChoice / MultipleAnswer / Essay) beserta opsi + kunci (`IsCorrect`) + `ScoreValue` + `ElemenTeknis` + `Rubrik` langsung di alur page inject (reuse komponen authoring `ManagePackages`).
 - [x] **INJ-06**: HC dapat memilih pekerja penerima inject (reuse worker picker; NIP wajib ada di sistem).
-- [ ] **INJ-07**: HC dapat mengatur sertifikat **per-room via toggle**: auto-generate nomor resmi (`KPB/xxx/ROMAN/year` via `CertNumberHelper`) / input nomor manual / tanpa sertifikat.
+- [x] **INJ-07**: HC dapat mengatur sertifikat **per-room via toggle**: auto-generate nomor resmi (`KPB/xxx/ROMAN/year` via `CertNumberHelper`) / input nomor manual / tanpa sertifikat.
 
 ### Mode Jawaban (INJ) — fase 395
 
@@ -68,9 +68,9 @@
 | INJ-02 | Phase 393 | Complete |
 | INJ-03 | Phase 394 | Complete |
 | INJ-04 | Phase 394 | Complete |
-| INJ-05 | Phase 394 | Pending |
+| INJ-05 | Phase 394 | Complete |
 | INJ-06 | Phase 394 | Complete |
-| INJ-07 | Phase 394 | Pending |
+| INJ-07 | Phase 394 | Complete |
 | INJ-08 | Phase 395 | Pending |
 | INJ-09 | Phase 395 | Pending |
 | INJ-10 | Phase 396 | Pending |
