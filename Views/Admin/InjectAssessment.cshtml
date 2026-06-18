@@ -46,6 +46,19 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+
+    @* ===== Phase 397 N5 — Permukaan sukses pasca-commit ber-tautan (host kontrol unlink, D-12) ===== *@
+    @* Hanya muncul bila commit terakhir TERTAUT (TempData InjectedGroupId di-set server). Bukan di monitoring (jaga minimal). *@
+    @if (TempData["InjectedGroupId"] != null)
+    {
+        <div class="alert alert-light border d-flex justify-content-between align-items-center" id="postCommitLinkSurface"
+             data-inject-group-id="@TempData["InjectedGroupId"]">
+            <span><i class="bi bi-link-45deg text-primary me-2"></i>Inject ter-commit dan ditautkan ke room pasangan (grup Pre/Post terbentuk).</span>
+            <button type="button" class="btn btn-sm btn-outline-danger" id="btnUnlinkRoom" data-bs-toggle="modal" data-bs-target="#unlinkConfirmModal">
+                <i class="bi bi-link-45deg"></i><i class="bi bi-x"></i> Lepaskan Tautan
+            </button>
+        </div>
+    }
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -159,7 +172,32 @@
                                 <option value="PreTest">Pre-Test</option>
                                 <option value="PostTest">Post-Test</option>
                             </select>
-                            <div class="form-text text-muted"><i class="bi bi-info-circle me-1"></i>Penautan Pre/Post ke room existing tersedia pada fase berikutnya.</div>
+
+                            @* ===== Phase 397 N1 — Penautan Pre/Post ke room existing (D-04/D-05) ===== *@
+                            @* Menggantikan placeholder note lama. Tampil HANYA saat tipe PreTest/PostTest (toggle JS). *@
+                            <div id="prePostLinkBlock" class="mt-2 d-none">
+                                @* Hidden field bound VM — chip men-set RepresentativeId room target; server re-resolve (T-397-13). *@
+                                <input type="hidden" asp-for="LinkedTargetRepId" id="LinkedTargetRepId" />
+
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnCariRoom">
+                                    <i class="bi bi-search me-1"></i><span id="btnCariRoomLabel">Cari Room Pasangan</span>
+                                </button>
+
+                                @* Chip room terpilih (N1b) — removable, render judul/tanggal via .textContent (XSS-safe). *@
+                                <span class="badge bg-light text-dark border d-inline-flex align-items-center gap-2 p-2 ms-2 d-none" id="selectedRoomChip">
+                                    <i class="bi bi-link-45deg text-primary"></i>
+                                    <span id="selectedRoomChipText"></span>
+                                    <span class="badge bg-secondary" id="selectedRoomChipType"></span>
+                                    <span class="badge" id="selectedRoomChipGroup"></span>
+                                    <button type="button" class="btn-close ms-1" id="selectedRoomChipClose" aria-label="Hapus tautan room"></button>
+                                </span>
+
+                                <div class="form-text text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>Opsional — tautkan ke room pasangan (Pre&harr;Post) agar tampil berpasangan. Bisa di-skip dan ditautkan nanti.
+                                    <span id="prePostLinkOppositeHint" class="d-block"></span>
+                                </div>
+                            </div>
+                            @* ===== /Phase 397 N1 ===== *@
                         </div>
 
                         <!-- Tanggal Ujian (backdate) -->
@@ -677,6 +715,49 @@
                         <div class="card-body"><span id="sum-cert"></span></div>
                     </div>
 
+                    @* ===== Phase 397 N3 — Ringkasan Penautan Pre/Post (D-07) ===== *@
+                    @* Tampil HANYA bila room tertaut (LinkedTargetRepId terisi). Diisi via POST PreviewPairing. *@
+                    <div id="previewPairingSummary" class="card mb-3 d-none" role="status" aria-live="polite">
+                        <div class="card-header d-flex align-items-center">
+                            <strong><i class="bi bi-link-45deg me-1"></i>Ringkasan Penautan Pre/Post</strong>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <span class="badge bg-success" id="pairingPairedBadge">0 ter-pair</span>
+                                <span class="badge bg-warning text-dark ms-1" id="pairingUnpairedBadge">0 tanpa pasangan</span>
+                            </div>
+                            <div class="form-text text-muted mb-2" id="pairingUnpairedHelp">
+                                Pekerja tanpa pasangan akan tampil sebagai sisi tunggal (mis. Pre-only). Tetap diizinkan.
+                            </div>
+
+                            @* Banner Kasus B — data online akan disentuh *@
+                            <div class="alert alert-warning d-flex align-items-start gap-2 d-none" role="alert" id="pairingTouchOnlineBanner">
+                                <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                                <div>
+                                    <strong>Data online akan disentuh.</strong>
+                                    <div class="small" id="pairingTouchOnlineText"></div>
+                                </div>
+                            </div>
+                            @* Notice Kasus A — aman *@
+                            <div class="alert alert-success small d-none" role="alert" id="pairingSafeBanner">
+                                Room sudah ber-grup &mdash; penautan tidak menyentuh data online.
+                            </div>
+                            @* WARN tanggal Pre>Post (D-11) *@
+                            <div class="alert alert-warning small py-2 d-none" role="alert" id="pairingDateWarn">
+                                <i class="bi bi-calendar-x me-1"></i>Tanggal Pre lebih baru dari Post &mdash; urutan janggal untuk gain-score. Periksa backdate. (Tetap diizinkan.)
+                            </div>
+
+                            @* N4 — daftar anti-dobel-link (D-08), reuse-pola daftar lengkap 396. Tiap pekerja yang
+                               sudah memiliki sibling tipe-sama di grup target tidak dapat ditautkan dua kali —
+                               lepaskan tautan lama atau pilih room lain. Pesan per-pekerja (NIP/Nama) via .textContent. *@
+                            <div class="alert alert-danger d-none" role="alert" id="pairingDoubleLinkPanel">
+                                <i class="bi bi-x-octagon-fill me-2"></i><strong>Tautan dobel terdeteksi — perbaiki sebelum commit:</strong>
+                                <ul class="mb-0 mt-2 small" id="pairingDoubleLinkList" style="max-height:240px;overflow-y:auto"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    @* ===== /Phase 397 N3/N4 ===== *@
+
                     <div class="d-flex justify-content-between mt-4 mb-3">
                         <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev6">
                             <i class="bi bi-arrow-left me-1"></i>Sebelumnya
@@ -690,6 +771,65 @@
         </div>
 
     </form>
+</div>
+
+@* ===================== Phase 397 N2 — Modal Room Picker (D-05/D-06/D-10) ===================== *@
+@* Pola modal CreateAssessment #successModal (modal-lg). Baris room tipe-LAWAN (inject+online) via SearchLinkTargets. *@
+<div class="modal fade" id="roomPickerModal" tabindex="-1" aria-labelledby="roomPickerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="roomPickerModalLabel"><i class="bi bi-link-45deg me-2"></i>Cari Room Pasangan (Pre/Post)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body p-4">
+                @* N2b — instruksi (D-01/D-06) *@
+                <div class="alert alert-info small py-2">
+                    <i class="bi bi-info-circle me-2"></i>Pilih room <strong><span id="roomPickerOppositeLabel">pasangan</span></strong> untuk ditautkan.
+                    Room <strong>"Sudah ber-grup"</strong> sudah punya pasangan (aman). Room <strong>"Standalone"</strong> belum —
+                    menautkannya akan menulis penanda grup ke data online tersebut (skor/jawaban tidak diubah).
+                </div>
+
+                @* N2b — search box (debounced) *@
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="roomSearchInput" placeholder="Cari judul, kategori, atau tanggal&hellip;" autocomplete="off" />
+                </div>
+
+                @* N2c — daftar hasil room *@
+                <div id="roomPickerResults" class="list-group" style="max-height:340px;overflow-y:auto;" role="listbox" aria-label="Hasil pencarian room">
+                    <div class="text-center text-muted py-4" id="roomPickerInitial">
+                        <i class="bi bi-search d-block fs-3 mb-2"></i>Ketik untuk mencari room pasangan.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ===================== Phase 397 N5 — Modal Konfirmasi Unlink (D-12) ===================== *@
+@* Bootstrap modal (BUKAN dialog native window.prompt/alert). Fokus awal "Batal". *@
+<div class="modal fade" id="unlinkConfirmModal" tabindex="-1" aria-labelledby="unlinkConfirmModalLabel" aria-describedby="unlinkConfirmModalBody" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold" id="unlinkConfirmModalLabel"><i class="bi bi-link-45deg me-2"></i>Lepaskan tautan Pre/Post?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body p-4" id="unlinkConfirmModalBody">
+                Tautan antar room ini akan dilepas. Bila grup menjadi kosong-sebelah, penanda grup pada sesi online yang
+                sebelumnya ditulis juga akan dilepas &mdash; skor/jawaban tetap utuh. Tindakan tercatat di audit dan bersifat atomic.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCancelUnlink">Batal</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmUnlink"
+                        data-unlink-url="@Url.Action("UnlinkInjectGroup", "InjectAssessment")">
+                    <span class="spinner-border spinner-border-sm me-1 d-none" id="unlinkSpinner" role="status" aria-hidden="true"></span>
+                    <i class="bi bi-link-45deg me-1"></i>Ya, Lepaskan
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
@@ -1856,6 +1996,311 @@
 
     // Init state.
     applyMethod();
+})();
+
+// ============================================================================
+// Phase 397 — Penautan Pre/Post ke room existing (N1/N2/N3/N4/N5). IIFE terpisah.
+//   - N1: tombol "Cari Room" kondisional tipe + chip removable + hidden #LinkedTargetRepId.
+//   - N2: modal #roomPickerModal → SearchLinkTargets (debounced), filter tipe-lawan (server).
+//   - N3/N4: ringkasan pairing di Step-6 (PreviewPairing) + daftar anti-dobel.
+//   - N5: kontrol unlink pasca-commit → modal konfirmasi Bootstrap → UnlinkInjectGroup.
+//   Render judul/kategori/NIP/Nama via .textContent (XSS-safe, T-397-14). POST kirim antiforgery (T-397-15).
+// ============================================================================
+(function InjectLinkPrePost() {
+    function token() {
+        var el = document.querySelector('input[name="__RequestVerificationToken"]');
+        return el ? el.value : '';
+    }
+    function fmtDate(v) {
+        if (!v) return '-';
+        var d = new Date(v);
+        return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('id-ID');
+    }
+    function typeLabel(t) { return t === 'PreTest' ? 'Pre-Test' : (t === 'PostTest' ? 'Post-Test' : (t || '')); }
+    function oppositeType(injectType) {
+        return injectType === 'PreTest' ? 'PostTest' : (injectType === 'PostTest' ? 'PreTest' : '');
+    }
+    function isPrePost(t) { return t === 'PreTest' || t === 'PostTest'; }
+
+    var typeSel = document.getElementById('assessmentTypeInput');
+    var linkBlock = document.getElementById('prePostLinkBlock');
+    var btnCariRoom = document.getElementById('btnCariRoom');
+    var btnCariRoomLabel = document.getElementById('btnCariRoomLabel');
+    var oppositeHint = document.getElementById('prePostLinkOppositeHint');
+    var hiddenRepId = document.getElementById('LinkedTargetRepId');
+    var chip = document.getElementById('selectedRoomChip');
+    var chipText = document.getElementById('selectedRoomChipText');
+    var chipType = document.getElementById('selectedRoomChipType');
+    var chipGroup = document.getElementById('selectedRoomChipGroup');
+    var chipClose = document.getElementById('selectedRoomChipClose');
+
+    // ── N1: show/hide tombol + hint dinamis sesuai tipe ──
+    function applyTypeVisibility() {
+        var t = typeSel ? typeSel.value : 'Standard';
+        var show = isPrePost(t);
+        if (linkBlock) linkBlock.classList.toggle('d-none', !show);
+        if (oppositeHint) {
+            oppositeHint.textContent = (t === 'PreTest')
+                ? 'Cari room Post-Test pasangannya.'
+                : (t === 'PostTest' ? 'Cari room Pre-Test pasangannya.' : '');
+        }
+        if (!show) clearChip();   // Standard → tautan tak valid (D-06): kosongkan chip + hidden field
+    }
+    if (typeSel) typeSel.addEventListener('change', applyTypeVisibility);
+
+    // ── N1b: chip set/clear ──
+    function setChip(row) {
+        if (hiddenRepId) hiddenRepId.value = row.representativeId != null ? row.representativeId : '';
+        if (chipText) chipText.textContent = (row.title || '') + ' (' + fmtDate(row.completedAt || row.schedule) + ')';
+        if (chipType) chipType.textContent = typeLabel(row.assessmentType);
+        if (chipGroup) {
+            var kasusA = (row.linkedGroupId != null);
+            chipGroup.textContent = kasusA ? 'Sudah ber-grup' : 'Standalone';
+            chipGroup.className = 'badge ' + (kasusA ? 'bg-success' : 'bg-warning text-dark');
+        }
+        if (chip) chip.classList.remove('d-none');
+        if (btnCariRoomLabel) btnCariRoomLabel.textContent = 'Ganti Room';
+    }
+    function clearChip() {
+        if (hiddenRepId) hiddenRepId.value = '';
+        if (chip) chip.classList.add('d-none');
+        if (btnCariRoomLabel) btnCariRoomLabel.textContent = 'Cari Room Pasangan';
+    }
+    if (chipClose) chipClose.addEventListener('click', function () { clearChip(); });
+
+    // ── N2: modal picker → SearchLinkTargets (debounced) ──
+    var roomPickerModalEl = document.getElementById('roomPickerModal');
+    var roomSearchInput = document.getElementById('roomSearchInput');
+    var roomPickerResults = document.getElementById('roomPickerResults');
+    var roomPickerOppositeLabel = document.getElementById('roomPickerOppositeLabel');
+    var bsRoomModal = (roomPickerModalEl && window.bootstrap) ? new bootstrap.Modal(roomPickerModalEl) : null;
+    var searchDebounce = null;
+
+    function searchUrl() {
+        var t = typeSel ? typeSel.value : 'Standard';
+        var term = roomSearchInput ? (roomSearchInput.value || '') : '';
+        return '@Url.Action("SearchLinkTargets", "InjectAssessment")'
+            + '?term=' + encodeURIComponent(term) + '&injectType=' + encodeURIComponent(t);
+    }
+    function renderResultsLoading() {
+        if (roomPickerResults) {
+            roomPickerResults.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm me-1"></span>Mencari&hellip;</div>';
+        }
+    }
+    function renderResultsEmpty() {
+        if (roomPickerResults) {
+            var opp = oppositeType(typeSel ? typeSel.value : '');
+            roomPickerResults.innerHTML = '';
+            var d = document.createElement('div');
+            d.className = 'text-center text-muted py-4';
+            d.innerHTML = '<i class="bi bi-inbox d-block fs-3 mb-2"></i>';
+            var span = document.createElement('span');
+            span.textContent = 'Tidak ada room ' + typeLabel(opp) + ' yang cocok. Coba kata kunci lain.';
+            d.appendChild(span);
+            roomPickerResults.appendChild(d);
+        }
+    }
+    function renderResultsError() {
+        if (roomPickerResults) {
+            roomPickerResults.innerHTML = '<div class="alert alert-danger small mb-0">Gagal memuat daftar room. Coba lagi.</div>';
+        }
+    }
+    function renderResults(rows) {
+        if (!roomPickerResults) return;
+        roomPickerResults.innerHTML = '';
+        if (!rows || rows.length === 0) { renderResultsEmpty(); return; }
+        rows.forEach(function (row) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+            btn.setAttribute('role', 'option');
+
+            // Kiri: judul + meta
+            var left = document.createElement('div');
+            var title = document.createElement('div');
+            title.className = 'fw-bold';
+            title.textContent = row.title || '';        // XSS-safe
+            var meta = document.createElement('div');
+            meta.className = 'small text-muted';
+            meta.textContent = (row.category || '') + ' · ' + fmtDate(row.completedAt || row.schedule)
+                + ' · ' + (row.userCount != null ? row.userCount : 0) + ' peserta';
+            left.appendChild(title); left.appendChild(meta);
+
+            // Kanan: badge tipe + grup + (Inject)
+            var right = document.createElement('div');
+            right.className = 'text-end';
+            var bType = document.createElement('span');
+            bType.className = 'badge bg-secondary me-1';
+            bType.textContent = typeLabel(row.assessmentType);
+            right.appendChild(bType);
+            var bGroup = document.createElement('span');
+            var kasusA = (row.linkedGroupId != null);
+            bGroup.className = 'badge ' + (kasusA ? 'bg-success' : 'bg-warning text-dark');
+            bGroup.textContent = kasusA ? 'Sudah ber-grup' : 'Standalone';
+            right.appendChild(bGroup);
+            if (row.isManualEntry) {
+                var bInj = document.createElement('span');
+                bInj.className = 'badge bg-info text-dark ms-1';
+                bInj.textContent = 'Inject';
+                right.appendChild(bInj);
+            }
+
+            btn.appendChild(left); btn.appendChild(right);
+            btn.addEventListener('click', function () {
+                setChip(row);
+                if (bsRoomModal) bsRoomModal.hide();
+            });
+            roomPickerResults.appendChild(btn);
+        });
+    }
+    function doSearch() {
+        renderResultsLoading();
+        fetch(searchUrl(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (rows) { renderResults(rows); })
+            .catch(function () { renderResultsError(); });
+    }
+    if (btnCariRoom) {
+        btnCariRoom.addEventListener('click', function () {
+            if (roomPickerOppositeLabel) roomPickerOppositeLabel.textContent = typeLabel(oppositeType(typeSel ? typeSel.value : ''));
+            if (bsRoomModal) bsRoomModal.show();
+        });
+    }
+    if (roomPickerModalEl) {
+        roomPickerModalEl.addEventListener('shown.bs.modal', function () {
+            if (roomSearchInput) roomSearchInput.focus();
+            doSearch();   // muat daftar awal (term kosong → terbaru)
+        });
+    }
+    if (roomSearchInput) {
+        roomSearchInput.addEventListener('input', function () {
+            if (searchDebounce) clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(doSearch, 300);
+        });
+    }
+
+    // ── N3/N4: ringkasan pairing di Step-6 (PreviewPairing) ──
+    var pairingSummary = document.getElementById('previewPairingSummary');
+    function selectedUserIdsForPairing() {
+        return Array.from(document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked'))
+            .map(function (cb) { return cb.value; });
+    }
+    function completedAtIso() {
+        var el = document.getElementById('CompletedAt');
+        return el && el.value ? el.value : null;
+    }
+    function hidePairing() { if (pairingSummary) pairingSummary.classList.add('d-none'); }
+    function renderPairing(p) {
+        if (!pairingSummary) return;
+        if (!p || !p.hasLink) { hidePairing(); return; }
+        pairingSummary.classList.remove('d-none');
+
+        var pairedBadge = document.getElementById('pairingPairedBadge');
+        var unpairedBadge = document.getElementById('pairingUnpairedBadge');
+        if (pairedBadge) pairedBadge.textContent = (p.paired != null ? p.paired : 0) + ' ter-pair';
+        if (unpairedBadge) unpairedBadge.textContent = (p.unpaired != null ? p.unpaired : 0) + ' tanpa pasangan';
+
+        var touchBanner = document.getElementById('pairingTouchOnlineBanner');
+        var touchText = document.getElementById('pairingTouchOnlineText');
+        var safeBanner = document.getElementById('pairingSafeBanner');
+        if (p.willTouchOnline) {
+            if (touchBanner) touchBanner.classList.remove('d-none');
+            if (safeBanner) safeBanner.classList.add('d-none');
+            if (touchText) touchText.textContent =
+                'Room pasangan ini belum ber-grup. Saat commit, penanda grup ditulis ke sesi online tersebut '
+                + '(skor, jawaban, dan status TIDAK diubah). Tindakan tercatat di audit.';
+        } else {
+            if (touchBanner) touchBanner.classList.add('d-none');
+            if (safeBanner) safeBanner.classList.remove('d-none');
+        }
+
+        var dateWarn = document.getElementById('pairingDateWarn');
+        if (dateWarn) dateWarn.classList.toggle('d-none', !p.dateWarn);
+
+        // N4 — daftar anti-dobel (D-08)
+        var dlPanel = document.getElementById('pairingDoubleLinkPanel');
+        var dlList = document.getElementById('pairingDoubleLinkList');
+        var errs = p.doubleLinkErrors || [];
+        if (dlList) {
+            dlList.innerHTML = '';
+            errs.forEach(function (e) {
+                var li = document.createElement('li');
+                li.textContent = e.message || '';     // XSS-safe (Message berisi NIP+Nama)
+                dlList.appendChild(li);
+            });
+        }
+        if (dlPanel) dlPanel.classList.toggle('d-none', errs.length === 0);
+    }
+    function refreshPairing() {
+        var repId = hiddenRepId ? hiddenRepId.value : '';
+        var t = typeSel ? typeSel.value : 'Standard';
+        if (!repId || !isPrePost(t)) { hidePairing(); return; }
+        var body = {
+            linkTargetRepId: parseInt(repId, 10),
+            assessmentType: t,
+            userIds: selectedUserIdsForPairing(),
+            completedAt: completedAtIso()
+        };
+        fetch('@Url.Action("PreviewPairing", "InjectAssessment")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token() },
+            body: JSON.stringify(body)
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (p) { renderPairing(p); })
+            .catch(function () { hidePairing(); });
+    }
+    // Refresh ringkasan saat masuk Step-6 (tombol next ke step 6 / edit-from-confirm).
+    document.querySelectorAll('.btn-next, .edit-from-confirm').forEach(function (b) {
+        b.addEventListener('click', function () { setTimeout(refreshPairing, 50); });
+    });
+
+    // ── N5: unlink pasca-commit → modal konfirmasi → UnlinkInjectGroup ──
+    var postCommitSurface = document.getElementById('postCommitLinkSurface');
+    var btnConfirmUnlink = document.getElementById('btnConfirmUnlink');
+    var unlinkSpinner = document.getElementById('unlinkSpinner');
+    if (btnConfirmUnlink) {
+        btnConfirmUnlink.addEventListener('click', function () {
+            if (!postCommitSurface) return;
+            var groupId = postCommitSurface.getAttribute('data-inject-group-id');
+            if (!groupId) return;
+            if (unlinkSpinner) unlinkSpinner.classList.remove('d-none');
+            btnConfirmUnlink.disabled = true;
+
+            var fd = new URLSearchParams();
+            fd.append('injectGroupId', groupId);
+            fd.append('__RequestVerificationToken', token());
+            fetch(btnConfirmUnlink.getAttribute('data-unlink-url'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token() },
+                body: fd.toString()
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                    var modalEl = document.getElementById('unlinkConfirmModal');
+                    if (modalEl && window.bootstrap) {
+                        var inst = bootstrap.Modal.getInstance(modalEl); if (inst) inst.hide();
+                    }
+                    // Toast in-place: ganti surface dgn notice.
+                    var notice = document.createElement('div');
+                    notice.className = 'alert ' + (res && res.ok ? 'alert-success' : 'alert-danger');
+                    notice.textContent = (res && res.message) ? res.message : (res && res.ok ? 'Tautan dilepas.' : 'Gagal melepas tautan.');
+                    if (postCommitSurface && postCommitSurface.parentNode) {
+                        postCommitSurface.parentNode.replaceChild(notice, postCommitSurface);
+                    }
+                })
+                .catch(function () {
+                    alert('Gagal melepas tautan. Coba lagi.');
+                })
+                .finally(function () {
+                    if (unlinkSpinner) unlinkSpinner.classList.add('d-none');
+                    btnConfirmUnlink.disabled = false;
+                });
+        });
+    }
+
+    // Init.
+    applyTypeVisibility();
 })();
 </script>
 }
