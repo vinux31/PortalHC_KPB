@@ -276,6 +276,10 @@ namespace HcPortal.Services
 
             // Phase 400 (MU-06 D-02/D-04): batch-load semua unit AKTIF per pekerja (primary-first), no N+1,
             // utk kolom Unit kontekstual. Active-only (D-03). Pola CMP-25 (trainingsByUser/sessionsByUser).
+            // NOTE (WR-01): userIds berasal dari users yang sudah difilter IsActive (baris 247).
+            // Oleh karena itu tidak perlu menambahkan filter .IsActive pada ApplicationUser di sini.
+            // Jika caller berubah (misal: hilangkan filter IsActive di usersQuery), perhatikan bahwa
+            // unit milik pekerja tidak aktif bisa ikut ter-load — coupling implisit ini disengaja.
             var unitsByUser = (await _context.UserUnits
                     .Where(uu => userIds.Contains(uu.UserId) && uu.IsActive)
                     .ToListAsync())
