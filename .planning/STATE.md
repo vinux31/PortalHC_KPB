@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
-stopped_at: Completed 397-01-PLAN.md (Wave 0 TDD lock — 5 RED test files + DTO/VM contract)
-last_updated: "2026-06-18T10:25:23.990Z"
+stopped_at: Completed 397-02-PLAN.md (Wave 1 GREEN — service linking; 5 suite 15/15 + fast 389/389)
+last_updated: "2026-06-18T10:42:05.006Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 29
   completed_phases: 4
   total_plans: 19
-  completed_plans: 16
-  percent: 84
+  completed_plans: 17
+  percent: 89
 ---
 
 # Project State: Portal HC KPB
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 397 (link-pre-post-ke-room-existing) — EXECUTING
-Plan: 2 of 4
-Status: 397-01 SELESAI (Wave 0 TDD lock — 5 RED test files + DTO/VM contract). Next: 397-02 (Wave 1 implementasi service).
-Last activity: 2026-06-18 -- 397-01 Wave 0 RED lock selesai (3 commit)
+Plan: 3 of 4
+Status: 397-02 SELESAI (Wave 1 GREEN — service linking: per-worker bidirectional + Kasus A/B + anti-double + PreviewPairingAsync + UnlinkInjectGroupAsync; 5 Wave-0 suite 15/15 + fast 389/389 + 0 migration). Next: 397-03 (Wave 2 controller/preview wiring).
+Last activity: 2026-06-18 -- 397-02 Wave 1 service GREEN selesai (3 commit af28e9db+a5c3b050+e474dda5)
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 
@@ -36,7 +36,7 @@ Last activity: 2026-06-18 -- 397-01 Wave 0 RED lock selesai (3 commit)
 
 ## Next Action
 
-**Phase 397 Plan 01 SELESAI (Wave 0 — TDD lock INJ-12)** — 3 commits: `4f330a82` feat (Task 1 DTO/VM contract: `Models/InjectAssessmentDtos.cs` `InjectRequest.LinkTargetRepId` hint server-resolve + `InjectPairingPreview` HasLink/Paired/Unpaired/WillTouchOnline/DateWarn/DoubleLinkErrors; `ViewModels/InjectAssessmentViewModel.cs` `LinkedTargetRepId`) + `2a6afbfe` test (Task 2 RED 3 file: `InjectLinkPrePostTests`+`InjectAntiDoubleLinkTests`+`UnlinkInjectGroupTests`) + `9417527f` test (Task 3 RED 2 file: `InjectPreviewPairingTests`+`InjectCrossGroupingTests`). SUMMARY @ `.planning/phases/397-link-pre-post-ke-room-existing/397-01-SUMMARY.md`. `dotnet build HcPortal.csproj` **0 error (GREEN)**; test assembly **CLEAN RED** (2 unique missing-symbol `UnlinkInjectGroupAsync`+`PreviewPairingAsync` di 5 file baru, 0 stray); 5 file `[Trait Integration]` reuse `InjectAssessmentFixture` (`HcPortalDB_Test_{guid}`); `HcPortalDB_Dev` untouched (grep match = komentar T-397-02 saja); **0 migration**. No deviation.
+**Phase 397 Plan 02 SELESAI (Wave 1 GREEN — implementasi service INJ-12)** — 3 commits: `af28e9db` feat (Task 1 per-worker bidirectional + Kasus A/B + write-to-online) + `a5c3b050` feat (Task 2 anti-double preflight D-08 + `PreviewPairingAsync` D-07 dry-run) + `e474dda5` feat (Task 3 `UnlinkInjectGroupAsync` D-12 atomic revert). SUMMARY @ `.planning/phases/397-link-pre-post-ke-room-existing/397-02-SUMMARY.md`. **Hanya `Services/InjectAssessmentService.cs` (+343/-2); 0 migration** (no `Migrations/`/`Data/` diff). `dotnet build HcPortal.csproj` **0 error**; 5 Wave-0 397 suite **GREEN 15/15** (`InjectLink` 4 + `AntiDoubleLink` 1 + `PreviewPairing` 4 + `CrossGrouping` 3 KRITIS §13 + `UnlinkInject` 3; real SQLEXPRESS, `HcPortalDB_Dev` untouched) + fast suite **389/389 GREEN** (no regression 395/396). **Yang dibangun:** (1) ganti broadcast `:120` → resolusi sibling **by-UserId** per-pekerja SETELAH SaveChanges (D-02) + write-back bidirectional online. (2) `ResolveLinkContextAsync` (privat, **server re-resolve dari `req.LinkTargetRepId`**, T-397-06; sumber tunggal Kasus A/B → preview==commit): Kasus A adopt `rep.LinkedGroupId` tak-sentuh-online / Kasus B `resolvedGroupId=rep.Id`(RepresentativeId) tulis stiker `LinkedGroupId` ke **SEMUA** sesi room target (Pitfall 2; key **Title+Category+Schedule.Date** — LOCKED, WAJIB cocok picker Plan 03). (3) audit `"LinkPrePost"` per sesi online dimutasi (D-09) gated `!IsManualEntry` ⇒ inject↔inject 0 audit (D-10); `mutatedOnlineSessionIds` HashSet dedup paired-sticker. (4) anti-double D-08 di `PreflightValidateAsync` (daftar lengkap, masuk reject-all path, pesan BI memuat NIP). (5) `PreviewPairingAsync(int?,string,IReadOnlyList<string>,DateTime)→InjectPairingPreview` dry-run **NO write** (Paired/Unpaired/WillTouchOnline/DateWarn skip-when-null Open Q 2/DoubleLinkErrors). (6) `UnlinkInjectGroupAsync(int,string,string)→InjectResult` atomic revert bidirectional + Kasus B stiker via heuristik single-type (Open Q 1 opt-b) + audit `"LinkPrePostUndo"`; IDOR guard load `IsManualEntry`; bogus group → `Success=false` state utuh. **Skor/status/jawaban online TAK disentuh** (T-397-04). **1 deviasi Rule-3** (non-scope): helper `ResolveLinkContextAsync` di-add di Task 1 (bukan Task 2) demi compile-order — Task 1 inline sudah memanggilnya, jadi "refactor to call helper" Task 2 = no-op. Audit ActionType: `LinkPrePost`(11)/`LinkPrePostUndo`(15) ≤ MaxLength(50). Branch main; notify IT migration=FALSE.
 
 **Kontrak terkunci (Wave 1 WAJIB sediakan):** (1) `UnlinkInjectGroupAsync(int injectGroupId, string actorUserId, string actorName)→Task<InjectResult>` BARU (D-12; symbol genuinely-missing penggerak RED). (2) `PreviewPairingAsync(int? linkTargetRepId, string injectAssessmentType, IReadOnlyList<string> injectUserIds, DateTime injectCompletedAt)→Task<InjectPairingPreview>` BARU (D-07 seam). (3) Resolusi link per-pekerja di `InjectBatchAsync` digerakkan `req.LinkTargetRepId` (signature TAK berubah): resolve `LinkedSessionId` by-UserId (ganti broadcast `:120`), Kasus A adopt / Kasus B tulis-ke-SEMUA-sesi-target + write-back bidirectional + audit `"LinkPrePost"`; anti-double preflight (D-08 daftar lengkap); rollback total bila error; audit `"LinkPrePostUndo"` saat unlink. **Invarian KRITIS** (spec §13): display pasang by `LinkedGroupId`+`UserId` (CMPController.cs:3417-3433) → `LinkedGroupId` WAJIB benar; test `InjectCrossGroupingTests` membuktikan pasangan silang inject↔online tampil via query GetGainScoreData-equivalent.
 
@@ -46,7 +46,7 @@ Last activity: 2026-06-18 -- 397-01 Wave 0 RED lock selesai (3 commit)
 
 **⚠️ TEMUAN KOSMETIK non-blocking (catat, JANGAN fix di 396):** sheet `Legenda` kolom `Tipe` tampilkan enum internal `"MultipleChoice"` untuk soal ber-label UI `"Single Answer"` (LBL-02). HC lihat `"MultipleChoice"` di legenda, bukan `"Single Answer"`. Teks referensi (legenda, bukan sel data) — kandidat polish 1-baris (map enum→label UI di `InjectExcelHelper.GenerateTemplate` Legenda); bundling ke Phase 398 atau backlog, bukan blocker 396.
 
-**NEXT: `/gsd-execute-phase 396` lanjut Plan 05 (Wave 5 — retire BulkBackfill, INJ-11)** — hard-remove `BulkBackfillAssessment` (`TrainingAdminController.cs:787/836`, 2 blok non-kontigu) + `Views/Admin/BulkBackfill.cshtml` + 2 link UI Section D; KEEP `CleanupAttemptHistory`/ClosedXML/`ManualDuplicatePredicate` + route-404 e2e + 0-diff migration gate. Jalur inject Excel kini = SATU entry-point (tak buat HC tanpa tool). 0 migration sepanjang fase. Branch main. ❌ tidak ada edit Dev/Prod.
+**NEXT: `/gsd-execute-phase 397` lanjut Plan 03 (Wave 2 — controller/preview wiring INJ-12)** — seam yang dikonsumsi Plan 03 sudah siap: (1) `req.LinkTargetRepId` (server re-resolve otoritatif di `InjectBatchAsync`) → `MapToRequest` isi dari VM hidden `LinkedTargetRepId`. (2) `PreviewPairingAsync(...)` → extend `PreviewInjectScore`. (3) `UnlinkInjectGroupAsync(...)` → endpoint POST `UnlinkInjectGroup` (RBAC Admin,HC + CSRF). Plus tambah `SearchLinkTargets` (JSON picker tipe-lawan, JANGAN filter IsManualEntry D-10). **Kasus B key picker standalone WAJIB = Title+Category+Schedule.Date** (cocokkan dgn `ResolveLinkContextAsync` Plan 02). 0 migration sepanjang fase. Branch main. ❌ tidak ada edit Dev/Prod.
 
 ⚠️ **Catatan env e2e (Plan 02):** app TIDAK pakai runtime Razor compilation (`AddControllersWithViews` tanpa `AddRazorRuntimeCompilation`) → view embedded saat build. Untuk verifikasi e2e perubahan view, WAJIB jalankan build/app dari **main working tree** (bukan worktree sibling `PortalHC_KPB-ITHandoff` yang pre-Plan-01). Carry DEF-392-01 (shared `initFormLoading` disable tombol pada submit-divalidasi-gagal — infra bersama, future phase).
 
@@ -156,6 +156,6 @@ Last activity: 2026-06-18 -- 397-01 Wave 0 RED lock selesai (3 commit)
 
 Last activity: 2026-06-18
 
-Stopped at: Completed 397-01-PLAN.md (Wave 0 TDD lock — 5 RED test files + DTO/VM contract)
+Stopped at: Completed 397-02-PLAN.md (Wave 1 GREEN — service linking; 5 suite 15/15 + fast 389/389)
 
 Next action: **`/gsd-execute-phase 397` lanjut Plan 02 (Wave 1 — implementasi service INJ-12, GREEN gate)** — implement di `Services/InjectAssessmentService.cs`: `UnlinkInjectGroupAsync` BARU (D-12, mirror atomic+audit `DeleteAssessmentGroup`) + `PreviewPairingAsync` BARU (D-07 dry-run NO write) + resolusi link per-pekerja di `InjectBatchAsync` digerakkan `req.LinkTargetRepId` (ganti broadcast `:120` → sibling by-UserId; Kasus A adopt / Kasus B tulis-ke-SEMUA-sesi-target + bidirectional write-back + audit `"LinkPrePost"`; anti-double preflight D-08 daftar-lengkap; audit `"LinkPrePostUndo"` saat unlink) → 5 file RED + fast suite GREEN. **Gate verifikasi Wave 1:** `dotnet test --filter "FullyQualifiedName~InjectLink"` / `~AntiDoubleLink` / `~PreviewPairing` / `~CrossGrouping` / `~UnlinkInject` (real SQLEXPRESS) + `dotnet test` penuh. 0 migration (kolom `LinkedGroupId`/`LinkedSessionId` sudah ada). Branch main. ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). Plan 03 = controller (SearchLinkTargets JSON + UnlinkInjectGroup endpoint + extend PreviewInjectScore/MapToRequest); Plan 04 = view modal/chip + Playwright. Setelah fase 397: Phase 398 (test+UAT seakan-online). Sisa 396: secure/validate/verifier sudah TUNTAS (HEAD `b465a5ab`); notify IT (migration=FALSE).
