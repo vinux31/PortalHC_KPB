@@ -345,9 +345,8 @@ namespace HcPortal.Data
                       .HasForeignKey(uu => uu.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasIndex(uu => uu.UserId);
-
-                // Tepat 1 primary per user (invariant #3) — idiom identik IX_CoachCoacheeMappings_CoacheeId_ActiveUnique
+                // Tepat 1 primary per user (invariant #3) — idiom identik IX_CoachCoacheeMappings_CoacheeId_ActiveUnique.
+                // Index ini juga melayani lookup non-unique by UserId (EF dedup index UserId polos).
                 entity.HasIndex(uu => uu.UserId)
                       .IsUnique()
                       .HasFilter("[IsPrimary] = 1")
