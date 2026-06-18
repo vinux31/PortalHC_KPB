@@ -159,9 +159,10 @@ test.describe('Phase 399 — Multi-select Unit widget (MU-01/MU-02)', () => {
     await rows.nth(1).locator('.uu-check').check();
     await rows.nth(1).locator('.uu-primary').check(); // primary = unitB
 
+    // submit form Create (selector presisi — ada tombol type=submit lain di dropdown navbar yang hidden)
     await Promise.all([
       page.waitForURL(/ManageWorkers/, { timeout: 15_000 }),
-      page.click('button[type="submit"]'),
+      page.locator('#createWorkerForm button[type="submit"]').click(),
     ]);
 
     // cari pekerja baru by NIP → buka Edit
@@ -204,7 +205,7 @@ test.describe('Phase 399 — Multi-select Unit widget (MU-01/MU-02)', () => {
     // JANGAN pilih Bagian / centang unit → 0 unit
     await Promise.all([
       page.waitForURL(/ManageWorkers/, { timeout: 15_000 }),
-      page.click('button[type="submit"]'),
+      page.locator('#createWorkerForm button[type="submit"]').click(),
     ]);
     // sampai ManageWorkers = submit sukses (tak ada blokir validasi primary)
     expect(page.url()).toContain('ManageWorkers');
