@@ -200,7 +200,8 @@ namespace HcPortal.Controllers
 
             // Filter by unit
             // Phase 400 (MU-06 D-01/D-03/D-06): predikat SET-AWARE active-only (display badge TIDAK diubah).
-            // Correlated subquery → SQL EXISTS; PITFALL #1: _context.UserUnits (bukan u.UserUnits nav prop).
+            // Correlated subquery → SQL EXISTS; PITFALL #1 (_context.UserUnits, bukan nav prop):
+            // lihat rujukan kanonik di WorkerDataService.cs GetWorkersInSection.
             if (!string.IsNullOrEmpty(unitFilter))
             {
                 query = query.Where(u =>
@@ -303,7 +304,7 @@ namespace HcPortal.Controllers
                 query = query.Where(u => u.Section == sectionFilter);
 
             // Phase 400 (MU-06 D-01/D-03): predikat unit SET-AWARE active-only (correlated subquery → SQL EXISTS).
-            // PITFALL #1: _context.UserUnits (bukan u.UserUnits nav prop).
+            // PITFALL #1 (_context.UserUnits, bukan nav prop): lihat rujukan kanonik di WorkerDataService.cs.
             if (!string.IsNullOrEmpty(unitFilter))
                 query = query.Where(u =>
                     _context.UserUnits.Any(uu => uu.UserId == u.Id && uu.Unit == unitFilter && uu.IsActive));

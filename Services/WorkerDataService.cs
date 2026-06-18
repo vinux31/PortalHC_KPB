@@ -253,7 +253,11 @@ namespace HcPortal.Services
 
             // Phase 400 (MU-06 D-01/D-03): filter unit SET-AWARE terhadap junction UserUnits (Phase 399).
             // Correlated subquery → SQL EXISTS (1 baris/pekerja, no fan-out, dedup by-construction).
-            // PITFALL #1: pakai _context.UserUnits, BUKAN u.UserUnits (nav prop tak ada → CS1061).
+            // PITFALL #1 (RUJUKAN KANONIK — IN-02): WAJIB pakai _context.UserUnits, BUKAN u.UserUnits.
+            //   Relasi UserUnit→ApplicationUser dikonfigurasi via .WithMany() TANPA argumen, jadi nav-property
+            //   ApplicationUser.UserUnits SENGAJA tidak ada (menghindari EF tracking/migration overhead).
+            //   Menulis u.UserUnits.Any(...) → compile error CS1061. Pola ini berlaku di semua titik filter unit
+            //   (ManageWorkers + ExportWorkers di WorkerController.cs merujuk catatan ini).
             if (!string.IsNullOrEmpty(unitFilter))
                 usersQuery = usersQuery.Where(u =>
                     _context.UserUnits.Any(uu => uu.UserId == u.Id && uu.Unit == unitFilter && uu.IsActive));
