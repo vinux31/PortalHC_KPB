@@ -61,7 +61,7 @@
  (completed 2026-06-17)
 - [x] **Phase 394: Page + Setup Room + authoring soal (INJ-03..07)** — Page `/Admin/InjectAssessment` (kartu Section C, RBAC Admin+HC) + setup room mirror `CreateAssessment` (judul/kategori/jadwal-backdate/durasi/PassPercentage/AllowAnswerReview/tipe Standard-Pre-Post) + authoring soal MC/MA/Essay (opsi+IsCorrect+ScoreValue+ElemenTeknis+Rubrik) reuse `ManagePackages` + worker picker + toggle sertifikat (auto/manual/tanpa). 0 migration.
  (completed 2026-06-18)
-- [ ] **Phase 395: Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09)** — Form input jawaban asli per pekerja (MC/MA pilih opsi, Essay teks+skor) + auto-generate pola jawaban dari skor target (MC/MA pola benar-salah konsisten; Essay set skor langsung) dengan **skor final aktual ditampilkan sebelum commit** (perhitungkan pembulatan). Sequential setelah 394 (file-overlap controller/view/service). 0 migration.
+- [x] **Phase 395: Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09)** — Form input jawaban asli per pekerja (MC/MA pilih opsi, Essay teks+skor) + auto-generate pola jawaban dari skor target (MC/MA pola benar-salah konsisten; Essay set skor langsung) dengan **skor final aktual ditampilkan sebelum commit** (perhitungkan pembulatan). Sequential setelah 394 (file-overlap controller/view/service). 0 migration. (completed 2026-06-18)
 - [ ] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration.
 - [ ] **Phase 397: Link Pre/Post ke room existing (INJ-12)** — Search picker assessment room existing (reuse query `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` untuk sesi inject Pre/Post, dukung skenario **silang inject↔online** (Pre di-inject ↔ Post real, atau sebaliknya) tanpa merusak grouping PrePost. Sequential setelah 394. 0 migration.
 - [ ] **Phase 398: Test + UAT "seakan online" (INJ-13)** — E2E full lifecycle (inject form/auto-gen/Excel → muncul di `/CMP/Records` label "Assessment Online" + rincian per-soal benar/salah + elemen teknis di `/CMP/Results` + sertifikat dapat diunduh) + regression suite hijau (tak regresi jalur online) + audit milestone 13/13. Depends 393-397. 0 migration.
@@ -117,10 +117,10 @@
   3. Sebelum commit, sistem menampilkan **skor final aktual** hasil pipeline grading untuk auto-generate (memperhitungkan pembulatan) sehingga HC tahu jika target tidak tercapai persis dan diambil yang terdekat. *(INJ-09 — risiko spec §13 auto-gen tak persis)*
   4. Jawaban hasil auto-generate tetap menghasilkan sesi ber-`IsManualEntry=true` + AuditLog (sintetis namun terlacak); diverifikasi end-to-end skor yang tampil di hasil = skor preview. *(INJ-08, INJ-09)*
   5. `dotnet build` 0 error + `dotnet test` + `dotnet run` (localhost:5277) + Playwright e2e: input asli per pekerja → skor dihitung benar; auto-gen skor target → preview skor final aktual tampil → commit → hasil match. *(INJ-08, INJ-09 — Razor + JS runtime → Playwright wajib)*
-**Plans:** 3 plans (3 wave, sequential - file-overlap intra-phase)
+**Plans:** 3/3 plans complete
 - [x] 395-01-PLAN.md - Wave 1: fondasi server-side (BuildAutoGenAnswers subset-sum + ComputeAutoGenSeed SHA-256 + rule TextAnswer-wajib D-04) + unit test pure (INJ-08, INJ-09)
 - [x] 395-02-PLAN.md - Wave 2: controller (PreviewInjectScore dry-run + ParseAnswerVms + MapToRequest isi Answers + wire #btnInject to InjectBatchAsync commit) + DTO/VM + integration test preview==commit (INJ-08, INJ-09)
-- [ ] 395-03-PLAN.md - Wave 3: view Step-5 sub-komponen 1-pekerja-per-layar + #AnswersJson serialize + preview JS + LBL-02 carry-in + e2e + checkpoint human-verify (INJ-08, INJ-09)
+- [x] 395-03-PLAN.md - Wave 3: view Step-5 sub-komponen 1-pekerja-per-layar + #AnswersJson serialize + preview JS + LBL-02 carry-in + e2e + checkpoint human-verify (INJ-08, INJ-09)
 **UI hint:** yes
 
 ### Phase 396: Import Excel + retire BulkBackfill
@@ -179,7 +179,7 @@
 |-------|----------------|--------|-----------|
 | 393. Backend core inject (INJ-01, INJ-02) | 3/3 | Complete    | 2026-06-17 |
 | 394. Page + Setup Room + authoring soal (INJ-03..07) | 4/4 | Complete    | 2026-06-18 |
-| 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 2/3 | In Progress|  |
+| 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 3/3 | Complete    | 2026-06-18 |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 0/5 | Not started | - |
 | 397. Link Pre/Post ke room existing (INJ-12) | 0/? | Not started | - |
 | 398. Test + UAT "seakan online" (INJ-13) | 0/? | Not started | - |

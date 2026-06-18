@@ -25,8 +25,8 @@
 
 ### Mode Jawaban (INJ) — fase 395
 
-- [ ] **INJ-08**: HC dapat **menginput jawaban asli** tiap pekerja per soal via form — MC/MA memilih opsi, Essay mengisi teks + skor manual — lalu sistem menghitung skor lewat pipeline grading.
-- [ ] **INJ-09**: HC dapat **auto-generate pola jawaban dari skor target** (MC/MA dibuat pola benar/salah konsisten dengan skor; Essay di-set skor langsung), dengan **skor final aktual ditampilkan sebelum commit** (memperhitungkan pembulatan).
+- [x] **INJ-08**: HC dapat **menginput jawaban asli** tiap pekerja per soal via form — MC/MA memilih opsi, Essay mengisi teks + skor manual — lalu sistem menghitung skor lewat pipeline grading.
+- [x] **INJ-09**: HC dapat **auto-generate pola jawaban dari skor target** (MC/MA dibuat pola benar/salah konsisten dengan skor; Essay di-set skor langsung), dengan **skor final aktual ditampilkan sebelum commit** (memperhitungkan pembulatan).
 
 ### Import Excel & Retire BulkBackfill (INJ) — fase 396
 
@@ -71,8 +71,8 @@
 | INJ-05 | Phase 394 | Complete |
 | INJ-06 | Phase 394 | Complete |
 | INJ-07 | Phase 394 | Complete |
-| INJ-08 | Phase 395 | Pending |
-| INJ-09 | Phase 395 | Pending |
+| INJ-08 | Phase 395 | Complete |
+| INJ-09 | Phase 395 | Complete |
 | INJ-10 | Phase 396 | Pending |
 | INJ-11 | Phase 396 | Pending |
 | INJ-12 | Phase 397 | Pending |
