@@ -320,7 +320,7 @@ namespace HcPortal.Controllers
             // Phase 399 (MU-03, D-08): batch-load UserUnits (hindari N+1) → kolom Unit = semua unit primary-first comma-join.
             var exportUserIds = users.Select(u => u.Id).ToList();
             var exportUnitsByUser = (await _context.UserUnits
-                    .Where(uu => exportUserIds.Contains(uu.UserId))
+                    .Where(uu => exportUserIds.Contains(uu.UserId) && uu.IsActive)  // WR-02: active-only, konsisten dgn predikat filter + GetWorkersInSection
                     .ToListAsync())
                 .GroupBy(uu => uu.UserId)
                 .ToDictionary(g => g.Key, g => g.ToList());
