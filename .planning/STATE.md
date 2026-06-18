@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: executing
-stopped_at: 395-03 Task 1-2 done — PAUSED at Task 3 checkpoint:human-verify
-last_updated: "2026-06-18T04:20:00.000Z"
+status: paused
+stopped_at: Phase 396 UI-SPEC approved
+last_updated: "2026-06-18T04:37:24.758Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 29
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -145,6 +145,6 @@ Last activity: 2026-06-18
 
 Last activity: 2026-06-18
 
-Stopped at: 395-03 Task 1-2 done (929a6c2e + d165f218) — PAUSED di Task 3 checkpoint:human-verify
+Stopped at: Phase 396 UI-SPEC approved
 
 Next action: **Task 3 checkpoint human-verify** Phase 395 Plan 03. App live http://localhost:5277 (main tree, AD-off). Verifikasi browser Langkah 5 + commit "seakan online" (lihat 395-03-SUMMARY "Checkpoint Pending" + 395-03-PLAN Task 3 how-to-verify). Pilih pekerja BER-NIP (rino.prasetyo/iwan3). Ketik "approved" → resume: mark INJ-08/INJ-09 complete + `state advance-plan` + close phase 395 + notify IT migration=FALSE. Atau jelaskan masalah → fix. ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
