@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
-stopped_at: Completed 395-02-PLAN.md
-last_updated: "2026-06-18T04:05:31.806Z"
+stopped_at: 395-03 Task 1-2 done — PAUSED at Task 3 checkpoint:human-verify
+last_updated: "2026-06-18T04:20:00.000Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 29
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 395 (mode-jawaban-input-asli-auto-generate) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
+Plan: 3 of 3 (Task 1-2 done; Task 3 = checkpoint:human-verify PENDING)
+Status: PAUSED at human-verify checkpoint (app live localhost:5277, AD-off)
 Last activity: 2026-06-18
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
@@ -36,9 +36,11 @@ Last activity: 2026-06-18
 
 ## Next Action
 
-**Phase 395 Plan 01 SELESAI** (2 commits: 561944f7 test/RED + c79d27a4 feat/GREEN; SUMMARY @ `.planning/phases/395-mode-jawaban-input-asli-auto-generate/395-01-SUMMARY.md`). Fondasi server-side auto-gen siap: `BuildAutoGenAnswers` + `ComputeAutoGenSeed` (SHA-256) + `AutoGenResult` + rule D-04 TextAnswer-wajib. 30 unit test GREEN; fast suite 381/381; 0 migration.
+**Phase 395 Plan 03 Task 1-2 SELESAI — PAUSED di Task 3 checkpoint:human-verify** (2 commits: `929a6c2e` feat Step-5+#AnswersJson+LBL-02 + `d165f218` test e2e; SUMMARY @ `.planning/phases/395-mode-jawaban-input-asli-auto-generate/395-03-SUMMARY.md`). Langkah 5 sub-komponen IIFE 1-pekerja-per-layar SIAP (roster + Prev/Next + toggle mode + form MC/MA/Essay + Pratinjau POST PreviewInjectScore + BLOCKING) + hidden `#AnswersJson` serialize di submit-listener SAMA dgn `#QuestionsJson` (anti silent-grade-0) + LBL-02 "Single Answer"/"Multiple Answer". e2e 3/3 GREEN (INJ-08 commit Score=100/0, INJ-09 auto-gen Score==preview, LBL-02). `dotnet build` 0 error; 0 migration. **App live di http://localhost:5277 (main tree, AD-off) untuk verifikasi.**
 
-**Next: execute Plan 02 (395-02-PLAN.md — controller)** — `ParseAnswerVms` (paralel `ParseQuestionVms`) + `PreviewInjectScore` action (dry-run via `AssessmentScoreAggregator.Compute`, RBAC Admin/HC + antiforgery, NO CertNumberHelper) + isi `MapToRequest:116` `Answers` (server-otoritas: panggil `BuildAutoGenAnswers(seed)` ulang untuk worker auto) + wire `#btnInject` → `InjectBatchAsync` (commit pertama milestone). Lalu Plan 03 (view + carry-in LBL-02). Tiap perubahan view: build+run main tree (localhost:5277, AD-off) + Playwright. ❌ tidak ada edit di Dev/Prod (CLAUDE.md). Notify IT migration=FALSE saat phase selesai.
+**Plan 01** (`561944f7`/`c79d27a4`): fondasi auto-gen `BuildAutoGenAnswers`+`ComputeAutoGenSeed`(SHA-256)+rule D-04. **Plan 02** (`b78140bd`/`b7335135`/`24cbf353`): controller `ParseAnswerVms`+`PreviewInjectScore`+`MapToRequest` Answers+wire `#btnInject`→`InjectBatchAsync` (commit pertama milestone).
+
+**NEXT: Task 3 checkpoint human-verify** — verifikasi browser live (localhost:5277, AD-off, admin@pertamina.com): Langkah 5 navigasi pekerja + input-asli MC/MA/Essay (essay teks-wajib-jika-skor + skip) + auto-gen target (overshoot/BLOCKING) + commit "seakan online" (/CMP/Records "Assessment Online" + /CMP/Results skor==preview, BUKAN 0) + LBL-02. **Pilih ≥1 pekerja BER-NIP** (rino.prasetyo / iwan3 — controller skip null-NIP, "berhasil: 0 sesi"). Snapshot+restore DB bila tulis (CLAUDE.md Seed). Ketik "approved" bila OK, atau jelaskan masalah → resume. Setelah approve: mark INJ-08/INJ-09 complete + advance plan + close phase 395 + notify IT migration=FALSE. ❌ tidak ada edit Dev/Prod.
 
 ⚠️ **Catatan env e2e (Plan 02):** app TIDAK pakai runtime Razor compilation (`AddControllersWithViews` tanpa `AddRazorRuntimeCompilation`) → view embedded saat build. Untuk verifikasi e2e perubahan view, WAJIB jalankan build/app dari **main working tree** (bukan worktree sibling `PortalHC_KPB-ITHandoff` yang pre-Plan-01). Carry DEF-392-01 (shared `initFormLoading` disable tombol pada submit-divalidasi-gagal — infra bersama, future phase).
 
@@ -141,8 +143,8 @@ Last activity: 2026-06-18
 
 ## Session Continuity
 
-Last activity: 2026-06-17
+Last activity: 2026-06-18
 
-Stopped at: Completed 395-02-PLAN.md
+Stopped at: 395-03 Task 1-2 done (929a6c2e + d165f218) — PAUSED di Task 3 checkpoint:human-verify
 
-Next action: milestone v32.2 — selesaikan REQUIREMENTS.md (INJ-*) + roadmap (393-398), lalu **`/gsd-discuss-phase 393`** atau **`/gsd-plan-phase 393`** (Backend core inject). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
+Next action: **Task 3 checkpoint human-verify** Phase 395 Plan 03. App live http://localhost:5277 (main tree, AD-off). Verifikasi browser Langkah 5 + commit "seakan online" (lihat 395-03-SUMMARY "Checkpoint Pending" + 395-03-PLAN Task 3 how-to-verify). Pilih pekerja BER-NIP (rino.prasetyo/iwan3). Ketik "approved" → resume: mark INJ-08/INJ-09 complete + `state advance-plan` + close phase 395 + notify IT migration=FALSE. Atau jelaskan masalah → fix. ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md).
