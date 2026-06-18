@@ -54,6 +54,11 @@ namespace HcPortal.Models
         public int DurationMinutes { get; set; } = 60;
         public int PassPercentage { get; set; } = 70;
         public bool AllowAnswerReview { get; set; } = true;
+
+        /// <summary>true (default, jalur Form 395) = teks essay wajib bila skor diisi (PreflightValidate :396).
+        /// false (jalur Excel 396 D-05) = teks essay OPSIONAL — essay graded murni by EssayScore.</summary>
+        public bool EssayTextRequired { get; set; } = true;
+
         public InjectCertMode CertMode { get; set; } = InjectCertMode.None;
         public int? LinkedGroupId { get; set; }
         public int? LinkedSessionId { get; set; }
@@ -112,5 +117,27 @@ namespace HcPortal.Models
         public int Overshoot { get; set; }            // actual - target (auto-gen; >=0 karena bias jamin-lulus)
         public bool Blocked { get; set; }             // true bila target>ceiling (BLOCKING, D-08.3)
         public string? BlockingMessage { get; set; }  // Bahasa Indonesia
+    }
+
+    /// <summary>Hasil POST UploadInjectExcel (396 D-08/D-09): ok=false + Errors (daftar LENGKAP, atomic)
+    /// ATAU ok=true + AnswersJson (di-set ke #AnswersJson klien) + Previews (tabel pratinjau, NO cert#).</summary>
+    public class InjectExcelUploadResult
+    {
+        public bool Ok { get; set; }
+        public List<InjectRowError> Errors { get; set; } = new();
+        public string AnswersJson { get; set; } = "";          // serialized List<InjectWorkerAnswersVM> (Mode="manual")
+        public List<InjectExcelPreviewRow> Previews { get; set; } = new();
+        public int SkippedBlankCount { get; set; }              // sel kosong di-skip → warn-but-allow (D-06)
+    }
+
+    /// <summary>1 baris tabel pratinjau batch (D-08): NIP+Nama+skor final+lulus+terjawab. TANPA nomor sertifikat.</summary>
+    public class InjectExcelPreviewRow
+    {
+        public string Nip { get; set; } = "";
+        public string Name { get; set; } = "";
+        public int Percentage { get; set; }
+        public bool IsPassed { get; set; }
+        public int Answered { get; set; }
+        public int TotalQuestions { get; set; }
     }
 }

@@ -37,6 +37,10 @@ namespace HcPortal.ViewModels
         // Mode/TargetScore = lapisan VM/controller saja (D-02) — TIDAK masuk InjectRequest/service.
         public string? AnswersJson { get; set; }
 
+        /// <summary>Phase 396 — metode pengisian jawaban room-level (D-01/D-03): "form" (default) | "excel".
+        /// Hanya memengaruhi isi #AnswersJson klien; tidak masuk InjectRequest/service.</summary>
+        public string? Step5Method { get; set; }
+
         /// <summary>Soal authored (pre-persist) — mirror <see cref="InjectQuestionSpec"/>.</summary>
         public class InjectQuestionVM
         {
