@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 395: Mode Jawaban — Pertanyaan Diskusi</title>
+<style>
+  :root{
+    --green:#22c55e; --green-bg:#f0fdf4; --gray:#e2e8f0; --orange:#f97316;
+    --ink:#0f172a; --muted:#64748b; --accent:#2563eb; --card:#fff; --bg:#f8fafc;
+    --rec:#7c3aed; --rec-bg:#f5f3ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--gray);padding:16px 24px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  h1{margin:0 0 4px;font-size:18px}
+  .sub{color:var(--muted);font-size:13px}
+  .statsbar{display:flex;align-items:center;gap:16px;margin-top:12px;flex-wrap:wrap}
+  .chip{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:#f1f5f9}
+  .chip.ok{background:var(--green-bg);color:#15803d}
+  .chip.rem{background:#fef2f2;color:#b91c1c}
+  .progress{flex:1;min-width:160px;height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden}
+  .progress > i{display:block;height:100%;background:var(--green);width:0;transition:width .25s}
+  .savebtn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  .savebtn:hover{filter:brightness(1.08)}
+  .savebtn.small{padding:7px 14px;font-size:13px}
+  .ghost{background:#fff;color:var(--accent);border:1px solid #bfdbfe}
+  main{max-width:1200px;margin:0 auto;padding:20px 24px 80px}
+  .note{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;font-size:13px;color:#1e40af;margin-bottom:20px}
+  .note code{background:#dbeafe;padding:1px 5px;border-radius:4px}
+  .recnote{background:var(--rec-bg);border:1px solid #ddd6fe;color:#5b21b6}
+  section.grp{margin-bottom:18px;border:1px solid var(--gray);border-radius:12px;background:#fff;overflow:hidden}
+  .grp > h2{margin:0;font-size:15px;padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:10px;user-select:none;background:#fff}
+  .grp > h2 .count{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);background:#f1f5f9;padding:3px 9px;border-radius:999px}
+  .grp > h2 .arrow{transition:transform .2s;color:var(--muted)}
+  .grp.collapsed > h2 .arrow{transform:rotate(-90deg)}
+  .grp.collapsed .grid{display:none}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;padding:0 18px 18px}
+  .card{border:1px solid var(--gray);border-radius:10px;padding:14px;background:var(--card);transition:border .15s,background .15s;display:flex;flex-direction:column}
+  .card.answered{border:2px solid var(--green);background:var(--green-bg)}
+  .qhead{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .badge{font-size:11px;font-weight:700;color:#fff;background:#475569;padding:2px 7px;border-radius:6px}
+  .card.answered .badge{background:var(--green)}
+  .qtitle{font-weight:700;font-size:14px}
+  .ctx{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:10px;border-left:3px solid var(--gray);padding-left:8px}
+  .opt{display:flex;gap:8px;padding:8px;border-radius:8px;cursor:pointer;margin-bottom:4px;border:1px solid transparent;position:relative}
+  .opt:hover{background:#f8fafc}
+  .opt input{margin-top:3px}
+  .opt.sel{background:#fff;border-color:var(--green)}
+  .opt.rec{background:var(--rec-bg);border-color:#ddd6fe}
+  .opt.rec.sel{border-color:var(--green)}
+  .opt .ol{font-weight:600;font-size:13px}
+  .opt .od{font-size:12px;color:#475569}
+  .rectag{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--rec);padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:middle}
+  .recwhy{font-size:12px;color:#5b21b6;background:var(--rec-bg);border-left:3px solid var(--rec);padding:7px 9px;border-radius:6px;margin:6px 0 2px}
+  .recwhy b{color:var(--rec)}
+  textarea{width:100%;margin-top:8px;border:1px solid var(--gray);border-radius:8px;padding:8px;font:inherit;font-size:12px;resize:vertical;min-height:46px}
+  textarea.has{border:2px solid var(--orange)}
+  .foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 0 0}
+  .saved-flash{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#15803d;color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50}
+  .saved-flash.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Phase 395: Mode Jawaban (input asli + auto-generate)</h1>
+  <div class="sub">Milestone v32.2 — Inject Hasil Assessment Manual. Jawab di sini, simpan, lalu kembali ke Claude.</div>
+  <div class="statsbar">
+    <span class="chip" id="c-total">0 total</span>
+    <span class="chip ok" id="c-answered">0 terjawab</span>
+    <span class="chip rem" id="c-remaining">0 sisa</span>
+    <div class="progress"><i id="bar"></i></div>
+    <button class="savebtn small ghost" onclick="acceptAllRec()">Pakai semua rekomendasi</button>
+    <button class="savebtn small" onclick="saveAnswers()">Simpan jawaban</button>
+  </div>
+</header>
+<main>
+  <div class="note">
+    Pilih opsi di tiap kartu (boleh tulis nuansa di kotak oranye "Tambah konteks"). Opsi <span class="rectag">★ REKO</span>
+    = rekomendasi Claude (alasan di kotak ungu). Klik <b>Pakai semua rekomendasi</b> untuk isi cepat, atau pilih sendiri.
+    Lalu <b>Simpan jawaban</b> → tulis balik ke <code>395-QUESTIONS.json</code> (atau unduh & ganti file asli).
+    Kembali ke Claude, ketik <code>refresh</code> atau <code>finalize</code>.
+  </div>
+  <div id="root"></div>
+  <div class="foot">
+    <button class="savebtn ghost" onclick="acceptAllRec()">Pakai semua rekomendasi</button>
+    <button class="savebtn" onclick="saveAnswers()">Simpan jawaban</button>
+  </div>
+</main>
+<div class="saved-flash" id="flash">Tersimpan ✓</div>
+
+<script>
+const DATA = {
+  "phase": "395-mode-jawaban-input-asli-auto-generate",
+  "generated_at": "2026-06-18T00:00:00Z",
+  "stats": { "total": 10, "answered": 0, "chat_more": 0, "remaining": 10 },
+  "sections": [
+    { "id":"mode-granularitas","title":"Mode & Cakupan Jawaban","questions":[
+      { "id":"Q-01","title":"Granularitas pemilihan mode (input asli vs auto-generate)","context":"Spec D-4 (§3) = 'campuran, per-kasus'. Service InjectBatchAsync sudah konsumsi answers eksplisit per worker (InjectWorkerSpec.Answers), jadi campur per-pekerja secara teknis mungkin. Pertanyaan: seberapa fleksibel HC boleh memilih mode.","rec":"c","rec_reason":"Kasus nyata 1 event luring = 1 room, tapi sebagian pekerja punya lembar jawaban (input asli) & sebagian hanya skor akhir (auto-gen) → butuh campur tanpa pecah jadi 2 room (yang merusak grouping Records). Default per-room jaga alur cepat untuk kasus seragam.","options":[
+        {"id":"a","label":"Per-room (1 mode untuk semua pekerja)","description":"Paling sederhana: HC pilih 'Input Asli' ATAU 'Auto-Generate' satu kali di Langkah 5, berlaku ke semua pekerja terpilih. UI bersih, alur cepat. Tak bisa campur dalam 1 room (kalau perlu campur → buat 2 room)."},
+        {"id":"b","label":"Per-pekerja (boleh campur dalam 1 room)","description":"Tiap pekerja punya toggle mode sendiri: sebagian input asli, sebagian auto-gen. Paling fleksibel (cocok 'sebagian punya lembar jawaban, sebagian hanya skor'). UI lebih kompleks (state per-pekerja)."},
+        {"id":"c","label":"Default per-room + override per-pekerja","description":"HC set mode default 1 room, lalu boleh override individu yang perlu beda. Kompromi: cepat untuk kasus seragam, tetap fleksibel untuk pengecualian.","recommended":true}
+      ],"answer":null,"chat_more":"","status":"unanswered"},
+      { "id":"Q-02","title":"Skor target auto-generate — seragam atau per-pekerja","context":"Spec §7.2: 'HC kasih skor target (mis. 80) per pekerja (atau seragam 1 batch)'. ROADMAP SC-2 sebut keduanya. Pertanyaan: bagaimana HC memasukkan target.","rec":"c","rec_reason":"Common case target seragam (cepat, 1 angka), tapi data nyata sering skor beragam per orang → override per-pekerja tanpa harus mengisi ulang semua. Menutup kedua kebutuhan §7.2 sekaligus.","options":[
+        {"id":"a","label":"Seragam 1 batch (semua pekerja skor target sama)","description":"HC ketik 1 angka target (mis. 80), semua pekerja auto-gen ke skor itu. Cepat untuk 'semua lulus ~80'. Tak bisa beda-beda per orang dalam 1 commit."},
+        {"id":"b","label":"Per-pekerja (tiap orang target sendiri)","description":"Kolom target per pekerja di tabel. Akurat untuk data nyata yang skornya beragam. Input lebih banyak."},
+        {"id":"c","label":"Batch default + override per-pekerja","description":"Isi target batch sekali (auto-isi semua), lalu boleh ubah per orang. Kompromi: cepat + tetap bisa variasi.","recommended":true}
+      ],"answer":null,"chat_more":"","status":"unanswered"}
+    ]},
+    { "id":"form-input-asli","title":"Form Input Jawaban Asli","questions":[
+      { "id":"Q-03","title":"Tata letak form jawaban (banyak pekerja × banyak soal)","context":"Langkah 5 render soal authored (Langkah 3) untuk tiap pekerja terpilih (Langkah 2). Bisa puluhan pekerja × belasan soal. Wizard 394 sudah pakai pola CreateAssessment (single-form + step-panel). Pertanyaan murni UX tata letak.","rec":"c","rec_reason":"Accordion skala ke banyak pekerja + muat soal panjang & essay (textarea). Matrix (b) patah di essay/soal panjang; per-layar (a) lambat klik antar orang. Accordion = scroll, bisa buka beberapa sekaligus.","options":[
+        {"id":"a","label":"Satu pekerja per layar (navigasi Prev/Next antar pekerja)","description":"Fokus 1 pekerja, render soal lengkap seperti halaman ujian. Jelas & rapi per orang. Lambat kalau pekerja banyak (klik antar orang)."},
+        {"id":"b","label":"Matrix: baris pekerja × kolom soal (1 tabel)","description":"Mirip Excel matrix tapi di web — isi cepat untuk banyak pekerja sekaligus. Padat; soal panjang/essay sulit muat. Selaras dgn import Excel Phase 396."},
+        {"id":"c","label":"Accordion per-pekerja (semua di 1 scroll, collapse)","description":"Tiap pekerja = panel collapse berisi semua soal. Scroll bukan klik-navigasi; bisa buka beberapa sekaligus. Bisa berat kalau sangat banyak.","recommended":true}
+      ],"answer":null,"chat_more":"","status":"unanswered"},
+      { "id":"Q-04","title":"Essay (input asli) — teks jawaban wajib atau opsional","context":"DTO InjectAnswerSpec: EssayScore wajib (divalidasi 0..ScoreValue di service), TextAnswer nullable. Untuk ujian luring, teks jawaban asli sering tak tersedia (hanya nilai di lembar). Pertanyaan: apakah HC harus mengetik teks.","rec":"a","rec_reason":"Data luring umumnya hanya punya nilai, bukan teks jawaban. Skor wajib sudah cukup untuk /CMP/Results. Placeholder otomatis (c) = mengarang teks 'palsu' yang berisiko salah-dibaca sebagai jawaban asli.","options":[
+        {"id":"a","label":"Teks opsional, skor wajib","description":"HC cukup isi skor essay; teks boleh kosong. Realistis untuk data luring yang hanya punya nilai. /CMP/Results menampilkan skor essay; teks kosong = '-'.","recommended":true},
+        {"id":"b","label":"Teks wajib + skor wajib","description":"Paksa HC isi teks juga agar 'seakan online' penuh (ada jawaban tertulis). Lebih autentik di Results, tapi memberatkan bila teks asli tak ada."},
+        {"id":"c","label":"Teks opsional dgn placeholder default","description":"Skor wajib; bila teks kosong, isi otomatis penanda mis. '(jawaban luring — dinilai manual)'. Results tak pernah kosong, tetap transparan asal-usul."}
+      ],"answer":null,"chat_more":"","status":"unanswered"},
+      { "id":"Q-05","title":"Validasi kelengkapan jawaban sebelum commit","context":"Service saat ini (393): MC butuh tepat 1 opsi, MA ≥1 opsi, Essay wajib EssayScore — per-worker pre-flight reject-all bila ada yang invalid (D-03). Pertanyaan: bagaimana UI memperlakukan soal yang belum diisi pekerja.","rec":"a","rec_reason":"Selaras validasi service 393 (MC=1, MA≥1, essay wajib) TANPA bikin jalur khusus 'tandai semua salah' untuk MA. Ini data sertifikasi → wajib lengkap = paling aman, nol special-case, nol risiko sesi 'setengah'.","options":[
+        {"id":"a","label":"Semua soal wajib terjawab tiap pekerja","description":"Blok commit sampai lengkap (selaras validasi service: MA butuh ≥1, MC tepat 1). Paling aman, tak ada sesi 'setengah'. Memberatkan bila ada soal sengaja dikosongkan.","recommended":true},
+        {"id":"b","label":"Boleh kosong = dihitung salah / skor 0","description":"Soal MC/MA tak dijawab → otomatis salah (0); essay kosong → skor 0. HC bisa cepat. Tapi service MA butuh ≥1 opsi → perlu jalur 'tandai semua salah' (opsi non-kunci) agar tak ditolak."},
+        {"id":"c","label":"Peringatkan tapi izinkan (konfirmasi)","description":"Tampilkan peringatan 'X soal belum diisi → dihitung 0', HC konfirmasi lanjut. Fleksibel + sadar-risiko."}
+      ],"answer":null,"chat_more":"","status":"unanswered"}
+    ]},
+    { "id":"auto-generate","title":"Auto-Generate dari Skor Target","questions":[
+      { "id":"Q-06","title":"Arah pembulatan saat skor target tak tercapai persis","context":"Grading = Σ(ScoreValue benar)/Σ(ScoreValue)×100. Soal diskret → persen yang bisa dicapai juga diskret (mis. target 80 hanya bisa 78 atau 83). Ini pengaruh LULUS/GAGAL bila target dekat PassPercentage. Spec §13: 'ambil terdekat & laporkan'.","rec":"a","rec_reason":"Persis kata spec §13 'ambil terdekat & laporkan'. Paling jujur ke angka target HC. Risiko jatuh-di-bawah-ambang dimitigasi dgn menampilkan selisih sebelum commit (Q-10a), bukan dgn membiaskan ke atas/bawah.","options":[
+        {"id":"a","label":"Terdekat absolut (boleh di atas/bawah target)","description":"Pilih kombinasi yang selisih |aktual−target| terkecil. Paling jujur ke angka target. Risiko: bila target = batas lulus, bisa jatuh ke bawah → gagal tak terduga.","recommended":true},
+        {"id":"b","label":"Bulatkan ke ATAS (≥ target, aman lulus)","description":"Ambil capaian terkecil yang ≥ target. Menjamin pekerja tak turun di bawah niat HC (aman untuk 'minimal lulus 80'). Bisa sedikit lebih tinggi dari target."},
+        {"id":"c","label":"Bulatkan ke BAWAH (≤ target)","description":"Ambil capaian terbesar yang ≤ target. Konservatif (tak pernah melebihi). Risiko jatuh di bawah batas lulus bila target = ambang."}
+      ],"answer":null,"chat_more":"","status":"unanswered"},
+      { "id":"Q-07","title":"Variasi pola benar/salah antar pekerja (auto-gen)","context":"Tujuan milestone = 'seakan online' (tak bisa dibedakan dari hasil online). Auto-gen memilih subset soal jadi 'benar'. Pertanyaan: apakah tiap pekerja dapat pola sama atau berbeda.","rec":"c","rec_reason":"Variasi antar pekerja = natural 'seakan online' (tak semua salah di soal yang sama), TAPI seed tetap per-NIP → reproducible sehingga Playwright/xUnit bisa assert hasil. Identik (a) terlihat sintetis; acak murni (b) susah dites.","options":[
+        {"id":"a","label":"Identik semua pekerja (deterministik)","description":"Mis. selalu N soal pertama benar. Sederhana, mudah diprediksi/verifikasi. Tapi semua pekerja salah di soal yang sama persis → terlihat 'sintetis' bila ada yang audit detail Results."},
+        {"id":"b","label":"Acak per-pekerja (pola beda tiap orang)","description":"Tiap pekerja subset 'benar' acak (skor sama, soal beda). Lebih natural 'seakan online'. Hasil tak reproducible antar-run (perlu catatan bila debugging)."},
+        {"id":"c","label":"Acak dengan seed tetap (reproducible)","description":"Variasi antar pekerja tapi deterministik per (NIP/seed) → bisa di-reproduce. Kompromi natural + dapat diuji.","recommended":true}
+      ],"answer":null,"chat_more":"","status":"unanswered"},
+      { "id":"Q-08","title":"Alokasi skor essay dalam auto-generate","context":"Essay tak bisa 'auto-benar/salah' (dinilai via EssayScore manual). Saat auto-gen dari target, essay harus disumbangkan ke total. Pertanyaan: bagaimana porsi essay ditentukan.","rec":"b","rec_reason":"Proporsional = persentase target konsisten di semua tipe soal + paling natural. 'Essay selalu penuh' (a) mencurigakan saat audit; essay-manual (c) bukan full-auto (gugur tujuan 'hanya punya skor akhir').","options":[
+        {"id":"a","label":"Essay penuh dulu, MC/MA isi sisa target","description":"EssayScore = ScoreValue penuh; MC/MA dipilih untuk menutup kekurangan ke target. Sederhana; tapi 'semua essay sempurna' bisa terlihat tak natural."},
+        {"id":"b","label":"Essay proporsional terhadap target","description":"EssayScore = round(ScoreValue × target%). Konsisten dgn persentase target di seluruh tipe soal. Lebih natural; perhitungan sedikit lebih rumit.","recommended":true},
+        {"id":"c","label":"Essay di-set 0/HC isi manual; auto hanya MC/MA","description":"Auto-gen hanya menyentuh MC/MA; essay diserahkan HC (input manual skor). Paling akurat untuk essay nyata, tapi bukan 'full auto' bila ada essay."}
+      ],"answer":null,"chat_more":"","status":"unanswered"}
+    ]},
+    { "id":"preview-commit","title":"Preview & Konfirmasi Pra-Commit","questions":[
+      { "id":"Q-09","title":"Isi preview skor final sebelum commit","context":"ROADMAP SC-3: tampilkan 'skor final aktual' pra-commit. Service belum punya dry-run; preview = hitung persen dari pola jawaban tanpa commit. Pertanyaan: seberapa lengkap preview.","rec":"b","rec_reason":"Lulus/Tidak = info kritis HC pra-commit (terutama saat auto-gen dekat ambang). Preview nomor cert (c) berisiko: CertNumberHelper.GetNextSeqAsync bisa mengonsumsi/menggeser sekuens saat dry-run → nomor cert biar dihitung pasca-commit (deterministik). b = info cukup, nol risiko sekuens.","options":[
+        {"id":"a","label":"Skor final saja (per pekerja)","description":"Tabel: pekerja → skor aktual (mis. 78%). Minimal, fokus angka. HC simpulkan lulus/gagal sendiri dari PassPercentage."},
+        {"id":"b","label":"Skor + status Lulus/Tidak","description":"Tambah badge Lulus/Tidak (bandingkan vs PassPercentage). HC langsung lihat dampak. Tak tampil info cert.","recommended":true},
+        {"id":"c","label":"Skor + Lulus/Tidak + preview nomor sertifikat","description":"Plus preview nomor cert (format KPB/xxx/ROMAN/year via CertNumberHelper) bila mode cert Auto & lulus. Paling lengkap; konfirmasi penuh sebelum commit. Lebih banyak komputasi pra-commit."}
+      ],"answer":null,"chat_more":"","status":"unanswered"},
+      { "id":"Q-10","title":"Aksi UI bila auto-gen tak capai target persis","context":"Lanjutan Q-06: setelah sistem ambil skor terdekat, apa yang terjadi di UI saat selisih ada (mis. target 80, aktual 78).","rec":"a","rec_reason":"Pasangan Q-06a: tampilkan 'target 80 → aktual 78 (−2)', HC sadar & boleh lanjut. Blok+sesuaikan (b) sering mustahil (soal diskret → tak ada target persis). Switch-manual (c) = fitur tambahan, bisa ditambah nanti bila perlu.","options":[
+        {"id":"a","label":"Izinkan commit dgn skor terdekat (tampilkan selisih)","description":"Tampilkan 'target 80 → aktual 78 (−2)', HC boleh lanjut commit. Paling lancar; HC sadar selisih. Sesuai spec §13 'ambil terdekat & laporkan'.","recommended":true},
+        {"id":"b","label":"Blok commit, minta HC sesuaikan target","description":"Bila tak persis, paksa HC ubah target ke nilai yang dapat dicapai persis sebelum commit. Menjamin angka 'bulat'; tapi memberatkan & kadang mustahil (soal diskret)."},
+        {"id":"c","label":"Tawarkan beralih ke input asli (pilih soal manual)","description":"Bila HC tak puas dgn skor terdekat, sediakan tombol 'sesuaikan manual' → buka mode input asli untuk pekerja itu agar HC pilih soal benar sendiri. Fleksibel; gabung 2 mode."}
+      ],"answer":null,"chat_more":"","status":"unanswered"}
+    ]}
+  ]
+};
+
+let fileHandle = null;
+const allQ = () => DATA.sections.flatMap(s => s.questions);
+
+function recalc(){
+  const qs = allQ();
+  let answered=0, chat=0;
+  qs.forEach(q=>{
+    const hasAns = q.answer!==null && q.answer!=='';
+    const hasChat = (q.chat_more||'').trim()!=='';
+    if(hasAns) answered++;
+    if(hasChat) chat++;
+    q.status = hasAns ? 'answered' : (hasChat ? 'chat-more' : 'unanswered');
+  });
+  DATA.stats.total = qs.length;
+  DATA.stats.answered = answered;
+  DATA.stats.chat_more = chat;
+  DATA.stats.remaining = qs.length - answered;
+}
+
+function render(){
+  recalc();
+  document.getElementById('c-total').textContent = DATA.stats.total + ' total';
+  document.getElementById('c-answered').textContent = DATA.stats.answered + ' terjawab';
+  document.getElementById('c-remaining').textContent = DATA.stats.remaining + ' sisa';
+  document.getElementById('bar').style.width = (DATA.stats.total ? (DATA.stats.answered/DATA.stats.total*100) : 0) + '%';
+
+  const root = document.getElementById('root');
+  root.innerHTML = '';
+  DATA.sections.forEach(sec=>{
+    const ans = sec.questions.filter(q=>q.answer!==null && q.answer!=='').length;
+    const grp = document.createElement('section');
+    grp.className = 'grp';
+    grp.innerHTML = `<h2><span class="arrow">▼</span> ${sec.title}
+        <span class="count">${ans}/${sec.questions.length} terjawab</span></h2>
+      <div class="grid"></div>`;
+    grp.querySelector('h2').onclick = ()=> grp.classList.toggle('collapsed');
+    const grid = grp.querySelector('.grid');
+    sec.questions.forEach(q=>{
+      const card = document.createElement('div');
+      card.className = 'card' + ((q.answer!==null && q.answer!=='') ? ' answered':'');
+      let opts = '';
+      q.options.forEach(o=>{
+        const sel = q.answer===o.id;
+        const isRec = !!o.recommended;
+        opts += `<label class="opt${sel?' sel':''}${isRec?' rec':''}">
+            <input type="radio" name="${q.id}" value="${o.id}" ${sel?'checked':''}>
+            <span><span class="ol">${o.label}${isRec?'<span class="rectag">★ REKO</span>':''}</span>${o.description?('<br><span class="od">'+o.description+'</span>'):''}</span>
+          </label>`;
+      });
+      const why = q.rec_reason ? `<div class="recwhy"><b>★ Reko Claude (opsi ${(q.rec||'').toUpperCase()}):</b> ${q.rec_reason}</div>` : '';
+      const chat = q.chat_more||'';
+      card.innerHTML = `<div class="qhead"><span class="badge">${q.id}</span><span class="qtitle">${q.title}</span></div>
+        <div class="ctx">${q.context}</div>
+        <div class="opts">${opts}</div>
+        ${why}
+        <textarea class="${chat.trim()?'has':''}" placeholder="Tambah konteks / nuansa / klarifikasi untuk pertanyaan ini...">${chat}</textarea>`;
+      card.querySelectorAll('input[type=radio]').forEach(r=>{
+        r.onchange = ()=>{ q.answer = r.value; render(); };
+      });
+      const ta = card.querySelector('textarea');
+      ta.oninput = ()=>{ q.chat_more = ta.value; ta.classList.toggle('has', ta.value.trim()!==''); };
+      grid.appendChild(card);
+    });
+    root.appendChild(grp);
+  });
+}
+
+function acceptAllRec(){
+  allQ().forEach(q=>{ if(q.rec) q.answer = q.rec; });
+  render();
+  flash('Semua rekomendasi dipilih — tinjau lalu Simpan');
+}
+
+function flash(msg){
+  const f=document.getElementById('flash'); f.textContent=msg; f.classList.add('show');
+  setTimeout(()=>f.classList.remove('show'),1800);
+}
+
+async function saveAnswers(){
+  recalc();
+  const json = JSON.stringify(DATA, null, 2);
+  if(window.showSaveFilePicker){
+    try{
+      if(!fileHandle){
+        fileHandle = await window.showSaveFilePicker({
+          suggestedName: '395-QUESTIONS.json',
+          types:[{description:'JSON', accept:{'application/json':['.json']}}]
+        });
+      }
+      const w = await fileHandle.createWritable();
+      await w.write(json); await w.close();
+      flash('Tersimpan ke 395-QUESTIONS.json ✓');
+      return;
+    }catch(e){ /* fall through to download */ }
+  }
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = '395-QUESTIONS.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  flash('JSON diunduh — ganti file 395-QUESTIONS.json asli');
+}
+
+render();
+</script>
+</body>
+</html>
