@@ -449,10 +449,16 @@ namespace HcPortal.Controllers
             {
                 await _userManager.AddToRoleAsync(user, model.Role);
 
-                // Phase 399 (MU-01/02): write-through baris UserUnits + mirror ApplicationUser.Unit.
-                await SyncUserUnitsAsync(_context, user, model.Units ?? new(), model.PrimaryUnit);
-                await _context.SaveChangesAsync();
-                await _userManager.UpdateAsync(user);   // persist mirror Unit ke Identity store
+                // Phase 399 (MU-01/02, WR-01 atomicity): bungkus write-through junction + mirror + UpdateAsync
+                // dalam SATU transaksi → baris UserUnits & mirror ApplicationUser.Unit commit bersama (no desync,
+                // konsisten dengan EditWorker yang sudah hardened — jaga Invariant #3).
+                using (var uuTx = await _context.Database.BeginTransactionAsync())
+                {
+                    await SyncUserUnitsAsync(_context, user, model.Units ?? new(), model.PrimaryUnit);
+                    await _context.SaveChangesAsync();
+                    await _userManager.UpdateAsync(user);   // persist mirror Unit ke Identity store
+                    await uuTx.CommitAsync();
+                }
 
                 // Audit log
                 try
@@ -1282,10 +1288,15 @@ namespace HcPortal.Controllers
                     {
                         await _userManager.AddToRoleAsync(newUser, role);
 
-                        // Phase 399 (MU-04): write-through baris UserUnits (first=primary) + mirror Unit.
-                        await SyncUserUnitsAsync(_context, newUser, unitList, unitList.FirstOrDefault());
-                        await _context.SaveChangesAsync();
-                        await _userManager.UpdateAsync(newUser);   // persist mirror Unit
+                        // Phase 399 (MU-04, WR-01 atomicity): write-through junction + mirror + UpdateAsync per-row
+                        // dalam SATU transaksi → baris UserUnits & mirror Unit commit bersama (no desync, jaga Invariant #3).
+                        using (var uuTx = await _context.Database.BeginTransactionAsync())
+                        {
+                            await SyncUserUnitsAsync(_context, newUser, unitList, unitList.FirstOrDefault());
+                            await _context.SaveChangesAsync();
+                            await _userManager.UpdateAsync(newUser);   // persist mirror Unit
+                            await uuTx.CommitAsync();
+                        }
 
                         result.Status = "Success";
                         result.Message = "Berhasil dibuat";
