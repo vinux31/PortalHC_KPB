@@ -39,6 +39,28 @@ namespace HcPortal.Controllers
         protected new ViewResult View(string viewName) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml");
         protected new ViewResult View(string viewName, object? model) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml", model);
 
+        // ============================================================
+        // Phase 401 (PSU-03) — multi-unit AssignmentUnit validation helper (single-source, testable seam)
+        // ============================================================
+
+        /// <summary>
+        /// Phase 401 (PSU-03) — validasi membership junction: AssignmentUnit harus ∈ unit AKTIF coachee.
+        /// Sumber TUNGGAL: junction UserUnits (ApplicationUser TAK punya nav collection — Pitfall 1).
+        /// Empty/whitespace assignmentUnit → false (skip/reject; jangan resolve dari primary). Trim + OrdinalIgnoreCase.
+        /// Testable seam (pola WorkerController.ValidateUnitsInSection) — EF-InMemory tanpa InternalsVisibleTo.
+        /// </summary>
+        public static async Task<bool> ValidateAssignmentUnitInUserUnits(
+            ApplicationDbContext context, string coacheeId, string? assignmentUnit)
+        {
+            if (string.IsNullOrWhiteSpace(assignmentUnit)) return false;
+            var activeUnits = await context.UserUnits
+                .Where(uu => uu.UserId == coacheeId && uu.IsActive)
+                .Select(uu => uu.Unit)
+                .ToListAsync();
+            return activeUnits.Any(u =>
+                string.Equals(u.Trim(), assignmentUnit.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
         public async Task<IActionResult> CoachCoacheeMapping(
             string? search, string? section, bool showAll = false, int page = 1)
         {
