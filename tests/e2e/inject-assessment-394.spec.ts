@@ -67,8 +67,33 @@ test.describe('INJ-03 RBAC + page', () => {
 
 // ── INJ-04: setup room + cek judul (implemented Plan 394-02) ────────────────────
 test.describe('INJ-04 setup + cek judul', () => {
-  test.skip('cek judul', async () => { /* Plan 394-02: #btnCheckTitle → GET CheckTitleAvailability → #titleCheckResult */ });
-  test.skip('backdate guard', async () => { /* Plan 394-02: #CompletedAt max=today, future date → is-invalid */ });
+  test('cek judul', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    await expect(page.locator('#Title')).toBeVisible({ timeout: 15_000 });
+    await page.fill('#Title', 'ZZ Inject Unik ' + Date.now());
+    await page.click('#btnCheckTitle');
+    await expect(page.locator('#titleCheckResult')).toContainText('tersedia', { timeout: 10_000 });
+  });
+
+  test('backdate guard', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    const dateInput = page.locator('#CompletedAt');
+    await expect(dateInput).toBeVisible({ timeout: 15_000 });
+    // max attribute = today (YYYY-MM-DD)
+    const t = new Date();
+    const todayStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    await expect(dateInput).toHaveAttribute('max', todayStr);
+    // fill required fields, set future date, try to advance → blocked + #CompletedAt is-invalid
+    await page.fill('#Title', 'ZZ Backdate ' + Date.now());
+    await page.selectOption('#Category', { index: 1 });
+    await dateInput.fill('2099-12-31');
+    await page.click('#btnNext1');
+    await expect(dateInput).toHaveClass(/is-invalid/);
+    await expect(page.locator('#step-1')).toBeVisible();
+    await expect(page.locator('#step-2')).toBeHidden();
+  });
 });
 
 // ── INJ-06: worker picker (implemented Plan 394-02) ─────────────────────────────
