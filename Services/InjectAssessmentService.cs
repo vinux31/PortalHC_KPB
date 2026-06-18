@@ -388,6 +388,13 @@ namespace HcPortal.Services
                             errors.Add(new InjectRowError { Nip = w.Nip, Message = $"Skor essay NIP {w.Nip} wajib diisi." });
                         else if (ans.EssayScore.Value < 0 || ans.EssayScore.Value > qSpec.ScoreValue)
                             errors.Add(new InjectRowError { Nip = w.Nip, Message = $"Skor essay NIP {w.Nip} di luar rentang 0..{qSpec.ScoreValue}." });
+
+                        // Phase 395 D-04 (mode-guarded) — teks essay WAJIB bila skor diisi (essay "engaged" mode input-asli).
+                        // Guard EssayScore.HasValue: essay di-skip (D-05) = OMIT spec → tak masuk loop ini → tak terblokir.
+                        // Auto-gen TIDAK pernah meng-emit answer essay (D-08 — HC isi manual via form yang sama, hybrid),
+                        // jadi rule ini hanya menyentuh essay yang benar-benar diisi skornya. BUKAN validasi global.
+                        if (ans.EssayScore.HasValue && string.IsNullOrWhiteSpace(ans.TextAnswer))
+                            errors.Add(new InjectRowError { Nip = w.Nip, Message = $"Teks jawaban essay NIP {w.Nip} wajib diisi (mode input asli)." });
                     }
                     else
                     {
@@ -465,6 +472,236 @@ namespace HcPortal.Services
                     dupUserIds.Add(c.UserId);
             }
             return dupUserIds;
+        }
+
+        // =====================================================================
+        // Phase 395 INJ-09 — Auto-generate layer (static-pure, EF-free, reuse Phase 396 Import Excel)
+        // =====================================================================
+
+        /// <summary>
+        /// Hasil auto-generate pola jawaban MC/MA dari skor target (Phase 395 INJ-09).
+        /// <para><b>Answers</b>: MC/MA SAJA (benar/salah eksplisit). Essay TIDAK disentuh (D-08 — HC isi manual,
+        /// hybrid). Caller (controller) menggabungkan essay-answers manual.</para>
+        /// <para><b>CeilingPercent</b>: floor(Σ(ScoreValue MC/MA) / maxScore × 100) — maks yang dapat dicapai auto-gen
+        /// (denominator selalu termasuk essay, sama dengan AssessmentScoreAggregator.cs:35/58).</para>
+        /// <para><b>TargetReachable</b>: false bila targetPercent &gt; CeilingPercent (D-08.3 BLOCKING —
+        /// JANGAN cap diam-diam; controller emit warning + arahkan switch input-asli).</para>
+        /// </summary>
+        public sealed record AutoGenResult(
+            List<InjectAnswerSpec> Answers,
+            int CeilingPercent,
+            int MaxScoreIncludingEssay,
+            bool TargetReachable);
+
+        /// <summary>
+        /// Phase 395 D-07 — Seed deterministik LINTAS-PROSES untuk variasi pola auto-gen per-pekerja yang
+        /// reproducible (preview == commit). Seed = SHA-256 atas string kanonik (NIP + identitas room
+        /// [Title + Category + CompletedAt tanggal-saja] + targetPercent).
+        ///
+        /// <para><b>KRITIS:</b> memakai <see cref="System.Security.Cryptography.SHA256"/>, BUKAN
+        /// <c>string.GetHashCode()</c> — GetHashCode di-randomize per-proses di .NET Core+ → preview &amp; commit
+        /// (request HTTP berbeda, mungkin proses berbeda) akan beda seed → pola beda → preview ≠ commit.</para>
+        ///
+        /// <para><b>CompletedAt</b> dipakai HANYA komponen tanggal (yyyy-MM-dd) agar tahan beda jam preview vs commit.
+        /// Pemisah '' (unit separator) mencegah tabrakan concat (mis. "12"+"3" vs "1"+"23").</para>
+        ///
+        /// <para>SHA-256 di sini = NON-secret (hanya determinisme, BUKAN kontrol keamanan).</para>
+        /// </summary>
+        public static int ComputeAutoGenSeed(string nip, string title, string category, DateTime completedAt, int targetPercent)
+        {
+            const char SEP = ''; // unit separator — cegah tabrakan concat (encoding-safe escape)
+            var canonical = string.Join(SEP,
+                (nip ?? "").Trim(),
+                (title ?? "").Trim(),
+                (category ?? "").Trim(),
+                completedAt.ToString("yyyy-MM-dd"),
+                targetPercent.ToString());
+
+            using var shaInit = System.Security.Cryptography.SHA256.Create();
+            return BitConverter.ToInt32(shaInit.ComputeHash(System.Text.Encoding.UTF8.GetBytes(canonical)), 0) & 0x7FFFFFFF;
+        }
+
+        /// <summary>
+        /// Phase 395 INJ-09/D-06 — Translasi skor target → pola jawaban MC/MA eksplisit (benar/salah) sehingga,
+        /// setelah di-grade pipeline (<see cref="AssessmentScoreAggregator.Compute"/>), skor = nilai TERKECIL yang
+        /// &gt;= <paramref name="targetPercent"/> (jamin capaian ≥ target — bias jamin-lulus, D-06).
+        ///
+        /// <para>Deterministik via <paramref name="seed"/> (dari <see cref="ComputeAutoGenSeed"/>): WHICH soal dibuat
+        /// benar bervariasi antar pekerja tapi reproducible (D-07). Urutan soal di-stabilkan internal
+        /// (OrderBy Order ThenBy TempId) agar preview == commit.</para>
+        ///
+        /// <para><b>Essay TIDAK disentuh</b> (D-08): hanya MC/MA yang di-emit. Denominator (maxScore) tetap termasuk
+        /// ScoreValue essay → bila bobot essay besar, ceiling MC/MA bisa &lt; target → <c>TargetReachable=false</c>
+        /// (D-08.3 BLOCKING, jangan cap diam-diam).</para>
+        ///
+        /// <para><b>Re-cek floor()</b> SETELAH seleksi subset (formula identik Aggregator.cs:58 truncation int) —
+        /// JANGAN percaya <c>ceil(target×N/100)</c> di mixed-weight (boundary off-by-one).</para>
+        /// </summary>
+        public static AutoGenResult BuildAutoGenAnswers(IReadOnlyList<InjectQuestionSpec> questions, int targetPercent, int seed)
+        {
+            questions ??= new List<InjectQuestionSpec>();
+
+            // 1) Denominator = Σ ScoreValue SEMUA soal (termasuk essay — Aggregator.cs:35).
+            int maxScore = questions.Sum(q => q.ScoreValue);
+
+            // 2) Soal MC/MA saja, urutan STABIL (samakan persist InjectAssessmentService.cs:146).
+            var flexQuestions = questions
+                .Where(q => (q.QuestionType ?? "MultipleChoice") != "Essay")
+                .OrderBy(q => q.Order).ThenBy(q => q.TempId)
+                .ToList();
+
+            // 3) Ceiling MC/MA-only = floor(Σ(ScoreValue MC/MA) / maxScore × 100). Formula SAMA Aggregator.cs:58.
+            int mcMaPoints = flexQuestions.Sum(q => q.ScoreValue);
+            int ceilingPercent = maxScore > 0 ? (int)((double)mcMaPoints / maxScore * 100) : 0;
+
+            // Pre-scan: soal "forced-correct" = MC semua-opsi-benar ATAU soal 1-opsi → tak bisa dibuat salah.
+            // Sisanya = "fleksibel" (bisa dibuat benar/salah secara terkendali).
+            var forced = new List<InjectQuestionSpec>();
+            var flexible = new List<InjectQuestionSpec>();
+            foreach (var q in flexQuestions)
+            {
+                if (IsForcedCorrect(q)) forced.Add(q);
+                else flexible.Add(q);
+            }
+
+            int forcedPoints = forced.Sum(q => q.ScoreValue);
+
+            // 4) Target unreachable (D-08.3): bahkan semua MC/MA benar < target → best-effort = SEMUA benar,
+            //    TargetReachable=false. Controller WAJIB BLOCKING + tak commit worker itu (jangan cap diam-diam).
+            if (targetPercent > ceilingPercent)
+            {
+                var allCorrect = new List<InjectAnswerSpec>();
+                foreach (var q in flexQuestions)
+                    allCorrect.Add(MakeAnswer(q, makeCorrect: true, seed));
+                return new AutoGenResult(allCorrect, ceilingPercent, maxScore, TargetReachable: false);
+            }
+
+            // 5) Pilih subset soal FLEKSIBEL yang dibuat benar (forced selalu benar → menyumbang poin).
+            //    Acak urutan kandidat fleksibel dgn seed (variasi pola D-07).
+            var rng = new Random(seed);
+            // Greedy: prioritaskan ScoreValue besar agar cepat mencapai target dengan sedikit soal (smallest-such),
+            // acak DALAM grup ScoreValue-sama agar tetap hit target tapi variasi antar pekerja.
+            var orderedFlex = flexible
+                .GroupBy(q => q.ScoreValue)
+                .OrderByDescending(g => g.Key)
+                .SelectMany(g => g.OrderBy(_ => rng.Next()))
+                .ToList();
+
+            // Akumulasi soal benar sampai floor((forcedPoints + acc)/maxScore × 100) >= target.
+            var chosenCorrect = new List<InjectQuestionSpec>(forced); // forced selalu benar
+            int acc = forcedPoints;
+            int i = 0;
+            for (; i < orderedFlex.Count && FloorPercent(acc, maxScore) < targetPercent; i++)
+            {
+                chosenCorrect.Add(orderedFlex[i]);
+                acc += orderedFlex[i].ScoreValue;
+            }
+
+            // 6) Smallest-such trim: coba buang soal fleksibel terkecil yang sudah dipilih bila floor tetap >= target.
+            //    (Greedy bisa overshoot karena memilih ScoreValue besar dulu.)
+            var trimmableAdded = orderedFlex.Take(i).OrderBy(q => q.ScoreValue).ToList(); // hanya yang baru ditambah
+            foreach (var q in trimmableAdded)
+            {
+                if (FloorPercent(acc - q.ScoreValue, maxScore) >= targetPercent)
+                {
+                    chosenCorrect.Remove(q);
+                    acc -= q.ScoreValue;
+                }
+            }
+
+            // 7) WAJIB re-cek floor SETELAH seleksi (boundary off-by-one). Bila < target, tambah 1 soal benar & ulang.
+            var chosenSet = chosenCorrect.Select(q => q.TempId).ToHashSet();
+            while (FloorPercent(acc, maxScore) < targetPercent)
+            {
+                var next = orderedFlex.FirstOrDefault(q => !chosenSet.Contains(q.TempId));
+                if (next == null) break; // tak ada lagi yang bisa ditambah (seharusnya tak terjadi krn target<=ceiling)
+                chosenCorrect.Add(next);
+                chosenSet.Add(next.TempId);
+                acc += next.ScoreValue;
+            }
+
+            // 8) Konstruksi jawaban per soal MC/MA (benar bila terpilih, salah jika tidak; forced selalu benar).
+            var answers = new List<InjectAnswerSpec>();
+            foreach (var q in flexQuestions)
+            {
+                bool makeCorrect = chosenSet.Contains(q.TempId);
+                answers.Add(MakeAnswer(q, makeCorrect, seed));
+            }
+
+            return new AutoGenResult(answers, ceilingPercent, maxScore, TargetReachable: true);
+        }
+
+        /// <summary>floor(total/max × 100) — formula truncation int IDENTIK AssessmentScoreAggregator.cs:58.</summary>
+        private static int FloorPercent(int total, int max) => max > 0 ? (int)((double)total / max * 100) : 0;
+
+        /// <summary>
+        /// Soal "forced-correct" = tak bisa dibuat salah secara deterministik:
+        /// MC dengan SEMUA opsi IsCorrect, ATAU soal apa pun dengan ≤1 opsi (terpaksa pilih satu-satunya/benar).
+        /// (MA selalu bisa dibuat salah bila ada ≥2 opsi via subset/opsi-salah; lihat MakeAnswer.)
+        /// </summary>
+        private static bool IsForcedCorrect(InjectQuestionSpec q)
+        {
+            var type = q.QuestionType ?? "MultipleChoice";
+            if (q.Options.Count <= 1) return true; // 1-opsi (atau 0) → terpaksa benar
+            if (type == "MultipleChoice")
+                return q.Options.All(o => o.IsCorrect); // semua opsi benar → MC tak bisa salah
+            return false;
+        }
+
+        /// <summary>
+        /// Bangun <see cref="InjectAnswerSpec"/> untuk satu soal MC/MA, benar/salah deterministik (Pattern 7).
+        /// Forced-correct (semua benar / 1-opsi) selalu menghasilkan jawaban yang di-grade BENAR.
+        /// </summary>
+        private static InjectAnswerSpec MakeAnswer(InjectQuestionSpec q, bool makeCorrect, int seed)
+        {
+            var type = q.QuestionType ?? "MultipleChoice";
+            var ordered = q.Options.OrderBy(o => o.TempId).ToList();
+            var correctIds = ordered.Where(o => o.IsCorrect).Select(o => o.TempId).ToList();
+            var wrongIds = ordered.Where(o => !o.IsCorrect).Select(o => o.TempId).ToList();
+
+            var selected = new List<int>();
+
+            if (type == "MultipleChoice")
+            {
+                if (makeCorrect || wrongIds.Count == 0)
+                {
+                    // benar: 1 opsi IsCorrect (deterministik: TempId terkecil). Bila tak ada (mustahil normal), ambil opsi pertama.
+                    selected.Add(correctIds.Count > 0 ? correctIds[0] : (ordered.Count > 0 ? ordered[0].TempId : 0));
+                }
+                else
+                {
+                    // salah: 1 opsi !IsCorrect (deterministik: TempId terkecil).
+                    selected.Add(wrongIds[0]);
+                }
+            }
+            else // MultipleAnswer
+            {
+                if (makeCorrect)
+                {
+                    // benar: SEMUA opsi IsCorrect (SetEquals kunci). Bila tak ada opsi benar (degenerate), pilih semua opsi.
+                    selected.AddRange(correctIds.Count > 0 ? correctIds : ordered.Select(o => o.TempId));
+                }
+                else
+                {
+                    if (wrongIds.Count > 0)
+                    {
+                        // salah: pilih {1 opsi salah} → SetEquals(correct) gagal.
+                        selected.Add(wrongIds[0]);
+                    }
+                    else if (correctIds.Count > 1)
+                    {
+                        // semua opsi benar & >1 → proper-subset kunci (buang 1) → SetEquals gagal.
+                        selected.AddRange(correctIds.Skip(1));
+                    }
+                    else
+                    {
+                        // degenerate (≤1 opsi benar, tak ada salah) — forced-correct sebenarnya; pilih kunci.
+                        selected.AddRange(correctIds.Count > 0 ? correctIds : ordered.Select(o => o.TempId));
+                    }
+                }
+            }
+
+            return new InjectAnswerSpec { QuestionTempId = q.TempId, SelectedOptionTempIds = selected };
         }
     }
 }
