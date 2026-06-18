@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: planning
+status: executing
 stopped_at: Phase 398 context gathered
-last_updated: "2026-06-18T12:25:55.943Z"
-last_activity: 2026-06-18
+last_updated: "2026-06-18T12:56:44.965Z"
+last_activity: 2026-06-18 -- Phase 398 planning complete
 progress:
   total_phases: 29
   completed_phases: 5
-  total_plans: 19
+  total_plans: 22
   completed_plans: 19
-  percent: 100
+  percent: 86
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 398
 Plan: Not started
-Status: 397-04 SELESAI (Wave 4 view/modal/chip/pairing/unlink + Playwright e2e 6/6 + 0 migration; commits `47b0e875` [N1-N5 UI: roomPickerModal/btnCariRoom/selectedRoomChip/LinkedTargetRepId/previewPairingSummary/unlinkConfirmModal] + `7ecd0ef3` [Rule-3 surface resolvedGroupId post-commit via InjectResult.LinkedGroupId+TempData untuk host unlink N5] + `2d19bf07` [e2e cross-grouping §13]). **Checkpoint Task 4 human-verify APPROVED** — orchestrator-driven live browser UAT (admin@pertamina.com, AD-off, localhost:5277, DB snapshot/restore per CLAUDE.md Seed Workflow, SEED_JOURNAL Phase 397 CLEANED) **9/9 PASS**: (1) Cari-Room conditional Pre/Post + hint tipe-lawan, Standard hidden; (2) modal hanya tipe-lawan + debounced search; (3) badge Kasus A "Sudah ber-grup"/Kasus B "Standalone"; (4) chip + hidden #LinkedTargetRepId=173 + Ganti/remove; (5) pairing summary 1 ter-pair/0 tanpa pasangan; (6) banner Kasus B "Data online akan disentuh… skor/jawaban/status TIDAK diubah"; (7) date-warn Pre>Post; (8) **KRITIS §13 commit** inject Pre (Id174) + online Post (Id173) share LinkedGroupId=173 + same UserId, online Score=85+Status=Completed UNCHANGED, audit LinkPrePost ×1, cross inject↔online grouping utuh; (9) unlink via Bootstrap confirm modal (bukan native) → 173/174 link columns NULL + Score utuh + audit LinkPrePostUndo ×2. DB restored ke baseline (sessions 60→60, 0 link audit, 0 baris UAT). **INJ-12 COMPLETE lintas plan 01-04** (TDD lock → service → controller → view+e2e). Unlink host LOCKED di success surface post-commit wizard (D-12), monitoring OUT OF SCOPE. 0 migration (git diff Migrations/ Data/ kosong). SUMMARY @ `.planning/phases/397-link-pre-post-ke-room-existing/397-04-SUMMARY.md`. Phase-level completion (transition 397→398) dimiliki orchestrator pasca-verifikasi.
-Last activity: 2026-06-18
+Status: Ready to execute
+Last activity: 2026-06-18 -- Phase 398 planning complete
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 
