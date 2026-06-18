@@ -184,6 +184,21 @@ namespace HcPortal.Controllers
                 .ToDictionary(g => g.Key, g => g.Count());
             ViewBag.CoachWorkloads = coachWorkloads;
 
+            // Phase 401 (D-01 / PSU-05): indikator on-demand — mapping aktif yg AssignmentUnit kosong / ∉ UserUnits aktif coachee.
+            var activeForCheck = await _context.CoachCoacheeMappings.Where(m => m.IsActive)
+                .Select(m => new { m.Id, m.CoacheeId, m.AssignmentUnit }).ToListAsync();
+            var checkCoacheeIds = activeForCheck.Select(m => m.CoacheeId).Distinct().ToList();
+            var unitsByCoachee = (await _context.UserUnits
+                .Where(uu => checkCoacheeIds.Contains(uu.UserId) && uu.IsActive)
+                .Select(uu => new { uu.UserId, uu.Unit }).ToListAsync())
+                .GroupBy(x => x.UserId).ToDictionary(g => g.Key, g => g.Select(x => x.Unit.Trim()).ToList());
+            var orphanUnitMappings = activeForCheck.Where(m =>
+                string.IsNullOrWhiteSpace(m.AssignmentUnit) ||
+                !unitsByCoachee.GetValueOrDefault(m.CoacheeId, new()).Any(u =>
+                    string.Equals(u, m.AssignmentUnit!.Trim(), StringComparison.OrdinalIgnoreCase))).ToList();
+            ViewBag.OrphanUnitMappings = orphanUnitMappings.Count;
+            ViewBag.OrphanUnitCoacheeIds = orphanUnitMappings.Select(m => m.CoacheeId).Distinct().ToList();
+
             return View();
         }
 
@@ -355,6 +370,15 @@ namespace HcPortal.Controllers
                         continue;
                     }
 
+                    // Phase 401 (PSU-03): unit baris ∈ UserUnits aktif coachee (primary baru selalu sah by Invariant #3; safety net).
+                    if (!await ValidateAssignmentUnitInUserUnits(_context, coacheeUser.Id, coacheeUser.Unit?.Trim()))
+                    {
+                        result.Status = "Error";
+                        result.Message = $"Unit coachee ('{coacheeUser.Unit}') bukan anggota UserUnits aktif.";
+                        results.Add(result);
+                        continue;
+                    }
+
                     // Check for existing active mapping
                     var activeMapping = allMappings.FirstOrDefault(m =>
                         m.CoachId == coachUser.Id && m.CoacheeId == coacheeUser.Id && m.IsActive);
@@ -371,14 +395,22 @@ namespace HcPortal.Controllers
                         m.CoachId == coachUser.Id && m.CoacheeId == coacheeUser.Id && !m.IsActive);
                     if (inactiveMapping != null)
                     {
+                        // Phase 401 (PSU-04/07a): PRESERVE AssignmentUnit existing (jangan clobber ke primary). Validasi ∈ UserUnits.
+                        if (!await ValidateAssignmentUnitInUserUnits(_context, coacheeUser.Id, inactiveMapping.AssignmentUnit))
+                        {
+                            result.Status = "Error";
+                            result.Message = $"Unit mapping lama ('{inactiveMapping.AssignmentUnit}') sudah dilepas dari Unit aktif coachee — tidak dapat diaktifkan kembali.";
+                            results.Add(result);
+                            continue;
+                        }
                         inactiveMapping.IsActive = true;
                         inactiveMapping.StartDate = DateTime.Today;
                         inactiveMapping.EndDate = null;
                         inactiveMapping.AssignmentSection = coacheeUser.Section.Trim();
-                        inactiveMapping.AssignmentUnit = coacheeUser.Unit.Trim();
+                        // NOTE: AssignmentUnit SENGAJA TIDAK di-set — preserve unit asli mapping (D-04 no-clobber).
                         reactivatedMappings.Add(inactiveMapping);
                         result.Status = "Reactivated";
-                        result.Message = "Mapping diaktifkan kembali";
+                        result.Message = "Mapping diaktifkan kembali (unit penugasan dipertahankan)";
                         results.Add(result);
                         continue;
                     }
@@ -494,6 +526,13 @@ namespace HcPortal.Controllers
             if (!sectionUnitsDict.TryGetValue(req.AssignmentSection!.Trim(), out var validUnits)
                 || !validUnits.Contains(req.AssignmentUnit!.Trim()))
                 return Json(new { success = false, message = "Section/Unit tidak ditemukan di data organisasi aktif." });
+
+            // Phase 401 (PSU-03): AssignmentUnit harus ∈ UserUnits aktif tiap coachee (jaga Invariant #4).
+            foreach (var cid in req.CoacheeIds)
+            {
+                if (!await ValidateAssignmentUnitInUserUnits(_context, cid, req.AssignmentUnit))
+                    return Json(new { success = false, message = $"Unit '{req.AssignmentUnit}' bukan anggota Unit aktif coachee terpilih — tambahkan unit ke coachee dulu." });
+            }
 
             // Check for duplicate active mappings
             var existingMappings = await _context.CoachCoacheeMappings
@@ -747,6 +786,11 @@ namespace HcPortal.Controllers
                     return Json(new { success = false, message = "Section/Unit tidak ditemukan di data organisasi aktif." });
             }
 
+            // Phase 401 (PSU-03): validasi ∈ UserUnits SEBELUM tx (Pitfall 4 — jangan pecah rebuild Phase 129).
+            if (!string.IsNullOrEmpty(unitEdit) &&
+                !await ValidateAssignmentUnitInUserUnits(_context, mapping.CoacheeId, unitEdit))
+                return Json(new { success = false, message = "Unit penugasan bukan anggota Unit aktif coachee." });
+
             // CRIT-02 fix: wrap ALL mutations (mapping fields, ProtonTrack rebuild, Phase 129
             // unit-change rebuild, audit log) in ONE transaction. Disk file deletes are deferred
             // until after CommitAsync so a rollback never leaves DB rows pointing at missing files.
@@ -908,6 +952,17 @@ namespace HcPortal.Controllers
 
                 if (isValid) continue;
 
+                // Phase 401 (PSU-04): jangan clobber AssignmentUnit non-primary yang masih sah ∈ UserUnits (data-loss vector, spec §10).
+                if (!string.IsNullOrWhiteSpace(m.AssignmentUnit)
+                    && await ValidateAssignmentUnitInUserUnits(_context, m.CoacheeId, m.AssignmentUnit))
+                {
+                    // Unit existing sah ∈ UserUnits → PRESERVE. Perbaiki HANYA AssignmentSection bila kosong/invalid.
+                    if (userDict.TryGetValue(m.CoacheeId, out var ciPreserve) && !string.IsNullOrEmpty(ciPreserve.Section?.Trim()))
+                        m.AssignmentSection = ciPreserve.Section!.Trim();
+                    autoFixed++;
+                    continue;
+                }
+
                 // Try fix from coachee user record
                 if (userDict.TryGetValue(m.CoacheeId, out var coacheeInfo))
                 {
@@ -1049,6 +1104,10 @@ namespace HcPortal.Controllers
                 .AnyAsync(m => m.CoacheeId == mapping.CoacheeId && m.IsActive && m.Id != id);
             if (duplicateActive)
                 return Json(new { success = false, message = "Coachee sudah memiliki coach aktif lain. Nonaktifkan dulu sebelum mengaktifkan mapping ini." });
+
+            // Phase 401 (PSU-07b): tolak reaktivasi bila AssignmentUnit mapping sudah dilepas dari UserUnits coachee.
+            if (!await ValidateAssignmentUnitInUserUnits(_context, mapping.CoacheeId, mapping.AssignmentUnit))
+                return Json(new { success = false, message = "Unit penugasan mapping ini sudah dilepas dari Unit aktif coachee — tidak dapat diaktifkan kembali. Perbarui unit coachee dulu." });
 
             var actor = await _userManager.GetUserAsync(User);
             if (actor == null)
