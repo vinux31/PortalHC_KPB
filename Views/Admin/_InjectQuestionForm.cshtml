@@ -1,0 +1,81 @@
+@*
+    Phase 394 — partial authoring soal inject. Mirror ManagePackageQuestions field semantics
+    (nol-duplikasi: same names/ids/validation). NOT a nested form — plain fields read by JS
+    (#injAddQuestionBtn → injQuestions[]), held in client state only (D-07, no DB write).
+    OMIT vs ManagePackageQuestions: image-upload blocks, char-limit field, edit-mode/cancel/warning-modal.
+*@
+<div class="card shadow-sm" id="injQuestionFormCard">
+    <div class="card-header bg-light">
+        <span class="fw-semibold">Tambah Soal</span>
+    </div>
+    <div class="card-body">
+        <!-- Tipe Soal -->
+        <div class="mb-3">
+            <label class="form-label fw-medium small">Tipe Soal</label>
+            <select class="form-select form-select-sm" id="QuestionType" name="questionType">
+                <option value="MultipleChoice">@QuestionTypeLabels.Long("MultipleChoice")</option>
+                <option value="MultipleAnswer">@QuestionTypeLabels.Long("MultipleAnswer")</option>
+                <option value="Essay">@QuestionTypeLabels.Long("Essay")</option>
+            </select>
+        </div>
+
+        <!-- Teks soal -->
+        <div class="mb-3">
+            <label class="form-label fw-medium small">Teks Soal <span class="text-danger">*</span></label>
+            <textarea class="form-control form-control-sm" id="questionText" name="questionText"
+                      rows="3" placeholder="Tuliskan pertanyaan..."></textarea>
+        </div>
+
+        <!-- Opsi A-D (MC/MA) -->
+        <div id="optionsSection" class="mb-3">
+            <label class="form-label fw-medium small">Opsi Jawaban</label>
+            <div id="maLabel" class="alert alert-info py-1 px-2 small mb-2" style="display:none">
+                <i class="bi bi-info-circle me-1"></i>Centang semua opsi yang benar (minimal 2).
+            </div>
+            @foreach (var (letter, name) in new[] { ("A", "optionA"), ("B", "optionB"), ("C", "optionC"), ("D", "optionD") })
+            {
+                var correctName = "correct" + char.ToUpper(name[^1]);
+                <div class="input-group input-group-sm mb-2">
+                    <div class="input-group-text" style="width:36px">
+                        <input class="form-check-input mt-0 correct-input" type="radio"
+                               name="@correctName" id="correct_@letter" value="true"
+                               aria-label="Opsi @letter benar" />
+                    </div>
+                    <span class="input-group-text fw-bold">@letter</span>
+                    <input type="text" class="form-control" name="@name"
+                           id="option_@letter" placeholder="Opsi @letter" />
+                </div>
+            }
+            <div class="form-text">Klik radio/checkbox di kiri untuk tandai jawaban benar.</div>
+        </div>
+
+        <!-- Rubrik / Essay section -->
+        <div id="rubrikSection" style="display:none" class="mb-3">
+            <label class="form-label fw-medium small">Rubrik / Kunci Jawaban <span class="text-danger">*</span></label>
+            <textarea class="form-control form-control-sm" name="rubrik" id="rubrik"
+                      rows="3" placeholder="Tulis rubrik penilaian atau kunci jawaban essay..."></textarea>
+        </div>
+
+        <!-- ScoreValue -->
+        <div class="mb-3">
+            <label class="form-label fw-medium small">Nilai Soal (ScoreValue)</label>
+            <input type="number" name="scoreValue" id="scoreValue"
+                   class="form-control form-control-sm" value="10"
+                   min="1" max="100" step="1" style="max-width:80px" />
+            <div class="form-text">Range 1–100</div>
+        </div>
+
+        <!-- Elemen Teknis (opsional) -->
+        <div class="mb-3">
+            <label class="form-label fw-medium small">Elemen Teknis <span class="text-muted">(opsional)</span></label>
+            <input type="text" name="elemenTeknis" id="elemenTeknis"
+                   class="form-control form-control-sm" placeholder="e.g. Pengetahuan Proses" />
+        </div>
+
+        <div id="injAuthError" class="alert alert-danger py-1 px-2 small d-none mb-2"></div>
+
+        <button type="button" class="btn btn-primary btn-sm" id="injAddQuestionBtn">
+            <i class="bi bi-plus-circle me-1"></i>Tambah Soal
+        </button>
+    </div>
+</div>

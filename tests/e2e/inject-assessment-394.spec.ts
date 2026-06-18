@@ -129,7 +129,45 @@ test.describe('INJ-06 worker picker', () => {
 
 // ── INJ-05: authoring soal (implemented Plan 394-03) ────────────────────────────
 test.describe('INJ-05 authoring', () => {
-  test.skip('authoring type toggle + add soal', async () => { /* Plan 394-03: applyQTypeSwitch + injAddQuestionBtn → injQuestions[] */ });
+  test('authoring type toggle + add soal', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    await expect(page.locator('#wizardStepNav')).toBeVisible({ timeout: 15_000 });
+    // jump straight to step 3 (nav tested elsewhere)
+    await page.evaluate(() => (window as any).injWizard.goToStep(3));
+    await expect(page.locator('#step-3')).toBeVisible();
+
+    // 0 soal → advancing blocked
+    await page.click('#btnNext3');
+    await expect(page.locator('#step3Error')).toBeVisible();
+
+    // type toggle: MC=radio → MA=checkbox + maLabel → Essay hides options, shows rubrik
+    await expect(page.locator('#optionsSection')).toBeVisible();
+    await expect(page.locator('#correct_A')).toHaveAttribute('type', 'radio');
+    await page.selectOption('#QuestionType', 'MultipleAnswer');
+    await expect(page.locator('#correct_A')).toHaveAttribute('type', 'checkbox');
+    await expect(page.locator('#maLabel')).toBeVisible();
+    await page.selectOption('#QuestionType', 'Essay');
+    await expect(page.locator('#optionsSection')).toBeHidden();
+    await expect(page.locator('#rubrikSection')).toBeVisible();
+
+    // add a MC question
+    await page.selectOption('#QuestionType', 'MultipleChoice');
+    await page.fill('#questionText', 'Soal uji injeksi 1?');
+    await page.fill('#option_A', 'Jawaban A');
+    await page.fill('#option_B', 'Jawaban B');
+    await page.check('#correct_A');
+    await page.click('#injAddQuestionBtn');
+
+    // daftar soal shows 1 row; form cleared; no reload
+    await expect(page.locator('#injQuestionList table tbody tr')).toHaveCount(1);
+    await expect(page.locator('#questionText')).toHaveValue('');
+    expect(page.url()).toContain('InjectAssessment');
+
+    // now 1 soal → advance succeeds
+    await page.click('#btnNext3');
+    await expect(page.locator('#step-4')).toBeVisible();
+  });
 });
 
 // ── INJ-07: sertifikat radio 3-mode (implemented Plan 394-03) ───────────────────

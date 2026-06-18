@@ -290,7 +290,27 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-4"><i class="bi bi-card-list text-primary me-2"></i>Langkah 3: Authoring Soal</h5>
-                    <p class="text-muted">Form tulis soal (MC/MA/Essay) + daftar soal diisi pada tahap berikut.</p>
+
+                    <div class="row g-4">
+                        <!-- Left: Daftar Soal -->
+                        <div class="col-lg-7">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <span class="fw-semibold">Daftar Soal</span>
+                                    <span class="small text-muted">Total <span id="injTotalPoin">0</span> poin</span>
+                                </div>
+                                <div class="card-body p-0" id="injQuestionList"></div>
+                            </div>
+                            <div id="step3Error" class="alert alert-danger d-none mt-3">Tambahkan minimal 1 soal sebelum melanjutkan.</div>
+                        </div>
+                        <!-- Right: Form soal (partial, reuse ManagePackageQuestions semantics) -->
+                        <div class="col-lg-5">
+                            @await Html.PartialAsync("~/Views/Admin/_InjectQuestionForm.cshtml")
+                        </div>
+                    </div>
+
+                    <input type="hidden" asp-for="QuestionsJson" id="QuestionsJson" />
+
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev3">
                             <i class="bi bi-arrow-left me-1"></i>Sebelumnya
@@ -369,6 +389,9 @@
     var returnToConfirm = false;
     var TOTAL_STEPS = 6;
     var INJ_TODAY = '@DateTime.Today.ToString("yyyy-MM-dd")';
+    var injQuestions = [];            // authored soal held in client state (D-07, no DB write)
+    var injNextQTempId = 1;
+    var injNextOptTempId = 1;
 
     // ---- goToStep ----
     function goToStep(n) {
@@ -427,6 +450,8 @@
         }
         var step2err = document.getElementById('step2Error');
         if (step2err) step2err.classList.add('d-none');
+        var step3err = document.getElementById('step3Error');
+        if (step3err) step3err.classList.add('d-none');
         var valid = true;
 
         if (n === 1) {
@@ -446,6 +471,13 @@
             var anyChecked = document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked').length > 0;
             if (!anyChecked) {
                 if (step2err) step2err.classList.remove('d-none');
+                valid = false;
+            }
+        }
+
+        if (n === 3) {
+            if (injQuestions.length < 1) {
+                if (step3err) step3err.classList.remove('d-none');
                 valid = false;
             }
         }
@@ -546,6 +578,163 @@
         if (userContainer) userContainer.addEventListener('change', injUpdateSelectedCount);
         injUpdateSelectedCount();
     })();
+
+    // ---- Authoring soal (REWIRE → client-state injQuestions[]; NEVER posts to per-question endpoint — Pitfall 1) ----
+    function applyQTypeSwitch(qtype) {
+        var optionsSection = document.getElementById('optionsSection');
+        var rubrikSection = document.getElementById('rubrikSection');
+        var maLabel = document.getElementById('maLabel');
+        if (optionsSection) optionsSection.style.display = (qtype === 'Essay') ? 'none' : '';
+        if (rubrikSection) rubrikSection.style.display = (qtype === 'Essay') ? '' : 'none';
+        if (maLabel) maLabel.style.display = (qtype === 'MultipleAnswer') ? '' : 'none';
+        document.querySelectorAll('.correct-input').forEach(function (inp) {
+            inp.type = (qtype === 'MultipleAnswer') ? 'checkbox' : 'radio';
+            if (qtype !== 'MultipleAnswer') inp.checked = false;
+        });
+    }
+
+    function injTypeLabel(t) {
+        if (t === 'MultipleChoice') return 'Pilihan Ganda';
+        if (t === 'MultipleAnswer') return 'Pilihan Majemuk';
+        if (t === 'Essay') return 'Essay';
+        return t;
+    }
+
+    function injRenderQuestionList() {
+        var listEl = document.getElementById('injQuestionList');
+        var totalEl = document.getElementById('injTotalPoin');
+        if (!listEl) return;
+        if (injQuestions.length === 0) {
+            listEl.innerHTML = '<div class="p-4 text-center text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>Belum ada soal. Tambahkan soal menggunakan form di samping.</div>';
+        } else {
+            var wrap = document.createElement('div');
+            wrap.className = 'table-responsive';
+            var table = document.createElement('table');
+            table.className = 'table table-hover table-sm mb-0 align-middle';
+            var thead = document.createElement('thead');
+            thead.className = 'table-light';
+            thead.innerHTML = '<tr><th style="width:40px">#</th><th>Teks Soal</th><th style="width:120px">Tipe</th><th style="width:60px">Skor</th><th style="width:70px">Aksi</th></tr>';
+            table.appendChild(thead);
+            var tbody = document.createElement('tbody');
+            injQuestions.forEach(function (q, idx) {
+                var tr = document.createElement('tr');
+                var tdNum = document.createElement('td'); tdNum.className = 'text-muted'; tdNum.textContent = (idx + 1);
+                var tdText = document.createElement('td');
+                var span = document.createElement('span'); span.className = 'd-inline-block text-truncate'; span.style.maxWidth = '220px';
+                span.title = q.QuestionText; span.textContent = q.QuestionText;   // XSS-safe
+                tdText.appendChild(span);
+                var tdType = document.createElement('td');
+                var badge = document.createElement('span'); badge.className = 'badge bg-secondary small'; badge.textContent = injTypeLabel(q.QuestionType);
+                tdType.appendChild(badge);
+                var tdScore = document.createElement('td'); tdScore.className = 'text-center'; tdScore.textContent = q.ScoreValue;
+                var tdAksi = document.createElement('td');
+                var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn btn-outline-danger btn-sm py-0 px-1'; btn.title = 'Hapus';
+                btn.innerHTML = '<i class="bi bi-trash"></i>';
+                btn.addEventListener('click', function () { injRemoveQuestion(q.TempId); });
+                tdAksi.appendChild(btn);
+                tr.appendChild(tdNum); tr.appendChild(tdText); tr.appendChild(tdType); tr.appendChild(tdScore); tr.appendChild(tdAksi);
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            wrap.appendChild(table);
+            listEl.innerHTML = '';
+            listEl.appendChild(wrap);
+        }
+        if (totalEl) totalEl.textContent = injQuestions.reduce(function (s, q) { return s + (q.ScoreValue || 0); }, 0);
+    }
+
+    function injRemoveQuestion(tempId) {
+        if (!confirm('Hapus soal ini?')) return;
+        injQuestions = injQuestions.filter(function (q) { return q.TempId !== tempId; });
+        injQuestions.forEach(function (q, i) { q.Order = i; });
+        injRenderQuestionList();
+    }
+
+    function injResetAuthoringForm() {
+        var qt = document.getElementById('questionText'); if (qt) { qt.value = ''; qt.classList.remove('is-invalid'); }
+        var sv = document.getElementById('scoreValue'); if (sv) { sv.value = '10'; sv.classList.remove('is-invalid'); }
+        var el = document.getElementById('elemenTeknis'); if (el) el.value = '';
+        var rb = document.getElementById('rubrik'); if (rb) { rb.value = ''; rb.classList.remove('is-invalid'); }
+        ['A', 'B', 'C', 'D'].forEach(function (L) {
+            var o = document.getElementById('option_' + L); if (o) { o.value = ''; o.classList.remove('is-invalid'); }
+            var c = document.getElementById('correct_' + L); if (c) c.checked = false;
+        });
+        var qtype = document.getElementById('QuestionType'); if (qtype) qtype.value = 'MultipleChoice';
+        applyQTypeSwitch('MultipleChoice');
+    }
+
+    var injAddBtn = document.getElementById('injAddQuestionBtn');
+    if (injAddBtn) {
+        injAddBtn.addEventListener('click', function () {
+            var qType = document.getElementById('QuestionType').value;
+            var qTextEl = document.getElementById('questionText');
+            var svEl = document.getElementById('scoreValue');
+            var rbEl = document.getElementById('rubrik');
+            var qText = (qTextEl.value || '').trim();
+            var score = parseInt(svEl.value, 10);
+            var elemen = (document.getElementById('elemenTeknis').value || '').trim();
+            var rubrik = (rbEl.value || '').trim();
+            var errEl = document.getElementById('injAuthError');
+            var problems = [];
+
+            qTextEl.classList.remove('is-invalid'); svEl.classList.remove('is-invalid'); rbEl.classList.remove('is-invalid');
+            if (!qText) { qTextEl.classList.add('is-invalid'); problems.push('Teks soal wajib diisi.'); }
+            if (isNaN(score) || score < 1 || score > 100) { svEl.classList.add('is-invalid'); problems.push('Nilai soal harus 1–100.'); }
+
+            var options = [];
+            if (qType === 'MultipleChoice' || qType === 'MultipleAnswer') {
+                var correctCount = 0;
+                ['A', 'B', 'C', 'D'].forEach(function (L) {
+                    var txt = (document.getElementById('option_' + L).value || '').trim();
+                    var isC = document.getElementById('correct_' + L).checked;
+                    if (txt) { options.push({ text: txt, isCorrect: isC }); if (isC) correctCount++; }
+                });
+                if (options.length < 2) problems.push('Minimal 2 opsi ber-teks.');
+                if (qType === 'MultipleChoice' && correctCount !== 1) problems.push('Pilihan Ganda harus tepat 1 jawaban benar.');
+                if (qType === 'MultipleAnswer' && correctCount < 2) problems.push('Pilihan Majemuk butuh minimal 2 jawaban benar.');
+            } else if (qType === 'Essay') {
+                if (!rubrik) { rbEl.classList.add('is-invalid'); problems.push('Rubrik wajib diisi untuk Essay.'); }
+            }
+
+            if (problems.length > 0) {
+                if (errEl) { errEl.textContent = problems.join(' '); errEl.classList.remove('d-none'); }
+                return;
+            }
+            if (errEl) errEl.classList.add('d-none');
+
+            injQuestions.push({
+                TempId: injNextQTempId++,
+                QuestionText: qText,
+                QuestionType: qType,
+                ScoreValue: score,
+                Order: injQuestions.length,
+                ElemenTeknis: elemen || null,
+                Rubrik: (qType === 'Essay') ? rubrik : null,
+                Options: (qType === 'Essay') ? [] : options.map(function (o) {
+                    return { TempId: injNextOptTempId++, OptionText: o.text, IsCorrect: o.isCorrect };
+                })
+            });
+            injRenderQuestionList();
+            injResetAuthoringForm();
+        });
+    }
+
+    var qTypeSel = document.getElementById('QuestionType');
+    if (qTypeSel) {
+        qTypeSel.addEventListener('change', function () { applyQTypeSwitch(this.value); });
+        applyQTypeSwitch(qTypeSel.value);
+    }
+    injRenderQuestionList();
+
+    // Serialize injQuestions → hidden #QuestionsJson before POST (Plan 04 controller deserializes)
+    var injForm = document.getElementById('injectAssessmentForm');
+    if (injForm) {
+        injForm.addEventListener('submit', function () {
+            var hidden = document.getElementById('QuestionsJson');
+            if (hidden) hidden.value = JSON.stringify(injQuestions);
+        });
+    }
+    window.injGetQuestions = function () { return injQuestions; };
 
     // ---- Cek Judul (reuse GET /Admin/CheckTitleAvailability — port CreateAssessment:1250-1283) ----
     var btnCheckTitle = document.getElementById('btnCheckTitle');
