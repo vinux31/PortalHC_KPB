@@ -328,7 +328,61 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-4"><i class="bi bi-award text-primary me-2"></i>Langkah 4: Sertifikat</h5>
-                    <p class="text-muted">Pilihan mode sertifikat (Auto/Manual/Tanpa) diisi pada tahap berikut.</p>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="bi bi-award me-2"></i>Sertifikat</h6>
+                        </div>
+                        <div class="card-body">
+                            <!-- 3-mode radio -->
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="CertMode" id="certModeNone" value="None" />
+                                    <label class="form-check-label" for="certModeNone">Tanpa Sertifikat</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="CertMode" id="certModeAuto" value="Auto" />
+                                    <label class="form-check-label" for="certModeAuto">Generate Otomatis (Nomor Resmi)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="CertMode" id="certModeManual" value="Manual" />
+                                    <label class="form-check-label" for="certModeManual">Input Nomor Manual</label>
+                                </div>
+                            </div>
+
+                            <!-- Auto: format preview (display-only; real allocation = service 393) -->
+                            <div id="certAutoBlock" class="mb-3 d-none">
+                                <div class="alert alert-secondary py-2 mb-0">
+                                    <span>Format nomor: </span><code>KPB/xxx/{ROMAN}/{year}</code><span> (tahun mengikuti tanggal ujian).</span>
+                                </div>
+                            </div>
+
+                            <!-- Manual: nomor sertifikat -->
+                            <div id="certManualBlock" class="mb-3 d-none">
+                                <label asp-for="ManualCertNumber" class="form-label fw-bold">Nomor Sertifikat</label>
+                                <input asp-for="ManualCertNumber" class="form-control" id="NomorSertifikat" placeholder="mis. KPB/001/VI/2026" />
+                                <div class="form-text text-muted">Nomor wajib unik (divalidasi sistem saat commit).</div>
+                            </div>
+
+                            <!-- Validity (Auto + Manual) -->
+                            <div id="certValidityBlock" class="row g-3 d-none">
+                                <div class="col-md-6">
+                                    <label asp-for="CertValidUntil" class="form-label fw-bold">Masa Berlaku Sertifikat</label>
+                                    <input asp-for="CertValidUntil" type="date" class="form-control" id="CertValidUntil" />
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <div class="form-check">
+                                        <input asp-for="CertPermanent" class="form-check-input" type="checkbox" id="CertPermanent" />
+                                        <label class="form-check-label" for="CertPermanent">Berlaku selamanya (permanen)</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-text text-muted">Kosongkan atau centang permanen jika sertifikat tanpa batas waktu.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev4">
                             <i class="bi bi-arrow-left me-1"></i>Sebelumnya
@@ -735,6 +789,35 @@
         });
     }
     window.injGetQuestions = function () { return injQuestions; };
+
+    // ---- Sertifikat radio 3-mode toggle (INJ-07) ----
+    (function wireCert() {
+        function applyCertMode() {
+            var checked = document.querySelector('input[name="CertMode"]:checked');
+            var mode = checked ? checked.value : 'None';
+            var auto = document.getElementById('certAutoBlock');
+            var manual = document.getElementById('certManualBlock');
+            var validity = document.getElementById('certValidityBlock');
+            if (auto) auto.classList.toggle('d-none', mode !== 'Auto');
+            if (manual) manual.classList.toggle('d-none', mode !== 'Manual');
+            if (validity) validity.classList.toggle('d-none', mode === 'None');
+        }
+        function applyPermanent() {
+            var perm = document.getElementById('CertPermanent');
+            var vu = document.getElementById('CertValidUntil');
+            if (perm && vu) {
+                if (perm.checked) { vu.value = ''; vu.disabled = true; }
+                else { vu.disabled = false; }
+            }
+        }
+        document.querySelectorAll('input[name="CertMode"]').forEach(function (r) {
+            r.addEventListener('change', applyCertMode);
+        });
+        var perm = document.getElementById('CertPermanent');
+        if (perm) perm.addEventListener('change', applyPermanent);
+        applyCertMode();
+        applyPermanent();
+    })();
 
     // ---- Cek Judul (reuse GET /Admin/CheckTitleAvailability — port CreateAssessment:1250-1283) ----
     var btnCheckTitle = document.getElementById('btnCheckTitle');

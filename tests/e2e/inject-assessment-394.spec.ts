@@ -172,7 +172,40 @@ test.describe('INJ-05 authoring', () => {
 
 // ── INJ-07: sertifikat radio 3-mode (implemented Plan 394-03) ───────────────────
 test.describe('INJ-07 cert radio', () => {
-  test.skip('cert radio 3-mode toggle', async () => { /* Plan 394-03: CertMode Auto/Manual/Tanpa → conditional blocks */ });
+  test('cert radio 3-mode toggle', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    await expect(page.locator('#wizardStepNav')).toBeVisible({ timeout: 15_000 });
+    await page.evaluate(() => (window as any).injWizard.goToStep(4));
+    await expect(page.locator('#step-4')).toBeVisible();
+
+    // default None → all conditional blocks hidden
+    await expect(page.locator('#certAutoBlock')).toBeHidden();
+    await expect(page.locator('#certManualBlock')).toBeHidden();
+    await expect(page.locator('#certValidityBlock')).toBeHidden();
+
+    // Auto → preview + validity visible, manual hidden
+    await page.check('#certModeAuto');
+    await expect(page.locator('#certAutoBlock')).toBeVisible();
+    await expect(page.locator('#certValidityBlock')).toBeVisible();
+    await expect(page.locator('#certManualBlock')).toBeHidden();
+
+    // Manual → nomor + validity visible, preview hidden
+    await page.check('#certModeManual');
+    await expect(page.locator('#certManualBlock')).toBeVisible();
+    await expect(page.locator('#certValidityBlock')).toBeVisible();
+    await expect(page.locator('#certAutoBlock')).toBeHidden();
+
+    // Permanent disables ValidUntil
+    await page.check('#CertPermanent');
+    await expect(page.locator('#CertValidUntil')).toBeDisabled();
+
+    // Tanpa → all hidden
+    await page.check('#certModeNone');
+    await expect(page.locator('#certAutoBlock')).toBeHidden();
+    await expect(page.locator('#certManualBlock')).toBeHidden();
+    await expect(page.locator('#certValidityBlock')).toBeHidden();
+  });
 });
 
 // ── D-07: step5 placeholder + no DB write (implemented Plan 394-04) ─────────────
