@@ -725,6 +725,97 @@ namespace HcPortal.Services
             return result;   // NO SaveChanges — dry-run
         }
 
+        /// <summary>
+        /// Phase 397 D-12 — Lepas tautan grup inject (atomic + audit "LinkPrePostUndo"). Revert bidirectional
+        /// LinkedSessionId + (heuristik konservatif Open Q 1) revert stiker LinkedGroupId Kasus B bila grup jadi
+        /// single-type pasca-unlink. JANGAN cascade-delete (mirror pola atomic+audit DeleteAssessmentGroup —
+        /// referensi shape saja). Skor/jawaban/status online TIDAK disentuh (T-397-04). IDOR guard: hanya sesi
+        /// IsManualEntry yang di-load/revert sebagai sumber unlink (T-397-07).
+        /// </summary>
+        public async Task<InjectResult> UnlinkInjectGroupAsync(int injectGroupId, string actorUserId, string actorName)
+        {
+            var actorDisplay = string.IsNullOrWhiteSpace(actorName) ? actorUserId : actorName;
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Sesi INJECT di grup (IDOR guard: hanya manual-entry sebagai sumber unlink).
+                var injectSessions = await _context.AssessmentSessions
+                    .Where(s => s.LinkedGroupId == injectGroupId && s.IsManualEntry)
+                    .ToListAsync();
+                if (injectSessions.Count == 0)
+                {
+                    await tx.RollbackAsync();
+                    return new InjectResult { Success = false, Message = "Grup inject tidak ditemukan." };
+                }
+
+                var mutated = new HashSet<int>();
+
+                // 2. Revert bidirectional: untuk tiap sesi inject ber-sibling, null-kan sibling.LinkedSessionId (D-02).
+                foreach (var inj in injectSessions)
+                {
+                    if (inj.LinkedSessionId.HasValue)
+                    {
+                        var sib = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == inj.LinkedSessionId.Value);
+                        if (sib != null)
+                        {
+                            sib.LinkedSessionId = null;
+                            if (!sib.IsManualEntry) mutated.Add(sib.Id);   // online write-back → audit
+                        }
+                    }
+                }
+
+                // 3. Lepas kolom link sesi inject sendiri.
+                var injectIds = injectSessions.Select(s => s.Id).ToHashSet();
+                foreach (var inj in injectSessions)
+                {
+                    inj.LinkedGroupId = null;
+                    inj.LinkedSessionId = null;
+                    mutated.Add(inj.Id);
+                }
+
+                // 4. Kasus B revert stiker (Open Q 1 — heuristik konservatif single-type): setelah sesi inject
+                //    dilepas, bila grup hanya tersisa SATU tipe (single-type), stiker online tak lagi bermakna →
+                //    revert LinkedGroupId pada sesi ONLINE tersisa. Skor/status TIDAK disentuh.
+                var remaining = await _context.AssessmentSessions
+                    .Where(s => s.LinkedGroupId == injectGroupId && !injectIds.Contains(s.Id))
+                    .ToListAsync();
+                if (remaining.Count > 0
+                    && remaining.Select(r => r.AssessmentType).Distinct().Count() <= 1)
+                {
+                    foreach (var r in remaining.Where(r => !r.IsManualEntry))
+                    {
+                        r.LinkedGroupId = null;
+                        mutated.Add(r.Id);
+                    }
+                }
+
+                // 5. Audit "LinkPrePostUndo" per sesi dimutasi (in-tx _context.AuditLogs.Add — Pitfall 3).
+                foreach (var sessionId in mutated)
+                {
+                    _context.AuditLogs.Add(new AuditLog
+                    {
+                        ActorUserId = actorUserId,
+                        ActorName = actorDisplay,
+                        ActionType = "LinkPrePostUndo",   // ⚠ 15 char ≤ MaxLength(50)
+                        Description = $"Tautan dilepas pada sesi {sessionId} (grup inject {injectGroupId}). Skor/jawaban/status tidak diubah.",
+                        TargetId = sessionId,
+                        TargetType = "AssessmentSession",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+                return new InjectResult { Success = true, Message = "Tautan dilepas." };
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "UnlinkInjectGroup gagal untuk groupId={GroupId}", injectGroupId);
+                return new InjectResult { Success = false, Message = "Gagal melepas tautan; dibatalkan." };
+            }
+        }
+
         // =====================================================================
         // Phase 395 INJ-09 — Auto-generate layer (static-pure, EF-free, reuse Phase 396 Import Excel)
         // =====================================================================
