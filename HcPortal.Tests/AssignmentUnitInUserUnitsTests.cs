@@ -81,4 +81,22 @@ public class AssignmentUnitInUserUnitsTests
 
         Assert.True(result);
     }
+
+    // PSU-03 (401-06): kontrak validasi bypass TargetUnit — controller :1638 menolak TargetUnit
+    // yg bukan ∈ worker.UserUnits aktif (cegah orphan AssignmentUnit, Invariant #4).
+    [Fact]
+    public async Task BypassTargetUnit_not_in_worker_userunits_rejected()
+    {
+        await using var ctx = InMemoryContext();
+        ctx.UserUnits.Add(new UserUnit { UserId = "w1", Unit = "UnitX", IsPrimary = true, IsActive = true });
+        ctx.UserUnits.Add(new UserUnit { UserId = "w1", Unit = "UnitY", IsPrimary = false, IsActive = true });
+        await ctx.SaveChangesAsync();
+
+        // TargetUnit dimiliki worker → diterima
+        Assert.True(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, "w1", "UnitY"));
+        // TargetUnit BUKAN milik worker → ditolak (akan orphan AssignmentUnit, Invariant #4)
+        Assert.False(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, "w1", "UnitZ"));
+        // TargetUnit kosong → ditolak (jangan resolve dari primary)
+        Assert.False(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, "w1", ""));
+    }
 }
