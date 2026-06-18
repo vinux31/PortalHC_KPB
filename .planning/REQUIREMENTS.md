@@ -17,7 +17,7 @@
 
 ### Page, Setup Room & Authoring (INJ) — fase 394
 
-- [ ] **INJ-03**: Admin & HC dapat membuka page `/Admin/InjectAssessment` dari menu Kelola Data (Section C: Assessment & Training), dengan RBAC `Admin,HC`.
+- [x] **INJ-03**: Admin & HC dapat membuka page `/Admin/InjectAssessment` dari menu Kelola Data (Section C: Assessment & Training), dengan RBAC `Admin,HC`.
 - [ ] **INJ-04**: HC dapat mengatur **setting room inject** mirip `CreateAssessment` — judul, kategori, jadwal/`CompletedAt` (di-backdate ke tanggal ujian luring), durasi, `PassPercentage`, `AllowAnswerReview`, tipe (`Standard`/`Pre`/`Post`).
 - [ ] **INJ-05**: HC dapat **menulis soal** (MultipleChoice / MultipleAnswer / Essay) beserta opsi + kunci (`IsCorrect`) + `ScoreValue` + `ElemenTeknis` + `Rubrik` langsung di alur page inject (reuse komponen authoring `ManagePackages`).
 - [ ] **INJ-06**: HC dapat memilih pekerja penerima inject (reuse worker picker; NIP wajib ada di sistem).
@@ -66,7 +66,7 @@
 |--------|-------|--------|
 | INJ-01 | Phase 393 | Complete |
 | INJ-02 | Phase 393 | Complete |
-| INJ-03 | Phase 394 | Pending |
+| INJ-03 | Phase 394 | Complete |
 | INJ-04 | Phase 394 | Pending |
 | INJ-05 | Phase 394 | Pending |
 | INJ-06 | Phase 394 | Pending |

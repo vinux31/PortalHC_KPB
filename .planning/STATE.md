@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: verifying
-stopped_at: Phase 394 context gathered
-last_updated: "2026-06-17T12:11:09.143Z"
-last_activity: 2026-06-17
+status: executing
+stopped_at: Phase 394 UI-SPEC approved
+last_updated: "2026-06-18T00:40:37.375Z"
+last_activity: 2026-06-18
 progress:
   total_phases: 29
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_plans: 7
+  completed_plans: 4
+  percent: 57
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 393 — backend-core-inject
+**Current focus:** Phase 394 — page-setup-room-authoring-soal
 
 ## Current Position
 
-Phase: 394
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-17
+Phase: 394 (page-setup-room-authoring-soal) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-18
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 
@@ -140,6 +140,6 @@ Milestone v32.2 baru dibuat — define requirements → roadmap. **Next: tulis R
 
 Last activity: 2026-06-17
 
-Stopped at: Phase 394 context gathered
+Stopped at: Phase 394 UI-SPEC approved
 
 Next action: milestone v32.2 — selesaikan REQUIREMENTS.md (INJ-*) + roadmap (393-398), lalu **`/gsd-discuss-phase 393`** atau **`/gsd-plan-phase 393`** (Backend core inject). Tiap fase: verifikasi lokal (`dotnet build` + `dotnet run` localhost:5277 + Playwright) SEBELUM commit → branch main → notify IT (commit hash + flag migration=FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md Develop Workflow).
