@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: executing
-stopped_at: Completed 396-04-PLAN.md
-last_updated: "2026-06-18T08:30:00.000Z"
-last_activity: 2026-06-18 -- 396-04 complete (Step-5 Import Excel UI, checkpoint APPROVED 5/5)
+status: completed
+stopped_at: Completed 396-04-PLAN.md (Step-5 Import Excel UI + checkpoint human-verify APPROVED 5/5)
+last_updated: "2026-06-18T09:54:17.617Z"
+last_activity: 2026-06-18
 progress:
   total_phases: 29
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 19
-  completed_plans: 14
-  percent: 74
+  completed_plans: 15
+  percent: 79
 ---
 
 # Project State: Portal HC KPB
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 396 (import-excel-retire-bulkbackfill) — EXECUTING
-Plan: 5 of 5
+Phase: 397
+Plan: Not started
 Status: Ready to execute (Plan 04 complete + checkpoint APPROVED 5/5; next = 396-05 retire BulkBackfill)
-Last activity: 2026-06-18 -- 396-04 complete (Step-5 Import Excel UI, checkpoint APPROVED 5/5)
+Last activity: 2026-06-18
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 

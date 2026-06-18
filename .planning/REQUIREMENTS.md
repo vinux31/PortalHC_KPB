@@ -30,8 +30,8 @@
 
 ### Import Excel & Retire BulkBackfill (INJ) — fase 396
 
-- [ ] **INJ-10**: HC dapat **import jawaban/skor batch via Excel** — template ter-generate dari paket soal yang sudah di-authored; format matrix (baris = NIP, kolom = soal); validasi atomic (NIP valid, opsi valid, rollback bila error).
-- [ ] **INJ-11**: Tool lama **BulkBackfill** ("Bulk Import Nilai (Excel)", `TrainingAdminController.cs:787/836`) **dipensiunkan / diarahkan** ke page inject baru — tidak ada dua tool duplikat yang melakukan hal sama.
+- [x] **INJ-10**: HC dapat **import jawaban/skor batch via Excel** — template ter-generate dari paket soal yang sudah di-authored; format matrix (baris = NIP, kolom = soal); validasi atomic (NIP valid, opsi valid, rollback bila error).
+- [x] **INJ-11**: Tool lama **BulkBackfill** ("Bulk Import Nilai (Excel)", `TrainingAdminController.cs:787/836`) **dipensiunkan / diarahkan** ke page inject baru — tidak ada dua tool duplikat yang melakukan hal sama.
 
 ### Link Pre/Post ke Room Existing (INJ) — fase 397
 
@@ -73,8 +73,8 @@
 | INJ-07 | Phase 394 | Complete |
 | INJ-08 | Phase 395 | Complete |
 | INJ-09 | Phase 395 | Complete |
-| INJ-10 | Phase 396 | Pending |
-| INJ-11 | Phase 396 | Pending |
+| INJ-10 | Phase 396 | Complete |
+| INJ-11 | Phase 396 | Complete |
 | INJ-12 | Phase 397 | Pending |
 | INJ-13 | Phase 398 | Pending |
 

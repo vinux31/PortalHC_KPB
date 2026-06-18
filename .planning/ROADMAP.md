@@ -63,7 +63,7 @@
  (completed 2026-06-18)
 - [x] **Phase 395: Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09)** — Form input jawaban asli per pekerja (MC/MA pilih opsi, Essay teks+skor) + auto-generate pola jawaban dari skor target (MC/MA pola benar-salah konsisten; Essay set skor langsung) dengan **skor final aktual ditampilkan sebelum commit** (perhitungkan pembulatan). Sequential setelah 394 (file-overlap controller/view/service). 0 migration.
  (completed 2026-06-18)
-- [ ] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration.
+- [x] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration. (completed 2026-06-18)
 - [ ] **Phase 397: Link Pre/Post ke room existing (INJ-12)** — Search picker assessment room existing (reuse query `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` untuk sesi inject Pre/Post, dukung skenario **silang inject↔online** (Pre di-inject ↔ Post real, atau sebaliknya) tanpa merusak grouping PrePost. Sequential setelah 394. 0 migration.
 - [ ] **Phase 398: Test + UAT "seakan online" (INJ-13)** — E2E full lifecycle (inject form/auto-gen/Excel → muncul di `/CMP/Records` label "Assessment Online" + rincian per-soal benar/salah + elemen teknis di `/CMP/Results` + sertifikat dapat diunduh) + regression suite hijau (tak regresi jalur online) + audit milestone 13/13. Depends 393-397. 0 migration.
 
@@ -136,7 +136,7 @@
   3. Import Excel menghasilkan sesi yang identik dengan jalur form (lewat `InjectAssessmentService` yang sama) — diverifikasi hasil muncul di `/CMP/Records` + `/CMP/Results`. *(INJ-10)*
   4. Tool lama "Bulk Import Nilai (Excel)" / `BulkBackfill` (`TrainingAdminController.cs:787/836`) dipensiunkan atau diarahkan ke page inject baru — tidak ada lagi dua entry-point yang melakukan inject hasil assessment. *(INJ-11)*
   5. `dotnet build` 0 error + `dotnet test` (parser/validasi/rollback) + `dotnet run` (localhost:5277) + Playwright e2e: download template → isi → upload sukses (hasil di Records/Results) + baris invalid → rollback total; BulkBackfill lama tak lagi dapat dipakai inject (redirect/pensiun). *(INJ-10, INJ-11)*
-**Plans:** 5 plans (5 wave, sequential — file-overlap controller/view/service intra-phase + TDD Wave 0)
+**Plans:** 5/5 plans complete
 - [x] 396-01-PLAN.md — Wave 1 (TDD lock): FAILING unit suite InjectExcelHelperTests (round-trip stable order, blank=omit, validation-reject) + DTO InjectExcelUploadResult/EssayTextRequired + VM Step5Method (INJ-10)
 - [x] 396-02-PLAN.md — Wave 2: InjectExcelHelper (GenerateTemplate 2-sheet + ParseMatrix, EF-free) + scope essay text-required D-05 (EssayTextRequired) → Wave 0 GREEN (INJ-10)
 - [x] 396-03-PLAN.md — Wave 3: controller endpoints (DownloadInjectTemplate GET + UploadInjectExcel POST, RBAC+CSRF+10MB+whitelist, reuse Aggregator preview==commit) + integration test Excel==form/atomic-rollback (INJ-10)
@@ -185,7 +185,7 @@
 | 393. Backend core inject (INJ-01, INJ-02) | 3/3 | Complete    | 2026-06-17 |
 | 394. Page + Setup Room + authoring soal (INJ-03..07) | 4/4 | Complete    | 2026-06-18 |
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 3/3 | Complete    | 2026-06-18 |
-| 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 5/5 | Complete   | 2026-06-18 |
+| 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 5/5 | Complete    | 2026-06-18 |
 | 397. Link Pre/Post ke room existing (INJ-12) | 0/4 | Planned | - |
 | 398. Test + UAT "seakan online" (INJ-13) | 0/? | Not started | - |
 
