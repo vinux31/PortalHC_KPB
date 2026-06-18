@@ -72,20 +72,21 @@ Exceptions:
 
 ## Typography
 
-Inter via Bootstrap default scale. Maksimum 4 ukuran + 2 berat utama (sesuai pola wizard yang ada; `fw-medium`/`fw-semibold` adalah varian Bootstrap yang sudah dipakai dan diperbolehkan sebagai penekanan).
+Inter via Bootstrap default scale. **3 ukuran + 2 berat** dideklarasikan: **400 (reguler)** untuk semua teks bertubuh, **700 (bold)** untuk semua penekanan (heading, sub-heading kartu, label field wajib). Konsisten dengan wizard 394.
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Heading langkah (`h5.fw-bold`) | 20px (`1.25rem`, Bootstrap h5) | 700 (bold) | 1.2 |
-| Sub-heading kartu (`h6.mb-0` / `.fw-semibold`) | 16px (`1rem`, Bootstrap h6) | 600 (semibold) | 1.2 |
-| Body / label form (`.form-label.fw-bold`, teks soal, opsi) | 16px (`1rem`) | 400 reguler; **600** untuk label tegas | 1.5 |
-| Small / bantuan (`.small`, `.form-text`, badge roster) | 14px (`0.875rem`) | 400 reguler; 500 (`fw-medium`) untuk label field kecil | 1.4 |
+| Sub-heading kartu (`h6.fw-bold`) | 16px (`1rem`, Bootstrap h6) | 700 (bold) | 1.2 |
+| Body / teks soal / opsi | 16px (`1rem`) | 400 (reguler) | 1.5 |
+| Label field wajib (`.form-label.fw-bold`) | 16px (`1rem`) | 700 (bold) | 1.5 |
+| Small / bantuan / badge roster (`.small`, `.form-text`) | 14px (`0.875rem`) | 400 (reguler) | 1.4 |
 
 Aturan:
+- **Hanya 2 berat dipakai sebagai kontrak: 400 (reguler) & 700 (bold).** Semua penekanan → 700; sisanya → 400.
 - Body & teks soal/opsi: 16px / 400 / line-height 1.5.
-- Label field wajib (`.form-label.fw-bold`): 16px / 600.
 - Teks bantuan, catatan overshoot, hint di bawah field: `.form-text.text-muted` 14px / 400.
-- **Jangan** memperkenalkan ukuran/berat di luar tabel ini.
+- **Jangan** memperkenalkan ukuran/berat di luar tabel ini. (Catatan: utility Bootstrap `fw-medium`/`fw-semibold` ada di chrome wizard 394 yang sudah dikirim; permukaan baru Langkah 5 mengikuti kontrak 2-berat di atas.)
 
 ---
 
@@ -105,7 +106,7 @@ Accent (`--bs-primary` biru) **hanya** untuk:
 - Ikon heading langkah (`<i class="bi bi-pencil-square text-primary>`).
 - Pill langkah aktif (`bg-primary text-white active`) — dikelola `updatePills()` yang sudah ada, **jangan diubah**.
 - Badge hitung-pekerja / hitung-poin (`.badge.bg-primary`), badge roster mode.
-- Tombol "Pratinjau" boleh `.btn-outline-primary` (aksi sekunder on-demand, bukan submit utama).
+- Tombol "Pratinjau Skor" boleh `.btn-outline-primary` (aksi sekunder on-demand, bukan submit utama).
 
 Warna semantik tambahan (sudah dipakai wizard — pakai konsisten, bukan accent baru):
 - **Success** `#198754` (`--bs-success`): badge "Lulus", tombol commit final `.btn.btn-success#btnInject` (jangan ubah varian — tetap success), pill langkah selesai (`bg-success`).
@@ -116,6 +117,8 @@ Warna semantik tambahan (sudah dipakai wizard — pakai konsisten, bukan accent 
 ---
 
 ## Komponen & State (kontrak interaksi)
+
+**Focal point Langkah 5:** anchor visual utama = **indikator pekerja `"Pekerja {n} dari {total} — {NIP} · {Nama}"` (`h6.fw-bold`) + blok form soal aktif** tepat di bawahnya. Roster (K1) = sekunder (kartu `.bg-light` di samping/atas), navigasi Prev/Next = tersier (`.btn-sm.btn-outline-secondary`). Saat hasil Pratinjau tampil (K5), skor final `fs-4 fw-bold` menjadi anchor sekunder yang menonjol. Hierarki: form aktif > skor pratinjau > roster > kontrol nav.
 
 ### K1 — Sub-komponen navigasi pekerja (1-pekerja-per-layar, D-03)
 - **Container**: ganti `#step5Placeholder` dengan blok ber-state sendiri (IIFE) di dalam `#step-5`; **jangan** menyentuh `btnPrev5`/`btnNext5` (navigasi antar-langkah) maupun pills.
@@ -140,10 +143,10 @@ Render `injQuestions[]` berurutan; tiap soal = blok `.mb-3` dengan label teks so
 ### K4 — Form auto-generate (INJ-09, D-02/D-06/D-08)
 - **Input target**: `<input type="number" min="0" max="100">` "Skor target (%)" — default batch + override per-pekerja. `.form-text.text-muted` "Sistem memilih pola jawaban benar/salah agar capaian ≥ target."
 - **HYBRID room ber-essay** (D-08.1): bila ada soal Essay, tetap render input skor essay (+teks D-04) untuk tiap essay di bawah input target. Banner `.alert-info` "Room ini memuat soal essay — skor essay diisi manual (auto-generate hanya menyentuh soal pilihan)."
-- **Aksi**: tombol "Pratinjau" (lihat K5) untuk hitung skor aktual; auto-generate tidak menghitung di klien (server-otoritas, RESEARCH Pattern 3/5).
+- **Aksi**: tombol "Pratinjau Skor" (lihat K5) untuk hitung skor aktual; auto-generate tidak menghitung di klien (server-otoritas, RESEARCH Pattern 3/5).
 
 ### K5 — Permukaan Pratinjau (D-09)
-Tombol `.btn.btn-outline-primary` "Pratinjau" (ikon `bi-eye`) on-demand (bukan per-keystroke). State permukaan hasil (blok di bawah form, pola `#titleCheckResult` `:151` `style="display:none"`):
+Tombol `.btn.btn-outline-primary` "Pratinjau Skor" (ikon `bi-eye`) on-demand (bukan per-keystroke). State permukaan hasil (blok di bawah form, pola `#titleCheckResult` `:151` `style="display:none"`):
 - **Belum dipratinjau** (default): blok tersembunyi; roster Skor Pratinjau = "—".
 - **Sedang memuat**: `.text-muted.small` + `<span class="spinner-border spinner-border-sm me-1">` + "Menghitung skor…" (pola `:919`). Tombol Pratinjau disabled saat fetch.
 - **Hasil tampil** (`target reachable`): `.alert-success` bila Lulus / `.alert-warning` bila Tidak Lulus. Isi: skor final aktual besar (`fs-4 fw-bold`) "{skor}%" + badge `bg-success`"Lulus" / `bg-danger`"Tidak Lulus". **TANPA nomor sertifikat** (D-09).
@@ -171,7 +174,7 @@ Semua Bahasa Indonesia. Tabel ringkas + state tambahan di bawah.
 | Element | Copy |
 |---------|------|
 | Primary CTA (commit) | "Inject Assessment" (tombol `#btnInject` yang ada — jangan ubah) |
-| CTA Pratinjau | "Pratinjau" |
+| CTA Pratinjau | "Pratinjau Skor" |
 | CTA navigasi pekerja | "« Pekerja Sebelumnya" / "Pekerja Berikutnya »" |
 | CTA switch mode (BLOCKING) | "Beralih ke input asli" |
 | Empty state heading (tak ada pekerja) | "Belum ada pekerja dipilih" |
@@ -231,11 +234,11 @@ Tidak ada shadcn, tidak ada component registry, tidak ada npm design system. Reg
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-06-18 (gsd-ui-checker, 6/6 PASS, 0 FLAG — after 1 revision: typography→2 weights, CTA→"Pratinjau Skor", focal point declared)
