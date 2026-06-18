@@ -25,10 +25,13 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 401 (proton-unit-resolution-hardening) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 401
-Last activity: 2026-06-18 -- Phase 401 execution started
+Phase: 401 (proton-unit-resolution-hardening) — EXECUTING (PAUSED, resume next day)
+Plan: 5 of 6 complete; 401-03 mid-execution (Tasks 1-3 done+committed, checkpoint pending)
+Status: PAUSED at Plan 03 blocking human-verify checkpoint (D-01 indicator render)
+Last activity: 2026-06-18 -- Phase 401: 01/02/04/05/06 COMPLETE; 03 Tasks 1-3 committed
+
+> ⏸ RESUME: see `.planning/phases/401-proton-unit-resolution-hardening/.continue-here.md`
+> Next = satisfy BLOCKING human-verify D-01 render checkpoint (Razor; Playwright or user "approved"), then Plan 03 Task 4 (turn-green tests) → 401-03-SUMMARY → verify phase. migration=FALSE. Run gsd-tools from ITHandoff toplevel ONLY.
 
 ## Next Action
 
