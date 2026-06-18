@@ -1,35 +1,44 @@
-// Phase 399 Plan 01 Task 5 — WAVE 0 SCAFFOLD (RED, skip-with-reason).
-// Kontrak test MU-04 import parse pipe-delimited. Diisi/diaktifkan plan 02 T3.
-//
-// Behavior yang dikontrak (plan 02):
+// Phase 399 Plan 02 Task 3 — MU-04 import parse pipe-delimited (GREEN).
+// Menguji WorkerController.ParseUnitCell (pure-logic, no DB).
 //   - "UnitA|UnitB|UnitC" → split('|') + trim + dedup (OrdinalIgnoreCase); first = primary.
 //   - Backward-compat "UnitA" (no pipe) → 1 elemen, primary = UnitA (template lama tetap valid).
-//   - Empty/whitespace → 0 elemen.
-// Strategy: pure-logic (no DB). Parser di WorkerController.Import (helper diuji langsung).
+//   - Empty/whitespace/"|" → 0 elemen.
+using System.Collections.Generic;
+using System.Linq;
+using HcPortal.Controllers;
 using Xunit;
 
 namespace HcPortal.Tests;
 
 public class ImportMultiUnitParseTests
 {
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T3 (parse pipe split+trim+dedup)")]
+    [Fact]
     public void Parse_PipeDelimited_SplitsTrimsDedups_FirstIsPrimary()
     {
-        // plan 02: " UnitA | UnitB |UnitA " → ["UnitA","UnitB"], primary="UnitA".
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        // " UnitA | UnitB |UnitA " → ["UnitA","UnitB"] (dedup case-insensitif), primary="UnitA"
+        var units = WorkerController.ParseUnitCell(" UnitA | UnitB |UnitA ");
+
+        Assert.Equal(new List<string> { "UnitA", "UnitB" }, units);
+        Assert.Equal("UnitA", units.FirstOrDefault());   // first = primary
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T3 (backward-compat 1-unit)")]
+    [Fact]
     public void Parse_SingleUnit_NoPipe_BackwardCompatible()
     {
-        // plan 02: "UnitA" → ["UnitA"], primary="UnitA".
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        // "UnitA" (template lama, tanpa pipe) → ["UnitA"], primary="UnitA"
+        var units = WorkerController.ParseUnitCell("UnitA");
+
+        Assert.Single(units);
+        Assert.Equal("UnitA", units[0]);
+        Assert.Equal("UnitA", units.FirstOrDefault());
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T3 (empty → 0 elemen)")]
+    [Fact]
     public void Parse_EmptyOrWhitespace_ReturnsEmpty()
     {
-        // plan 02: "" / "  " / "|" → [] (RemoveEmptyEntries).
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        Assert.Empty(WorkerController.ParseUnitCell(""));
+        Assert.Empty(WorkerController.ParseUnitCell("   "));
+        Assert.Empty(WorkerController.ParseUnitCell("|"));
+        Assert.Empty(WorkerController.ParseUnitCell(null));
     }
 }

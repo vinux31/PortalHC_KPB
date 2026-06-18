@@ -40,6 +40,9 @@ namespace HcPortal.Controllers
         // Phase 399 (MU-01/02/04/05/07) — multi-unit write-through helpers (single-source, testable)
         // ============================================================
 
+        /// <summary>Phase 399 (MU-03) — proyeksi unit pekerja untuk display list (semua unit primary-first + primary).</summary>
+        public record WorkerUnitsView(List<string> Units, string? PrimaryUnit);
+
         /// <summary>
         /// Phase 399 (MU-04) — parse 1 sel Unit Excel/import jadi daftar unit.
         /// Pipe-delimited "UnitA|UnitB|UnitC" → split('|') + trim + dedup (OrdinalIgnoreCase); first=primary (D-04).
@@ -214,6 +217,21 @@ namespace HcPortal.Controllers
 
             var users = await query.OrderBy(u => u.FullName).ToListAsync();
 
+            // Phase 399 (MU-03): batch-load UserUnits per pekerja (hindari N+1) → ViewBag dict utk display semua unit
+            // (primary-first). Plan 04 Task 2 BACA dict ini di view (no edit WorkerController). Filter unitFilter
+            // TETAP scalar di Phase 399 (set-aware = Phase 400 MU-06).
+            var listUserIds = users.Select(u => u.Id).ToList();
+            var userUnitsDict = (await _context.UserUnits
+                    .Where(uu => listUserIds.Contains(uu.UserId))
+                    .ToListAsync())
+                .GroupBy(uu => uu.UserId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new WorkerUnitsView(
+                        g.OrderByDescending(x => x.IsPrimary).ThenBy(x => x.Unit).Select(x => x.Unit).ToList(),
+                        g.FirstOrDefault(x => x.IsPrimary)?.Unit));
+            ViewBag.UserUnitsDict = userUnitsDict;
+
             // Get roles for all users in single query (avoid N+1)
             var userRolesDict = (await _context.UserRoles
                 .Join(_context.Roles, ur => ur.RoleId, r => r.Id,
@@ -293,6 +311,14 @@ namespace HcPortal.Controllers
 
             var users = await query.OrderBy(u => u.FullName).ToListAsync();
 
+            // Phase 399 (MU-03, D-08): batch-load UserUnits (hindari N+1) → kolom Unit = semua unit primary-first comma-join.
+            var exportUserIds = users.Select(u => u.Id).ToList();
+            var exportUnitsByUser = (await _context.UserUnits
+                    .Where(uu => exportUserIds.Contains(uu.UserId))
+                    .ToListAsync())
+                .GroupBy(uu => uu.UserId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             using var workbook = new XLWorkbook();
             var ws = ExcelExportHelper.CreateSheet(workbook, "Pekerja", new[] { "No", "Nama", "Email", "NIP", "Jabatan", "Bagian", "Unit", "Status" });
             ws.Range(1, 1, 1, 8).Style.Fill.BackgroundColor = XLColor.LightBlue;
@@ -306,7 +332,23 @@ namespace HcPortal.Controllers
                 ws.Cell(i + 2, 4).Value = u.NIP ?? "-";
                 ws.Cell(i + 2, 5).Value = u.Position ?? "-";
                 ws.Cell(i + 2, 6).Value = u.Section ?? "-";
-                ws.Cell(i + 2, 7).Value = u.Unit ?? "-";
+
+                // Multi-unit primary-first comma-join (ordering satu-satunya sinyal primary di Excel — D-08).
+                exportUnitsByUser.TryGetValue(u.Id, out var uUnits);
+                string unitsText;
+                if (uUnits != null && uUnits.Any())
+                {
+                    var primaryUnit = uUnits.FirstOrDefault(x => x.IsPrimary)?.Unit;
+                    unitsText = string.Join(", ", uUnits
+                        .OrderByDescending(x => x.Unit == primaryUnit)
+                        .ThenBy(x => x.Unit)
+                        .Select(x => x.Unit));
+                }
+                else
+                {
+                    unitsText = u.Unit ?? "-";   // fallback mirror (pekerja tanpa baris UserUnits)
+                }
+                ws.Cell(i + 2, 7).Value = unitsText;
                 ws.Cell(i + 2, 8).Value = u.IsActive ? "Active" : "Inactive";
             }
 
@@ -1043,7 +1085,8 @@ namespace HcPortal.Controllers
             var example = new List<object>
             {
                 "Ahmad Fauzi", "ahmad.fauzi@pertamina.com", "123456", "Operator",
-                "RFCC", "RFCC LPG Treating Unit (062)", "CSU Process", "Coachee", "2024-01-15"
+                // Phase 399 (D-06): contoh Unit ganda pipe-delimited (unit pertama = Utama)
+                "RFCC", "RFCC LPG Treating Unit (062)|RFCC Gas Concentration Unit (063)", "CSU Process", "Coachee", "2024-01-15"
             };
             if (!useAD) { example.Add("Password123!"); }
             for (int i = 0; i < example.Count; i++)
@@ -1060,11 +1103,15 @@ namespace HcPortal.Controllers
             ws.Cell(4, 1).Value = $"Kolom Role: {string.Join(" / ", UserRoles.AllRoles)}";
             ws.Cell(4, 1).Style.Font.Italic = true;
             ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
+            // Phase 399 (D-06): help-text format Unit ganda (pipe-delimited, unit pertama = primary).
+            ws.Cell(5, 1).Value = "Kolom Unit: Untuk Unit ganda, pisahkan dengan tanda pipa | (contoh: UnitA|UnitB|UnitC). Unit pertama menjadi Unit Utama. Satu Unit tetap valid tanpa pipa.";
+            ws.Cell(5, 1).Style.Font.Italic = true;
+            ws.Cell(5, 1).Style.Font.FontColor = XLColor.DarkRed;
             if (useAD)
             {
-                ws.Cell(5, 1).Value = "Mode AD aktif: Kolom Password tidak diperlukan. Sistem akan membuat password acak.";
-                ws.Cell(5, 1).Style.Font.Italic = true;
-                ws.Cell(5, 1).Style.Font.FontColor = XLColor.DarkBlue;
+                ws.Cell(6, 1).Value = "Mode AD aktif: Kolom Password tidak diperlukan. Sistem akan membuat password acak.";
+                ws.Cell(6, 1).Style.Font.Italic = true;
+                ws.Cell(6, 1).Style.Font.FontColor = XLColor.DarkBlue;
             }
 
             return ExcelExportHelper.ToFileResult(workbook, "workers_import_template.xlsx", this);
@@ -1120,7 +1167,9 @@ namespace HcPortal.Controllers
                     var nip = (row.Cell(3).GetString() ?? "").Trim();
                     var jabatan = (row.Cell(4).GetString() ?? "").Trim();
                     var bagian = (row.Cell(5).GetString() ?? "").Trim();
-                    var unit = (row.Cell(6).GetString() ?? "").Trim();
+                    // Phase 399 (MU-04, D-04/05): Cell(6) posisi TETAP — parse pipe "UnitA|UnitB" (first=primary, dedup).
+                    var unitCellRaw = (row.Cell(6).GetString() ?? "").Trim();   // posisi Cell(6) TIDAK bergeser
+                    var unitList = ParseUnitCell(unitCellRaw);
                     var directorate = (row.Cell(7).GetString() ?? "").Trim();
                     var role = (row.Cell(8).GetString() ?? "").Trim();
                     var tglStr = (row.Cell(9).GetString() ?? "").Trim();
@@ -1152,13 +1201,17 @@ namespace HcPortal.Controllers
                     if (!string.IsNullOrWhiteSpace(bagian) && !sectionUnitsDict.ContainsKey(bagian))
                         errors.Add($"Section '{bagian}' tidak ditemukan di database");
 
-                    // Validasi Unit: harus child dari Section yang dipilih
-                    if (!string.IsNullOrWhiteSpace(unit))
+                    // Validasi Unit (MU-05): tiap unit dalam pipe-list harus child dari Section yang dipilih.
+                    if (unitList.Any())
                     {
                         if (string.IsNullOrWhiteSpace(bagian))
                             errors.Add("Unit tidak boleh diisi tanpa Section");
-                        else if (sectionUnitsDict.TryGetValue(bagian, out var validUnits) && !validUnits.Contains(unit))
-                            errors.Add($"Unit '{unit}' bukan child dari Section '{bagian}'");
+                        else if (sectionUnitsDict.TryGetValue(bagian, out var validUnits))
+                        {
+                            var invalid = unitList.Where(u => !validUnits.Contains(u)).ToList();   // validasi PER unit
+                            if (invalid.Any())
+                                errors.Add($"Unit tidak valid untuk '{bagian}': {string.Join(", ", invalid)}");
+                        }
                     }
 
                     if (errors.Any())
@@ -1203,7 +1256,7 @@ namespace HcPortal.Controllers
                         NIP = string.IsNullOrWhiteSpace(nip) ? null : nip,
                         Position = string.IsNullOrWhiteSpace(jabatan) ? null : jabatan,
                         Section = string.IsNullOrWhiteSpace(bagian) ? null : bagian,
-                        Unit = string.IsNullOrWhiteSpace(unit) ? null : unit,
+                        // Unit (mirror) di-set via SyncUserUnitsAsync setelah CreateAsync (write-through MU-04)
                         Directorate = string.IsNullOrWhiteSpace(directorate) ? null : directorate,
                         JoinDate = joinDate,
                         RoleLevel = roleLevel,
@@ -1214,6 +1267,12 @@ namespace HcPortal.Controllers
                     if (createResult.Succeeded)
                     {
                         await _userManager.AddToRoleAsync(newUser, role);
+
+                        // Phase 399 (MU-04): write-through baris UserUnits (first=primary) + mirror Unit.
+                        await SyncUserUnitsAsync(_context, newUser, unitList, unitList.FirstOrDefault());
+                        await _context.SaveChangesAsync();
+                        await _userManager.UpdateAsync(newUser);   // persist mirror Unit
+
                         result.Status = "Success";
                         result.Message = "Berhasil dibuat";
                     }
