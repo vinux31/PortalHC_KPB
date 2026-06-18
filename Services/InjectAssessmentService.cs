@@ -95,6 +95,43 @@ namespace HcPortal.Services
                 var realQuestionIdsInOrder = new List<int>();
                 var successSessions = new List<(int sessionId, string nip)>();
 
+                // ---- 397 D-01/D-02: resolve konteks link SEKALI per batch (server-otoritas, T-397-06) ----
+                // Drive off req.LinkTargetRepId — JANGAN trust req.LinkedGroupId mentah dari client.
+                // Hanya Pre/Post yang menautkan (D-06 — Standard tak pernah link).
+                int? resolvedGroupId = null;
+                string? oppositeType = null;
+                var siblingByUserId = new Dictionary<string, AssessmentSession>();   // 1 sibling per UserId (tipe-lawan)
+                var targetRoomSessions = new List<AssessmentSession>();              // Kasus B: tulis stiker ke SEMUA
+                var mutatedOnlineSessionIds = new HashSet<int>();                    // sesi ONLINE dimutasi → audit "LinkPrePost"
+                bool kasusB = false;
+                if (req.LinkTargetRepId.HasValue
+                    && (req.AssessmentType == AssessmentConstants.AssessmentType.PreTest
+                        || req.AssessmentType == AssessmentConstants.AssessmentType.PostTest))
+                {
+                    var (groupId, opposite, isKasusB, targetSessions, rep) =
+                        await ResolveLinkContextAsync(req.LinkTargetRepId, req.AssessmentType);
+                    if (rep == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return new InjectResult { Rejected = true, Success = false, Message = "Room pasangan tidak valid atau bukan tipe lawan." };
+                    }
+                    resolvedGroupId = groupId;
+                    oppositeType = opposite;
+                    kasusB = isKasusB;
+                    targetRoomSessions = targetSessions;
+
+                    // Peta sibling tipe-lawan by-UserId di SELURUH grup (online + inject ter-commit). Guard >1 (A2).
+                    var siblingQuery = await _context.AssessmentSessions
+                        .Where(s => s.AssessmentType == oppositeType
+                                 && (kasusB
+                                        ? targetRoomSessions.Select(t => t.Id).Contains(s.Id)
+                                        : s.LinkedGroupId == resolvedGroupId))
+                        .ToListAsync();
+                    siblingByUserId = siblingQuery
+                        .GroupBy(s => s.UserId)
+                        .ToDictionary(g => g.Key, g => g.First());
+                }
+
                 foreach (var (spec, user) in toProcess)
                 {
                     var startedAt = req.StartedAt ?? req.CompletedAt;
@@ -116,8 +153,10 @@ namespace HcPortal.Services
                         NomorSertifikat = req.CertMode == InjectCertMode.Manual ? spec.ManualCertNumber : null,  // D-09
                         PassPercentage = req.PassPercentage,
                         DurationMinutes = req.DurationMinutes,
-                        LinkedGroupId = req.LinkedGroupId,
-                        LinkedSessionId = req.LinkedSessionId,
+                        // 397 D-02: JANGAN broadcast req.LinkedSessionId/LinkedGroupId (Pitfall 1) —
+                        // di-wire per-pekerja SETELAH SaveChanges (session.Id ada) di bawah.
+                        LinkedGroupId = null,
+                        LinkedSessionId = null,
                         Schedule = schedule,
                         StartedAt = startedAt,
                         CompletedAt = req.CompletedAt,                        // backdate (D-06) — grade overwrite → re-apply [g]
@@ -128,6 +167,24 @@ namespace HcPortal.Services
                     };
                     _context.AssessmentSessions.Add(session);
                     await _context.SaveChangesAsync();   // dapat session.Id
+
+                    // a2. 397 D-02/D-03: wiring link per-pekerja (session.Id sudah ada). Resolve sibling by-UserId
+                    //     (BUKAN broadcast). LinkedGroupId SELALU di-set bila tertaut (gabung grup, D-03).
+                    if (resolvedGroupId.HasValue)
+                    {
+                        session.LinkedGroupId = resolvedGroupId.Value;
+                        if (siblingByUserId.TryGetValue(user.Id, out var sib) && sib.Id != session.Id)
+                        {
+                            session.LinkedSessionId = sib.Id;        // inject → sibling
+                            sib.LinkedSessionId = session.Id;        // write-back sibling → inject (tracked, in-tx, D-02)
+                            if (!sib.IsManualEntry) mutatedOnlineSessionIds.Add(sib.Id);   // online sibling write-back → audit
+                        }
+                        else
+                        {
+                            session.LinkedSessionId = null;          // unpaired (D-03) — sisi tunggal
+                        }
+                        await _context.SaveChangesAsync();
+                    }
 
                     // b. Sentinel package + questions + options (1× per batch, anchored ke sesi pertama)
                     if (sentinelPackageId == null)
@@ -284,6 +341,34 @@ namespace HcPortal.Services
 
                     successSessions.Add((session.Id, spec.Nip));
                     result.SuccessSessionIds.Add(session.Id);
+                }
+
+                // ---- 397 D-01 Kasus B: tulis stiker LinkedGroupId ke SEMUA sesi room target (Pitfall 2) ----
+                // resolvedGroupId == RepresentativeId room target. SKOR/STATUS/JAWABAN ONLINE TIDAK DISENTUH (T-397-04).
+                if (kasusB && resolvedGroupId.HasValue)
+                {
+                    foreach (var s in targetRoomSessions)
+                    {
+                        s.LinkedGroupId = resolvedGroupId.Value;          // stiker grup (HANYA kolom link)
+                        if (!s.IsManualEntry) mutatedOnlineSessionIds.Add(s.Id);   // sesi online → audit "LinkPrePost"
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
+                // ---- 397 D-09: audit "LinkPrePost" per sesi ONLINE dimutasi (stiker Kasus B / write-back bidirectional) ----
+                // Inject↔inject (sibling IsManualEntry==true) TIDAK menambah mutatedOnlineSessionIds → 0 audit (D-10).
+                foreach (var onlineSessionId in mutatedOnlineSessionIds)
+                {
+                    _context.AuditLogs.Add(new AuditLog
+                    {
+                        ActorUserId = actorUserId,
+                        ActorName = actorDisplay,
+                        ActionType = "LinkPrePost",   // ⚠ 11 char ≤ MaxLength(50)
+                        Description = $"Penanda grup ditulis ke sesi online {onlineSessionId} (LinkedGroupId={resolvedGroupId}). Skor/jawaban/status tidak diubah. Room target={req.Title}.",
+                        TargetId = onlineSessionId,
+                        TargetType = "AssessmentSession",
+                        CreatedAt = DateTime.UtcNow
+                    });
                 }
 
                 // Audit in-tx (D-11) — _context.AuditLogs.Add LANGSUNG (BUKAN AuditLogService.LogAsync yang
@@ -473,6 +558,64 @@ namespace HcPortal.Services
                     dupUserIds.Add(c.UserId);
             }
             return dupUserIds;
+        }
+
+        // =====================================================================
+        // Phase 397 INJ-12 — Link Pre/Post ke room existing (D-01..D-12)
+        // =====================================================================
+
+        /// <summary>
+        /// Phase 397 D-01 — Resolusi konteks link (READ-ONLY, side-effect-free). Server RE-RESOLVE dari
+        /// <paramref name="linkTargetRepId"/> (RepresentativeId room target) — JANGAN trust LinkedGroupId
+        /// mentah dari client (Tampering guard T-397-06). Dipakai bersama oleh <see cref="InjectBatchAsync"/>
+        /// (commit), <see cref="PreviewPairingAsync"/> (dry-run), dan anti-double preflight (D-08) → satu
+        /// sumber kebenaran Kasus A/B (no drift).
+        ///
+        /// <para><b>Kasus A</b> (rep.LinkedGroupId != null): ADOPT — groupId = rep.LinkedGroupId; kasusB=false;
+        /// targetSessions kosong (tak menulis stiker online).</para>
+        /// <para><b>Kasus B</b> (rep.LinkedGroupId == null, standalone): groupId = rep.Id (konvensi
+        /// AssessmentAdminController.cs:1270); kasusB=true; targetSessions = SEMUA sesi room target standalone
+        /// (LOCKED key = Title + Category + Schedule.Date, tipe-lawan, LinkedGroupId==null) — Pitfall 2:
+        /// stiker ditulis ke SEMUA, bukan hanya yang ter-pair. Key WAJIB sama persis dengan picker standalone
+        /// (Plan 03-T1).</para>
+        ///
+        /// <para>rep == null bila linkTargetRepId tak valid / bukan tipe lawan.</para>
+        /// </summary>
+        private async Task<(int? groupId, string? opposite, bool kasusB,
+            List<AssessmentSession> targetSessions, AssessmentSession? rep)>
+            ResolveLinkContextAsync(int? linkTargetRepId, string assessmentType)
+        {
+            if (!linkTargetRepId.HasValue
+                || (assessmentType != AssessmentConstants.AssessmentType.PreTest
+                    && assessmentType != AssessmentConstants.AssessmentType.PostTest))
+                return (null, null, false, new List<AssessmentSession>(), null);
+
+            var opposite = assessmentType == AssessmentConstants.AssessmentType.PreTest
+                ? AssessmentConstants.AssessmentType.PostTest
+                : AssessmentConstants.AssessmentType.PreTest;
+
+            // Server re-resolve sesi representatif + validasi tipe-lawan (IDOR/Tampering guard T-397-06).
+            var rep = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(s => s.Id == linkTargetRepId.Value && s.AssessmentType == opposite);
+            if (rep == null)
+                return (null, opposite, false, new List<AssessmentSession>(), null);
+
+            if (rep.LinkedGroupId.HasValue)
+            {
+                // Kasus A — adopt, JANGAN sentuh online grouping value.
+                return (rep.LinkedGroupId.Value, opposite, false, new List<AssessmentSession>(), rep);
+            }
+
+            // Kasus B — stiker = rep.Id; kumpulkan SEMUA sesi room target standalone (Pitfall 2).
+            // ⚠ Key LOCKED ke Title + Category + Schedule.Date — WAJIB cocok dgn picker standalone Plan 03-T1.
+            var repDate = rep.Schedule.Date;
+            var targetSessions = await _context.AssessmentSessions
+                .Where(s => s.LinkedGroupId == null
+                         && s.AssessmentType == opposite
+                         && s.Title == rep.Title && s.Category == rep.Category
+                         && s.Schedule.Date == repDate)
+                .ToListAsync();
+            return (rep.Id, opposite, true, targetSessions, rep);
         }
 
         // =====================================================================
