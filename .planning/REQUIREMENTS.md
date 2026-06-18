@@ -15,7 +15,7 @@ Requirements untuk milestone v32.3. Tiap REQ map ke satu phase.
 - [ ] **MU-02**: Tepat satu Unit ditandai **PRIMARY**; `ApplicationUser.Unit` selalu mencerminkan unit primary (write-through di Create/Edit/Import). Recompute primary deterministik: menghapus unit primary mem-promote unit lain (atau blok bila tak ada sisa); mengosongkan semua unit set `ApplicationUser.Unit = null` & 0 baris `IsPrimary`; setiap write menjaga tepat 1 `IsPrimary` per user. Audit-log mencatat **set-diff** (unit ditambah / dihapus / primary berubah).
 - [ ] **MU-03**: Pengguna melihat **seluruh unit** pekerja (primary ditandai) di Profil, WorkerDetail, Settings, tabel ManageWorkers, export Excel worker, **Home dashboard**, dan **kartu tanda tangan `_PSign`** (cek reuse cert/print tetap layak).
 - [ ] **MU-04**: Bulk Import worker mendukung **multi-unit** (kolom/format unit ganda per baris), tervalidasi tiap unit anak Bagian baris itu.
-- [ ] **MU-05**: Migrasi backfill — setiap pekerja existing mendapat 1 baris `UserUnits` primary (= `Unit` lama). Setiap **junction-write** (bukan hanya backfill) memvalidasi `Unit ∈ unit-Bagian pekerja` (Name tidak global-unique → wajib dipasangkan dengan Bagian).
+- [x] **MU-05**: Migrasi backfill — setiap pekerja existing mendapat 1 baris `UserUnits` primary (= `Unit` lama). Setiap **junction-write** (bukan hanya backfill) memvalidasi `Unit ∈ unit-Bagian pekerja` (Name tidak global-unique → wajib dipasangkan dengan Bagian).
 - [ ] **MU-06**: Listing keanggotaan (roster tim/section, `GetWorkersInSection`, role-filter, tabel CMP records) **set-aware** — pekerja multi-unit muncul di tiap unit-nya; rollup tingkat Bagian **dedup** (completion%/denominator tidak menghitung pekerja ganda).
 - [ ] **MU-07**: Saat Edit/Import **menghapus** sebuah Unit dari `UserUnits` pekerja (atau memindah primary), sistem **memblok** (atau wajib deactivate dulu) bila Unit itu masih dirujuk `CoachCoacheeMapping.AssignmentUnit` aktif atau `ProtonTrackAssignment` aktif pekerja — mencegah orphan `AssignmentUnit ∉ UserUnits` (jaga Invariant #4).
 
@@ -73,7 +73,7 @@ Diisi saat pembuatan roadmap.
 | MU-02 | Phase 399 | Pending |
 | MU-03 | Phase 399 | Pending |
 | MU-04 | Phase 399 | Pending |
-| MU-05 | Phase 399 | Pending |
+| MU-05 | Phase 399 | Complete |
 | MU-07 | Phase 399 | Pending |
 | MU-06 | Phase 400 | Pending |
 | PSU-01 | Phase 401 | Pending |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
-stopped_at: Phase 399 UI-SPEC approved
-last_updated: "2026-06-18T04:45:03.621Z"
-last_activity: 2026-06-18 -- Phase 399 planning complete
+stopped_at: Completed 399-01-PLAN.md
+last_updated: "2026-06-18T05:06:21.142Z"
+last_activity: 2026-06-18
 progress:
   total_phases: 30
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State: Portal HC KPB
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.3 — roadmap dibuat (6 fase 399-404, 24 REQ); next `/gsd-plan-phase 399`
+**Current focus:** Phase 399 — Foundation — Junction UserUnits + Primary-Mirror + Multi-Select UI + Display
 
 ## Current Position
 
-Phase: Not started (roadmap complete, belum di-plan)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-06-18 -- Phase 399 planning complete
+Phase: 399 (Foundation — Junction UserUnits + Primary-Mirror + Multi-Select UI + Display) — EXECUTING
+Plan: 2 of 4
+Status: Plan 01 SHIPPED (junction + migration applied DB lokal + 7 test scaffold) — ready execute plan 02
+Last activity: 2026-06-18 -- 399-01 complete (UserUnits junction + AddUserUnitsTable migration=TRUE applied)
 
 ## Next Action
 
-`/gsd-plan-phase 399` (Foundation — Junction `UserUnits` + Primary-Mirror + Multi-Select UI + Display). **WAJIB solo (Wave 0)** — junction + kontrak primary-mirror dipakai semua fase berikutnya. `/clear` dulu (fresh context).
+Execute **399-02** (write-through `SyncUserUnitsAsync` di WorkerController Create/Edit/Import — set+mirror+audit set-diff + validasi Unit∈Bagian + MU-07 guard; isi test scaffold UserUnitsWriteThrough/PrimaryMirror/AuditDiff/UnitInSectionValidation/RemoveUnitGuard/ImportMultiUnitParse). Junction + migration sudah SIAP dari 399-01 (commit fc015f4d, migration=TRUE applied DB lokal). **migration=TRUE notify IT** saat milestone push (fc015f4d).
 
 **Critical path:** `399 → 401 → 402 → 404`.
 
@@ -97,6 +97,7 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 ### Decisions (persist across milestones)
 
+- [399-01 / junction UserUnits APPLIED]: tabel `UserUnits` ada di DB lokal (`HcPortalDB_Dev`) — filtered-unique `IX_UserUnits_UserId_PrimaryUnique` WHERE [IsPrimary]=1 (enforce invariant #3) + unique `IX_UserUnits_UserId_Unit_Unique` + backfill idempotent (6 baris IsPrimary=1 == 6 Users Unit-non-null; Unit-null=0 baris; re-run backfill=0 dobel). Migration scaffold via **global `dotnet ef` CLI v10.0.3** (backward-compat OK dengan project EF 8.0.0; snapshot tetap ProductVersion 8.0.0) — fallback pin-tool/hand-author tak perlu. Index UserId polos dibuang (EF dedup ke filtered-unique; has-pending-model-changes=none). `Users.Unit` scalar DIPERTAHANKAN (mirror). **migration=TRUE commit `fc015f4d`** (`AddUserUnitsTable`) — SATU-SATUNYA migration milestone v32.3, notify IT saat push. Interface siap untuk plan 02 (SyncUserUnitsAsync write-through) + plan 03/04 (UI/display). 7 test scaffold Wave 0 RED skip-with-reason (suite 347 pass/0 fail/16 skip).
 - [v32.3 roadmap / phases 399-404]: 6 fase derived dari spec §5/§6 (mapping fase→REQ + dependency TERKUNCI, bukan re-derive) — **399** Foundation junction `UserUnits`+mirror+multi-select UI (MU-01/02/03/04/05/07, **migration=TRUE**), **400** listing set-aware+dedup (MU-06), **401** PROTON unit-resolution hardening (PSU-01/02/03/04/05/07), **402** coaching cross-unit (CXU-01..05), **403** Org cascade/guard UserUnits-aware (ORG-01/02), **404** test SQL riil+UAT+docs (QA-01..04). 24/24 REQ mapped, 0 orphan/duplicate. Dependency: 400/401/403→399; 402→401; 404→semua. Wave 1 {400,401,403} PARALEL (cluster file disjoint), 402 serial setelah 401. Critical path 399→401→402→404. Phase numbering mulai 399 (391-398 reserved di branch main: v32.0=391-392, v32.2=393-398).
 - [v32.3 invariant (spec §7)]: (1) Section scalar 1 Bagian/akun; (2) PROTON single-active (index `IX_CoachCoacheeMappings_CoacheeId_ActiveUnique` + E8 dipertahankan); (3) primary mirror `ApplicationUser.Unit`=baris `UserUnits.IsPrimary` write-through; (4) `AssignmentUnit ∈ coachee.UserUnits` (pasca-401); (5) `ProtonKompetensi.Unit` 1:1 per deliverable. Junction `UserUnits.Unit` = NAME-string (konsisten `AssignmentUnit`/`ProtonKompetensi.Unit`), validasi via `GetUnitsForSectionAsync(user.Section)`. D1=b cert/analytics atribusi primary (no kolom unit-at-issue, no migration ke-2). De-risk: authz Section 100% scalar → 0 perubahan.
 - [v32.1 / 389-01 spec parity]: `tests/e2e/coachcoacheemapping-389.spec.ts` 14-test (V-01..V-14) test-first (Nyquist safeguard, Phase 354 lesson). Closed PASSED 7/7.
@@ -121,6 +122,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 399 UI-SPEC approved
+Stopped at: Completed 399-01-PLAN.md
 
 Next action: `/gsd-plan-phase 399` (Foundation — Wave 0 solo, migration=TRUE). Lalu Wave 1 {400, 401, 403} paralel, Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
