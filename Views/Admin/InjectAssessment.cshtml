@@ -634,6 +634,7 @@
     });
     document.querySelectorAll('.btn-prev').forEach(function (btn) {
         btn.addEventListener('click', function () {
+            returnToConfirm = false;   // MED-01: abandon edit-from-confirm intent on non-forward nav
             goToStep(currentStep - 1);
         });
     });
@@ -641,7 +642,7 @@
         (function (n) {
             var pill = document.getElementById('pill-' + n);
             if (pill) pill.addEventListener('click', function () {
-                if (visitedSteps.has(n)) goToStep(n);
+                if (visitedSteps.has(n)) { returnToConfirm = false; goToStep(n); }
             });
         })(i);
     }
