@@ -156,7 +156,7 @@
   3. Skenario silang berfungsi: Pre di-inject + Post = assessment online asli (atau sebaliknya) tampil sebagai satu pasangan Pre/Post utuh di Records/Monitoring — diverifikasi grouping `LinkedGroupId` tidak rusak saat satu sisi inject & satu sisi online. *(INJ-12 — risiko spec §13 link silang)*
   4. `dotnet build` 0 error + `dotnet test`/Playwright + `dotnet run` (localhost:5277): picker tampil saat Pre/Post → pilih room online asli → sesi inject tertaut → pasangan Pre/Post utuh (silang inject↔online). *(INJ-12)*
 **Plans:** 4 plans (4 wave, sequential — file-overlap controller/service/view intra-phase + TDD Wave 0; SEQUENTIAL setelah 395 & 396 ter-commit)
-- [ ] 397-01-PLAN.md — Wave 1 (TDD lock): FAILING xUnit suite (per-pekerja bidirectional, Kasus A/B, atomic rollback, anti-double, preview==commit pairing, cross-grouping §13, unlink revert) + DTO LinkTargetRepId/InjectPairingPreview + VM LinkedTargetRepId (INJ-12)
+- [x] 397-01-PLAN.md — Wave 1 (TDD lock): FAILING xUnit suite (per-pekerja bidirectional, Kasus A/B, atomic rollback, anti-double, preview==commit pairing, cross-grouping §13, unlink revert) + DTO LinkTargetRepId/InjectPairingPreview + VM LinkedTargetRepId (INJ-12)
 - [ ] 397-02-PLAN.md — Wave 2: service — per-pekerja LinkedSessionId (ganti broadcast :120) + Kasus A/B resolution + Kasus B write-to-online atomic + audit "LinkPrePost" + anti-double preflight (D-08) + PreviewPairingAsync (D-07) + UnlinkInjectGroupAsync (D-12) → Wave 0 GREEN (INJ-12)
 - [ ] 397-03-PLAN.md — Wave 3: controller — SearchLinkTargets JSON picker (tipe-lawan, inject+online, D-06/D-10) + MapToRequest isi LinkTargetRepId + PreviewPairing endpoint (D-07) + UnlinkInjectGroup POST RBAC+CSRF (D-12) (INJ-12)
 - [ ] 397-04-PLAN.md — Wave 4: view Step-1 Cari Room+chip+modal (N1/N2) + Pratinjau ringkasan pairing+banner Kasus B+date warn (N3/N4) + unlink confirm modal (N5) + Playwright e2e (cross-grouping §13 + online untouched) + 0-migration gate + checkpoint human-verify (INJ-12)
@@ -186,7 +186,7 @@
 | 394. Page + Setup Room + authoring soal (INJ-03..07) | 4/4 | Complete    | 2026-06-18 |
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 3/3 | Complete    | 2026-06-18 |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 5/5 | Complete    | 2026-06-18 |
-| 397. Link Pre/Post ke room existing (INJ-12) | 0/4 | Planned | - |
+| 397. Link Pre/Post ke room existing (INJ-12) | 1/4 | In Progress|  |
 | 398. Test + UAT "seakan online" (INJ-13) | 0/? | Not started | - |
 
 ### Dependency Graph
