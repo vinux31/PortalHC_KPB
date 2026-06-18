@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: verifying
+status: executing
 stopped_at: Phase 401 context gathered
-last_updated: "2026-06-18T09:55:53.908Z"
-last_activity: 2026-06-18
+last_updated: "2026-06-18T10:03:01.170Z"
+last_activity: 2026-06-18 -- Phase 400 planning complete
 progress:
   total_phases: 30
   completed_phases: 1
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 400
 Plan: Not started
-Status: Phase 399 COMPLETE — semua gate TUNTAS (verifier 6/6, secure 18/18 threats_open:0, validate NYQUIST 0-gaps, UAT 3/3 browser-verified). Ready plan Wave 1.
-Last activity: 2026-06-18
+Status: Ready to execute
+Last activity: 2026-06-18 -- Phase 400 planning complete
 
 ## Next Action
 
