@@ -55,6 +55,9 @@ test.describe('INJ-03 RBAC + page', () => {
     // step-1 visible initially; step-2 hidden
     await expect(page.locator('#step-1')).toBeVisible();
     await expect(page.locator('#step-2')).toBeHidden();
+    // fill required step-1 fields so validateStep(1) passes (date defaults to today)
+    await page.fill('#Title', 'ZZ Nav ' + Date.now());
+    await page.selectOption('#Category', { index: 1 });
     // forward nav: click Selanjutnya on step 1 → step-2 visible + pill-1 marked completed (bg-success)
     await page.click('#btnNext1');
     await expect(page.locator('#step-2')).toBeVisible();
