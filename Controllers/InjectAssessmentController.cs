@@ -160,6 +160,78 @@ namespace HcPortal.Controllers
             return Json(result);
         }
 
+        // GET /Admin/SearchLinkTargets — picker JSON room PASANGAN (tipe-LAWAN) untuk tautkan sesi inject Pre/Post.
+        // (INJ-12 Surface 1, D-06/D-10). Inject Pre → hanya room PostTest; inject Post → hanya room PreTest.
+        // Tampilkan room inject MAUPUN online (TIDAK filter IsManualEntry — D-10). Grouped (Kasus A) by LinkedGroupId,
+        // standalone (Kasus B) by Title+Category+Schedule.Date (LOCKED — WAJIB cocok ResolveLinkContextAsync Plan 02
+        // Kasus B write-to-all key, atau picker & stiker beda himpunan). Return Json — BUKAN PartialView (Pitfall 6:
+        // override View() ~/Views/Admin/ hanya kena ViewResult, JSON tak terpengaruh).
+        // RBAC Admin,HC (T-397-09). GET read-only → tanpa antiforgery. injectType whitelist Pre/Post (T-397-11;
+        // Standard tak punya picker, D-06). term parameterized via EF LINQ (anti SQL-injection).
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> SearchLinkTargets(string? term, string injectType)
+        {
+            // Whitelist tipe (Pitfall 7 / T-397-11): hanya Pre/Post yang punya picker; tampilkan tipe-LAWAN (D-06).
+            if (injectType != AssessmentConstants.AssessmentType.PreTest
+                && injectType != AssessmentConstants.AssessmentType.PostTest)
+                return Json(Array.Empty<object>());
+            var oppositeType = injectType == AssessmentConstants.AssessmentType.PreTest
+                ? AssessmentConstants.AssessmentType.PostTest
+                : AssessmentConstants.AssessmentType.PreTest;
+
+            var q = _context.AssessmentSessions.AsNoTracking()
+                .Where(s => s.AssessmentType == oppositeType);   // tipe-lawan; TIDAK ada filter IsManualEntry (D-10)
+            if (!string.IsNullOrWhiteSpace(term))
+            {
+                var t = term.ToLower();
+                q = q.Where(s => s.Title.ToLower().Contains(t) || s.Category.ToLower().Contains(t));
+            }
+
+            var sessions = await q
+                .Select(s => new
+                {
+                    s.Id, s.Title, s.Category, s.Schedule, s.CompletedAt,
+                    s.AssessmentType, s.LinkedGroupId, s.IsManualEntry, s.CreatedAt,
+                    UserId = s.UserId
+                })
+                .ToListAsync();
+
+            // Kasus A — room sudah ber-grup: representatif = sesi tertua (OrderBy CreatedAt), LinkedGroupId = g.Key.
+            var grouped = sessions.Where(s => s.LinkedGroupId != null)
+                .GroupBy(s => s.LinkedGroupId)
+                .Select(g =>
+                {
+                    var rep = g.OrderBy(x => x.CreatedAt).First();
+                    return new
+                    {
+                        RepresentativeId = rep.Id, rep.Title, rep.Category, rep.Schedule, rep.CompletedAt,
+                        AssessmentType = oppositeType, LinkedGroupId = g.Key,
+                        UserCount = g.Select(x => x.UserId).Distinct().Count(),
+                        IsPrePostGroup = true,
+                        IsManualEntry = g.Any(x => x.IsManualEntry)
+                    };
+                });
+            // Kasus B — room standalone: grouping key LOCKED = Title+Category+Schedule.Date (cocok write-to-all Plan 02).
+            var standalone = sessions.Where(s => s.LinkedGroupId == null)
+                .GroupBy(s => new { s.Title, s.Category, Date = s.Schedule.Date })
+                .Select(g =>
+                {
+                    var rep = g.OrderBy(x => x.CreatedAt).First();
+                    return new
+                    {
+                        RepresentativeId = rep.Id, rep.Title, rep.Category, rep.Schedule, rep.CompletedAt,
+                        AssessmentType = oppositeType, LinkedGroupId = (int?)null,   // Kasus B (standalone)
+                        UserCount = g.Select(x => x.UserId).Distinct().Count(),
+                        IsPrePostGroup = false,
+                        IsManualEntry = g.Any(x => x.IsManualEntry)
+                    };
+                });
+
+            var rows = grouped.Concat<object>(standalone).Take(50).ToList();
+            return Json(rows);   // Json, BUKAN PartialView (Pitfall 6)
+        }
+
         // POST /Admin/DownloadInjectTemplate — bangun template .xlsx 2-sheet dari soal authored + pekerja terpilih.
         // POST (bukan GET) karena membawa #QuestionsJson + UserIds (terlalu besar untuk query string) + antiforgery.
         // 0 DB write — hanya baca Users untuk NIP+Nama. RBAC Admin,HC (T-396-05) + CSRF (T-396-06).
@@ -355,6 +427,10 @@ namespace HcPortal.Controllers
                 PassPercentage = vm.PassPercentage,
                 AllowAnswerReview = vm.AllowAnswerReview,
                 CertMode = vm.CertMode,
+                // 397 (Surface 7) — chip room target dari picker; server RE-RESOLVE LinkedGroupId/LinkedSessionId
+                // nyata di InjectBatchAsync (Tampering guard T-397-13). JANGAN set LinkedGroupId/LinkedSessionId
+                // mentah dari client di sini — hanya hint LinkTargetRepId yang dipercaya.
+                LinkTargetRepId = vm.LinkedTargetRepId,
                 Questions = MapVmQuestionsToSpec(questionVms)
             };
 

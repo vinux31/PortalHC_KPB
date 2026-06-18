@@ -141,6 +141,30 @@ public class InjectViewModelMapTests
         Assert.Equal(InjectCertMode.None, rn.CertMode);
     }
 
+    // Phase 397 (INJ-12 Surface 7) — MapToRequest WAJIB mengisi req.LinkTargetRepId dari chip VM
+    // (LinkedTargetRepId). Server RE-RESOLVE LinkedGroupId/LinkedSessionId nyata di InjectBatchAsync
+    // (Tampering guard T-397-13) — JANGAN trust LinkedGroupId/LinkedSessionId mentah dari client.
+    [Fact]
+    [Trait("Category", "Unit")]
+    public void Maps_LinkTargetRepId_from_chip()
+    {
+        var linked = new InjectAssessmentViewModel
+        {
+            AssessmentType = "PreTest",
+            LinkedTargetRepId = 1234   // RepresentativeId room target dari picker
+        };
+        var rl = InjectAssessmentController.MapToRequest(linked, Nip(), NoAnswers());
+        Assert.Equal(1234, rl.LinkTargetRepId);
+        // Server re-resolves real link — raw client LinkedGroupId/LinkedSessionId TIDAK di-set di MapToRequest.
+        Assert.Null(rl.LinkedGroupId);
+        Assert.Null(rl.LinkedSessionId);
+
+        // Standalone (D-04: penautan opsional) → LinkTargetRepId null.
+        var standalone = new InjectAssessmentViewModel { AssessmentType = "PreTest" };
+        var rs = InjectAssessmentController.MapToRequest(standalone, Nip(), NoAnswers());
+        Assert.Null(rs.LinkTargetRepId);
+    }
+
     [Fact]
     [Trait("Category", "Unit")]
     public void Resolves_UserIds_to_NIP()
