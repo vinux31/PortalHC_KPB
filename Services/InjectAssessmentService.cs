@@ -393,7 +393,8 @@ namespace HcPortal.Services
                         // Guard EssayScore.HasValue: essay di-skip (D-05) = OMIT spec → tak masuk loop ini → tak terblokir.
                         // Auto-gen TIDAK pernah meng-emit answer essay (D-08 — HC isi manual via form yang sama, hybrid),
                         // jadi rule ini hanya menyentuh essay yang benar-benar diisi skornya. BUKAN validasi global.
-                        if (ans.EssayScore.HasValue && string.IsNullOrWhiteSpace(ans.TextAnswer))
+                        // Phase 396 D-05: teks essay OPSIONAL di jalur Excel (EssayTextRequired=false); WAJIB di jalur Form (default true).
+                        if (req.EssayTextRequired && ans.EssayScore.HasValue && string.IsNullOrWhiteSpace(ans.TextAnswer))
                             errors.Add(new InjectRowError { Nip = w.Nip, Message = $"Teks jawaban essay NIP {w.Nip} wajib diisi (mode input asli)." });
                     }
                     else
