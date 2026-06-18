@@ -2,7 +2,7 @@
 phase: 397
 slug: link-pre-post-ke-room-existing
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-18
 ---
@@ -39,10 +39,21 @@ created: 2026-06-18
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 397-01-01 | 01 | 0 | INJ-12 | — | N/A | unit | `dotnet test --filter Category!=Integration` | ❌ W0 | ⬜ pending |
+| 397-01-01 | 01 | 1 | INJ-12 | T-397-01 | DTO/VM carry link contract (server re-resolves) | build | `dotnet build HcPortal.csproj` | ❌ W0 | ⬜ pending |
+| 397-01-02 | 01 | 1 | INJ-12 | T-397-03 | RED: per-worker link, Kasus A/B, atomic rollback, anti-double, unlink revert | integration (RED) | `dotnet build HcPortal.Tests/HcPortal.Tests.csproj` (clean RED — missing symbol only) | ❌ W0 | ⬜ pending |
+| 397-01-03 | 01 | 1 | INJ-12 | T-397-02 | RED: preview==commit pairing + cross inject↔online grouping intact (§13 KRITIS) | integration (RED) | `dotnet build HcPortal.Tests/HcPortal.Tests.csproj` (clean RED — missing symbol only) | ❌ W0 | ⬜ pending |
+| 397-02-01 | 02 | 2 | INJ-12 | T-397-04 | Per-worker bidirectional link + Kasus A/B write-to-online (online Score/Status untouched), atomic | integration | `dotnet test --filter "FullyQualifiedName~InjectLink"` | ❌ W0 | ⬜ pending |
+| 397-02-02 | 02 | 2 | INJ-12 | T-397-06 | Anti-double reject full list (D-08) + PreviewPairingAsync dry-run no-write (D-07) | integration | `dotnet test --filter "FullyQualifiedName~AntiDoubleLink|FullyQualifiedName~PreviewPairing"` | ❌ W0 | ⬜ pending |
+| 397-02-03 | 02 | 2 | INJ-12 | T-397-05, T-397-07 | UnlinkInjectGroupAsync atomic revert + audit "LinkPrePostUndo" (D-12), IDOR guard | integration | `dotnet test --filter "FullyQualifiedName~UnlinkInject|FullyQualifiedName~CrossGrouping"` | ❌ W0 | ⬜ pending |
+| 397-03-01 | 03 | 3 | INJ-12 | T-397-09, T-397-11, T-397-13 | SearchLinkTargets JSON (RBAC, opposite-type whitelist, parameterized) + MapToRequest link wiring | build/integration | `dotnet build HcPortal.csproj` + `dotnet test --filter Category!=Integration` | ❌ W0 | ⬜ pending |
+| 397-03-02 | 03 | 3 | INJ-12 | T-397-10, T-397-12 | PreviewPairing POST dry-run (CSRF) + UnlinkInjectGroup POST (RBAC+CSRF, Json shape) | build/integration | `dotnet build HcPortal.csproj` + `dotnet test --filter Category!=Integration` | ❌ W0 | ⬜ pending |
+| 397-04-01 | 04 | 4 | INJ-12 | T-397-14 | Step-1 trigger + chip + room-picker modal (XSS-safe .textContent) | build + e2e | `dotnet build HcPortal.csproj` (runtime in 397-04-03) | ❌ W0 | ⬜ pending |
+| 397-04-02 | 04 | 4 | INJ-12 | T-397-14, T-397-15, T-397-16 | Pairing summary + anti-double entries + unlink confirm modal (Bootstrap, not native) | build + e2e | `dotnet build HcPortal.csproj` (runtime in 397-04-03) | ❌ W0 | ⬜ pending |
+| 397-04-03 | 04 | 4 | INJ-12 | T-397-17 | Playwright runtime (modal/picker/chip/preview/unlink) + cross-grouping intact + 0-migration gate | e2e (Playwright) | `cd tests && npx playwright test e2e/inject-assessment-397.spec.ts --workers=1` | ❌ W0 | ⬜ pending |
+| 397-04-04 | 04 | 4 | INJ-12 | T-397-17 | Human-verify link Pre/Post end-to-end (checkpoint, exempt from automated verify) | manual | manual (checkpoint:human-verify — see Manual-Only Verifications) | n/a | ⬜ pending (manual) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-*Planner: isi map penuh dari 397-RESEARCH.md §Validation Architecture (cross inject↔online grouping intact, per-pekerja bidirectional link, Kasus B online-write atomic+rollback, anti-double-link reject, preview==commit pairing, unlink reversal).*
+*Note: every `auto` task has an `<automated>` verify (build / `dotnet test` / Playwright). The single checkpoint task (397-04-04, `checkpoint:human-verify`) is exempt from the Nyquist automated-verify requirement → `nyquist_compliant: true`.*
 
 ---
 

@@ -365,22 +365,25 @@ public async Task<IActionResult> UnlinkInjectGroup(int injectGroupId /* atau rep
 
 **Tidak ada klaim ASUMSI tentang versi library/API** — semua diverifikasi dari live code/registry.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Membedakan stiker Kasus B "milik inject" saat unlink revert (D-12)**
    - What we know: Kasus B menulis `LinkedGroupId` ke sesi online. Skema tak punya flag "ditulis oleh inject".
    - What's unclear: Saat unlink, apakah aman revert `LinkedGroupId` online?
    - Recommendation: (a) Query AuditLog `"LinkPrePost"` dgn `TargetId` = sesi online untuk tahu yang di-stiker; ATAU (b) revert HANYA jika group jadi single-type pasca-unlink (heuristik konservatif). Plan pilih satu; default (b) lebih aman. Jaga minimal (D-12 "jangan melar").
+   - **RESOLVED:** Revert stiker online HANYA bila group menjadi single-type setelah sesi inject dilepas (heuristik konservatif opsi-b) — diimplementasikan di Plan 02-T3 (`UnlinkInjectGroupAsync`, langkah Kasus B revert). Audit-trail "LinkPrePost" by `TargetId` (opsi-a) juga acceptable sebagai jejak tambahan, tetapi keputusan revert digerakkan oleh heuristik single-type.
 
 2. **Date coherence (D-11) saat sisi online belum Completed**
    - What we know: `CompletedAt` nullable; room online Upcoming/Open belum punya `CompletedAt`.
    - What's unclear: Bandingkan tanggal apa jika Post online belum dikerjakan?
    - Recommendation: Bila sibling `CompletedAt` null → skip warn (tak ada urutan janggal yang bisa dideteksi). Warn hanya bila kedua tanggal ada dan Pre > Post. Warn-but-allow (tak blok).
+   - **RESOLVED:** Skip date-warn bila `CompletedAt` sibling target null — diimplementasikan di Plan 02-T2 (`PreviewPairingAsync`, `DateWarn` hanya true bila kedua `CompletedAt` non-null dan Pre > Post). Warn-but-allow (tidak memblok commit).
 
 3. **Inject↔inject dedup interaction (D-10)**
    - What we know: `FindDuplicateNipsAsync` [VERIFIED: InjectAssessmentService.cs:450-476] men-skip NIP dgn sesi inject duplikat by Title+Category+Date.
    - What's unclear: Saat inject Pre tautkan ke room INJECT Post existing (judul beda), dedup tak akan tabrakan (judul beda) — OK. Tapi anti-double-link (D-08) by group+type yang menangkap ini.
    - Recommendation: Anti-double-link D-08 (Pattern 3) adalah guard yang benar untuk skenario ini; dedup existing ortogonal. Pastikan keduanya tidak saling membatalkan di test.
+   - **RESOLVED:** Anti-double-link preflight (D-08) berlaku per `(UserId, LinkedGroupId, AssessmentType)` TANPA memandang `IsManualEntry`; penautan inject↔inject DIIZINKAN dan memakai guard yang sama. Dedup `FindDuplicateNipsAsync` (by Title+Category+Date) ortogonal — keduanya tidak saling membatalkan (diverifikasi via test Plan 01-T3 CrossGrouping inject↔inject + Plan 02-T2 anti-double).
 
 ## Environment Availability
 
