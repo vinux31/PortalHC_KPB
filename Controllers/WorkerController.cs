@@ -1051,6 +1051,13 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             ViewBag.Role = roles.FirstOrDefault() ?? "No Role";
 
+            // MU-03 (Plan 04): muat SEMUA unit pekerja untuk display (primary-first). Read-only view-binding.
+            var detailUnits = await _context.UserUnits
+                .Where(uu => uu.UserId == user.Id)
+                .ToListAsync();
+            ViewBag.WorkerPrimaryUnit = detailUnits.FirstOrDefault(x => x.IsPrimary)?.Unit;
+            ViewBag.WorkerUnits = detailUnits.Select(x => x.Unit).ToList();
+
             return View(user);
         }
 
