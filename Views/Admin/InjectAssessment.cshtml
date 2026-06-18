@@ -209,7 +209,70 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-4"><i class="bi bi-people text-primary me-2"></i>Langkah 2: Pilih Pekerja</h5>
-                    <p class="text-muted">Picker pekerja (search/filter Section/checkbox) diisi pada tahap berikut.</p>
+
+                    <!-- Filter bar -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-auto">
+                            <select id="sectionFilter" class="form-select form-select-sm" style="max-width:220px;">
+                                <option value="">Semua @OrgLabels.GetLabel(0)</option>
+                                @if (ViewBag.Sections != null)
+                                {
+                                    foreach (var sec in (List<string>)ViewBag.Sections)
+                                    {
+                                        <option value="@sec">@sec</option>
+                                    }
+                                }
+                                <option value="__none__">Lainnya (Tanpa @OrgLabels.GetLabel(0))</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <div class="input-group input-group-sm" style="max-width:300px;">
+                                <input type="text" id="userSearchInput" class="form-control" placeholder="Cari nama atau email..." />
+                                <button type="button" class="btn btn-outline-secondary" id="clearSearchBtn" title="Clear search"><i class="bi bi-x"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="selectAllBtn">Pilih Semua</button>
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="deselectAllBtn">Batalkan Semua</button>
+                        </div>
+                        <div class="col-auto ms-auto">
+                            <span class="badge bg-primary" id="selectedCountBadge">0 terpilih</span>
+                        </div>
+                    </div>
+
+                    <!-- Worker list -->
+                    <div id="userCheckboxContainer" class="border rounded p-3" style="max-height:320px;overflow-y:auto;">
+                        @if (ViewBag.Users != null)
+                        {
+                            var selectedIds = (List<string>)ViewBag.SelectedUserIds;
+                            @foreach (var user in ViewBag.Users)
+                            {
+                                var isChecked = selectedIds != null && selectedIds.Contains((string)user.Id);
+                                <div class="form-check user-check-item mb-1" data-name="@user.FullName" data-email="@user.Email" data-section="@user.Section">
+                                    <input class="form-check-input user-checkbox" type="checkbox" name="UserIds" value="@user.Id" id="user_@user.Id" @(isChecked ? "checked" : "") />
+                                    <label class="form-check-label" for="user_@user.Id">
+                                        <strong>@user.FullName</strong> <span class="text-muted">(@user.Email) — @user.Section</span>
+                                    </label>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <!-- Peserta Terpilih (live) -->
+                    <div class="border rounded p-3 mt-3" id="selected-participants-panel-wrapper">
+                        <div class="d-flex align-items-center mb-2">
+                            <strong><i class="bi bi-people-fill me-1 text-primary"></i>Peserta Terpilih</strong>
+                            <span class="badge bg-primary ms-2" id="selected-participants-count">0 peserta</span>
+                        </div>
+                        <div id="selected-participants-panel" role="status" aria-live="polite" aria-atomic="false">
+                            <span class="text-muted fst-italic">Belum ada pekerja dipilih</span>
+                        </div>
+                    </div>
+
+                    <div id="step2Error" class="alert alert-danger d-none mt-3">Pilih minimal 1 pekerja untuk melanjutkan.</div>
+
                     <div class="d-flex justify-content-between mt-4">
                         <button type="button" class="btn btn-outline-secondary btn-prev" id="btnPrev2">
                             <i class="bi bi-arrow-left me-1"></i>Sebelumnya
@@ -362,6 +425,8 @@
         if (panel) {
             panel.querySelectorAll('.is-invalid').forEach(function (el) { el.classList.remove('is-invalid'); });
         }
+        var step2err = document.getElementById('step2Error');
+        if (step2err) step2err.classList.add('d-none');
         var valid = true;
 
         if (n === 1) {
@@ -374,6 +439,14 @@
                 if (cd) cd.classList.add('is-invalid'); valid = false;
             } else if (cd.value > INJ_TODAY) {
                 cd.classList.add('is-invalid'); valid = false;
+            }
+        }
+
+        if (n === 2) {
+            var anyChecked = document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked').length > 0;
+            if (!anyChecked) {
+                if (step2err) step2err.classList.remove('d-none');
+                valid = false;
             }
         }
 
@@ -402,6 +475,77 @@
             });
         })(i);
     }
+
+    // ---- Worker picker (port CreateAssessment:1439-1665, Proton stripped) ----
+    function injRenderSelectedNames(targetEl, checkboxes) {
+        var names = (checkboxes || []).map(function (cb) {
+            var label = document.querySelector('label[for="' + cb.id + '"]');
+            if (label) { var s = label.querySelector('strong'); return s ? s.textContent : label.textContent.trim(); }
+            return cb.value;
+        });
+        if (!targetEl) return;
+        var node;
+        if (names.length === 0) {
+            node = document.createElement('span');
+            node.className = 'text-muted fst-italic';
+            node.textContent = 'Belum ada pekerja dipilih';
+        } else {
+            node = document.createElement('span');
+            node.textContent = names.join(', ');   // XSS-safe textContent
+        }
+        if (typeof targetEl.replaceChildren === 'function') targetEl.replaceChildren(node);
+        else { targetEl.innerHTML = ''; targetEl.appendChild(node); }
+    }
+    function injUpdateSelectedCount() {
+        var checkboxes = Array.from(document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked'));
+        var badge = document.getElementById('selectedCountBadge');
+        if (badge) badge.textContent = checkboxes.length + ' terpilih';
+        var panelCount = document.getElementById('selected-participants-count');
+        if (panelCount) panelCount.textContent = checkboxes.length + ' peserta';
+        injRenderSelectedNames(document.getElementById('selected-participants-panel'), checkboxes);
+    }
+    function injApplyFilters() {
+        var searchInput = document.getElementById('userSearchInput');
+        var sectionFilter = document.getElementById('sectionFilter');
+        if (!searchInput || !sectionFilter) return;
+        var query = searchInput.value.toLowerCase();
+        var selectedSection = sectionFilter.value;
+        document.querySelectorAll('#userCheckboxContainer .user-check-item').forEach(function (item) {
+            var name = (item.dataset.name || '').toLowerCase();
+            var email = (item.dataset.email || '').toLowerCase();
+            var section = item.dataset.section || '';
+            var sectionMatch = true;
+            if (selectedSection === '__none__') sectionMatch = (section === '');
+            else if (selectedSection !== '') sectionMatch = (section === selectedSection);
+            var textMatch = (query === '') || name.includes(query) || email.includes(query);
+            item.style.display = (sectionMatch && textMatch) ? '' : 'none';
+        });
+    }
+    (function wirePicker() {
+        var searchInput = document.getElementById('userSearchInput');
+        var sectionFilter = document.getElementById('sectionFilter');
+        if (searchInput) searchInput.addEventListener('input', injApplyFilters);
+        if (sectionFilter) sectionFilter.addEventListener('change', injApplyFilters);
+        var clearBtn = document.getElementById('clearSearchBtn');
+        if (clearBtn) clearBtn.addEventListener('click', function () { if (searchInput) searchInput.value = ''; injApplyFilters(); });
+        var selectAllBtn = document.getElementById('selectAllBtn');
+        if (selectAllBtn) selectAllBtn.addEventListener('click', function () {
+            document.querySelectorAll('#userCheckboxContainer .user-check-item').forEach(function (item) {
+                if (item.style.display !== 'none') item.querySelector('.user-checkbox').checked = true;
+            });
+            injUpdateSelectedCount();
+        });
+        var deselectAllBtn = document.getElementById('deselectAllBtn');
+        if (deselectAllBtn) deselectAllBtn.addEventListener('click', function () {
+            document.querySelectorAll('#userCheckboxContainer .user-check-item').forEach(function (item) {
+                if (item.style.display !== 'none') item.querySelector('.user-checkbox').checked = false;
+            });
+            injUpdateSelectedCount();
+        });
+        var userContainer = document.getElementById('userCheckboxContainer');
+        if (userContainer) userContainer.addEventListener('change', injUpdateSelectedCount);
+        injUpdateSelectedCount();
+    })();
 
     // ---- Cek Judul (reuse GET /Admin/CheckTitleAvailability — port CreateAssessment:1250-1283) ----
     var btnCheckTitle = document.getElementById('btnCheckTitle');

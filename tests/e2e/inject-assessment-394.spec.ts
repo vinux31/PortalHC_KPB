@@ -98,7 +98,30 @@ test.describe('INJ-04 setup + cek judul', () => {
 
 // ── INJ-06: worker picker (implemented Plan 394-02) ─────────────────────────────
 test.describe('INJ-06 worker picker', () => {
-  test.skip('picker search/select', async () => { /* Plan 394-02: #userSearchInput filter + .user-checkbox + count badge */ });
+  test('picker search/select', async ({ page }) => {
+    await loginAny(page, 'admin');
+    await page.goto('/Admin/InjectAssessment');
+    // advance step 1 → step 2 (date defaults to today)
+    await page.fill('#Title', 'ZZ Picker ' + Date.now());
+    await page.selectOption('#Category', { index: 1 });
+    await page.click('#btnNext1');
+    await expect(page.locator('#step-2')).toBeVisible();
+    // 0 selected → advance blocked + step2 error shown
+    await page.click('#btnNext2');
+    await expect(page.locator('#step2Error')).toBeVisible();
+    await expect(page.locator('#step-2')).toBeVisible();
+    // select first worker → count badges + live panel update
+    await page.locator('#userCheckboxContainer .user-checkbox').first().check();
+    await expect(page.locator('#selectedCountBadge')).toHaveText(/1 terpilih/);
+    await expect(page.locator('#selected-participants-count')).toHaveText(/1 peserta/);
+    // search filter narrows list (no-match → 0 visible rows)
+    await page.fill('#userSearchInput', 'zzz-no-match-xyz-' + Date.now());
+    await expect(page.locator('#userCheckboxContainer .user-check-item:visible')).toHaveCount(0);
+    await page.fill('#userSearchInput', '');
+    // 1 selected → advance succeeds
+    await page.click('#btnNext2');
+    await expect(page.locator('#step-3')).toBeVisible();
+  });
 });
 
 // ── INJ-05: authoring soal (implemented Plan 394-03) ────────────────────────────
