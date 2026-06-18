@@ -13,7 +13,7 @@ Requirements untuk milestone v32.3. Tiap REQ map ke satu phase.
 
 - [x] **MU-01**: Admin/HC dapat menetapkan **lebih dari satu Unit** (semua dalam 1 Bagian) pada akun pekerja lewat **multi-select Unit** di Create/Edit Worker; picker Bagian tetap single (cascade Bagian→daftar unit Bagian itu).
 - [x] **MU-02**: Tepat satu Unit ditandai **PRIMARY**; `ApplicationUser.Unit` selalu mencerminkan unit primary (write-through di Create/Edit/Import). Recompute primary deterministik: menghapus unit primary mem-promote unit lain (atau blok bila tak ada sisa); mengosongkan semua unit set `ApplicationUser.Unit = null` & 0 baris `IsPrimary`; setiap write menjaga tepat 1 `IsPrimary` per user. Audit-log mencatat **set-diff** (unit ditambah / dihapus / primary berubah).
-- [ ] **MU-03**: Pengguna melihat **seluruh unit** pekerja (primary ditandai) di Profil, WorkerDetail, Settings, tabel ManageWorkers, export Excel worker, **Home dashboard**, dan **kartu tanda tangan `_PSign`** (cek reuse cert/print tetap layak).
+- [x] **MU-03**: Pengguna melihat **seluruh unit** pekerja (primary ditandai) di Profil, WorkerDetail, Settings, tabel ManageWorkers, export Excel worker, **Home dashboard**, dan **kartu tanda tangan `_PSign`** (cek reuse cert/print tetap layak).
 - [x] **MU-04**: Bulk Import worker mendukung **multi-unit** (kolom/format unit ganda per baris), tervalidasi tiap unit anak Bagian baris itu.
 - [x] **MU-05**: Migrasi backfill — setiap pekerja existing mendapat 1 baris `UserUnits` primary (= `Unit` lama). Setiap **junction-write** (bukan hanya backfill) memvalidasi `Unit ∈ unit-Bagian pekerja` (Name tidak global-unique → wajib dipasangkan dengan Bagian).
 - [ ] **MU-06**: Listing keanggotaan (roster tim/section, `GetWorkersInSection`, role-filter, tabel CMP records) **set-aware** — pekerja multi-unit muncul di tiap unit-nya; rollup tingkat Bagian **dedup** (completion%/denominator tidak menghitung pekerja ganda).
@@ -71,7 +71,7 @@ Diisi saat pembuatan roadmap.
 |-------------|-------|--------|
 | MU-01 | Phase 399 | Complete |
 | MU-02 | Phase 399 | Complete |
-| MU-03 | Phase 399 | Pending |
+| MU-03 | Phase 399 | Complete |
 | MU-04 | Phase 399 | Complete |
 | MU-05 | Phase 399 | Complete |
 | MU-07 | Phase 399 | Complete |
