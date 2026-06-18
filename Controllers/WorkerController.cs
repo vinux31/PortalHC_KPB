@@ -224,8 +224,10 @@ namespace HcPortal.Controllers
             // (primary-first). Plan 04 Task 2 BACA dict ini di view (no edit WorkerController). Filter unitFilter
             // TETAP scalar di Phase 399 (set-aware = Phase 400 MU-06).
             var listUserIds = users.Select(u => u.Id).ToList();
+            // IN-01: filter && uu.IsActive supaya badge "semua unit" hanya menampilkan unit aktif,
+            // konsisten dengan GetWorkersInSection (unitsByUser) dan predikat filter unit aktif.
             var userUnitsDict = (await _context.UserUnits
-                    .Where(uu => listUserIds.Contains(uu.UserId))
+                    .Where(uu => listUserIds.Contains(uu.UserId) && uu.IsActive)
                     .ToListAsync())
                 .GroupBy(uu => uu.UserId)
                 .ToDictionary(
