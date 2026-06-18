@@ -88,7 +88,7 @@
   2. Rollup tingkat **Bagian** (completion%/pass-rate/denominator) menghitung tiap pekerja multi-unit **sekali saja** (dedup) — tidak ada double-count yang menggelembungkan/mengempiskan persentase. *(MU-06)*
   3. CMP analytics/renewal **tidak berubah** perilakunya (tetap atribusi primary, D1=b — verifikasi tak ada drift). *(MU-06)*
   4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: fixture pekerja {X,Y} tampil di filter unit-X dan unit-Y; rollup Bagian dedup terverifikasi (count benar). *(MU-06)*
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 - [x] 400-01-PLAN.md — Wave 1: predikat unit set-aware (3 lokasi: GetWorkersInSection + ManageWorkers + ExportWorkers) + kolom Unit kontekstual D-02 + batch-load dict + ~7 unit test (MU-06) [migration=FALSE]
 **UI hint:** yes
 
@@ -161,7 +161,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 4/4 | Complete    | 2026-06-18 |
-| 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 1/1 | Complete   | 2026-06-18 |
+| 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 1/1 | Complete    | 2026-06-18 |
 | 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 0/0 | Not started | - |
 | 402. Coaching Cross-Unit Mapping (CXU-01..05) | 0/0 | Not started | - |
 | 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 0/0 | Not started | - |

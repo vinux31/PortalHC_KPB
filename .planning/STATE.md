@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: ready_for_verification
-stopped_at: "Completed 400-01-PLAN.md (UAT approved). Phase 400 = 1/1 plan COMPLETE — ready for verification."
-last_updated: "2026-06-18T11:00:00.000Z"
-last_activity: 2026-06-18 -- Phase 400 Plan 01 COMPLETE (UAT approved, SUMMARY written)
+status: completed
+stopped_at: "Phase 400 Plan 01 COMPLETE — RED `24a71b7f` + GREEN `520058b8`, Task 3 checkpoint:human-verify UAT lokal **APPROVED** (Playwright+SQL snapshot→seed→RESTORE; set-aware filter primary+non-primary + kolom kontekstual + dedup + no-drift D1=b terverifikasi runtime). SUMMARY `400-01-SUMMARY.md` ditulis; STATE/ROADMAP advanced; phase status=ready_for_verification. suite 507/0/3. migration=FALSE."
+last_updated: "2026-06-18T10:52:58.124Z"
+last_activity: 2026-06-18
 progress:
   total_phases: 30
   completed_phases: 2
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 400 (membership-listing-set-aware-rollup-dedup) — COMPLETE (1/1 plan), ready_for_verification
-Plan: 1 of 1 DONE (400-01 MU-06 set-aware listing + dedup; UAT approved)
+Phase: 401
+Plan: Not started
 Status: Phase 400 COMPLETE — RED `24a71b7f` + GREEN `520058b8`, UAT lokal APPROVED (Playwright+SQL snapshot->seed->RESTORE). suite 507/0/3. 0 migration. SUMMARY written.
-Last activity: 2026-06-18 -- Phase 400 Plan 01 COMPLETE (UAT approved, SUMMARY + STATE/ROADMAP advanced)
+Last activity: 2026-06-18
 
 ## Next Action
 
