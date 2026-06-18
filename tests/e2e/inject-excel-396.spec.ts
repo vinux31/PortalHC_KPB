@@ -341,3 +341,26 @@ test.describe('Sel kosong = warn-but-allow (D-06)', () => {
     await expect(previewRow).toContainText('1 / 2');
   });
 });
+
+// ── Scenario 6 (INJ-11): tool lama BulkBackfill dipensiunkan — route 404 + entry-point UI hilang ──
+//   Route controller = [Route("Admin/[action]")]; action dihapus ⇒ tak ada endpoint ⇒ 404 (sebelum auth).
+//   Kontras: /Admin/InjectAssessment (action ada, butuh auth) tanpa login → 302 redirect login, BUKAN 404.
+test.describe('INJ-11 BulkBackfill retired', () => {
+  test('route lama 404 + kartu Section D & dropdown entry-point hilang', async ({ page }) => {
+    // Route GET lama → 404 (endpoint hilang). Tanpa login pun 404, bukan redirect.
+    const goneGet = await page.goto('/Admin/BulkBackfill');
+    expect(goneGet?.status()).toBe(404);
+    const gonePost = await page.goto('/Admin/BulkBackfillAssessment');
+    expect(gonePost?.status()).toBe(404);
+
+    // Kontras: route inject yang masih ada → 302 ke login (bukan 404) saat belum login.
+    const liveProtected = await page.goto('/Admin/InjectAssessment');
+    expect(liveProtected?.status()).not.toBe(404);
+
+    // Entry-point UI hilang: login lalu cek /Admin tak punya kartu/link BulkBackfill lagi.
+    await loginAdmin(page);
+    await page.goto('/Admin');
+    await expect(page.locator('a[href*="BulkBackfill"]')).toHaveCount(0);
+    await expect(page.getByText('Bulk Import Nilai (Excel)')).toHaveCount(0);
+  });
+});
