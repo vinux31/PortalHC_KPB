@@ -4,8 +4,8 @@ milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
 stopped_at: Phase 403 UI-SPEC approved
-last_updated: "2026-06-18T11:44:38.356Z"
-last_activity: 2026-06-18 -- Phase 403 planning complete
+last_updated: "2026-06-18T12:15:45.897Z"
+last_activity: 2026-06-18 -- Phase 401 execution started
 progress:
   total_phases: 30
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 400 — membership-listing-set-aware-rollup-dedup
+**Current focus:** Phase 401 — proton-unit-resolution-hardening
 
 ## Current Position
 
-Phase: 401
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-18 -- Phase 403 planning complete
+Phase: 401 (proton-unit-resolution-hardening) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 401
+Last activity: 2026-06-18 -- Phase 401 execution started
 
 ## Next Action
 

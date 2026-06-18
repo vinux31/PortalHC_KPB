@@ -105,7 +105,7 @@
   5. Jalur **reactivation** (`CoachCoacheeMappingReactivate` + Import-reactivate): (a) tak timpa `AssignmentUnit` ke primary; (b) validasi `AssignmentUnit ∈ coachee.UserUnits` aktif sebelum reaktivasi; (c) reaktivasi `ProtonTrackAssignment` cocok unit dengan mapping (bukan "assignment terakhir"). *(PSU-07)*
   6. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: fixture coachee multi-unit T1@X→T2@Y resolve unit benar tiap surface; coachee dgn `AssignmentUnit` kosong di-skip + ter-audit-warn (bukan default primary). *(semua REQ)*
 **Plans:** 6 plans (3 internal waves)
-- [ ] 401-01-PLAN.md — Wave 0 (BLOCKING): shared `ValidateAssignmentUnitInUserUnits` static helper + 5 RED test scaffolds (PSU-01/03/04/05/07)
+- [x] 401-01-PLAN.md — Wave 0 (BLOCKING): shared `ValidateAssignmentUnitInUserUnits` static helper + 5 RED test scaffolds (PSU-01/03/04/05/07)
 - [ ] 401-02-PLAN.md — Wave 1: CoachMapping resolver drop-fallback (GetEligibleCoachees gate-block + AutoCreateProgress read-path) + D-03 hybrid channel (PSU-01/05)
 - [ ] 401-04-PLAN.md — Wave 1: AssessmentAdmin cert-gate drop-fallback + BLOCK + persisted AuditLog (PSU-01/05)
 - [ ] 401-05-PLAN.md — Wave 1: CDP filter-axis swap ×4 + defensive resolver drop-fallback ×2 + read-path skip/warn (PSU-01/02/05)
@@ -164,7 +164,7 @@
 |-------|----------------|--------|-----------|
 | 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 4/4 | Complete    | 2026-06-18 |
 | 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 1/1 | Complete    | 2026-06-18 |
-| 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 0/0 | Not started | - |
+| 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 1/6 | In Progress|  |
 | 402. Coaching Cross-Unit Mapping (CXU-01..05) | 0/0 | Not started | - |
 | 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 0/0 | Not started | - |
 | 404. Test (SQL Riil) + UAT + Docs + Invariants (QA-01..04) | 0/0 | Not started | - |
