@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: verifying
-stopped_at: Completed 399-04-PLAN.md (phase 399 ready_for_verification)
-last_updated: "2026-06-18T06:22:24.199Z"
+status: ready_to_plan
+stopped_at: Phase 399 COMPLETE — all gates passed (verifier 6/6, secure 18/18 threats_open:0, validate 0-gaps, UAT 3/3 browser-verified); ready to plan Wave 1 {400,401,403}
+last_updated: "2026-06-18T06:55:43.611Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 30
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 399 — Foundation — Junction UserUnits + Primary-Mirror + Multi-Select UI + Display
+**Current focus:** Phase 400 — Membership Listing Set-Aware + Rollup Dedup (Wave 1, depends 399)
 
 ## Current Position
 
 Phase: 400
 Plan: Not started
-Status: Phase 399 LENGKAP (01 junction+migration / 02 write-through / 03 widget / 04 display 7 surface) — ready `/gsd-verify-work`
+Status: Phase 399 COMPLETE — semua gate TUNTAS (verifier 6/6, secure 18/18 threats_open:0, validate NYQUIST 0-gaps, UAT 3/3 browser-verified). Ready plan Wave 1.
 Last activity: 2026-06-18
 
 ## Next Action
 
-**`/gsd-verify-work 399`** (Phase 399 Foundation lengkap, MU-01..07 done). Lalu Wave 1 {400, 401, 403} PARALEL (depends 399; cluster file disjoint, git worktree), Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
+**`/gsd-plan-phase 400`** (Wave 1 {400, 401, 403} PARALEL — depends 399 done; cluster file disjoint, git worktree). Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
 
 **migration=TRUE notify IT** saat milestone push (`AddUserUnitsTable` `fc015f4d`, Plan 01 — SATU-SATUNYA migration v32.3). Plan 02/03/04 = 0 migration.
 

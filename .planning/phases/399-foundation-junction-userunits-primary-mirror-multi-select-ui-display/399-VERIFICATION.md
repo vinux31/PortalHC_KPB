@@ -1,9 +1,10 @@
 ---
 phase: 399-foundation-junction-userunits-primary-mirror-multi-select-ui-display
 verified: 2026-06-18T07:05:00Z
-status: human_needed
+status: passed
 score: 6/6 must-haves verified
 overrides_applied: 0
+human_verification_completed: "2026-06-18 — 3/3 PASS via Playwright MCP drive + SQL fixture (snapshot→seed→restore). Evidence: 399-HUMAN-UAT.md + 399-uat-screenshots/. (1) MU-07 modal coach-mapping confirm→deactivate (DB: mapping IsActive=0+EndDate, unit removed, 1 tx); (2) MU-07 PROTON hard-block red error, form rejected no-orphan (DB unchanged); (3) _PSign all-units D-07 + badge contrast across 5 surfaces."
 human_verification:
   - test: "MU-07 modal coach-mapping (browser end-to-end)"
     expected: "Edit pekerja multi-unit dengan CoachCoacheeMapping aktif → hapus unit ber-mapping → submit → modal 'Konfirmasi Penghapusan' + tombol 'Ya, Hapus & Nonaktifkan' muncul; klik confirm → mapping.IsActive=false + EndDate ter-set + unit terhapus (1 tx); audit mencatat event deactivate."
