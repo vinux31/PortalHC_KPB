@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
-stopped_at: Phase 401 context gathered
-last_updated: "2026-06-18T10:25:00.000Z"
-last_activity: 2026-06-18 -- Phase 400 Plan 01 Tasks 1-2 committed, paused at Task 3 checkpoint
+stopped_at: "Phase 400 Plan 01 — Tasks 1-2 committed (RED `24a71b7f` + GREEN `520058b8`), PAUSED at Task 3 checkpoint:human-verify (UAT lokal runtime)."
+last_updated: "2026-06-18T10:40:58.536Z"
+last_activity: 2026-06-18 -- Phase 401 planning complete
 progress:
   total_phases: 30
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 4
-  percent: 80
+  completed_phases: 2
+  total_plans: 11
+  completed_plans: 5
+  percent: 45
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 400 (membership-listing-set-aware-rollup-dedup) — EXECUTING (paused at checkpoint)
 Plan: 1 of 1
-Status: 400-01 Tasks 1-2 DONE (RED `24a71b7f` + GREEN `520058b8`); PAUSED at Task 3 checkpoint:human-verify (browser UAT lokal fixture {X,Y} + no-drift D1=b)
-Last activity: 2026-06-18 -- Phase 400 Plan 01 Tasks 1-2 committed, awaiting human UAT verification
+Status: Ready to execute
+Last activity: 2026-06-18 -- Phase 401 planning complete
 
 ## Next Action
 
