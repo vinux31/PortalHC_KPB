@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v32.3
-milestone_name: Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial
-status: ready_to_plan
-stopped_at: v32.3 ROADMAP created 2026-06-18 — 6 fase (399-404), 24/24 REQ mapped (0 orphan/duplicate), migration=TRUE Phase 399. Next = /gsd-plan-phase 399.
-last_updated: "2026-06-18T03:30:00.000Z"
-last_activity: 2026-06-18 — Roadmap v32.3 dibuat (fase 399-404)
+milestone: v22.0
+milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
+status: planning
+stopped_at: Phase 399 context gathered
+last_updated: "2026-06-18T03:49:56.307Z"
+last_activity: 2026-06-18 — Roadmap v32.3 dibuat
 progress:
-  total_phases: 6
+  total_phases: 31
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -121,6 +120,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: ROADMAP v32.3 dibuat — 6 fase (399-404), 24/24 REQ mapped (0 orphan/duplicate), migration=TRUE Phase 399. REQUIREMENTS.md traceability confirmed. ROADMAP.md + STATE.md ditulis.
+Stopped at: Phase 399 context gathered
 
 Next action: `/gsd-plan-phase 399` (Foundation — Wave 0 solo, migration=TRUE). Lalu Wave 1 {400, 401, 403} paralel, Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
