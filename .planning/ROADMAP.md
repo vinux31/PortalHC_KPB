@@ -59,7 +59,7 @@
 
 - [x] **Phase 393: Backend core inject (INJ-01, INJ-02)** — `InjectAssessmentService` membangun session set lengkap (`AssessmentSession` + `UserPackageAssignment` ber-`ShuffledQuestionIds` + `PackageUserResponses` + `SessionElemenTeknisScore` + sertifikat opsional) lewat reuse `GradingService.GradeAndCompleteAsync`/`FinalizeEssayGrading` (skor/lulus/elemen-teknis/cert **dihitung**, bukan ditulis tangan), atomic per-batch (rollback semua bila NIP invalid/error), `IsManualEntry=true` + AuditLog `"ManualInject"`; dikunci xUnit. 0 migration.
  (completed 2026-06-17)
-- [ ] **Phase 394: Page + Setup Room + authoring soal (INJ-03..07)** — Page `/Admin/InjectAssessment` (kartu Section C, RBAC Admin+HC) + setup room mirror `CreateAssessment` (judul/kategori/jadwal-backdate/durasi/PassPercentage/AllowAnswerReview/tipe Standard-Pre-Post) + authoring soal MC/MA/Essay (opsi+IsCorrect+ScoreValue+ElemenTeknis+Rubrik) reuse `ManagePackages` + worker picker + toggle sertifikat (auto/manual/tanpa). 0 migration.
+- [x] **Phase 394: Page + Setup Room + authoring soal (INJ-03..07)** — Page `/Admin/InjectAssessment` (kartu Section C, RBAC Admin+HC) + setup room mirror `CreateAssessment` (judul/kategori/jadwal-backdate/durasi/PassPercentage/AllowAnswerReview/tipe Standard-Pre-Post) + authoring soal MC/MA/Essay (opsi+IsCorrect+ScoreValue+ElemenTeknis+Rubrik) reuse `ManagePackages` + worker picker + toggle sertifikat (auto/manual/tanpa). 0 migration. (completed 2026-06-18)
 - [ ] **Phase 395: Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09)** — Form input jawaban asli per pekerja (MC/MA pilih opsi, Essay teks+skor) + auto-generate pola jawaban dari skor target (MC/MA pola benar-salah konsisten; Essay set skor langsung) dengan **skor final aktual ditampilkan sebelum commit** (perhitungkan pembulatan). Sequential setelah 394 (file-overlap controller/view/service). 0 migration.
 - [ ] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration.
 - [ ] **Phase 397: Link Pre/Post ke room existing (INJ-12)** — Search picker assessment room existing (reuse query `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` untuk sesi inject Pre/Post, dukung skenario **silang inject↔online** (Pre di-inject ↔ Post real, atau sebaliknya) tanpa merusak grouping PrePost. Sequential setelah 394. 0 migration.
@@ -97,7 +97,7 @@
   4. HC dapat memilih satu atau banyak pekerja penerima via worker picker; NIP yang tidak ada di sistem (`AspNetUsers`) ditolak/tidak dapat dipilih. *(INJ-06)*
   5. HC dapat memilih mode sertifikat per-room via toggle: auto-generate nomor resmi (`CertNumberHelper`), input nomor manual (+`ValidUntil`), atau tanpa sertifikat — pilihan terbawa ke proses inject. *(INJ-07)*
   6. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright: kartu Section C → page terbuka (Admin/HC), role lain 403; setup room tersimpan; authoring soal MC/MA/Essay berfungsi; worker picker tolak NIP tak dikenal; toggle sertifikat 3 mode. *(INJ-03..07 — Razor + JS runtime → Playwright wajib, pelajaran Phase 354)*
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 - [x] 394-01-PLAN.md — Wave 1: fondasi (controller RBAC + ViewModel + Section-C card + wizard 6-pill scaffold + Wave 0 test scaffolds) (INJ-03)
 - [x] 394-02-PLAN.md — Wave 2: Step-1 Setup Room (field mirror + Cek Judul + backdate) + Step-2 worker picker (reuse, strip Proton) (INJ-04, INJ-06)
 - [x] 394-03-PLAN.md — Wave 3: Step-3 authoring soal (partial + client-state REWIRE, never CreateQuestion) + Step-4 cert radio 3-mode (INJ-05, INJ-07)
@@ -169,7 +169,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 393. Backend core inject (INJ-01, INJ-02) | 3/3 | Complete    | 2026-06-17 |
-| 394. Page + Setup Room + authoring soal (INJ-03..07) | 4/4 | Complete   | 2026-06-18 |
+| 394. Page + Setup Room + authoring soal (INJ-03..07) | 4/4 | Complete    | 2026-06-18 |
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 0/? | Not started | - |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 0/? | Not started | - |
 | 397. Link Pre/Post ke room existing (INJ-12) | 0/? | Not started | - |
