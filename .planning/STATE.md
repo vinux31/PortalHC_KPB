@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: completed
+status: executing
 stopped_at: Phase 403 UI-SPEC approved
-last_updated: "2026-06-18T11:21:12.763Z"
-last_activity: 2026-06-18
+last_updated: "2026-06-18T11:44:38.356Z"
+last_activity: 2026-06-18 -- Phase 403 planning complete
 progress:
   total_phases: 30
   completed_phases: 2
-  total_plans: 11
+  total_plans: 13
   completed_plans: 5
-  percent: 45
+  percent: 38
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 401
 Plan: Not started
-Status: Phase 400 COMPLETE — RED `24a71b7f` + GREEN `520058b8`, UAT lokal APPROVED (Playwright+SQL snapshot->seed->RESTORE). suite 507/0/3. 0 migration. SUMMARY written.
-Last activity: 2026-06-18
+Status: Ready to execute
+Last activity: 2026-06-18 -- Phase 403 planning complete
 
 ## Next Action
 
