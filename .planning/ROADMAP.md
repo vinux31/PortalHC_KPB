@@ -74,7 +74,7 @@
 **Plans:** 4 plans (3 waves: 0→1→2)
 - [x] 399-01-PLAN.md — Wave 0 SOLO: model UserUnit + DbSet + filtered-unique config + migration AddUserUnitsTable + backfill 1 primary-row/pekerja + 7 test scaffold (MU-05) [migration=TRUE]
 - [x] 399-02-PLAN.md — Wave 1: SyncUserUnitsAsync write-through + Create/Edit/Import/Export wiring + validasi Unit∈Bagian + MU-07 guard asimetris + audit set-diff (MU-01/02/04/05/07)
-- [ ] 399-03-PLAN.md — Wave 2: widget multi-select (checkbox-list + primary radio) di Create/Edit + MU-07 modal + Playwright (MU-01/02)
+- [x] 399-03-PLAN.md — Wave 2: widget multi-select (checkbox-list + primary radio) di Create/Edit + MU-07 modal + Playwright (MU-01/02)
 - [ ] 399-04-PLAN.md — Wave 2: display semua unit 7 surface (badge primary + _PSign all-units + Excel) + AccountController/HomeController populate + Playwright (MU-03)
 **UI hint:** yes
 
@@ -153,7 +153,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 2/4 | In Progress|  |
+| 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 3/4 | In Progress|  |
 | 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 0/0 | Not started | - |
 | 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 0/0 | Not started | - |
 | 402. Coaching Cross-Unit Mapping (CXU-01..05) | 0/0 | Not started | - |
