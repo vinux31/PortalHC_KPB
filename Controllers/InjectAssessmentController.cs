@@ -155,6 +155,179 @@ namespace HcPortal.Controllers
             return Json(result);
         }
 
+        // POST /Admin/DownloadInjectTemplate — bangun template .xlsx 2-sheet dari soal authored + pekerja terpilih.
+        // POST (bukan GET) karena membawa #QuestionsJson + UserIds (terlalu besar untuk query string) + antiforgery.
+        // 0 DB write — hanya baca Users untuk NIP+Nama. RBAC Admin,HC (T-396-05) + CSRF (T-396-06).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DownloadInjectTemplate(InjectAssessmentViewModel vm)
+        {
+            var questions = MapVmQuestionsToSpec(ParseQuestionVms(vm));
+            if (questions.Count == 0)
+            {
+                TempData["Error"] = "Belum ada soal. Tambahkan soal di Langkah 3 sebelum membuat template.";
+                await PopulateFeedAsync();
+                return View(nameof(InjectAssessment), vm);
+            }
+
+            var userIds = vm.UserIds ?? new List<string>();
+            var workerRows = await _context.Users
+                .Where(u => userIds.Contains(u.Id) && u.NIP != null && u.NIP != "")
+                .Select(u => new { Nip = u.NIP!, Name = u.FullName ?? "" })
+                .ToListAsync();
+            if (workerRows.Count == 0)
+            {
+                TempData["Error"] = "Pilih pekerja ber-NIP di Langkah 2 sebelum membuat template.";
+                await PopulateFeedAsync();
+                return View(nameof(InjectAssessment), vm);
+            }
+
+            var workers = workerRows.Select(w => (w.Nip, w.Name)).ToList();
+            using var wb = InjectExcelHelper.GenerateTemplate(questions, workers);
+            return ExcelExportHelper.ToFileResult(wb, "inject_template.xlsx", this);
+        }
+
+        // POST /Admin/UploadInjectExcel — parse matrix Excel → validate atomic (D-09) → preview batch (D-08).
+        // NO DB write. Pada ≥1 error → Ok=false + daftar LENGKAP (atomic). Pada 0 error → Ok=true + per-NIP
+        // preview (engine SAMA dengan commit, NO cert#) + AnswersJson (klien set ke #AnswersJson → commit jalur 395).
+        // Return Json (tak terpengaruh override View() ~/Views/Admin/). RBAC Admin,HC + CSRF + 10MB + ekstensi whitelist.
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        [RequestFormLimits(MultipartBodyLengthLimit = 10 * 1024 * 1024)]
+        public async Task<IActionResult> UploadInjectExcel(IFormFile? excel, InjectAssessmentViewModel vm)
+        {
+            var result = new InjectExcelUploadResult();
+            try
+            {
+                // 1. File guards (Security V12): null/empty + whitelist ekstensi .xlsx/.xls.
+                if (excel == null || excel.Length == 0)
+                {
+                    result.Ok = false;
+                    result.Errors.Add(new InjectRowError { Message = "File Excel wajib diunggah." });
+                    return Json(result);
+                }
+                var ext = System.IO.Path.GetExtension(excel.FileName).ToLowerInvariant();
+                if (ext != ".xlsx" && ext != ".xls")
+                {
+                    result.Ok = false;
+                    result.Errors.Add(new InjectRowError { Message = "Format file harus .xlsx atau .xls." });
+                    return Json(result);
+                }
+
+                // 2. Resolve soal + audiens picker (D-02): allowedNips = HANYA NIP pekerja terpilih di Langkah 2.
+                var questions = MapVmQuestionsToSpec(ParseQuestionVms(vm));
+                if (questions.Count == 0)
+                {
+                    result.Ok = false;
+                    result.Errors.Add(new InjectRowError { Message = "Belum ada soal. Tambahkan soal di Langkah 3 sebelum mengunggah jawaban." });
+                    return Json(result);
+                }
+                var userIds = vm.UserIds ?? new List<string>();
+                var picker = await _context.Users
+                    .Where(u => userIds.Contains(u.Id) && u.NIP != null && u.NIP != "")
+                    .Select(u => new { u.Id, Nip = u.NIP!, Name = u.FullName ?? "" })
+                    .ToListAsync();
+                if (picker.Count == 0)
+                {
+                    result.Ok = false;
+                    result.Errors.Add(new InjectRowError { Message = "Pilih pekerja ber-NIP di Langkah 2 sebelum mengunggah jawaban." });
+                    return Json(result);
+                }
+                var allowedNips = picker.Select(p => p.Nip).ToHashSet();
+                var nipToUserId = picker.ToDictionary(p => p.Nip, p => p.Id);
+                var nipToName = picker.ToDictionary(p => p.Nip, p => p.Name);
+
+                // 3. Parse (try/catch di helper → file rusak jadi error ramah, BUKAN 500).
+                List<InjectAssessmentViewModel.InjectWorkerAnswersVM> workers;
+                List<InjectRowError> errors;
+                int skippedBlank;
+                using (var stream = excel.OpenReadStream())
+                {
+                    (workers, errors, skippedBlank) = InjectExcelHelper.ParseMatrix(stream, questions, allowedNips, nipToUserId);
+                }
+
+                // 4. Atomik (D-09): ada error apa pun → tolak-semua, NO write, daftar LENGKAP.
+                if (errors.Count > 0)
+                {
+                    result.Ok = false;
+                    result.Errors = errors;
+                    return Json(result);
+                }
+
+                // 5. Preview tiap worker via engine yang SAMA dengan commit (D-08; NO cert#, NO SaveChanges).
+                result.Ok = true;
+                result.SkippedBlankCount = skippedBlank;
+                result.Previews = BuildExcelPreviews(questions, workers, nipToUserId, nipToName, vm.PassPercentage);
+                result.AnswersJson = JsonSerializer.Serialize(workers);
+                return Json(result);
+            }
+            catch (Exception)
+            {
+                // Security V5 — jangan biarkan 500 bocor; kembalikan error ramah.
+                result.Ok = false;
+                result.Errors = new List<InjectRowError> { new InjectRowError { Message = "Gagal memproses file Excel. Periksa format file dan coba lagi." } };
+                return Json(result);
+            }
+        }
+
+        // Preview-batch (D-08): tiap worker → pola → MapToInMemory → AssessmentScoreAggregator.Compute (engine
+        // IDENTIK commit → preview == commit). NO CertNumberHelper, NO SaveChanges. NIP di-reverse-lookup dari UserId.
+        private static List<InjectExcelPreviewRow> BuildExcelPreviews(
+            IReadOnlyList<InjectQuestionSpec> questions,
+            IReadOnlyList<InjectAssessmentViewModel.InjectWorkerAnswersVM> workers,
+            IReadOnlyDictionary<string, string> nipToUserId,
+            IReadOnlyDictionary<string, string> nipToName,
+            int passPercentage)
+        {
+            var userIdToNip = nipToUserId.ToDictionary(kv => kv.Value, kv => kv.Key);
+            var rows = new List<InjectExcelPreviewRow>();
+            foreach (var w in workers)
+            {
+                var answerSpecs = (w.Answers ?? new()).Select(ToAnswerSpec).ToList();
+                var (qInMem, respInMem) = MapToInMemory(questions, answerSpecs);
+                var agg = AssessmentScoreAggregator.Compute(qInMem, respInMem, passPercentage);
+
+                userIdToNip.TryGetValue(w.UserId ?? "", out var nip);
+                nip ??= "";
+                nipToName.TryGetValue(nip, out var name);
+
+                rows.Add(new InjectExcelPreviewRow
+                {
+                    Nip = nip,
+                    Name = name ?? "",
+                    Percentage = agg.Percentage,
+                    IsPassed = agg.IsPassed,
+                    Answered = answerSpecs.Count,
+                    TotalQuestions = questions.Count
+                });
+            }
+            return rows;
+        }
+
+        // Phase 396 — proyeksi soal VM→Spec (di-factor-out dari MapToRequest; Order = index sekuensial i,
+        // identik perilaku lama). Dipakai MapToRequest (commit) + DownloadInjectTemplate/UploadInjectExcel
+        // (Excel) supaya soal yang dipakai template-gen, parse, preview, dan commit BENAR-BENAR sama.
+        private static List<InjectQuestionSpec> MapVmQuestionsToSpec(
+            IReadOnlyList<InjectAssessmentViewModel.InjectQuestionVM> questionVms)
+            => questionVms.Select((q, i) => new InjectQuestionSpec
+            {
+                QuestionText = q.QuestionText ?? "",
+                QuestionType = q.QuestionType ?? "MultipleChoice",
+                ScoreValue = q.ScoreValue,
+                Order = i,
+                ElemenTeknis = q.ElemenTeknis,
+                Rubrik = q.Rubrik,
+                TempId = q.TempId,
+                Options = (q.Options ?? new()).Select(o => new InjectOptionSpec
+                {
+                    OptionText = o.OptionText ?? "",
+                    IsCorrect = o.IsCorrect,
+                    TempId = o.TempId
+                }).ToList()
+            }).ToList();
+
         // Pure mapping VM→InjectRequest (testable; no DB). Questions diambil dari QuestionsJson (Plan 03)
         // bila ada, jika tidak fallback ke vm.Questions (bound list). Workers di-resolve UserId→NIP via dict.
         // Phase 395: Answers diisi per-worker dari workerAnswers — manual = copy (skip=omit, D-05);
@@ -177,22 +350,7 @@ namespace HcPortal.Controllers
                 PassPercentage = vm.PassPercentage,
                 AllowAnswerReview = vm.AllowAnswerReview,
                 CertMode = vm.CertMode,
-                Questions = questionVms.Select((q, i) => new InjectQuestionSpec
-                {
-                    QuestionText = q.QuestionText ?? "",
-                    QuestionType = q.QuestionType ?? "MultipleChoice",
-                    ScoreValue = q.ScoreValue,
-                    Order = i,
-                    ElemenTeknis = q.ElemenTeknis,
-                    Rubrik = q.Rubrik,
-                    TempId = q.TempId,
-                    Options = (q.Options ?? new()).Select(o => new InjectOptionSpec
-                    {
-                        OptionText = o.OptionText ?? "",
-                        IsCorrect = o.IsCorrect,
-                        TempId = o.TempId
-                    }).ToList()
-                }).ToList()
+                Questions = MapVmQuestionsToSpec(questionVms)
             };
 
             var certValidUntil = vm.CertPermanent
