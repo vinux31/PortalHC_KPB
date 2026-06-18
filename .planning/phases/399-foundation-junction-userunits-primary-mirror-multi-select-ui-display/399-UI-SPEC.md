@@ -64,12 +64,14 @@ Inherit the app's existing Bootstrap type scale — this phase declares roles, n
 |------|------|--------|-------------|-----------------|
 | Body / value | 16px (1rem base) | 400 (regular) | 1.5 | (default) |
 | Label / small | 14px (`.small` ≈ 0.875rem) | 600 (semibold) for field labels | 1.5 | `form-label fw-semibold` (label) · `small` (unit-row label, table cell) |
-| Heading (card header) | ~16px (`h6`) | 700 (bold, existing card-header idiom) | 1.2 | `h6 fw-bold` |
+| Heading (card header) | ~16px (`h6`) | 600 (semibold) | 1.2 | `h6 fw-semibold` |
 | Display | not used in this phase | — | — | — |
+
+Two weights total: **400** (body/value) and **600** (labels + card header). Card header uses `fw-semibold` (not `fw-bold`) to stay within the 2-weight cap while reading as a heading via the `h6` size step.
 
 Notes:
 - Unit-row labels use `class="form-check-label small"` (14px regular) — matches the compact density of `ManageWorkers.cshtml:262` `<small>` cells.
-- Do NOT add inline `style="font-size:..."` magic numbers (v32.1 DSN-05 lesson) — use `.small` / `fw-semibold` / `fw-bold` utilities.
+- Do NOT add inline `style="font-size:..."` magic numbers (v32.1 DSN-05 lesson) — use `.small` / `fw-semibold` utilities.
 
 ---
 
