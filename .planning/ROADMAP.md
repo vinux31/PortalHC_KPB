@@ -138,7 +138,9 @@
   3. Reparent unit lintas-Bagian **hard-BLOCK** bila ada pekerja yang `UserUnits`-nya akan terpecah ke >1 Bagian (jaga Invariant #1 "1 Bagian/akun"). *(ORG-02)*
   4. `PreviewEditCascade` menghitung baris `UserUnits` terdampak sehingga **preview == actual** (impact count akurat). *(ORG-02)*
   5. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: rename unit propagasi ke baris `UserUnits` + mirror; delete unit ber-membership-sekunder ditolak; reparent cross-Bagian ditolak; preview cocok hasil aktual. *(semua REQ)*
-**Plans:** TBD
+**Plans:** 2 plans (2 wave)
+- [ ] 403-01-PLAN.md — Wave 1: OrganizationController UserUnits-aware (rename cascade + reparent split-block + delete/deactivate guard sekunder + affectedUserUnitsCount + tx wrap) + extend OrganizationControllerTests.cs ~6 test (ORG-01/02) [migration=FALSE]
+- [ ] 403-02-PLAN.md — Wave 2: modal #cascadeConfirmModal baris ke-5 'baris keanggotaan unit' (ManageOrganization.cshtml + orgTree.js populate/total) + checkpoint UAT browser (ORG-02/D-03)
 **UI hint:** yes
 
 ### Phase 404: Test (SQL Riil) + UAT + Docs + Invariants
