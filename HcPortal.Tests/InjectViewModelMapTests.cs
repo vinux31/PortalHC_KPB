@@ -16,6 +16,11 @@ public class InjectViewModelMapTests
     private static IReadOnlyDictionary<string, string> Nip(params (string id, string nip)[] pairs)
         => pairs.ToDictionary(p => p.id, p => p.nip);
 
+    // Phase 395: MapToRequest kini terima workerAnswers (per-worker jawaban). Test 394 ini menguji
+    // mapping scalar/question/cert/NIP TANPA jawaban → lewatkan list kosong (Answers tetap kosong).
+    private static IReadOnlyList<InjectAssessmentViewModel.InjectWorkerAnswersVM> NoAnswers()
+        => new List<InjectAssessmentViewModel.InjectWorkerAnswersVM>();
+
     [Fact]
     [Trait("Category", "Unit")]
     public void Maps_scalars()
@@ -31,7 +36,7 @@ public class InjectViewModelMapTests
             AllowAnswerReview = false
         };
 
-        var req = InjectAssessmentController.MapToRequest(vm, Nip());
+        var req = InjectAssessmentController.MapToRequest(vm, Nip(), NoAnswers());
 
         Assert.Equal("Uji Inject", req.Title);
         Assert.Equal("Mandatory", req.Category);
@@ -73,7 +78,7 @@ public class InjectViewModelMapTests
             Rubrik = "Kunci Y"
         });
 
-        var req = InjectAssessmentController.MapToRequest(vm, Nip());
+        var req = InjectAssessmentController.MapToRequest(vm, Nip(), NoAnswers());
 
         Assert.Equal(2, req.Questions.Count);
         var mc = req.Questions[0];
@@ -105,7 +110,7 @@ public class InjectViewModelMapTests
             CertPermanent = true,
             UserIds = new() { "u1" }
         };
-        var rm = InjectAssessmentController.MapToRequest(manual, Nip(("u1", "NIP001")));
+        var rm = InjectAssessmentController.MapToRequest(manual, Nip(("u1", "NIP001")), NoAnswers());
         Assert.Single(rm.Workers);
         Assert.Equal("KPB/009/VI/2026", rm.Workers[0].ManualCertNumber);
         Assert.Null(rm.Workers[0].CertValidUntil);
@@ -120,7 +125,7 @@ public class InjectViewModelMapTests
             CertValidUntil = new DateTime(2027, 1, 1),
             UserIds = new() { "u1" }
         };
-        var ra = InjectAssessmentController.MapToRequest(auto, Nip(("u1", "NIP001")));
+        var ra = InjectAssessmentController.MapToRequest(auto, Nip(("u1", "NIP001")), NoAnswers());
         Assert.Null(ra.Workers[0].ManualCertNumber);
         Assert.Equal(new DateOnly(2027, 1, 1), ra.Workers[0].CertValidUntil);
 
@@ -131,7 +136,7 @@ public class InjectViewModelMapTests
             ManualCertNumber = "x",
             UserIds = new() { "u1" }
         };
-        var rn = InjectAssessmentController.MapToRequest(none, Nip(("u1", "NIP001")));
+        var rn = InjectAssessmentController.MapToRequest(none, Nip(("u1", "NIP001")), NoAnswers());
         Assert.Null(rn.Workers[0].ManualCertNumber);
         Assert.Equal(InjectCertMode.None, rn.CertMode);
     }
@@ -143,7 +148,7 @@ public class InjectViewModelMapTests
         var vm = new InjectAssessmentViewModel { UserIds = new() { "u1", "u2", "u3" } };
         var dict = Nip(("u1", "NIP001"), ("u2", "NIP002"));   // u3 absent (no NIP)
 
-        var req = InjectAssessmentController.MapToRequest(vm, dict);
+        var req = InjectAssessmentController.MapToRequest(vm, dict, NoAnswers());
 
         Assert.Equal(2, req.Workers.Count);   // u3 skipped (null-NIP)
         Assert.Equal(new[] { "NIP001", "NIP002" }, req.Workers.Select(w => w.Nip).ToArray());
