@@ -1343,7 +1343,15 @@ namespace HcPortal.Controllers
             return View();
         }
 
-        // Helper: Crypto-random 16-char password for AD mode auto-generation
+        // Helper: Crypto-random 16-char password for AD mode auto-generation.
+        // IN-03 — Asumsi PasswordOptions (lihat Program.cs AddIdentity):
+        //   RequireDigit=false, RequireLowercase=false, RequireUppercase=false,
+        //   RequireNonAlphanumeric=false, RequiredLength=6.
+        // Base64 dari 12 byte = 16 karakter [A-Za-z0-9+/=] ⇒ selalu ≥ panjang minimum & TIDAK terikat
+        // syarat komposisi karakter apa pun, sehingga password ini DIJAMIN lolos validasi Identity.
+        // ⚠️ Jika Program.cs kelak mengetatkan PasswordOptions (mis. RequireNonAlphanumeric=true atau
+        //    mensyaratkan kelas karakter spesifik), generator ini harus ditinjau ulang — Base64 tidak
+        //    menjamin kehadiran tiap kelas karakter secara deterministik.
         private static string GenerateRandomPassword()
         {
             var bytes = new byte[12];
@@ -1351,7 +1359,7 @@ namespace HcPortal.Controllers
             {
                 rng.GetBytes(bytes);
             }
-            // Base64 ensures uppercase + lowercase + digits, no special chars that break Identity validation
+            // Base64 menghasilkan campuran huruf besar/kecil + digit, tanpa karakter yang memecah validasi Identity.
             return Convert.ToBase64String(bytes);
         }
     }
