@@ -4,14 +4,14 @@ milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
 stopped_at: Completed 396-03-PLAN.md
-last_updated: "2026-06-18T06:57:06.909Z"
-last_activity: 2026-06-18
+last_updated: "2026-06-18T07:30:23.942Z"
+last_activity: 2026-06-18 -- Phase 397 planning complete
 progress:
   total_phases: 29
   completed_phases: 3
-  total_plans: 15
+  total_plans: 19
   completed_plans: 13
-  percent: 87
+  percent: 68
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 396 (import-excel-retire-bulkbackfill) — EXECUTING
 Plan: 4 of 5
-Status: Plan 396-03 SHIPPED (Wave 3 — controller endpoints DownloadInjectTemplate + UploadInjectExcel; integration 3/3 GREEN); next = Plan 396-04 (view Step5Method toggle + panel Excel)
-Last activity: 2026-06-18 -- Phase 396 Plan 03 complete (controller Excel endpoints; preview==commit integration 3/3; fast suite 389/389)
+Status: Ready to execute
+Last activity: 2026-06-18 -- Phase 397 planning complete
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 
