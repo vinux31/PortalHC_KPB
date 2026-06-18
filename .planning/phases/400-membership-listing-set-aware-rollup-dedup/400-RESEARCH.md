@@ -353,14 +353,14 @@ Tidak relevan — brownfield, pola sudah mapan di Phase 399. Tak ada "old vs new
 
 **Catatan:** Semua claim lain VERIFIED langsung dari kode live. Hanya 2 ASSUMED, keduanya LOW-risk + punya mitigasi/fallback eksplisit + jalur verifikasi (Develop Workflow step 3 + Phase 404).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **AssessmentAdminController:278 (consumer ke-4) — apakah set-aware diinginkan di sana?**
+1. **AssessmentAdminController:278 (consumer ke-4) — apakah set-aware diinginkan di sana?** — **RESOLVED (in-plan):** Treat as in-scope benign — consumer ke-4 mewarisi set-aware otomatis (tak butuh kode tambahan). Masuk verification scope di 400-01-PLAN (must_haves key_links + Task 3 step 6). Exclude tak disarankan (inkonsisten MU-06).
    - What we know: Ia teruskan `unit` ke GetWorkersInSection → otomatis set-aware setelah perubahan. Secara semantik konsisten MU-06 (pekerja multi-unit muncul di filter tiap unit di Kelola Data juga).
    - What's unclear: CONTEXT hanya menyebut "3 tempat". Apakah perubahan ke-4 ini in-scope eksplisit atau efek samping yang perlu di-flag ke planner/user.
    - Recommendation: **Treat as in-scope benign** (planner masukkan ke verification scope; tak butuh kode tambahan — sudah otomatis). Dokumentasikan di PLAN sebagai consumer ke-4. Bila user mau exclude, butuh keputusan (tapi exclude justru inkonsisten — tak disarankan).
 
-2. **Verifikasi anomali backfill (pekerja Unit non-null tanpa UserUnits aktif) untuk putuskan OR-fallback.**
+2. **Verifikasi anomali backfill (pekerja Unit non-null tanpa UserUnits aktif) untuk putuskan OR-fallback.** — **RESOLVED (in-plan):** Lean `.Any()` murni; query cek anomali dijalankan di 400-01-PLAN Task 3 (Develop Workflow step 2). Bila 0 anomali → `.Any()` murni final; bila >0 → eskalasi (backfill gap) sebelum tambah fallback.
    - What we know: Backfill 399 + invariant mirror → seharusnya tak ada anomali; lean `.Any()` murni.
    - What's unclear: Apakah DB lokal saat ini 100% bersih (semua Unit non-null punya primary-row aktif).
    - Recommendation: 1 query cek saat Develop Workflow step 3: `SELECT u.Id FROM Users u WHERE u.Unit IS NOT NULL AND NOT EXISTS(SELECT 1 FROM UserUnits uu WHERE uu.UserId=u.Id AND uu.IsActive=1)`. Bila 0 → `.Any()` murni final. Bila >0 → re-evaluate (kemungkinan backfill gap, eskalasi sebelum tambah fallback).
