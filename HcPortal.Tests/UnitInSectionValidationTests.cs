@@ -1,14 +1,16 @@
-// Phase 399 Plan 01 Task 5 — WAVE 0 SCAFFOLD (RED, skip-with-reason).
-// Kontrak test MU-05 validasi Unit ∈ unit-Bagian. Diisi/diaktifkan plan 02 T2.
-//
-// Behavior yang dikontrak (plan 02):
-//   - Unit asing (di luar unit-Bagian pekerja) DITOLAK (ModelState error).
-//   - Unit valid (anak Section) DITERIMA.
+// Phase 399 Plan 02 Task 2 — MU-05 validasi Unit ∈ unit-Bagian (GREEN).
+// Menguji WorkerController.ValidateUnitsInSection + GetUnitsForSectionAsync (ParentId hierarchy).
+//   - Unit asing (di luar unit-Bagian pekerja) DITOLAK (error list non-empty).
+//   - Unit valid (anak Section) DITERIMA (error list kosong).
 //   - PrimaryUnit ∉ checked set → ditolak.
-// Strategy: InMemory DB (Guid per test) + GetUnitsForSectionAsync (seed OrganizationUnits
-// Bagian→Unit anak). InMemory mendukung query ParentId hierarchy GetUnitsForSectionAsync.
+// Strategy: InMemory DB (Guid per test) + seed OrganizationUnits (Bagian → Unit anak).
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using HcPortal.Controllers;
 using HcPortal.Data;
+using HcPortal.Models;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -21,24 +23,58 @@ public class UnitInSectionValidationTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options);
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T2 (unit asing ditolak)")]
-    public void Validate_ForeignUnit_NotChildOfSection_IsRejected()
+    // Seed: Bagian1 (id=1) → {UnitA(id=2), UnitB(id=3)}; Bagian2 (id=4) → {UnitZ(id=5)}
+    private static async Task SeedOrgAsync(ApplicationDbContext ctx)
     {
-        // plan 02: Section="Bagian1" punya {UnitA}; submit "UnitZ" → invalid (rejected).
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "Bagian1", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "UnitA", Level = 1, ParentId = 1, IsActive = true },
+            new OrganizationUnit { Id = 3, Name = "UnitB", Level = 1, ParentId = 1, IsActive = true },
+            new OrganizationUnit { Id = 4, Name = "Bagian2", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 5, Name = "UnitZ", Level = 1, ParentId = 4, IsActive = true });
+        await ctx.SaveChangesAsync();
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T2 (unit valid diterima)")]
-    public void Validate_UnitChildOfSection_IsAccepted()
+    [Fact]
+    public async Task Validate_ForeignUnit_NotChildOfSection_IsRejected()
     {
-        // plan 02: Section="Bagian1" punya {UnitA,UnitB}; submit {UnitA,UnitB} → valid.
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        await using var ctx = InMemoryContext();
+        await SeedOrgAsync(ctx);
+
+        var validUnits = await ctx.GetUnitsForSectionAsync("Bagian1");   // {UnitA, UnitB}
+        // submit UnitZ (anak Bagian2, asing untuk Bagian1)
+        var errors = WorkerController.ValidateUnitsInSection(
+            validUnits, new List<string> { "UnitA", "UnitZ" }, "UnitA", "Bagian1");
+
+        Assert.NotEmpty(errors);
+        Assert.Contains(errors, e => e.Contains("UnitZ"));
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02 T2 (primary ∉ set ditolak)")]
-    public void Validate_PrimaryNotInCheckedSet_IsRejected()
+    [Fact]
+    public async Task Validate_UnitChildOfSection_IsAccepted()
     {
-        // plan 02: units={UnitA}, primary="UnitB" (tak dicentang) → ditolak / fallback first.
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02");
+        await using var ctx = InMemoryContext();
+        await SeedOrgAsync(ctx);
+
+        var validUnits = await ctx.GetUnitsForSectionAsync("Bagian1");
+        var errors = WorkerController.ValidateUnitsInSection(
+            validUnits, new List<string> { "UnitA", "UnitB" }, "UnitA", "Bagian1");
+
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public async Task Validate_PrimaryNotInCheckedSet_IsRejected()
+    {
+        await using var ctx = InMemoryContext();
+        await SeedOrgAsync(ctx);
+
+        var validUnits = await ctx.GetUnitsForSectionAsync("Bagian1");
+        // units={UnitA}, primary="UnitB" (tak dicentang) → error primary ∉ set
+        var errors = WorkerController.ValidateUnitsInSection(
+            validUnits, new List<string> { "UnitA" }, "UnitB", "Bagian1");
+
+        Assert.NotEmpty(errors);
+        Assert.Contains(errors, e => e.Contains("Utama"));
     }
 }

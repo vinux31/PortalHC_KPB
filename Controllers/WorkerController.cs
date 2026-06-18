@@ -342,6 +342,7 @@ namespace HcPortal.Controllers
             }
 
             // Validate Section/Unit against active OrganizationUnits in DB
+            // Phase 399 (MU-05): validasi multi-unit server-side (jangan trust client checkbox-list).
             if (!string.IsNullOrEmpty(model.Section))
             {
                 var validSections = await _context.GetAllSectionsAsync();
@@ -349,14 +350,16 @@ namespace HcPortal.Controllers
                 {
                     ModelState.AddModelError("Section", $"Bagian '{model.Section}' tidak ditemukan di data organisasi");
                 }
-                else if (!string.IsNullOrEmpty(model.Unit))
+                else if (model.Units != null && model.Units.Any())
                 {
                     var validUnits = await _context.GetUnitsForSectionAsync(model.Section);
-                    if (!validUnits.Contains(model.Unit))
-                    {
-                        ModelState.AddModelError("Unit", $"Unit '{model.Unit}' tidak valid untuk bagian '{model.Section}'");
-                    }
+                    foreach (var err in ValidateUnitsInSection(validUnits, model.Units, model.PrimaryUnit, model.Section))
+                        ModelState.AddModelError("Units", err);
                 }
+            }
+            else if (model.Units != null && model.Units.Any())
+            {
+                ModelState.AddModelError("Units", "Unit tidak boleh diisi tanpa Bagian (Section).");
             }
 
             if (!ModelState.IsValid)
@@ -390,7 +393,7 @@ namespace HcPortal.Controllers
                 NIP = model.NIP,
                 Position = model.Position,
                 Section = model.Section,
-                Unit = model.Unit,
+                // Unit (mirror) di-set via SyncUserUnitsAsync setelah CreateAsync (write-through)
                 Directorate = model.Directorate,
                 JoinDate = model.JoinDate,
                 RoleLevel = roleLevel,
@@ -403,6 +406,11 @@ namespace HcPortal.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, model.Role);
+
+                // Phase 399 (MU-01/02): write-through baris UserUnits + mirror ApplicationUser.Unit.
+                await SyncUserUnitsAsync(_context, user, model.Units ?? new(), model.PrimaryUnit);
+                await _context.SaveChangesAsync();
+                await _userManager.UpdateAsync(user);   // persist mirror Unit ke Identity store
 
                 // Audit log
                 try
@@ -478,6 +486,7 @@ namespace HcPortal.Controllers
             }
 
             // Validate Section/Unit against active OrganizationUnits in DB
+            // Phase 399 (MU-05): validasi multi-unit server-side (jangan trust client checkbox-list).
             if (!string.IsNullOrEmpty(model.Section))
             {
                 var validSections = await _context.GetAllSectionsAsync();
@@ -485,14 +494,16 @@ namespace HcPortal.Controllers
                 {
                     ModelState.AddModelError("Section", $"Bagian '{model.Section}' tidak ditemukan di data organisasi");
                 }
-                else if (!string.IsNullOrEmpty(model.Unit))
+                else if (model.Units != null && model.Units.Any())
                 {
                     var validUnits = await _context.GetUnitsForSectionAsync(model.Section);
-                    if (!validUnits.Contains(model.Unit))
-                    {
-                        ModelState.AddModelError("Unit", $"Unit '{model.Unit}' tidak valid untuk bagian '{model.Section}'");
-                    }
+                    foreach (var err in ValidateUnitsInSection(validUnits, model.Units, model.PrimaryUnit, model.Section))
+                        ModelState.AddModelError("Units", err);
                 }
+            }
+            else if (model.Units != null && model.Units.Any())
+            {
+                ModelState.AddModelError("Units", "Unit tidak boleh diisi tanpa Bagian (Section).");
             }
 
             if (!ModelState.IsValid)
@@ -521,19 +532,46 @@ namespace HcPortal.Controllers
             }
 
             // Track changes for audit
+            // Phase 399 (D-12): unit di-audit via set-diff dari SyncUserUnitsAsync (BUKAN scalar if user.Unit != model.Unit).
             var changes = new List<string>();
             if (user.FullName != model.FullName) changes.Add($"Name: '{user.FullName}' → '{model.FullName}'");
             if (user.NIP != model.NIP) changes.Add($"NIP: '{user.NIP}' → '{model.NIP}'");
             if (user.Position != model.Position) changes.Add($"Position: '{user.Position}' → '{model.Position}'");
             if (user.Section != model.Section) changes.Add($"Section: '{user.Section}' → '{model.Section}'");
-            if (user.Unit != model.Unit) changes.Add($"Unit: '{user.Unit}' → '{model.Unit}'");
 
-            // Update fields
+            // Phase 399 (MU-07): guard hapus-unit SEBELUM mutasi (PTA aktif → hard-block; mapping aktif → confirm→deactivate).
+            var oldUnits = await _context.UserUnits.Where(uu => uu.UserId == user.Id).Select(uu => uu.Unit).ToListAsync();
+            var oldPrimary = (await _context.UserUnits.FirstOrDefaultAsync(uu => uu.UserId == user.Id && uu.IsPrimary))?.Unit;
+            var removedUnits = oldUnits.Except(model.Units ?? new()).ToList();
+            CoachCoacheeMapping? mappingToDeactivate = null;
+            if (removedUnits.Any())
+            {
+                var guard = await EvaluateRemoveUnitGuardAsync(
+                    _context, user.Id, oldPrimary, removedUnits, model.ConfirmedDeactivate);
+                if (guard.Outcome == RemoveUnitOutcome.Blocked)
+                {
+                    ModelState.AddModelError("", guard.Message!);
+                    var sectionUnitsDictBlk = await _context.GetSectionUnitsDictAsync();
+                    ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictBlk);
+                    return View(model);
+                }
+                if (guard.Outcome == RemoveUnitOutcome.NeedConfirm)
+                {
+                    model.ImpactedMappings = new() { guard.Message! };
+                    ViewBag.NeedConfirm = true;
+                    var sectionUnitsDictCfm = await _context.GetSectionUnitsDictAsync();
+                    ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictCfm);
+                    return View(model);
+                }
+                if (guard.Outcome == RemoveUnitOutcome.Deactivated)
+                    mappingToDeactivate = guard.MappingToDeactivate;
+            }
+
+            // Update fields (Unit/mirror di-set via SyncUserUnitsAsync dalam tx di bawah)
             user.FullName = model.FullName;
             user.NIP = model.NIP;
             user.Position = model.Position;
             user.Section = model.Section;
-            user.Unit = model.Unit;
             user.Directorate = model.Directorate;
             user.JoinDate = model.JoinDate;
 
@@ -557,6 +595,21 @@ namespace HcPortal.Controllers
                 changes.Add($"Role: '{currentRole}' → '{model.Role}'");
             }
 
+            // Phase 399 (MU-01/02, Open Q3 atomicity): bungkus write-through junction + mirror + UpdateAsync +
+            // (MU-07 auto-deactivate bila confirmed) dalam SATU transaksi → mirror Unit & baris UserUnits commit
+            // bersama (no desync). SyncUserUnitsAsync set user.Unit SEBELUM UpdateAsync persist mirror.
+            using var uuTx = await _context.Database.BeginTransactionAsync();
+            var unitDiff = await SyncUserUnitsAsync(_context, user, model.Units ?? new(), model.PrimaryUnit);
+            changes.AddRange(unitDiff);
+
+            if (mappingToDeactivate != null)
+            {
+                // confirmed → reuse pola CoachCoacheeMappingDeactivate (IsActive=false + EndDate) DALAM tx yang sama (D-10)
+                mappingToDeactivate.IsActive = false;
+                mappingToDeactivate.EndDate = DateTime.UtcNow;
+                changes.Add($"Mapping coach unit '{mappingToDeactivate.AssignmentUnit}' dinonaktifkan (hapus unit)");
+            }
+
             var updateResult = await _userManager.UpdateAsync(user);
             if (!updateResult.Succeeded)
             {
@@ -566,6 +619,9 @@ namespace HcPortal.Controllers
                 }
                 return View(model);
             }
+
+            await _context.SaveChangesAsync();
+            await uuTx.CommitAsync();
 
             // AD mode: password managed via Pertamina portal — never change it here
             var useAD = _config.GetValue<bool>("Authentication:UseActiveDirectory", false);
