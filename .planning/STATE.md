@@ -4,8 +4,8 @@ milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
 stopped_at: Phase 401 context gathered
-last_updated: "2026-06-18T10:03:01.170Z"
-last_activity: 2026-06-18 -- Phase 400 planning complete
+last_updated: "2026-06-18T10:25:00.000Z"
+last_activity: 2026-06-18 -- Phase 400 Plan 01 Tasks 1-2 committed, paused at Task 3 checkpoint
 progress:
   total_phases: 30
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 400 — Membership Listing Set-Aware + Rollup Dedup (Wave 1, depends 399)
+**Current focus:** Phase 400 — membership-listing-set-aware-rollup-dedup
 
 ## Current Position
 
-Phase: 400
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-18 -- Phase 400 planning complete
+Phase: 400 (membership-listing-set-aware-rollup-dedup) — EXECUTING (paused at checkpoint)
+Plan: 1 of 1
+Status: 400-01 Tasks 1-2 DONE (RED `24a71b7f` + GREEN `520058b8`); PAUSED at Task 3 checkpoint:human-verify (browser UAT lokal fixture {X,Y} + no-drift D1=b)
+Last activity: 2026-06-18 -- Phase 400 Plan 01 Tasks 1-2 committed, awaiting human UAT verification
 
 ## Next Action
 
@@ -129,6 +129,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 401 context gathered
+Stopped at: Phase 400 Plan 01 — Tasks 1-2 committed (RED `24a71b7f` + GREEN `520058b8`), PAUSED at Task 3 checkpoint:human-verify (UAT lokal runtime).
 
-Next action: `/gsd-plan-phase 399` (Foundation — Wave 0 solo, migration=TRUE). Lalu Wave 1 {400, 401, 403} paralel, Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
+Next action: Lakukan UAT lokal Task 3 per 400-01-PLAN how-to-verify (build + full suite, anomali-backfill check, Seed Workflow snapshot→fixture {X,Y}→`dotnet run` localhost:5277 cek set-aware filter X & Y + kolom kontekstual "X"/"X, Y" + dedup + no-drift D1=b → restore DB + SEED_JOURNAL cleaned). Ketik "approved" untuk lanjut → continuation agent finalisasi SUMMARY + STATE/ROADMAP advance. migration=FALSE (Phase 400; satu-satunya migration v32.3 = 399 `AddUserUnitsTable` `fc015f4d`).
