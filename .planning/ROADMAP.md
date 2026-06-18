@@ -107,7 +107,7 @@
 **Plans:** 6 plans (3 internal waves)
 - [x] 401-01-PLAN.md — Wave 0 (BLOCKING): shared `ValidateAssignmentUnitInUserUnits` static helper + 5 RED test scaffolds (PSU-01/03/04/05/07)
 - [x] 401-02-PLAN.md — Wave 1: CoachMapping resolver drop-fallback (GetEligibleCoachees gate-block + AutoCreateProgress read-path) + D-03 hybrid channel (PSU-01/05)
-- [ ] 401-04-PLAN.md — Wave 1: AssessmentAdmin cert-gate drop-fallback + BLOCK + persisted AuditLog (PSU-01/05)
+- [x] 401-04-PLAN.md — Wave 1: AssessmentAdmin cert-gate drop-fallback + BLOCK + persisted AuditLog (PSU-01/05)
 - [ ] 401-05-PLAN.md — Wave 1: CDP filter-axis swap ×4 + defensive resolver drop-fallback ×2 + read-path skip/warn (PSU-01/02/05)
 - [ ] 401-06-PLAN.md — Wave 1: ProtonData BypassList filter-axis + BypassSave TargetUnit ∈ worker.UserUnits + org-tree (PSU-02/03)
 - [ ] 401-03-PLAN.md — Wave 2: CoachMapping ∈UserUnits validation (Assign/Edit/Import) + Cleanup/Import-reactivate no-clobber + Reactivate guard + D-01 UI indicator (PSU-03/04/05/07) [checkpoint]
@@ -164,7 +164,7 @@
 |-------|----------------|--------|-----------|
 | 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 4/4 | Complete    | 2026-06-18 |
 | 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 1/1 | Complete    | 2026-06-18 |
-| 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 2/6 | In Progress|  |
+| 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 3/6 | In Progress|  |
 | 402. Coaching Cross-Unit Mapping (CXU-01..05) | 0/0 | Not started | - |
 | 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 0/0 | Not started | - |
 | 404. Test (SQL Riil) + UAT + Docs + Invariants (QA-01..04) | 0/0 | Not started | - |
