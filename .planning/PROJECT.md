@@ -12,6 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v32.3 Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial
+
+**Goal:** Pekerja boleh jadi anggota >1 Unit dalam 1 Bagian (Section tetap scalar); coach bisa pegang coachee lintas-unit selama 1 Bagian; PROTON jalan sekuensial lintas-unit (Tahun1@X → Tahun2@Y). migration=TRUE (junction `UserUnits`). Cert/analytics atribusi primary (D1=b). Design: `docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md`.
+
+**Target features (24 REQ / 5 kategori, fase 399-404):**
+- **MU** (399/400): junction `UserUnits` + primary-mirror + multi-select UI + display semua unit + roster set-aware + guard hapus-unit.
+- **PSU** (401): PROTON unit dari `AssignmentUnit` eksplisit (drop fallback) + filter axis + validasi ∈UserUnits + no-clobber + skip-on-blank + reactivation guard.
+- **CXU** (402): coachee eligible lintas-unit dalam Bagian + server guard ⊆Bagian + AssignmentUnit per-coachee + relax JS lock + multi-unit coach self-scope.
+- **ORG** (403): cascade/guard UserUnits-aware + reparent lintas-Bagian hard-block.
+- **QA** (404): test SQL riil multi-unit + invariant single-active + AssignmentUnit∈UserUnits + UAT/docs.
+
+**v32.1 closed 2026-06-18** (archive-only, tag lokal, NOT pushed — deploy bareng v32.3). v32.0/v32.2 di branch main.
+
 ## Current State: v31.0 Hotfix Pra-Ujian Lisensor — SHIPPED (local) + audited PASSED + closed 2026-06-16
 
 **v31.0 shipped (local) + audit passed + closed (2026-06-16)** — Hotfix Pra-Ujian Lisensor (phases 385-387, 14/14 REQ PXF-01..14, **0 migration**): pra-ujian-lisensor hardening alur assessment SA+MA+Essay+soal-bergambar — (385) gambar PathBase-aware sub-path `/KPB-PortalHC` + essay flush pra-submit/blur/timeout; (386) validasi opsi soal + essay-kosong finalizable + PDF/Excel MA all-or-nothing (SetEquals) via shared `IsQuestionCorrect`+`BuildAnswerCell`; (387 pasca-acara) SubmitEssayScore guards + cert retry/log/surface + Excel essay cell + monitor broadcast + aria opsi huruf + SubmitExam MC no-null + SaveTextAnswer timer guard. Audit PASSED (integration 11/11 wired, SA+essay licensure flow coherent; GAP-1 PXF-08 certError-surface ditemukan+fix inline `3005733d`). Tests: 347/347 fast + 8/8 Integration + Playwright 3/3 + UAT (385:2/2, 386:4/4, 387:3/3). Secure 387 SECURED 10/10; nyquist 385 compliant / 386·387 partial. Archive: `milestones/v31.0-*` + `milestones/v31.0-phases/`. **NOT PUSHED** (branch ITHandoff) — bundle 385+386 = deploy IT #1 (pra-acara ~2026-06-17), 387 = deploy IT #2 (pasca-acara). Notify IT: migration=FALSE.

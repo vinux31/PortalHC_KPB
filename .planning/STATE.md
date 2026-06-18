@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v32.1
-milestone_name: Perbaikan Teks & Desain
-status: complete
-stopped_at: v32.1 CLOSED 2026-06-18 — archived milestones/v32.1-* (7/7 REQ PASSED, 0 migration). NOT pushed (close bareng v32.3). Next milestone v32.3 (phase 399).
+milestone: v32.3
+milestone_name: Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial
+status: defining_requirements
+stopped_at: v32.3 started 2026-06-18 — REQUIREMENTS defined (24 REQ MU/PSU/CXU/ORG/QA); roadmap fase 399-404 next.
 last_updated: "2026-06-18T02:11:45.736Z"
-last_activity: 2026-06-18
+last_activity: 2026-06-18 — Milestone v32.3 started
 progress:
-  total_phases: 25
-  completed_phases: 4
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 390.1 — fix-import-excel-button-auto-enable-on-coachcoacheemapping-v
+**Current focus:** v32.3 — requirements defined (24 REQ), roadmap fase 399-404 next
 
 ## Current Position
 
-Phase: 390.1 (fix-import-excel-button-auto-enable-on-coachcoacheemapping-v) — EXECUTING
-Plan: 1 of 1
-Status: Executing Phase 390.1
-Last activity: 2026-06-18
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements (24 REQ written; roadmapper next)
+Last activity: 2026-06-18 — Milestone v32.3 started
 
 ## Next Action
 
