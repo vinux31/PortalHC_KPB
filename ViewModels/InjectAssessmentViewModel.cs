@@ -32,6 +32,11 @@ namespace HcPortal.ViewModels
         public List<InjectQuestionVM> Questions { get; set; } = new();
         public string? QuestionsJson { get; set; }                 // jalur alternatif capture hidden-JSON (Plan 03 pilih satu)
 
+        // ── Jawaban per-pekerja (INJ-08/INJ-09) — Phase 395 ──
+        // Hidden-JSON paralel QuestionsJson: per-worker { UserId, Mode, TargetScore, Answers[] }.
+        // Mode/TargetScore = lapisan VM/controller saja (D-02) — TIDAK masuk InjectRequest/service.
+        public string? AnswersJson { get; set; }
+
         /// <summary>Soal authored (pre-persist) — mirror <see cref="InjectQuestionSpec"/>.</summary>
         public class InjectQuestionVM
         {
@@ -51,6 +56,28 @@ namespace HcPortal.ViewModels
             public string OptionText { get; set; } = "";
             public bool IsCorrect { get; set; }
             public int TempId { get; set; }
+        }
+
+        /// <summary>Jawaban 1 worker untuk 1 soal (Phase 395) — mirror <see cref="InjectAnswerSpec"/>.</summary>
+        public class InjectAnswerVM
+        {
+            public int QuestionTempId { get; set; }
+            public List<int> SelectedOptionTempIds { get; set; } = new();   // MC: 1; MA: ≥1; Essay: kosong
+            public string? TextAnswer { get; set; }   // Essay
+            public int? EssayScore { get; set; }       // Essay
+        }
+
+        /// <summary>
+        /// Payload jawaban per-pekerja (Phase 395) — key = checkbox value = user.Id (sama dgn <see cref="UserIds"/>).
+        /// Mode/TargetScore = INPUT auto-gen saja (D-02), di-resolve controller; tak masuk DTO/service.
+        /// Skip = OMIT spec (D-05) — soal di-skip TIDAK ada di <see cref="Answers"/>.
+        /// </summary>
+        public class InjectWorkerAnswersVM
+        {
+            public string UserId { get; set; } = "";
+            public string Mode { get; set; } = "manual";   // "manual" | "auto"
+            public int TargetScore { get; set; }
+            public List<InjectAnswerVM> Answers { get; set; } = new();
         }
     }
 }

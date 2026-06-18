@@ -78,4 +78,39 @@ namespace HcPortal.Models
         public List<InjectRowError> PerRowErrors { get; set; } = new();
         public string? Message { get; set; }          // ringkasan Bahasa Indonesia (mis. pesan rollback)
     }
+
+    /// <summary>
+    /// Phase 395 INJ-09/D-09 — Request dry-run preview skor 1 worker (pra-persist, NO cert#, NO write DB).
+    /// Mode/TargetScore = INPUT auto-gen saja (D-02) — TIDAK pernah masuk <see cref="InjectRequest"/>/service.
+    /// Controller resolve pola: mode=auto → BuildAutoGenAnswers(seed); mode=manual → Answers apa adanya.
+    /// </summary>
+    public class InjectPreviewRequest
+    {
+        public int PassPercentage { get; set; } = 70;
+        public string Title { get; set; } = "";
+        public string Category { get; set; } = "";
+        public DateTime CompletedAt { get; set; }
+        public string Nip { get; set; } = "";
+        public string Mode { get; set; } = "manual";   // "manual" | "auto"
+        public int TargetScore { get; set; }            // auto-gen only
+        public List<InjectQuestionSpec> Questions { get; set; } = new();
+        public List<InjectAnswerSpec> Answers { get; set; } = new();   // manual/essay manual; auto MC/MA dihitung server
+    }
+
+    /// <summary>
+    /// Phase 395 INJ-09/D-09 — Hasil preview skor final (TANPA nomor sertifikat; engine sama dengan commit
+    /// <see cref="HcPortal.Helpers.AssessmentScoreAggregator"/> → preview == commit).
+    /// </summary>
+    public class InjectPreviewResult
+    {
+        public int Percentage { get; set; }
+        public bool IsPassed { get; set; }
+        public int TotalScore { get; set; }
+        public int MaxScore { get; set; }
+        public int CeilingPercent { get; set; }       // auto-gen ceiling MC/MA-only (D-08.3)
+        public bool TargetReachable { get; set; } = true;
+        public int Overshoot { get; set; }            // actual - target (auto-gen; >=0 karena bias jamin-lulus)
+        public bool Blocked { get; set; }             // true bila target>ceiling (BLOCKING, D-08.3)
+        public string? BlockingMessage { get; set; }  // Bahasa Indonesia
+    }
 }
