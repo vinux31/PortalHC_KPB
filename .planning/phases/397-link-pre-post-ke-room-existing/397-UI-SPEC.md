@@ -1,10 +1,11 @@
 ---
 phase: 397
 slug: link-pre-post-ke-room-existing
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-18
+reviewed_at: 2026-06-18
 ---
 
 # Phase 397 — UI Design Contract
