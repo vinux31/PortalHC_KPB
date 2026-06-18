@@ -104,7 +104,13 @@
   4. `CleanupCoachCoacheeMappingOrg` + Import **tidak clobber** `AssignmentUnit` ke unit primary (UserUnits-aware/gated — tutup data-loss vector); 6 read-path resolusi unit PROTON **skip coachee + audit-warn** bila `AssignmentUnit` kosong (dilarang diam-diam pakai `User.Unit`; gate eligibility exam tak boleh terbit session/cert dgn unit primary). *(PSU-04, PSU-05)*
   5. Jalur **reactivation** (`CoachCoacheeMappingReactivate` + Import-reactivate): (a) tak timpa `AssignmentUnit` ke primary; (b) validasi `AssignmentUnit ∈ coachee.UserUnits` aktif sebelum reaktivasi; (c) reaktivasi `ProtonTrackAssignment` cocok unit dengan mapping (bukan "assignment terakhir"). *(PSU-07)*
   6. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: fixture coachee multi-unit T1@X→T2@Y resolve unit benar tiap surface; coachee dgn `AssignmentUnit` kosong di-skip + ter-audit-warn (bukan default primary). *(semua REQ)*
-**Plans:** TBD
+**Plans:** 6 plans (3 internal waves)
+- [ ] 401-01-PLAN.md — Wave 0 (BLOCKING): shared `ValidateAssignmentUnitInUserUnits` static helper + 5 RED test scaffolds (PSU-01/03/04/05/07)
+- [ ] 401-02-PLAN.md — Wave 1: CoachMapping resolver drop-fallback (GetEligibleCoachees gate-block + AutoCreateProgress read-path) + D-03 hybrid channel (PSU-01/05)
+- [ ] 401-04-PLAN.md — Wave 1: AssessmentAdmin cert-gate drop-fallback + BLOCK + persisted AuditLog (PSU-01/05)
+- [ ] 401-05-PLAN.md — Wave 1: CDP filter-axis swap ×4 + defensive resolver drop-fallback ×2 + read-path skip/warn (PSU-01/02/05)
+- [ ] 401-06-PLAN.md — Wave 1: ProtonData BypassList filter-axis + BypassSave TargetUnit ∈ worker.UserUnits + org-tree (PSU-02/03)
+- [ ] 401-03-PLAN.md — Wave 2: CoachMapping ∈UserUnits validation (Assign/Edit/Import) + Cleanup/Import-reactivate no-clobber + Reactivate guard + D-01 UI indicator (PSU-03/04/05/07) [checkpoint]
 
 ### Phase 402: Coaching Cross-Unit Mapping
 **Goal:** HC dapat memetakan 1 coach memegang coachee **lintas-unit selama masih 1 Bagian** — daftar eligible = semua coachee Bagian itu, server menolak cross-Bagian, `AssignmentUnit` di-set per-coachee dari unit coachee yang dipilih, dan coach ber-akun multi-unit melihat/meng-export semua coachee-nya di seluruh unit dalam Bagian.
