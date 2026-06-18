@@ -35,6 +35,162 @@
 
 ## Phases
 
+<details open>
+<summary>📋 v32.3 Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial (Phases 399-404) — ROADMAP created 2026-06-18 (24/24 REQ, migration=TRUE [Phase 399 only])</summary>
+
+**Status:** Roadmap created 2026-06-18 (spec-driven; brainstorm + 22-agent codebase investigation selesai). NOT YET PLANNED.
+**Spec:** `docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md` (AUTHORITATIVE — §5 phase breakdown, §6 dependency+parallelism, §7 invariants, §8 out-of-scope, §10 risks).
+**Goal:** Pekerja boleh jadi anggota **>1 Unit dalam 1 Bagian** (Section tetap scalar; pindah Bagian = mutasi, out-of-scope); coach bisa pegang coachee lintas-unit selama 1 Bagian; PROTON jalan **sekuensial** lintas-unit (Tahun1@unitX selesai → Tahun2@unitY). migration=TRUE (junction `UserUnits`). Cert/analytics atribusi **primary unit** (keputusan D1=b, terdokumentasi, **tanpa** kolom unit-at-issue).
+**Granularity:** standard (config). 6 fase (399-404) — **mapping fase→REQ + dependency sudah terkunci di spec §5/§6 + REQUIREMENTS.md traceability** (bukan re-derive): diturunkan dari **cluster file disjoint** (Wave-1 paralel) + critical path `399 → 401 → 402 → 404`.
+**Migration:** **TRUE hanya di Phase 399** (`AddUserUnitsTable` junction + filtered-unique index primary + backfill 1 primary-row/pekerja existing). **Phase 400-404 = 0 migration.** Notify IT migration=TRUE saat promosi ke Dev (commit hash).
+**Phase numbering (PENTING):** v32.3 mulai **399** (BUKAN 391) — Phases 391-398 RESERVED di branch `main` (v32.0 = 391-392, v32.2 = 393-398); branch ITHandoff ini mulai 399 untuk hindari integer collision saat merge. Gunakan tepat: 399, 400, 401, 402, 403, 404.
+**Konteks kunci (invariant WAJIB dijaga — spec §7):** (1) **Section scalar** 1 Bagian/akun, semua `UserUnits.Unit` anak dari `Section`; (2) **PROTON single-active** — tepat 1 `ProtonTrackAssignment` aktif, index `IX_CoachCoacheeMappings_CoacheeId_ActiveUnique` dipertahankan (E8); (3) **Primary mirror** `ApplicationUser.Unit` = baris `UserUnits.IsPrimary` (write-through, tiap write sinkron, hapus primary → promote/blok); (4) **`AssignmentUnit ∈ coachee.UserUnits`** (setelah Fase 401); (5) **`ProtonKompetensi.Unit` 1:1 per deliverable** (B-06 anti-dobel aman lintas-unit). De-risk terbesar: authz Section (`IsResultsAuthorized` + SectionHead L4 gate) 100% berbasis Section scalar → **0 perubahan**.
+**Parallelisme eksekusi (spec §6):** Wave 0 = **399 solo** (junction + kontrak mirror dipakai semua). Wave 1 = **{400, 401, 403} PARALEL** (cluster file disjoint: 400=`WorkerDataService`/`WorkerController`/CMP-view; 401=`CoachMappingController`/`CDPController`/`ProtonDataController`/`ProtonBypassService`/`AssessmentAdminController`; 403=`OrganizationController` terisolasi) — eksekusi via git worktree terpisah per fase, merge tiap selesai. Wave 2 = **402 SERIAL setelah 401** (dua-duanya berat di `CoachMappingController`+`CDPController`, dan 402 nulis `AssignmentUnit` yang aturan validasinya dibuat 401). Wave 3 = **404 setelah 399+400+401+402+403**.
+**Verifikasi lokal (CLAUDE.md Develop Workflow):** tiap fase wajib gate `dotnet build` + `dotnet run` (localhost:5277) + cek DB lokal + Playwright bila ada UI sebelum commit. **Phase 404 test multi-unit WAJIB SQL riil (SQLEXPRESS)** — EF-InMemory tidak meng-enforce filtered-unique index (bisa lolos in-memory, gagal prod). ❌ tidak ada edit di Dev/Prod. Semua → 1 push → notify IT re-deploy Dev (migration=TRUE Phase 399).
+
+### Phases
+
+- [ ] **Phase 399: Foundation — Junction UserUnits + Primary-Mirror + Multi-Select UI + Display (MU-01/02/03/04/05/07)** — Model `UserUnit` + `DbSet` + index (filtered-unique primary) + migration `AddUserUnitsTable` + backfill 1 primary-row/pekerja existing; kontrak write-through primary-mirror di Worker Create/Edit/Import (set `UserUnits` + mirror `ApplicationUser.Unit` = primary, recompute saat primary dihapus); UI **Bagian single + Unit multi-select** (cascade Bagian→unit-anak); display **semua unit** (primary ditandai) di Profil/WorkerDetail/Settings/ManageWorkers/export Excel/Home/`_PSign`; Bulk Import multi-unit; validasi tiap junction-write `Unit ∈ unit-Bagian`; audit-log set-diff; guard hapus-unit (blok bila dirujuk `AssignmentUnit`/`ProtonTrackAssignment` aktif). **migration=TRUE** (junction + backfill). Wave 0 — solo, semua nunggu.
+- [ ] **Phase 400: Membership Listing Set-Aware + Rollup Dedup (MU-06)** — `WorkerDataService.GetWorkersInSection` + role-filter + tabel CMP records **set-aware** (pekerja multi-unit muncul di tiap unit-nya) + dedup rollup tingkat Bagian (completion%/denominator tidak hitung pekerja ganda). CMP analytics/renewal TIDAK diubah (D1=b primary). 0 migration. Wave 1 (paralel dgn 401/403, depends 399).
+- [ ] **Phase 401: PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07)** — Resolve unit PROTON dari **`AssignmentUnit` eksplisit** (drop fallback `User.Unit` ambigu di 5/6 resolver); switch filter axis coachee-scope/BypassList ke `AssignmentUnit`; validasi `AssignmentUnit ∈ coachee.UserUnits` + bypass `TargetUnit ∈ worker.UserUnits` + org-tree; 6 read-path **skip + audit-warn** bila `AssignmentUnit` kosong (gate eligibility exam tak boleh terbit dgn unit primary); `CleanupCoachCoacheeMappingOrg` + Import **no-clobber** ke primary (UserUnits-aware); reactivation guard (no-clobber + validasi unit aktif + assignment unit-match). 0 migration. Wave 1 (paralel dgn 400/403, depends 399).
+- [ ] **Phase 402: Coaching Cross-Unit Mapping (CXU-01/02/03/04/05)** — Eligible-coachee set-aware = semua coachee 1 Bagian lintas-unit (`coachee.Section == coach.Section`); server guard coachee ⊆ Bagian coach (tolak cross-Bagian); `AssignmentUnit` **per-coachee** (map `coacheeId→unit`, dropdown unit per-baris dari `coachee.UserUnits`, validasi per PSU-03); relax JS lock single-unit-per-batch → level Bagian; self-scope coaching-role multi-unit (`unit=user.Unit` → `IN(coach.UserUnits)` di `CDPController` 305/326/636 + post-filter 490-491). 0 migration. Wave 2 (SERIAL setelah 401 — shared file + butuh aturan AssignmentUnit dari 401).
+- [ ] **Phase 403: OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02)** — Rename/reparent unit cascade ke `UserUnits.Unit` + recompute primary-mirror; delete-guard scan `UserUnits` (termasuk membership sekunder, bukan cuma scalar `Users.Unit`); reparent unit lintas-Bagian **hard-BLOCK** bila `UserUnits` pekerja terpecah ke >1 Bagian (jaga Invariant #1); `PreviewEditCascade` hitung baris `UserUnits` terdampak (preview == actual). File `OrganizationController` terisolasi. 0 migration. Wave 1 (paralel dgn 400/401, depends 399).
+- [ ] **Phase 404: Test (SQL Riil) + UAT + Docs + Invariants (QA-01/02/03/04)** — Test multi-unit WAJIB SQL riil (fixture {X,Y} 1 Bagian + coach cross-unit + PROTON T1@X→T2@Y); test invariant single-active (tepat 1 `ProtonTrackAssignment` + 1 `CoachCoacheeMapping` aktif lintas Reactivate/Import-reactivate); test invariant `AssignmentUnit ∈ coachee.UserUnits` tiap junction-write + B-06 anti-dobel `ProtonDeliverableBootstrap` lintas-unit + `ProtonKompetensi.Unit` 1:1; UAT lokal (build+run localhost:5277+DB lokal, Playwright bila ada) + docs catat batasan **D1=b**. 0 migration. Wave 3 (depends 399+400+401+402+403).
+
+### Phase Details
+
+### Phase 399: Foundation — Junction UserUnits + Primary-Mirror + Multi-Select UI + Display
+**Goal:** Admin/HC dapat menetapkan >1 Unit (semua dalam 1 Bagian) pada akun pekerja, dengan tepat 1 unit PRIMARY ter-mirror ke `ApplicationUser.Unit`, dan seluruh unit pekerja tampil di semua surface — di atas fondasi tabel junction `UserUnits` (migration + backfill) yang menjaga setiap unit anak Bagian pekerja.
+**Depends on:** Tidak ada (Wave 0 — milestone start; junction + kontrak primary-mirror dipakai semua fase berikutnya, WAJIB solo).
+**Migration:** **TRUE** — `AddUserUnitsTable` (kolom UserId FK ON DELETE CASCADE / Unit NAME-string / IsPrimary / IsActive; index `HasIndex(UserId)` + filtered-unique `(UserId) WHERE IsPrimary=1`; opsional unique `(UserId,Unit)`) + data backfill 1 primary-row/pekerja existing (`UserUnits{UserId, Unit=User.Unit, IsPrimary=true, IsActive=true}`, idempotent; pekerja Unit null → 0 baris).
+**Requirements:** MU-01, MU-02, MU-03, MU-04, MU-05, MU-07
+**Success Criteria** (what must be TRUE):
+  1. Admin/HC dapat **assign worker ke 2 unit dalam 1 Bagian** lewat multi-select Unit di Create/Edit Worker (picker Bagian tetap single, cascade Bagian→unit-anak); kedua unit tersimpan sebagai baris `UserUnits` dan **keduanya tampil** di Profil, WorkerDetail, Settings, tabel ManageWorkers, export Excel, Home dashboard, dan kartu tanda tangan `_PSign` — dengan unit PRIMARY ditandai jelas. *(MU-01, MU-03)*
+  2. Tepat **1 unit ber-status PRIMARY** dan `ApplicationUser.Unit` selalu mencerminkan unit primary (write-through di Create/Edit/Import); menghapus unit primary **mem-promote** unit lain (atau memblok bila tak ada sisa), mengosongkan semua unit set `ApplicationUser.Unit=null` + 0 baris `IsPrimary`; setiap write menjaga tepat 1 `IsPrimary` per user. *(MU-02)*
+  3. **Bulk Import** worker menerima format multi-unit (kolom/unit ganda per baris); tiap unit divalidasi **anak Bagian baris itu** — baris dengan unit di luar Bagian-nya ditolak dengan pesan jelas. *(MU-04, MU-05)*
+  4. Setiap pekerja existing memiliki **1 baris `UserUnits` primary** (= `Unit` lama) pasca-migration/backfill; setiap junction-write memvalidasi `Unit ∈ unit-Bagian pekerja` (Name dipasangkan dgn Bagian); audit-log mencatat **set-diff** (unit ditambah/dihapus/primary berubah), bukan sekadar `if user.Unit != model.Unit`. *(MU-05, MU-02)*
+  5. Saat Edit/Import **menghapus** sebuah Unit (atau memindah primary), sistem **memblok** (atau wajib deactivate dulu) bila Unit itu masih dirujuk `CoachCoacheeMapping.AssignmentUnit` aktif atau `ProtonTrackAssignment` aktif pekerja — mencegah orphan `AssignmentUnit ∉ UserUnits` (jaga Invariant #4). *(MU-07)*
+  6. `dotnet build` 0 error + `dotnet ef database update` (migration applied DB lokal) + `dotnet run` (localhost:5277): assign 2-unit round-trip tersimpan & tampil benar; backfill verifikasi DB lokal (tiap user lama 1 primary-row); ~30+ baca scalar `user.Unit` existing tetap jalan (mirror). *(semua REQ)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 400: Membership Listing Set-Aware + Rollup Dedup
+**Goal:** Pekerja multi-unit muncul di **tiap unit-nya** pada listing keanggotaan (roster tim/section, role-filter, tabel CMP records), sementara rollup tingkat Bagian **dedup** sehingga completion%/denominator tidak menghitung pekerja ganda.
+**Depends on:** Phase 399 (butuh junction `UserUnits` + kontrak mirror). Wave 1 — **PARALEL dengan Phase 401 & 403** (cluster file disjoint: 400 = `WorkerDataService`/`WorkerController`/view CMP records team).
+**Migration:** false (read/filter-path; tidak ada schema/backfill/write DB).
+**Requirements:** MU-06
+**Success Criteria** (what must be TRUE):
+  1. Pada roster tim/section (`WorkerDataService.GetWorkersInSection`) + role-filter `WorkerController` + tabel CMP records, pekerja yang anggota 2 unit **muncul di kedua unit** saat difilter per-unit (set-aware, bukan hanya `u.Unit==unitFilter` scalar). *(MU-06)*
+  2. Rollup tingkat **Bagian** (completion%/pass-rate/denominator) menghitung tiap pekerja multi-unit **sekali saja** (dedup) — tidak ada double-count yang menggelembungkan/mengempiskan persentase. *(MU-06)*
+  3. CMP analytics/renewal **tidak berubah** perilakunya (tetap atribusi primary, D1=b — verifikasi tak ada drift). *(MU-06)*
+  4. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: fixture pekerja {X,Y} tampil di filter unit-X dan unit-Y; rollup Bagian dedup terverifikasi (count benar). *(MU-06)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 401: PROTON Unit-Resolution Hardening
+**Goal:** Resolusi unit PROTON selalu berbasis **`AssignmentUnit` eksplisit** (bukan fallback `User.Unit` yang ambigu saat multi-unit), sehingga coachee yang di-PROTON-kan di unit non-primary tetap tampil/ter-gate di unit yang benar, dan pekerja bisa menjalani Tahun1@X → Tahun2@Y sekuensial dengan sertifikat tiap unit tersimpan utuh sebagai histori — tanpa data-loss dari clobber/reactivation.
+**Depends on:** Phase 399 (butuh junction `UserUnits` untuk validasi `AssignmentUnit ∈ coachee.UserUnits`). Wave 1 — **PARALEL dengan Phase 400 & 403** (cluster file disjoint: 401 = `CoachMappingController`/`CDPController`/`ProtonDataController`/`ProtonBypassService`/`AssessmentAdminController`).
+**Migration:** false (resolusi/validasi/filter read-path; `ProtonTrackAssignment` tetap 7 kolom tanpa Unit; tidak ada schema/write DB).
+**Requirements:** PSU-01, PSU-02, PSU-03, PSU-04, PSU-05, PSU-07
+**Success Criteria** (what must be TRUE):
+  1. Unit PROTON di-resolve dari **`AssignmentUnit`** (mapping aktif), **fallback `User.Unit` dibuang**; coachee dapat menjalani Tahun1@unitX lalu (setelah selesai) Tahun2@unitY secara **sekuensial** — sertifikat tiap unit tersimpan utuh sebagai histori (invariant single-active terjaga). *(PSU-01)*
+  2. Semua filter coachee/tim/bypass surface PROTON (BypassList, coachee-scope CDP) memakai `AssignmentUnit` — coachee yang di-PROTON-kan di unit non-primary **tetap tampil di unit yang benar**. *(PSU-02)*
+  3. `AssignmentUnit` divalidasi **∈ `coachee.UserUnits`** di Assign/Edit/Import; bypass `TargetUnit` divalidasi **∈ `worker.UserUnits`** + valid di org-tree (bukan cuma cek non-empty). *(PSU-03)*
+  4. `CleanupCoachCoacheeMappingOrg` + Import **tidak clobber** `AssignmentUnit` ke unit primary (UserUnits-aware/gated — tutup data-loss vector); 6 read-path resolusi unit PROTON **skip coachee + audit-warn** bila `AssignmentUnit` kosong (dilarang diam-diam pakai `User.Unit`; gate eligibility exam tak boleh terbit session/cert dgn unit primary). *(PSU-04, PSU-05)*
+  5. Jalur **reactivation** (`CoachCoacheeMappingReactivate` + Import-reactivate): (a) tak timpa `AssignmentUnit` ke primary; (b) validasi `AssignmentUnit ∈ coachee.UserUnits` aktif sebelum reaktivasi; (c) reaktivasi `ProtonTrackAssignment` cocok unit dengan mapping (bukan "assignment terakhir"). *(PSU-07)*
+  6. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: fixture coachee multi-unit T1@X→T2@Y resolve unit benar tiap surface; coachee dgn `AssignmentUnit` kosong di-skip + ter-audit-warn (bukan default primary). *(semua REQ)*
+**Plans:** TBD
+
+### Phase 402: Coaching Cross-Unit Mapping
+**Goal:** HC dapat memetakan 1 coach memegang coachee **lintas-unit selama masih 1 Bagian** — daftar eligible = semua coachee Bagian itu, server menolak cross-Bagian, `AssignmentUnit` di-set per-coachee dari unit coachee yang dipilih, dan coach ber-akun multi-unit melihat/meng-export semua coachee-nya di seluruh unit dalam Bagian.
+**Depends on:** **Phase 401** (SERIAL — 402 & 401 dua-duanya berat di `CoachMappingController`+`CDPController`, dan 402 menulis `AssignmentUnit` yang aturan validasinya [∈ coachee.UserUnits, PSU-03] dibuat di 401). Wave 2.
+**Migration:** false (eligible-list/guard/payload-reshape/self-scope; tidak ada schema/write DB).
+**Requirements:** CXU-01, CXU-02, CXU-03, CXU-04, CXU-05
+**Success Criteria** (what must be TRUE):
+  1. HC memilih sebuah Bagian → memilih coach → daftar coachee eligible = **semua coachee di Bagian itu (lintas unit)**, bukan hanya unit coach (set-aware: `coachee.Section == coach.Section`). *(CXU-01)*
+  2. Server **menolak** coachee cross-Bagian — guard baru di endpoint assign mem-enforce coachee ⊆ Bagian coach (perbandingan `coach.Section` vs `coachee.Section`). *(CXU-02)*
+  3. `AssignmentUnit` di-set **per-coachee** dari unit coachee yang dipilih (payload map `coacheeId→unit` + dropdown unit per-baris bersumber `coachee.UserUnits`, tiap unit divalidasi per PSU-03) — bukan satu nilai batch untuk semua. *(CXU-03)*
+  4. Lock JS "satu batch = satu unit" di-relax ke **level Bagian** (boleh multi-unit dalam 1 Bagian dalam satu batch). *(CXU-04)*
+  5. Coach/Supervisor ber-akun **multi-unit** melihat & meng-export **semua** coachee yang dimapping di seluruh unit-nya dalam Bagian (`CDPController` self-scope `unit=user.Unit` → `IN(coach.UserUnits)` di 305/326/636 + post-filter 490-491). *(CXU-05)*
+  6. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright/UAT bila ada UI: assign cross-unit dalam 1 Bagian sukses (coachee unit-X & unit-Y dalam satu batch ke 1 coach); cross-Bagian ditolak server; coach multi-unit lihat semua coachee. *(semua REQ)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 403: OrganizationController Cascade/Guard UserUnits-Aware
+**Goal:** Rename/reparent/delete unit di `OrganizationController` sadar `UserUnits` — cascade rename ke membership (termasuk sekunder), delete-guard mencegah hapus unit yang masih dipakai, dan reparent unit lintas-Bagian di-hard-block agar `UserUnits` pekerja tak pernah terpecah ke >1 Bagian (jaga Invariant #1).
+**Depends on:** Phase 399 (butuh junction `UserUnits`). Wave 1 — **PARALEL dengan Phase 400 & 401** (file `OrganizationController` terisolasi, cluster disjoint).
+**Migration:** false (cascade/guard pada data existing; tidak ada schema/migration baru).
+**Requirements:** ORG-01, ORG-02
+**Success Criteria** (what must be TRUE):
+  1. Rename/reparent unit meng-**cascade ke `UserUnits.Unit`** (+ recompute primary-mirror `ApplicationUser.Unit`), bukan hanya scalar `Users.Unit`. *(ORG-01)*
+  2. Delete-guard meng-**scan `UserUnits`** (termasuk membership **sekunder**) — unit yang masih dipakai sebagai membership sekunder **tak bisa dihapus** (bukan hanya cek scalar `Users.Unit`). *(ORG-01)*
+  3. Reparent unit lintas-Bagian **hard-BLOCK** bila ada pekerja yang `UserUnits`-nya akan terpecah ke >1 Bagian (jaga Invariant #1 "1 Bagian/akun"). *(ORG-02)*
+  4. `PreviewEditCascade` menghitung baris `UserUnits` terdampak sehingga **preview == actual** (impact count akurat). *(ORG-02)*
+  5. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: rename unit propagasi ke baris `UserUnits` + mirror; delete unit ber-membership-sekunder ditolak; reparent cross-Bagian ditolak; preview cocok hasil aktual. *(semua REQ)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 404: Test (SQL Riil) + UAT + Docs + Invariants
+**Goal:** Membuktikan seluruh kemampuan multi-unit + coaching cross-unit + PROTON sekuensial benar di **SQL riil** (bukan EF-InMemory yang tak meng-enforce filtered-unique index), invariant single-active + `AssignmentUnit ∈ UserUnits` + B-06 anti-dobel terjaga, dengan UAT lokal lulus dan batasan D1=b terdokumentasi.
+**Depends on:** Phase 399 + 400 + 401 + 402 + 403 (Wave 3 — penutup milestone; semua fitur harus selesai).
+**Migration:** false (test/UAT/docs; tidak ada schema/write produksi).
+**Requirements:** QA-01, QA-02, QA-03, QA-04
+**Success Criteria** (what must be TRUE):
+  1. Test multi-unit dijalankan di **SQL riil (SQLEXPRESS)** dengan fixture: pekerja {X,Y} dalam 1 Bagian + coach cross-unit + PROTON Tahun1@X → Tahun2@Y — bukan EF-InMemory (yang tak meng-enforce filtered-unique index). *(QA-01)*
+  2. Test invariant **single-active** di SQL riil — coachee multi-unit T1@X → bypass/reassign T2@Y meng-assert **tepat 1 `ProtonTrackAssignment` aktif + 1 `CoachCoacheeMapping` aktif** (filtered-unique terjaga), termasuk jalur Reactivate + Import-reactivate. *(QA-03)*
+  3. Test invariant **`AssignmentUnit ∈ coachee.UserUnits`** di setiap junction-write (Assign/Edit/Import/bypass TargetUnit/reactivate) + B-06 anti-dobel `ProtonDeliverableBootstrap` lintas-unit (CoacheeId sama, deliverable unit X vs Y tak saling skip) + `ProtonKompetensi.Unit` 1:1 per deliverable. *(QA-04)*
+  4. UAT lokal lulus (`dotnet build` + `dotnet run` localhost:5277 + cek DB lokal, Playwright bila ada) + docs mencatat batasan **D1=b** (cert/analytics atribusi primary unit). *(QA-02)*
+  5. `dotnet build` 0 error + `dotnet test` hijau (suite multi-unit SQL riil + suite existing tak regresi) + UAT browser sign-off; milestone siap 1 push → notify IT re-deploy Dev (**migration=TRUE** Phase 399, commit hash). *(semua REQ)*
+**Plans:** TBD
+
+**Active mapped: 24/24 ✓ (MU-01/02/03/04/05/07 → 399 · MU-06 → 400 · PSU-01/02/03/04/05/07 → 401 · CXU-01..05 → 402 · ORG-01/02 → 403 · QA-01..04 → 404) — Orphans: 0 — Duplicates: 0 — migration=TRUE Phase 399 only. Critical path 399 → 401 → 402 → 404; Wave 1 {400, 401, 403} paralel setelah 399.**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 0/0 | Not started | - |
+| 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 0/0 | Not started | - |
+| 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 0/0 | Not started | - |
+| 402. Coaching Cross-Unit Mapping (CXU-01..05) | 0/0 | Not started | - |
+| 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 0/0 | Not started | - |
+| 404. Test (SQL Riil) + UAT + Docs + Invariants (QA-01..04) | 0/0 | Not started | - |
+
+### Coverage Validation
+
+| REQ | Phase | Surface / Touchpoint | Status |
+|-----|-------|----------------------|--------|
+| MU-01 | 399 | Multi-select Unit di Create/Edit Worker (Bagian single, cascade unit-anak) | Pending |
+| MU-02 | 399 | Primary write-through mirror `ApplicationUser.Unit` + recompute/promote/blok + audit set-diff | Pending |
+| MU-03 | 399 | Display semua unit (primary ditandai): Profil/WorkerDetail/Settings/ManageWorkers/Excel/Home/`_PSign` | Pending |
+| MU-04 | 399 | Bulk Import multi-unit (kolom/format unit ganda, validasi anak Bagian) | Pending |
+| MU-05 | 399 | Migration backfill 1 primary-row/pekerja + validasi `Unit ∈ unit-Bagian` tiap junction-write | Pending |
+| MU-07 | 399 | Guard hapus-unit (blok bila dirujuk `AssignmentUnit`/`ProtonTrackAssignment` aktif) | Pending |
+| MU-06 | 400 | `WorkerDataService.GetWorkersInSection` + role-filter + CMP records set-aware + rollup dedup | Pending |
+| PSU-01 | 401 | Resolve unit PROTON dari `AssignmentUnit` (drop fallback `User.Unit`); T1@X→T2@Y sekuensial | Pending |
+| PSU-02 | 401 | Filter coachee/tim/bypass pakai `AssignmentUnit` (BypassList, coachee-scope CDP) | Pending |
+| PSU-03 | 401 | Validasi `AssignmentUnit ∈ coachee.UserUnits` + bypass `TargetUnit ∈ worker.UserUnits` + org | Pending |
+| PSU-04 | 401 | `CleanupCoachCoacheeMappingOrg` + Import no-clobber `AssignmentUnit` (UserUnits-aware) | Pending |
+| PSU-05 | 401 | 6 read-path skip + audit-warn bila `AssignmentUnit` kosong (gate eligibility tak terbit dgn primary) | Pending |
+| PSU-07 | 401 | Reactivation no-clobber + validasi unit aktif + `ProtonTrackAssignment` unit-match | Pending |
+| CXU-01 | 402 | Eligible-coachee set-aware = semua coachee Bagian (`coachee.Section == coach.Section`) | Pending |
+| CXU-02 | 402 | Server guard coachee ⊆ Bagian coach (tolak cross-Bagian) | Pending |
+| CXU-03 | 402 | `AssignmentUnit` per-coachee (map `coacheeId→unit` + dropdown per-baris dari `coachee.UserUnits`) | Pending |
+| CXU-04 | 402 | Relax JS lock single-unit-per-batch → level Bagian | Pending |
+| CXU-05 | 402 | Self-scope coaching-role multi-unit `CDPController` 305/326/636 + 490-491 → `IN(coach.UserUnits)` | Pending |
+| ORG-01 | 403 | Rename/reparent cascade `UserUnits.Unit` + recompute mirror; delete-guard scan `UserUnits` (sekunder) | Pending |
+| ORG-02 | 403 | Reparent lintas-Bagian hard-BLOCK + `PreviewEditCascade` hitung baris `UserUnits` (preview==actual) | Pending |
+| QA-01 | 404 | Test multi-unit SQL riil — fixture {X,Y} 1 Bagian + coach cross-unit + PROTON T1@X→T2@Y | Pending |
+| QA-02 | 404 | UAT lokal (build+run+DB lokal, Playwright bila ada) + docs batasan D1=b | Pending |
+| QA-03 | 404 | Test invariant single-active SQL riil (1 `ProtonTrackAssignment` + 1 `CoachCoacheeMapping` aktif, +Reactivate/Import) | Pending |
+| QA-04 | 404 | Test invariant `AssignmentUnit ∈ coachee.UserUnits` tiap write + B-06 anti-dobel + `ProtonKompetensi.Unit` 1:1 | Pending |
+
+**Active mapped: 24/24 ✓ — Orphans: 0 — Duplicates: 0 — migration=TRUE (Phase 399 `AddUserUnitsTable` + backfill); Phase 400-404 = 0 migration. Dependency: 400/401/403 → 399; 402 → 401; 404 → semua. Wave 1 {400, 401, 403} paralel (cluster file disjoint); 402 serial setelah 401.**
+
+</details>
+
+
+
 <details>
 <summary>✅ Previous milestones (v1.0–v12.0, Phases 1-291) — SHIPPED</summary>
 
