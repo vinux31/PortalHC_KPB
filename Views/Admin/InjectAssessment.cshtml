@@ -417,6 +417,29 @@
                         @* Konten utama (di-toggle JS bila ada pekerja + soal) *@
                         <div id="step5Body" class="d-none">
 
+                            @* Phase 396 N1 — Toggle metode pengisian jawaban room-level (D-01/D-03).
+                               Mutually exclusive: "Import Excel" sembunyikan SELURUH blok Form 395 (#step5FormPath)
+                               & tampilkan #step5ExcelPanel; sebaliknya untuk "Isi via Form". Satu metode per room. *@
+                            <div class="mb-3">
+                                <label class="form-label fw-bold mb-1">Metode pengisian jawaban</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="step5Method" id="step5MethodForm" value="form" checked />
+                                        <label class="form-check-label" for="step5MethodForm">Isi via Form</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="step5Method" id="step5MethodExcel" value="excel" />
+                                        <label class="form-check-label" for="step5MethodExcel">Import Excel</label>
+                                    </div>
+                                </div>
+                                <div class="form-text text-muted">Pilih satu metode untuk seluruh room — semua via form atau semua via Excel (tak bisa campur).</div>
+                            </div>
+                            @* Hidden bound input — metode terpilih ikut ter-POST ke server (Step5Method VM). *@
+                            <input type="hidden" asp-for="Step5Method" id="Step5Method" value="form" />
+
+                            @* ===== Jalur Form 395 (di-toggle visibility oleh N1) ===== *@
+                            <div id="step5FormPath">
+
                             @* Toggle mode default room (K2) *@
                             <div class="mb-3">
                                 <label class="form-label fw-bold mb-1">Mode default room</label>
@@ -518,6 +541,73 @@
                                     </div>
                                 </div>
                             </div>
+                            </div>
+                            @* ===== /Jalur Form 395 (#step5FormPath) ===== *@
+
+                            @* ===== Phase 396 N2 — Panel Import Excel (di-toggle visibility oleh N1) ===== *@
+                            <div id="step5ExcelPanel" class="card d-none">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0 fw-bold"><i class="bi bi-file-earmark-excel text-primary me-2"></i>Import Jawaban via Excel</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    @* N2a — Instruksi *@
+                                    <div class="alert alert-info small">
+                                        <i class="bi bi-info-circle me-2"></i>1. Unduh template. 2. Isi jawaban — huruf opsi (A untuk Single, A,C untuk Multiple) atau skor untuk Essay. 3. Unggah & pratinjau sebelum commit.
+                                    </div>
+
+                                    @* N2b — Download Template *@
+                                    <div class="mb-3">
+                                        <button type="button" id="btnDownloadTemplate" class="btn btn-outline-primary"
+                                                data-download-url="@Url.Action("DownloadInjectTemplate", "InjectAssessment")">
+                                            <i class="bi bi-download me-1"></i>Download Template
+                                        </button>
+                                        <div class="form-text text-muted">Template berisi 1 baris per pekerja terpilih + kolom per soal.</div>
+                                    </div>
+
+                                    @* N2c — File upload *@
+                                    <div class="mb-3">
+                                        <label for="step5ExcelFile" class="form-label fw-bold">File Excel</label>
+                                        <input type="file" class="form-control" id="step5ExcelFile" accept=".xlsx,.xls" />
+                                        <div class="form-text text-muted">Format .xlsx/.xls, maks 10 MB.</div>
+                                    </div>
+
+                                    @* N2d — Upload & Pratinjau *@
+                                    <div class="mb-3">
+                                        <button type="button" id="btnUploadExcel" class="btn btn-outline-primary"
+                                                data-upload-url="@Url.Action("UploadInjectExcel", "InjectAssessment")" disabled>
+                                            <span class="spinner-border spinner-border-sm me-1 d-none" id="step5ExcelSpinner" role="status" aria-hidden="true"></span>
+                                            <i class="bi bi-upload me-1" id="step5ExcelUploadIcon"></i><span id="step5ExcelUploadLabel">Upload &amp; Pratinjau</span>
+                                        </button>
+                                    </div>
+
+                                    @* N4 — Panel daftar error validasi (D-09) *@
+                                    <div id="step5ExcelErrors" class="alert alert-danger d-none" role="alert">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Perbaiki kesalahan berikut, lalu unggah ulang:</strong>
+                                        <ul class="mb-0 mt-2 small" id="step5ExcelErrorList" style="max-height:240px;overflow-y:auto"></ul>
+                                    </div>
+
+                                    @* N3 — Tabel Pratinjau batch (D-08) *@
+                                    <div id="step5ExcelPreview" style="display:none">
+                                        <div class="h6 fw-bold mt-3">Pratinjau Hasil (sebelum commit)</div>
+                                        <div id="step5ExcelBlankWarn" class="alert alert-warning py-2 small d-none"></div>
+                                        <div style="max-height:320px;overflow-y:auto">
+                                            <table class="table table-sm table-hover align-middle" role="status" aria-live="polite">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th style="width:40px">#</th>
+                                                        <th>NIP / Nama</th>
+                                                        <th style="width:110px">Skor Final</th>
+                                                        <th style="width:120px">Lulus/Tidak</th>
+                                                        <th style="width:120px">Soal Terjawab</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="step5ExcelPreviewBody"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @* ===== /Panel Import Excel (#step5ExcelPanel) ===== *@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mt-4">
@@ -990,8 +1080,16 @@
             if (hidden) hidden.value = JSON.stringify(injQuestions);
             // Phase 395 (Pitfall 4 — KRITIS): serialize answers di listener yang SAMA dgn #QuestionsJson.
             // Lupa = POST answers kosong → semua worker grade 0 (silent).
+            // Phase 396 (D-08/T-396-10): bila metode=excel, #AnswersJson diisi dari excelAnswersCache
+            //   (di-set HANYA setelah upload 0-error). Upload invalid → cache "[]" → commit tak menghasilkan.
             var answersHidden = document.getElementById('AnswersJson');
-            if (answersHidden) answersHidden.value = JSON.stringify(buildWorkerAnswersPayload());
+            if (answersHidden) {
+                var methodEl = document.getElementById('Step5Method');
+                var isExcel = methodEl && methodEl.value === 'excel';
+                answersHidden.value = isExcel
+                    ? (window.injExcelAnswersCache || '[]')
+                    : JSON.stringify(buildWorkerAnswersPayload());
+            }
         });
     }
     window.injGetQuestions = function () { return injQuestions; };
@@ -1562,6 +1660,202 @@
     window.injWizard = { goToStep: goToStep, validateStep: validateStep };
 
     updatePills();
+})();
+
+// ============================================================================
+// Phase 396 — Jalur Import Excel (Langkah 5, N1-N4). IIFE terpisah; akses global
+//   window.injGetQuestions (soal authored) + picker checkbox UserIds + antiforgery.
+//   Render data via .textContent (XSS-safe, carry 395). preview == commit dijaga server.
+// ============================================================================
+(function InjectExcelPath() {
+    function antiforgeryToken() {
+        var el = document.querySelector('input[name="__RequestVerificationToken"]');
+        return el ? el.value : '';
+    }
+    function selectedUserIds() {
+        return Array.from(document.querySelectorAll('#userCheckboxContainer .user-checkbox:checked'))
+            .map(function (cb) { return cb.value; });
+    }
+    function passPercentage() {
+        var el = document.getElementById('PassPercentage');
+        var v = el ? parseInt(el.value, 10) : 70;
+        return isNaN(v) ? 70 : v;
+    }
+    function serializeQuestionsHidden() {
+        // Pastikan #QuestionsJson terisi soal terkini (server butuh soal untuk gen/parse).
+        var hidden = document.getElementById('QuestionsJson');
+        var qs = (typeof window.injGetQuestions === 'function') ? window.injGetQuestions() : [];
+        if (hidden) hidden.value = JSON.stringify(qs);
+        return qs;
+    }
+
+    // ── N1 toggle: form ↔ excel (mutually exclusive, IC-1) ──
+    function applyMethod() {
+        var checked = document.querySelector('input[name="step5Method"]:checked');
+        var mode = checked ? checked.value : 'form';
+        var formPath = document.getElementById('step5FormPath');
+        var excelPanel = document.getElementById('step5ExcelPanel');
+        var methodHidden = document.getElementById('Step5Method');
+        var isExcel = (mode === 'excel');
+        if (formPath) formPath.classList.toggle('d-none', isExcel);
+        if (excelPanel) excelPanel.classList.toggle('d-none', !isExcel);
+        if (methodHidden) methodHidden.value = isExcel ? 'excel' : 'form';
+        // Tidak menghapus state form 395 (HC dapat kembali ke 'form').
+    }
+    document.querySelectorAll('input[name="step5Method"]').forEach(function (r) {
+        r.addEventListener('change', applyMethod);
+    });
+
+    // ── N2c file input → enable/disable tombol Upload ──
+    var fileEl = document.getElementById('step5ExcelFile');
+    var uploadBtn = document.getElementById('btnUploadExcel');
+    if (fileEl && uploadBtn) {
+        fileEl.addEventListener('change', function () {
+            uploadBtn.disabled = !(fileEl.files && fileEl.files.length > 0);
+        });
+    }
+
+    // ── N2b Download Template → POST programatik (form sementara bawa QuestionsJson + UserIds + token) ──
+    var downloadBtn = document.getElementById('btnDownloadTemplate');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function () {
+            serializeQuestionsHidden();
+            var url = downloadBtn.getAttribute('data-download-url');
+            var tmp = document.createElement('form');
+            tmp.method = 'post';
+            tmp.action = url;
+            tmp.style.display = 'none';
+            function addField(name, value) {
+                var inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = name; inp.value = value;
+                tmp.appendChild(inp);
+            }
+            addField('__RequestVerificationToken', antiforgeryToken());
+            var qHidden = document.getElementById('QuestionsJson');
+            addField('QuestionsJson', qHidden ? qHidden.value : '[]');
+            selectedUserIds().forEach(function (id) { addField('UserIds', id); });
+            document.body.appendChild(tmp);
+            tmp.submit();
+            document.body.removeChild(tmp);
+        });
+    }
+
+    // ── N2d Upload & Pratinjau → fetch FormData → render N3 preview ATAU N4 errors ──
+    function setLoading(on) {
+        if (!uploadBtn) return;
+        var spinner = document.getElementById('step5ExcelSpinner');
+        var icon = document.getElementById('step5ExcelUploadIcon');
+        var label = document.getElementById('step5ExcelUploadLabel');
+        if (on) {
+            uploadBtn.disabled = true;
+            if (spinner) spinner.classList.remove('d-none');
+            if (icon) icon.classList.add('d-none');
+            if (label) label.textContent = 'Memproses…';
+        } else {
+            if (spinner) spinner.classList.add('d-none');
+            if (icon) icon.classList.remove('d-none');
+            if (label) label.textContent = 'Upload & Pratinjau';
+            uploadBtn.disabled = !(fileEl && fileEl.files && fileEl.files.length > 0);
+        }
+    }
+    function hidePreview() {
+        var p = document.getElementById('step5ExcelPreview');
+        if (p) p.style.display = 'none';
+    }
+    function showErrors(messages) {
+        hidePreview();
+        window.injExcelAnswersCache = '[]';   // T-396-10: invalid upload → commit hasilkan kosong
+        var box = document.getElementById('step5ExcelErrors');
+        var list = document.getElementById('step5ExcelErrorList');
+        if (list) {
+            list.innerHTML = '';
+            messages.forEach(function (m) {
+                var li = document.createElement('li');
+                li.textContent = m;            // XSS-safe (carry 395)
+                list.appendChild(li);
+            });
+        }
+        if (box) box.classList.remove('d-none');
+    }
+    function renderPreview(result) {
+        var errBox = document.getElementById('step5ExcelErrors');
+        if (errBox) errBox.classList.add('d-none');
+
+        var blankWarn = document.getElementById('step5ExcelBlankWarn');
+        if (blankWarn) {
+            if (result.skippedBlankCount && result.skippedBlankCount > 0) {
+                blankWarn.textContent = result.skippedBlankCount +
+                    ' jawaban kosong di Excel — soal terkait dihitung 0. Periksa pratinjau sebelum commit.';
+                blankWarn.classList.remove('d-none');
+            } else {
+                blankWarn.classList.add('d-none');
+            }
+        }
+
+        var body = document.getElementById('step5ExcelPreviewBody');
+        if (body) {
+            body.innerHTML = '';
+            (result.previews || []).forEach(function (row, idx) {
+                var tr = document.createElement('tr');
+                var tdNum = document.createElement('td');
+                tdNum.textContent = String(idx + 1);
+                var tdNip = document.createElement('td');
+                tdNip.textContent = (row.nip || '') + ' / ' + (row.name || '');
+                var tdScore = document.createElement('td');
+                tdScore.className = 'fw-bold';
+                tdScore.textContent = (row.percentage != null ? row.percentage : 0) + '%';
+                var tdPass = document.createElement('td');
+                var badge = document.createElement('span');
+                badge.className = 'badge ' + (row.isPassed ? 'bg-success' : 'bg-danger');
+                badge.textContent = row.isPassed ? 'Lulus' : 'Tidak Lulus';
+                tdPass.appendChild(badge);
+                var tdAns = document.createElement('td');
+                tdAns.textContent = (row.answered != null ? row.answered : 0) + ' / ' + (row.totalQuestions != null ? row.totalQuestions : 0);
+                tr.appendChild(tdNum); tr.appendChild(tdNip); tr.appendChild(tdScore); tr.appendChild(tdPass); tr.appendChild(tdAns);
+                body.appendChild(tr);
+            });
+        }
+
+        var prev = document.getElementById('step5ExcelPreview');
+        if (prev) prev.style.display = 'block';
+        window.injExcelAnswersCache = result.answersJson || '[]';   // di-commit via #AnswersJson
+    }
+
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', function () {
+            if (!fileEl || !fileEl.files || fileEl.files.length === 0) return;
+            serializeQuestionsHidden();
+            setLoading(true);
+
+            var fd = new FormData();
+            fd.append('excel', fileEl.files[0]);
+            var qHidden = document.getElementById('QuestionsJson');
+            fd.append('QuestionsJson', qHidden ? qHidden.value : '[]');
+            fd.append('PassPercentage', String(passPercentage()));
+            selectedUserIds().forEach(function (id) { fd.append('UserIds', id); });
+            fd.append('__RequestVerificationToken', antiforgeryToken());
+
+            var url = uploadBtn.getAttribute('data-upload-url');
+            fetch(url, { method: 'POST', body: fd, headers: { 'RequestVerificationToken': antiforgeryToken() } })
+                .then(function (r) { return r.json(); })
+                .then(function (result) {
+                    if (!result || !result.ok) {
+                        var msgs = (result && result.errors ? result.errors : []).map(function (e) { return e.message || ''; });
+                        if (msgs.length === 0) msgs = ['Gagal membaca file Excel. Pastikan file .xlsx/.xls valid dan ≤ 10 MB, lalu coba lagi.'];
+                        showErrors(msgs);
+                    } else {
+                        renderPreview(result);
+                    }
+                })
+                .catch(function () {
+                    showErrors(['Gagal membaca file Excel. Pastikan file .xlsx/.xls valid dan ≤ 10 MB, lalu coba lagi.']);
+                })
+                .finally(function () { setLoading(false); });
+        });
+    }
+
+    // Init state.
+    applyMethod();
 })();
 </script>
 }

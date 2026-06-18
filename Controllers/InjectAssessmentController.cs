@@ -61,6 +61,11 @@ namespace HcPortal.Controllers
             var workerAnswers = ParseAnswerVms(vm);
             var req = MapToRequest(vm, userIdToNip, workerAnswers);
 
+            // Phase 396 D-05: jalur Excel → teks essay OPSIONAL (jangan tolak essay tanpa teks).
+            // Jalur Form 395 pertahankan default true (teks wajib bila skor diisi). T-396-04.
+            if (string.Equals(vm.Step5Method, "excel", StringComparison.OrdinalIgnoreCase))
+                req.EssayTextRequired = false;
+
             // BLOCKING guard (D-08.3): worker auto-gen dengan target>ceiling MC/MA = TIDAK boleh ter-commit
             // (integritas sertifikasi — JANGAN diam-diam cap). Re-derive ceiling server-authoritative.
             var blockedNips = FindBlockedAutoGenNips(req, workerAnswers, userIdToNip);
