@@ -500,9 +500,12 @@ namespace HcPortal.Controllers
                     .Select(a => a.CoacheeId)
                     .Distinct()
                     .ToListAsync();
-                scopeLabel = !string.IsNullOrEmpty(user.Unit)
-                    ? $"Unit: {user.Unit}"
-                    : $"Section: {user.Section ?? "(unknown)"} (Unit not set)";
+                // Phase 402 (WR-03): default load (unit == null) = UNION coachee lintas semua unit coach,
+                // jadi label tak boleh menyebut satu unit primary scalar. Pakai label unit HANYA saat filter
+                // unit aktif; selain itu label berbasis Section (union seluruh unit coach dalam 1 Bagian).
+                scopeLabel = !string.IsNullOrWhiteSpace(unit)
+                    ? $"Unit: {unit.Trim()}"
+                    : $"Section: {user.Section ?? "(unknown)"}";
             }
 
             // Batch load data (avoid N+1) — filter inactive users
