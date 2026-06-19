@@ -384,4 +384,87 @@ public class PostLisensorPolishTests : IClassFixture<PostLisensorPolishFixture>
             .FirstAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == mcQ);
         Assert.Equal(optB.Id, row.PackageOptionId);  // ter-update ke pilihan baru
     }
+
+    // ============================================================================================
+    // 999.11 (398.1) — EditAssessment PendingGrading hard-block guard (single-mode branch).
+    // Replikasi PERSIS keputusan AssessmentAdminController.EditAssessment POST single-mode:
+    //   a. Status == Completed && !hasAddition           → block "Cannot edit completed assessments."
+    //   b. !hasAddition && AnyAsync(group key, PendingGrading) → block (999.11 D-02 hard-block)
+    //   c. else                                          → allow
+    // Carve-out !hasAddition: penambahan peserta (Phase 391 D-02) tetap diizinkan.
+    // ⚠ Title unik per-test (Guid) → isolasi di shared fixture DB (group key = Title+Category+Schedule.Date).
+    // ============================================================================================
+
+    private readonly record struct EditGuardResult(bool Blocked, string Message);
+
+    private static async Task<int> SeedGuardSessionAsync(ApplicationDbContext ctx, string userId, string status, string title)
+    {
+        var s = new AssessmentSession
+        {
+            UserId = userId, Title = title, Category = "OJT", Status = status, AccessToken = "",
+            Schedule = new DateTime(2026, 6, 16), PassPercentage = 70, GenerateCertificate = false
+        };
+        ctx.AssessmentSessions.Add(s);
+        await ctx.SaveChangesAsync();
+        return s.Id;
+    }
+
+    private static async Task<EditGuardResult> RunEditAssessmentGuardAsync(ApplicationDbContext ctx, int assessmentId, bool hasAddition)
+    {
+        var assessment = await ctx.AssessmentSessions.FindAsync(assessmentId);
+        if (assessment == null) return new(true, "Assessment not found.");
+        if (assessment.Status == S.Completed && !hasAddition)
+            return new(true, "Cannot edit completed assessments.");
+        // 999.11 D-02 hard-block — byte-identik guard controller (single-mode).
+        if (!hasAddition)
+        {
+            bool anyPendingGrading = await ctx.AssessmentSessions.AnyAsync(a =>
+                a.Title == assessment.Title && a.Category == assessment.Category
+                && a.Schedule.Date == assessment.Schedule.Date
+                && a.Status == S.PendingGrading);
+            if (anyPendingGrading)
+                return new(true, "Tidak dapat mengedit assessment saat ada sesi menunggu penilaian (essay belum dinilai). Selesaikan penilaian dahulu.");
+        }
+        return new(false, "");
+    }
+
+    [Fact]
+    public async Task EditGuard_PendingGrading_EditOnly_Blocked()  // 999.11 case 1: hard-block
+    {
+        await using var ctx = NewCtx();
+        var uid = await SeedUserAsync(ctx);
+        var title = "EditGuard PG " + Guid.NewGuid().ToString("N")[..8];
+        var sid = await SeedGuardSessionAsync(ctx, uid, S.PendingGrading, title);
+
+        var res = await RunEditAssessmentGuardAsync(ctx, sid, hasAddition: false);
+
+        Assert.True(res.Blocked);
+        Assert.Contains("menunggu penilaian", res.Message);
+    }
+
+    [Fact]
+    public async Task EditGuard_PendingGrading_WithAddition_Allowed()  // 999.11 case 2: carve-out (Phase 391 D-02)
+    {
+        await using var ctx = NewCtx();
+        var uid = await SeedUserAsync(ctx);
+        var title = "EditGuard ADD " + Guid.NewGuid().ToString("N")[..8];
+        var sid = await SeedGuardSessionAsync(ctx, uid, S.PendingGrading, title);
+
+        var res = await RunEditAssessmentGuardAsync(ctx, sid, hasAddition: true);
+
+        Assert.False(res.Blocked);   // penambahan peserta TIDAK ter-block oleh guard PendingGrading
+    }
+
+    [Fact]
+    public async Task EditGuard_IdleStatus_EditOnly_Allowed()  // 999.11 case 3: no PendingGrading → lolos
+    {
+        await using var ctx = NewCtx();
+        var uid = await SeedUserAsync(ctx);
+        var title = "EditGuard IDLE " + Guid.NewGuid().ToString("N")[..8];
+        var sid = await SeedGuardSessionAsync(ctx, uid, "Open", title);
+
+        var res = await RunEditAssessmentGuardAsync(ctx, sid, hasAddition: false);
+
+        Assert.False(res.Blocked);   // tak ada sesi PendingGrading di group key → edit boleh
+    }
 }
