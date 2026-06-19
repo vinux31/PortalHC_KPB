@@ -542,6 +542,11 @@ namespace HcPortal.Controllers
             if (req == null || string.IsNullOrEmpty(req.CoachId) || req.CoacheeIds == null || req.CoacheeIds.Count == 0)
                 return Json(new { success = false, message = "Data tidak lengkap." });
 
+            // Phase 402 (WR-02): dedup coacheeId di awal supaya payload dengan duplikat (DOM glitch / crafted)
+            // tidak membuat dua baris aktif untuk coachee yang sama → IX_CoachCoacheeMappings_CoacheeId_ActiveUnique
+            // violation yang me-rollback SELURUH batch. Dipakai di semua langkah hilir.
+            req.CoacheeIds = req.CoacheeIds.Distinct().ToList();
+
             if (req.CoacheeIds.Contains(req.CoachId))
                 return Json(new { success = false, message = "Coach tidak dapat menjadi coachee dirinya sendiri." });
 
