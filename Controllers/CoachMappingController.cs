@@ -61,6 +61,20 @@ namespace HcPortal.Controllers
                 string.Equals(u.Trim(), assignmentUnit.Trim(), StringComparison.OrdinalIgnoreCase));
         }
 
+        // Phase 402 (CXU-02): coachee.Section harus == coach.Section (Invariant #1: 1 batch = 1 Bagian = coach.Section).
+        // Static seam (testable via InMemory, no UserManager/HttpContext mock — pola 401 ValidateAssignmentUnitInUserUnits).
+        public static async Task<bool> CoacheeSectionMatchesCoach(
+            ApplicationDbContext context, string coacheeId, string? coachSection)
+        {
+            if (string.IsNullOrWhiteSpace(coachSection)) return false;
+            var coacheeSection = await context.Users
+                .Where(u => u.Id == coacheeId)
+                .Select(u => u.Section)
+                .FirstOrDefaultAsync();
+            if (string.IsNullOrWhiteSpace(coacheeSection)) return false;
+            return string.Equals(coacheeSection.Trim(), coachSection.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
         public async Task<IActionResult> CoachCoacheeMapping(
             string? search, string? section, bool showAll = false, int page = 1)
         {
@@ -1867,7 +1881,8 @@ public class CoachAssignRequest
     public int? ProtonTrackId { get; set; }
     public DateTime? StartDate { get; set; }
     public string? AssignmentSection { get; set; }
-    public string? AssignmentUnit { get; set; }
+    public string? AssignmentUnit { get; set; }                          // single — keep for back-compat fallback
+    public Dictionary<string, string>? AssignmentUnits { get; set; }     // Phase 402 (D-05): coacheeId -> unit (per-coachee)
     /// <summary>D-09: If true, user confirmed to proceed despite incomplete progression warning.</summary>
     public bool ConfirmProgressionWarning { get; set; }
 }
