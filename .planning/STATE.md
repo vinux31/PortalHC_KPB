@@ -4,14 +4,14 @@ milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
 stopped_at: "Phase 402: plans 01-02 complete, next 402-03 (CDP self-scope, UAT checkpoint)"
-last_updated: "2026-06-19T08:46:29.198Z"
-last_activity: 2026-06-19 -- Phase 402 execution started
+last_updated: "2026-06-19T09:57:04.010Z"
+last_activity: 2026-06-19
 progress:
   total_phases: 31
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 17
-  completed_plans: 15
-  percent: 88
+  completed_plans: 17
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 402 (Coaching Cross-Unit Mapping) — EXECUTING
-Plan: 1 of 4
+Phase: 403
+Plan: Not started
 Status: Executing Phase 402
-Last activity: 2026-06-19 -- Phase 402 execution started
+Last activity: 2026-06-19
 
 > ⏸ RESUME: see `.planning/phases/401-proton-unit-resolution-hardening/.continue-here.md`
 > Next = satisfy BLOCKING human-verify D-01 render checkpoint (Razor; Playwright or user "approved"), then Plan 03 Task 4 (turn-green tests) → 401-03-SUMMARY → verify phase. migration=FALSE. Run gsd-tools from ITHandoff toplevel ONLY.

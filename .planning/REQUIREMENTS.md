@@ -30,11 +30,11 @@ Requirements untuk milestone v32.3. Tiap REQ map ke satu phase.
 
 ### Coaching Cross-Unit (CXU)
 
-- [ ] **CXU-01**: HC memilih sebuah Bagian → memilih coach → daftar coachee eligible = **semua coachee di Bagian itu** (lintas unit), bukan hanya unit coach (set-aware: `coachee.Section == coach.Section`).
-- [ ] **CXU-02**: Server **mem-enforce** coachee yang di-assign harus **⊆ Bagian coach** (tolak cross-Bagian) — guard baru di endpoint assign (saat ini tidak ada perbandingan coach.Section vs coachee.Section).
-- [ ] **CXU-03**: `AssignmentUnit` di-set **per-coachee** dari unit coachee yang dipilih (bukan satu nilai batch untuk semua) — reshape payload menjadi map `coacheeId→unit` + dropdown unit per-baris bersumber dari `coachee.UserUnits`; tiap unit divalidasi per PSU-03.
-- [ ] **CXU-04**: Lock JS "satu batch = satu unit" di-relax ke **level Bagian** (boleh multi-unit dalam 1 Bagian dalam satu batch).
-- [ ] **CXU-05**: Self-scope coaching-role **set-aware** — untuk Coach/Supervisor, `unit = user.Unit` paksa di `CDPController` 305/326/636 (dan post-filter coachee 490-491) diganti `IN(coach.UserUnits)` sehingga coach yang akunnya multi-unit melihat & meng-export **semua** coachee yang dimapping di seluruh unit-nya dalam Bagian.
+- [x] **CXU-01**: HC memilih sebuah Bagian → memilih coach → daftar coachee eligible = **semua coachee di Bagian itu** (lintas unit), bukan hanya unit coach (set-aware: `coachee.Section == coach.Section`).
+- [x] **CXU-02**: Server **mem-enforce** coachee yang di-assign harus **⊆ Bagian coach** (tolak cross-Bagian) — guard baru di endpoint assign (saat ini tidak ada perbandingan coach.Section vs coachee.Section).
+- [x] **CXU-03**: `AssignmentUnit` di-set **per-coachee** dari unit coachee yang dipilih (bukan satu nilai batch untuk semua) — reshape payload menjadi map `coacheeId→unit` + dropdown unit per-baris bersumber dari `coachee.UserUnits`; tiap unit divalidasi per PSU-03.
+- [x] **CXU-04**: Lock JS "satu batch = satu unit" di-relax ke **level Bagian** (boleh multi-unit dalam 1 Bagian dalam satu batch).
+- [x] **CXU-05**: Self-scope coaching-role **set-aware** — untuk Coach/Supervisor, `unit = user.Unit` paksa di `CDPController` 305/326/636 (dan post-filter coachee 490-491) diganti `IN(coach.UserUnits)` sehingga coach yang akunnya multi-unit melihat & meng-export **semua** coachee yang dimapping di seluruh unit-nya dalam Bagian.
 
 ### Org Integrity (ORG)
 
@@ -82,11 +82,11 @@ Diisi saat pembuatan roadmap.
 | PSU-04 | Phase 401 | Complete |
 | PSU-05 | Phase 401 | Complete |
 | PSU-07 | Phase 401 | Complete |
-| CXU-01 | Phase 402 | Pending |
-| CXU-02 | Phase 402 | Pending |
-| CXU-03 | Phase 402 | Pending |
-| CXU-04 | Phase 402 | Pending |
-| CXU-05 | Phase 402 | Pending |
+| CXU-01 | Phase 402 | Complete |
+| CXU-02 | Phase 402 | Complete |
+| CXU-03 | Phase 402 | Complete |
+| CXU-04 | Phase 402 | Complete |
+| CXU-05 | Phase 402 | Complete |
 | ORG-01 | Phase 403 | Complete |
 | ORG-02 | Phase 403 | Complete |
 | QA-01 | Phase 404 | Pending |
