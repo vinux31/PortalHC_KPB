@@ -20,6 +20,21 @@
 
 ---
 
+## v32.0 Manajemen Peserta (Shipped: 2026-06-17, closed manual 2026-06-19)
+
+**Phases completed:** 2 phases (391-392), 4 plans
+**Requirements:** 7/7 PART-01..04 + WRKR-01..03 · **Migration:** 0 · **Branch:** main (belum push — deploy bareng, notify IT)
+**Audit:** PASSED (2/2 phase, integration all-wired, nyquist compliant) — `milestones/v32.0-MILESTONE-AUDIT.md`
+
+> Closed MANUAL 2026-06-19 (non-destruktif — `/gsd-complete-milestone` standar di-skip krn akan clobber REQUIREMENTS/STATE/PROJECT live milestone berikut; v32.0 tak diarsip sebelum v32.2 mulai). Archive snapshot dari git: ROADMAP @`4356e066`, REQUIREMENTS @`21b80df2`. Tag `v32.0` @`423a2e76`.
+
+**Key accomplishments:**
+
+- **Phase 391 — Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04):** HC dapat menambah peserta baru ke assessment yang sedang berjalan (peserta lain `InProgress`) tanpa diblokir; tutup edge guard `Completed` agar tak salah-blokir selama window ujian terbuka; notice informatif; regression test (penambahan-saat-InProgress berhasil, peserta baru ber-status siap-mulai Open/Upcoming per jadwal BUKAN warisi induk [D-01], sesi/jawaban existing tak ter-overwrite). 0 migration.
+- **Phase 392 — Perbaikan CreateWorker + Audit Field (WRKR-01..03):** buka kunci field Nama/Email (`readonly` saat AD mode) agar bisa diketik di semua environment + `type="email"` + validation inline field organisasi; Playwright-verify semua field + create pekerja end-to-end sukses. View-only (controller/model tak diubah). 0 migration.
+
+---
+
 ## v31.0 Hotfix Pra-Ujian Lisensor (Shipped: 2026-06-15)
 
 **Phases completed:** 6 phases, 12 plans, 28 tasks

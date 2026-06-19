@@ -31,7 +31,7 @@ Last activity: 2026-06-19
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — CLOSED. 7 fase (393-398 + 398.1), 26 plan, 13/13 REQ INJ-01..13, **0 migration**. Re-audit-2 PASSED (7/7 phase VERIFICATION, integration 7/7 WIRED 0-regression, nyquist 6/6, tech-debt RESOLVED via 398.1: 8 FIX/2 DROP). Archive: `milestones/v32.2-*` + `milestones/v32.2-phases/`. Tag lokal `v32.2`. Branch main. **NOT PUSHED.**
 
-**v32.0 (Phases 391+392) COMPLETE local — BELUM diarsip** (dir `391-*`/`392-*` masih di `.planning/phases/`; audit PASSED ada `v32.0-MILESTONE-AUDIT.md`). ⚠️ JANGAN `/gsd-complete-milestone v32.0` standar (destruktif — REQUIREMENTS/STATE/PROJECT live milestone berikut akan clobber). Close MANUAL: buat `milestones/v32.0-ROADMAP+REQUIREMENTS` dari git (PART/WRKR) + tag v32.0 @`423a2e76`, TANPA sentuh file live. Non-blocking.
+**v32.0 (Phases 391+392) — ✅ CLOSED manual 2026-06-19** (non-destruktif). Archive `milestones/v32.0-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md` + `milestones/v32.0-phases/`; entry `## v32.0` di MILESTONES.md; tag lokal `v32.0` @`423a2e76`. 7/7 REQ PART/WRKR, 0 migration. NOT pushed (deploy bareng main + tag).
 
 ## Next Action
 

@@ -30,7 +30,7 @@
 - ✅ **v29.0 Assessment E2E Worker-Success Fix** — Phases 380-382 (shipped local + audited PASSED 2026-06-15, 11/11 REQ WSE-01..11; 0 migration; NOT PUSHED) — [archive](milestones/v29.0-ROADMAP.md) — [audit](v29.0-MILESTONE-AUDIT.md)
 - ✅ **v30.0 Essay Grading Correctness + Monitoring UI Refactor** — Phases 383-384 (shipped local + audited PASSED 2026-06-15, 10/10 REQ ECG-01..06 + UIG-01..04; **0 migration**; menutup backlog RES-02 + GRD-02; NOT PUSHED) — [archive](milestones/v30.0-ROADMAP.md) — [audit](milestones/v30.0-MILESTONE-AUDIT.md)
 - ✅ **v31.0 Hotfix Pra-Ujian Lisensor** — Phases 385-387 (shipped local + audited PASSED 2026-06-16, 14/14 REQ PXF-01..14; **0 migration**; 385-386 = bundle urgent pra-acara [deploy IT #1], 387 = polish pasca-acara [deploy IT #2]; NOT PUSHED) — [archive](milestones/v31.0-ROADMAP.md) — [audit](milestones/v31.0-MILESTONE-AUDIT.md)
-- ✅ **v32.0 Manajemen Peserta** — Phases 391-392 (shipped local + audited PASSED 2026-06-17, 7/7 REQ PART-01..04 + WRKR-01..03; **0 migration**; build+fast-suite+integration GREEN [347/347 + 4/4]; 391 = penambahan peserta fleksibel saat ujian berjalan, 392 = perbaikan CreateWorker view + audit field; branch main, NOT PUSHED) — [audit](v32.0-MILESTONE-AUDIT.md)
+- ✅ **v32.0 Manajemen Peserta** — Phases 391-392 (shipped local + audited PASSED 2026-06-17, closed manual 2026-06-19, 7/7 REQ PART-01..04 + WRKR-01..03; **0 migration**; 391 = penambahan peserta fleksibel saat ujian berjalan, 392 = perbaikan CreateWorker view + audit field; branch main, NOT PUSHED) — [archive](milestones/v32.0-ROADMAP.md) — [requirements](milestones/v32.0-REQUIREMENTS.md) — [audit](milestones/v32.0-MILESTONE-AUDIT.md)
 - ✅ **v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — Phases 393-398 + 398.1 (shipped local + audited PASSED 2026-06-19, 13/13 REQ INJ-01..13; 7 phase, 26 plan; **0 migration**; page baru `/Admin/InjectAssessment` Section C [Admin+HC] meng-inject hasil assessment identik online via reuse GradingService/authoring/CertNumberHelper; 398.1 = tech-debt cleanup 8 FIX/2 DROP; branch main, NOT PUSHED) — [archive](milestones/v32.2-ROADMAP.md) — [audit](milestones/v32.2-MILESTONE-AUDIT.md)
 
 ## Phases
@@ -45,12 +45,9 @@ Detail lengkap → [milestones/v32.2-ROADMAP.md](milestones/v32.2-ROADMAP.md). 7
 </details>
 
 <details>
-<summary>✅ v32.0 Manajemen Peserta (Phases 391-392) — phases complete, audited PASSED (belum di-archive)</summary>
+<summary>✅ v32.0 Manajemen Peserta (Phases 391-392) — SHIPPED 2026-06-17, closed manual 2026-06-19</summary>
 
-- [x] Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan (2/2 plans) — PART-01..04
-- [x] Phase 392: Perbaikan CreateWorker view + audit field (2/2 plans) — WRKR-01..03
-
-⚠️ v32.0 belum di-close formal (deferred — standard complete-milestone destruktif krn REQUIREMENTS/STATE live = milestone berikut). Close manual nanti: buat `milestones/v32.0-ROADMAP+REQUIREMENTS` dari git + tag v32.0 @`423a2e76`, TANPA sentuh REQUIREMENTS/STATE/PROJECT live. Audit: [v32.0-MILESTONE-AUDIT.md](v32.0-MILESTONE-AUDIT.md). Dir fase masih di `.planning/phases/391-*`, `392-*`.
+Detail lengkap → [milestones/v32.0-ROADMAP.md](milestones/v32.0-ROADMAP.md). 2 phase, 4 plan, 7/7 REQ PART-01..04 + WRKR-01..03, 0 migration. Closed manual (non-destruktif); tag `v32.0` @`423a2e76`; dir fase di `milestones/v32.0-phases/`.
 
 </details>
 
