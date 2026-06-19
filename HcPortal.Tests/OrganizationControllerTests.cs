@@ -20,6 +20,11 @@ public class OrganizationControllerTests
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            // Pitfall 1: EditOrganizationUnit dibungkus BeginTransactionAsync (Phase 403). InMemory tak
+            // dukung transaksi → tanpa suppress, EditOrganizationUnit/preview-parity test lempar
+            // TransactionIgnoredWarning. InMemory abaikan tx (no-op) → operasi tetap jalan → parity teruji.
+            // Atomicity = domain SQL Phase 404, bukan di-test di sini.
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;
         var ctx = new ApplicationDbContext(options);
         var auditLog = new AuditLogService(ctx);
@@ -46,6 +51,11 @@ public class OrganizationControllerTests
     {
         var j = Assert.IsType<JsonResult>(r);
         return (bool)j.Value!.GetType().GetProperty(prop)!.GetValue(j.Value)!;
+    }
+    private static string GetMessage(IActionResult r)
+    {
+        var j = Assert.IsType<JsonResult>(r);
+        return (string)j.Value!.GetType().GetProperty("message")!.GetValue(j.Value)!;
     }
 
     // ── ORG-TREE-02: dup-name per-parent ──────────────────────────────────────
@@ -230,5 +240,136 @@ public class OrganizationControllerTests
         Assert.Equal(new[] { 10, 20, 5, 30 }, order);   // R, C1, G(grandchild), C2(uncle) — DFS
         Assert.NotEqual(new[] { 10, 20, 30, 5 }, order); // NOT BFS
         Assert.Equal(2, built.Single(x => x.Id == 5).Depth);   // grandchild G → Depth 2
+    }
+
+    // ── Phase 403 ORG-01/02: OrganizationController sadar junction UserUnits ──────
+    // Pitfall 2: fixture diskriminatif WAJIB seed IsActive=false (rename harus ikut, guard tidak).
+    // Pitfall 5: casing nama unit IDENTIK (InMemory case-sensitive).
+
+    [Fact]
+    public async Task EditOrganizationUnit_RenameLevel1_RenamesAllUserUnitsRows()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        // mirror primary scalar (Invariant #3): u1 primary "Alkylation"
+        ctx.Users.Add(new ApplicationUser { Id = "u1", UserName = "u1", Unit = "Alkylation" });
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = true,  IsActive = true },   // primary aktif
+            new UserUnit { UserId = "u2", Unit = "Lain",       IsPrimary = true,  IsActive = true },   // non-match (jangan ikut rename)
+            new UserUnit { UserId = "u2", Unit = "Alkylation", IsPrimary = false, IsActive = true },   // sekunder aktif
+            new UserUnit { UserId = "u3", Unit = "Alkylation", IsPrimary = false, IsActive = false }); // diskriminatif (IsActive=false)
+        ctx.SaveChanges();
+
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation New", 1);   // rename Level1, parent unchanged
+
+        Assert.True(GetSuccess(result));
+        Assert.Equal(3, ctx.UserUnits.Count(uu => uu.Unit == "Alkylation New"));  // SEMUA 3 baris (incl IsActive=false)
+        Assert.Equal(0, ctx.UserUnits.Count(uu => uu.Unit == "Alkylation"));      // 0 tersisa
+        Assert.Equal(1, ctx.UserUnits.Count(uu => uu.Unit == "Lain"));            // non-match utuh
+        Assert.True(ctx.UserUnits.Single(uu => uu.UserId == "u1" && uu.Unit == "Alkylation New").IsPrimary); // primary tetap
+        Assert.Equal("Alkylation New", ctx.Users.Single(u => u.Id == "u1").Unit); // mirror konsisten
+    }
+
+    [Fact]
+    public async Task DeleteOrganizationUnit_SecondaryMembershipActive_Rejected()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        // kasus murni sekunder: TIDAK ada scalar Users.Unit/Section == "Alkylation"
+        ctx.UserUnits.Add(new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = false, IsActive = true });
+        ctx.SaveChanges();
+
+        var result = await ctrl.DeleteOrganizationUnit(2);
+
+        Assert.False(GetSuccess(result));
+        Assert.Contains("sekunder", GetMessage(result));
+        Assert.NotNull(ctx.OrganizationUnits.Find(2));   // unit MASIH ada
+    }
+
+    [Fact]
+    public async Task ToggleOrganizationUnitActive_SecondaryMembershipActive_Rejected()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.UserUnits.Add(new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = false, IsActive = true });
+        ctx.SaveChanges();
+
+        var result = await ctrl.ToggleOrganizationUnitActive(2);   // deactivate-branch
+
+        Assert.False(GetSuccess(result));
+        Assert.Contains("sekunder", GetMessage(result));
+        Assert.True(ctx.OrganizationUnits.Find(2)!.IsActive);   // MASIH aktif
+    }
+
+    [Fact]
+    public async Task EditOrganizationUnit_ReparentSplitsWorker_Blocked()
+    {
+        var (ctrl, ctx) = MakeController();
+        // 2 Bagian + 2 unit anak RFCC (semua IsActive=true → masuk GetSectionUnitsDictAsync)
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 5, Name = "HSC",  Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true },
+            new OrganizationUnit { Id = 6, Name = "X",          Level = 1, ParentId = 1, IsActive = true });
+        ctx.Users.Add(new ApplicationUser { Id = "p1", UserName = "p1", NIP = "12345", FullName = "Budi", Unit = "Alkylation", Section = "RFCC" });
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "p1", Unit = "Alkylation", IsPrimary = true,  IsActive = true },
+            new UserUnit { UserId = "p1", Unit = "X",          IsPrimary = false, IsActive = true });  // unit-lain Bagian RFCC
+        ctx.SaveChanges();
+
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation", 5);   // reparent Alkylation → HSC (split: "X" tetap RFCC)
+
+        Assert.False(GetSuccess(result));
+        var msg = GetMessage(result);
+        Assert.True(msg.Contains("12345") || msg.Contains("Budi"), $"Pesan harus sebut NIP/nama: {msg}");
+    }
+
+    [Fact]
+    public async Task EditOrganizationUnit_ReparentSingleUnitWorker_Allowed()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 5, Name = "HSC",  Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.Users.Add(new ApplicationUser { Id = "p1", UserName = "p1", Unit = "Alkylation", Section = "RFCC" });
+        ctx.UserUnits.Add(new UserUnit { UserId = "p1", Unit = "Alkylation", IsPrimary = true, IsActive = true });   // single-unit
+        ctx.SaveChanges();
+
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation", 5);   // reparent → HSC (tanpa split)
+
+        Assert.True(GetSuccess(result));
+        Assert.Equal("HSC", ctx.Users.Single(u => u.Id == "p1").Section);   // cascade Section existing dipertahankan
+    }
+
+    [Fact]
+    public async Task PreviewEditCascade_RenameLevel1_UserUnitsCountMatchesActual()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = true,  IsActive = true },
+            new UserUnit { UserId = "u2", Unit = "Alkylation", IsPrimary = false, IsActive = true },
+            new UserUnit { UserId = "u3", Unit = "Alkylation", IsPrimary = false, IsActive = false }); // diskriminatif (count tanpa filter IsActive)
+        ctx.SaveChanges();
+
+        // ACT1: preview (read-only)
+        var preview = await ctrl.PreviewEditCascade(2, "Alkylation New", 1);
+        int pUserUnits = GetInt(preview, "affectedUserUnitsCount");
+
+        // ACT2: edit aktual pada ctx sama
+        await ctrl.EditOrganizationUnit(2, "Alkylation New", 1);
+        int aUserUnits = ctx.UserUnits.Count(uu => uu.Unit == "Alkylation New");
+
+        Assert.Equal(aUserUnits, pUserUnits);   // preview == actual
+        Assert.Equal(3, pUserUnits);            // SEMUA baris (tanpa filter IsActive)
     }
 }
