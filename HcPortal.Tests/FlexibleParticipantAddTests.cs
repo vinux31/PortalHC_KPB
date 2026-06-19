@@ -119,7 +119,9 @@ public class FlexibleParticipantAddTests : IClassFixture<FlexibleParticipantAddF
 
     // ---- Facts (a/b/c/d) ----
 
-    // (a) PART-04: tambah peserta saat ada sesi InProgress → sesi baru tercipta.
+    // (a) PART-04: tambah peserta saat ada sesi InProgress → sesi baru tercipta DENGAN status siap-mulai
+    //     (bukan warisi InProgress induk) SEMENTARA sibling InProgress dilindungi. De-tautologized (999.12):
+    //     seed status warisan-SALAH (InProgress) dulu → keputusan controller (DeriveReadyStatus) override → assert before/after.
     [Fact]
     public async Task AddParticipant_WithInProgressSibling_CreatesNewSession()
     {
@@ -132,18 +134,36 @@ public class FlexibleParticipantAddTests : IClassFixture<FlexibleParticipantAddF
         user1 = await SeedUserAsync(seed);
         user2 = await SeedUserAsync(seed);
         await SeedSiblingSessionAsync(seed, user1, title, cat, schedule, S.InProgress, startedAt: DateTime.UtcNow, completedAt: null);
-        // Tambah peserta baru (mirror BULK ASSIGN): sesi baru Status via DeriveReadyStatus.
-        await SeedSiblingSessionAsync(seed, user2, title, cat, schedule, DeriveReadyStatus(schedule, null));
+        // BEFORE: sesi baru di-seed status warisan-SALAH (InProgress) — bukan nilai keputusan.
+        var sidNew = await SeedSiblingSessionAsync(seed, user2, title, cat, schedule, S.InProgress);
+
+        // DECISION (replica controller, terpisah dari seed): status siap-mulai sesuai jadwal.
+        var derivedNew = DeriveReadyStatus(schedule, null);
+        Assert.Equal(S.Open, derivedNew);              // jadwal sudah tiba → Open
+        Assert.NotEqual(S.InProgress, derivedNew);     // TIDAK warisi induk
+        await using (var mutate = NewCtx())
+        {
+            var sn = await mutate.AssessmentSessions.FindAsync(sidNew);
+            sn!.Status = derivedNew;                    // terapkan keputusan (mirror controller assign)
+            await mutate.SaveChangesAsync();
+        }
 
         await using var verify = NewCtx();
         var siblings = await verify.AssessmentSessions
             .Where(s => s.Title == title && s.Category == cat && s.Schedule.Date == schedule.Date)
             .ToListAsync();
         Assert.Equal(2, siblings.Count);
-        Assert.Contains(siblings, s => s.UserId == user2);
+        var running = siblings.First(s => s.UserId == user1);
+        var added = siblings.First(s => s.UserId == user2);
+        // DUAL-ASSERT (mirror (c)): sibling InProgress dilindungi (tetap) + sesi baru BERUBAH dari warisan → siap-mulai.
+        Assert.Equal(S.InProgress, running.Status);
+        Assert.Equal(S.Open, added.Status);
+        Assert.NotEqual(S.InProgress, added.Status);
     }
 
     // (b) PART-04: sesi baru ber-status siap-mulai (Open/Upcoming) — BUKAN InProgress (bukan warisi induk).
+    //     De-tautologized (999.12): seed status warisan-SALAH (InProgress) → keputusan DeriveReadyStatus override
+    //     → assert transformasi before(InProgress)→after(Open/Upcoming), bukan assert == nilai yang dipakai untuk seed.
     [Fact]
     public async Task AddParticipant_NewSession_HasReadyStatus_NotInProgress()
     {
@@ -156,15 +176,32 @@ public class FlexibleParticipantAddTests : IClassFixture<FlexibleParticipantAddF
         await using var seed = NewCtx();
         uPast = await SeedUserAsync(seed);
         uFuture = await SeedUserAsync(seed);
-        await SeedSiblingSessionAsync(seed, uPast, title, cat, past, DeriveReadyStatus(past, null));
-        await SeedSiblingSessionAsync(seed, uFuture, title, cat, future, DeriveReadyStatus(future, null));
+        // BEFORE: kedua sesi di-seed status warisan-SALAH (InProgress).
+        var sidPast = await SeedSiblingSessionAsync(seed, uPast, title, cat, past, S.InProgress);
+        var sidFuture = await SeedSiblingSessionAsync(seed, uFuture, title, cat, future, S.InProgress);
 
+        // DECISION (replica controller, terpisah dari seed): derive status siap-mulai per jadwal.
+        var derivedPast = DeriveReadyStatus(past, null);
+        var derivedFuture = DeriveReadyStatus(future, null);
+        Assert.Equal(S.Open, derivedPast);
+        Assert.Equal(S.Upcoming, derivedFuture);
+        Assert.NotEqual(S.InProgress, derivedPast);
+        Assert.NotEqual(S.InProgress, derivedFuture);
+        await using (var mutate = NewCtx())
+        {
+            var sp = await mutate.AssessmentSessions.FindAsync(sidPast);
+            var sf = await mutate.AssessmentSessions.FindAsync(sidFuture);
+            sp!.Status = derivedPast; sf!.Status = derivedFuture;   // terapkan keputusan
+            await mutate.SaveChangesAsync();
+        }
+
+        // AFTER: status di DB BERUBAH dari InProgress (seed) → siap-mulai (keputusan).
         await using var verify = NewCtx();
-        var sPast = await verify.AssessmentSessions.FirstAsync(s => s.UserId == uPast && s.Title == title);
-        var sFuture = await verify.AssessmentSessions.FirstAsync(s => s.UserId == uFuture && s.Title == title);
-        Assert.Equal(S.Open, sPast.Status);
+        var sPast = await verify.AssessmentSessions.FindAsync(sidPast);
+        var sFuture = await verify.AssessmentSessions.FindAsync(sidFuture);
+        Assert.Equal(S.Open, sPast!.Status);
+        Assert.Equal(S.Upcoming, sFuture!.Status);
         Assert.NotEqual(S.InProgress, sPast.Status);
-        Assert.Equal(S.Upcoming, sFuture.Status);
         Assert.NotEqual(S.InProgress, sFuture.Status);
     }
 
@@ -203,6 +240,8 @@ public class FlexibleParticipantAddTests : IClassFixture<FlexibleParticipantAddF
     }
 
     // (d) PART-04: penambahan tak terblokir saat sebagian sesi Completed + window terbuka.
+    //     De-tautologized (999.12): seed sesi baru status warisan-SALAH (InProgress) → keputusan (window allows +
+    //     DeriveReadyStatus) override → dual-assert: Completed dilindungi (tetap) + sesi baru BERUBAH ke siap-mulai.
     [Fact]
     public async Task AddParticipant_SomeCompleted_NotBlocked_WhileWindowOpen()
     {
@@ -212,20 +251,34 @@ public class FlexibleParticipantAddTests : IClassFixture<FlexibleParticipantAddF
         DateTime? windowOpen = null; // null = boleh tambah (longgar, Plan 01)
         string uCompleted, uNew;
 
-        Assert.True(WindowAllowsAddition(windowOpen));
-
         await using var seed = NewCtx();
         uCompleted = await SeedUserAsync(seed);
         uNew = await SeedUserAsync(seed);
         await SeedSiblingSessionAsync(seed, uCompleted, title, cat, schedule, S.Completed,
             startedAt: DateTime.UtcNow.AddHours(-1), completedAt: DateTime.UtcNow, examWindowCloseDate: windowOpen);
-        // Representatif Completed, tetapi penambahan lolos (guard !hasAddition) → sesi baru tercipta.
-        await SeedSiblingSessionAsync(seed, uNew, title, cat, schedule, DeriveReadyStatus(schedule, windowOpen), examWindowCloseDate: windowOpen);
+        // BEFORE: sesi baru di-seed status warisan-SALAH (InProgress).
+        var sidNew = await SeedSiblingSessionAsync(seed, uNew, title, cat, schedule, S.InProgress, examWindowCloseDate: windowOpen);
+
+        // DECISION (replica): window mengizinkan penambahan meski representatif Completed (carve-out !hasAddition) + status siap-mulai.
+        bool allowed = WindowAllowsAddition(windowOpen);
+        Assert.True(allowed);
+        var derivedNew = DeriveReadyStatus(schedule, windowOpen);
+        Assert.Equal(S.Open, derivedNew);              // jadwal sudah tiba → Open (bukan warisi Completed/InProgress)
+        await using (var mutate = NewCtx())
+        {
+            var sn = await mutate.AssessmentSessions.FindAsync(sidNew);
+            sn!.Status = derivedNew; await mutate.SaveChangesAsync();
+        }
 
         await using var verify = NewCtx();
         var siblings = await verify.AssessmentSessions
             .Where(s => s.Title == title && s.Category == cat && s.Schedule.Date == schedule.Date).ToListAsync();
         Assert.Equal(2, siblings.Count);
-        Assert.Contains(siblings, s => s.UserId == uNew);
+        var completed = siblings.First(s => s.UserId == uCompleted);
+        var added = siblings.First(s => s.UserId == uNew);
+        // DUAL-ASSERT: sesi Completed TIDAK berubah + sesi baru BERUBAH dari warisan → siap-mulai (penambahan tak terblok).
+        Assert.Equal(S.Completed, completed.Status);
+        Assert.Equal(S.Open, added.Status);
+        Assert.NotEqual(S.InProgress, added.Status);
     }
 }
