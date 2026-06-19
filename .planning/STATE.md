@@ -4,14 +4,14 @@ milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
 stopped_at: Phase 403 UI-SPEC approved
-last_updated: "2026-06-19T01:09:38.882Z"
+last_updated: "2026-06-19T01:43:13.765Z"
 last_activity: 2026-06-19
 progress:
   total_phases: 30
   completed_phases: 3
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State: Portal HC KPB
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 401 — proton-unit-resolution-hardening
+**Current focus:** Phase 403 — organizationcontroller-cascade-guard-userunits-aware
 
 ## Current Position
 
-Phase: 403
-Plan: Not started
-Status: Executing Phase 401
+Phase: 403 (organizationcontroller-cascade-guard-userunits-aware) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-06-19
 
 > ⏸ RESUME: see `.planning/phases/401-proton-unit-resolution-hardening/.continue-here.md`

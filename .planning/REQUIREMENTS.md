@@ -38,8 +38,8 @@ Requirements untuk milestone v32.3. Tiap REQ map ke satu phase.
 
 ### Org Integrity (ORG)
 
-- [ ] **ORG-01**: Rename/reparent unit di `OrganizationController` meng-cascade ke `UserUnits.Unit` (+ recompute primary-mirror); delete-guard meng-scan `UserUnits` (termasuk membership **sekunder**, bukan hanya scalar `Users.Unit`) agar unit yang masih dipakai tak terhapus.
-- [ ] **ORG-02**: Reparent unit lintas-Bagian **hard-BLOCK** bila ada pekerja yang `UserUnits`-nya akan terpecah ke >1 Bagian (jaga Invariant #1 "1 Bagian/akun"); `PreviewEditCascade` menghitung baris `UserUnits` terdampak agar preview == actual.
+- [x] **ORG-01**: Rename/reparent unit di `OrganizationController` meng-cascade ke `UserUnits.Unit` (+ recompute primary-mirror); delete-guard meng-scan `UserUnits` (termasuk membership **sekunder**, bukan hanya scalar `Users.Unit`) agar unit yang masih dipakai tak terhapus.
+- [x] **ORG-02**: Reparent unit lintas-Bagian **hard-BLOCK** bila ada pekerja yang `UserUnits`-nya akan terpecah ke >1 Bagian (jaga Invariant #1 "1 Bagian/akun"); `PreviewEditCascade` menghitung baris `UserUnits` terdampak agar preview == actual.
 
 ### Test & UAT (QA)
 
@@ -87,8 +87,8 @@ Diisi saat pembuatan roadmap.
 | CXU-03 | Phase 402 | Pending |
 | CXU-04 | Phase 402 | Pending |
 | CXU-05 | Phase 402 | Pending |
-| ORG-01 | Phase 403 | Pending |
-| ORG-02 | Phase 403 | Pending |
+| ORG-01 | Phase 403 | Complete |
+| ORG-02 | Phase 403 | Complete |
 | QA-01 | Phase 404 | Pending |
 | QA-02 | Phase 404 | Pending |
 | QA-03 | Phase 404 | Pending |
