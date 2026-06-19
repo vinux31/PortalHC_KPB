@@ -177,6 +177,10 @@ namespace HcPortal.Controllers
                 }
             }
 
+            // NEW 403 (ORG-01, D-04): bungkus seluruh cascade EditOrganizationUnit dalam transaksi (atomic).
+            // return-early split-block di bawah = dispose tanpa Commit = rollback. Idiom WorkerController.cs:665 (TIRU, jangan panggil helper).
+            using var tx = await _context.Database.BeginTransactionAsync();
+
             if (unit.ParentId != parentId)
             {
                 int newLevel = 0;
@@ -193,6 +197,7 @@ namespace HcPortal.Controllers
             // Cascade rename and reparent to denormalized fields
             int cascadedUsers = 0;
             int cascadedMappings = 0;
+            int cascadedUserUnits = 0;   // NEW 403 (ORG-01): baris UserUnits ter-rename
 
             // Cascade rename
             if (oldName != name.Trim())
@@ -218,6 +223,13 @@ namespace HcPortal.Controllers
                     var affectedUsers = await _context.Users.Where(u => u.Unit == oldName).ToListAsync();
                     foreach (var u in affectedUsers) u.Unit = name.Trim();
                     cascadedUsers += affectedUsers.Count;
+
+                    // NEW 403 (ORG-01, D-04): rename SEMUA baris UserUnits (incl sekunder & IsActive=false).
+                    // IsPrimary tak disentuh → baris primary ikut rename = mirror Users.Unit tetap konsisten (Invariant #3).
+                    // TANPA filter IsActive → parity dgn PreviewEditCascade Sub-4 (PARITY RULE).
+                    var affectedUnitRows = await _context.UserUnits.Where(uu => uu.Unit == oldName).ToListAsync();
+                    foreach (var uu in affectedUnitRows) uu.Unit = name.Trim();
+                    cascadedUserUnits += affectedUnitRows.Count;
 
                     var affectedMappings = await _context.CoachCoacheeMappings.Where(m => m.AssignmentUnit == oldName).ToListAsync();
                     foreach (var m in affectedMappings) m.AssignmentUnit = name.Trim();
@@ -246,6 +258,33 @@ namespace HcPortal.Controllers
                     if (ancestor != null) newSectionName = ancestor.Name;
                 }
 
+                // NEW 403 (ORG-02, D-01a): blok HANYA bila ada pekerja yang akan terpecah >1 Bagian (berbasis UserUnits AKTIF).
+                if (!string.IsNullOrEmpty(newSectionName))
+                {
+                    var memberIds = await _context.UserUnits
+                        .Where(uu => uu.Unit == oldName && uu.IsActive).Select(uu => uu.UserId).Distinct().ToListAsync();
+                    var dict = await _context.GetSectionUnitsDictAsync();   // Bagian -> List<unitName> (IsActive only)
+                    var unitToSection = dict.SelectMany(kv => kv.Value.Select(u => (Unit: u, Section: kv.Key)))
+                                            .ToDictionary(x => x.Unit, x => x.Section);
+                    var otherRows = await _context.UserUnits
+                        .Where(uu => memberIds.Contains(uu.UserId) && uu.IsActive && uu.Unit != oldName).ToListAsync();
+                    var splitUserIds = otherRows
+                        .Where(uu => unitToSection.TryGetValue(uu.Unit, out var sec) && sec != newSectionName)
+                        .Select(uu => uu.UserId).Distinct().ToList();
+                    if (splitUserIds.Any())
+                    {
+                        var splitNames = await _context.Users.Where(u => splitUserIds.Contains(u.Id))
+                            .Select(u => (u.NIP ?? "") + " - " + (u.FullName ?? u.UserName)).ToListAsync();
+                        var shown = splitNames.Take(5).ToList();
+                        var suffix = splitNames.Count > 5 ? ("; dan " + (splitNames.Count - 5) + " lainnya") : "";
+                        var blokMsg = "Tidak dapat memindahkan unit ke Bagian lain: " + splitNames.Count +
+                            " pekerja akan terpecah ke >1 Bagian (" + string.Join("; ", shown) + suffix +
+                            "). Selesaikan keanggotaan lintas-Bagian pekerja tersebut terlebih dahulu.";
+                        if (IsAjaxRequest()) return Json(new { success = false, message = blokMsg });
+                        TempData["Error"] = blokMsg; return RedirectToAction("ManageOrganization", new { editId = id });
+                    }
+                }
+
                 if (!string.IsNullOrEmpty(newSectionName))
                 {
                     var reparentUsers = await _context.Users.Where(u => u.Unit == oldName).ToListAsync();
@@ -266,9 +305,10 @@ namespace HcPortal.Controllers
 
             unit.Name = name.Trim();
             await _context.SaveChangesAsync();
+            await tx.CommitAsync();   // NEW 403 (D-04): commit transaksi cascade
 
-            var msg = (cascadedUsers > 0 || cascadedMappings > 0)
-                ? $"Unit berhasil diperbarui. {cascadedUsers} user dan {cascadedMappings} mapping terupdate."
+            var msg = (cascadedUsers > 0 || cascadedMappings > 0 || cascadedUserUnits > 0)
+                ? $"Unit berhasil diperbarui. {cascadedUsers} user, {cascadedMappings} mapping, dan {cascadedUserUnits} keanggotaan unit terupdate."
                 : "Unit berhasil diperbarui.";
             if (IsAjaxRequest())
                 return Json(new { success = true, message = msg });
@@ -323,13 +363,20 @@ namespace HcPortal.Controllers
                 affectedGuidance   += await _context.CoachingGuidanceFiles.CountAsync(g => g.Unit == oldName);
             }
 
+            // NEW 403 (ORG-02, D-03/D-03a): count SEMUA baris UserUnits ter-rename (Level>=1, TANPA IsActive = match Sub-1).
+            int affectedUserUnits = 0;
+            if (nameChanged && unit.Level >= 1)
+                affectedUserUnits = await _context.UserUnits.CountAsync(uu => uu.Unit == oldName);
+            // reparent tanpa rename → UserUnits TIDAK berubah → 0 (D-01b)
+
             return Json(new {
                 nameChanged,
                 parentChanged,
                 affectedUsersCount = affectedUsers,
                 affectedMappingsCount = affectedMappings,
                 affectedKompetensiCount = affectedKompetensi,
-                affectedGuidanceCount = affectedGuidance
+                affectedGuidanceCount = affectedGuidance,
+                affectedUserUnitsCount = affectedUserUnits
             });
         }
 
@@ -390,11 +437,16 @@ namespace HcPortal.Controllers
                 else
                     hasActiveUsers = await _context.Users.AnyAsync(u => u.Unit == unit.Name);
 
-                if (hasActiveUsers)
+                // NEW 403 (ORG-01, D-02): scan membership sekunder aktif di junction UserUnits
+                bool hasUnitMembership = await _context.UserUnits.AnyAsync(uu => uu.Unit == unit.Name && uu.IsActive);
+                if (hasActiveUsers || hasUnitMembership)
                 {
+                    var why = (!hasActiveUsers && hasUnitMembership)
+                        ? "Tidak dapat menonaktifkan unit. Unit ini masih menjadi keanggotaan (sekunder) sejumlah pekerja. Lepaskan keanggotaan unit ini dari pekerja terlebih dahulu."
+                        : "Tidak dapat menonaktifkan unit. Masih ada user aktif yang terdaftar di unit ini. Pindahkan semua user terlebih dahulu.";
                     if (IsAjaxRequest())
-                        return Json(new { success = false, message = "Tidak dapat menonaktifkan unit. Masih ada user aktif yang terdaftar di unit ini. Pindahkan semua user terlebih dahulu." });
-                    TempData["Error"] = "Tidak dapat menonaktifkan unit. Masih ada user aktif yang terdaftar di unit ini. Pindahkan semua user terlebih dahulu.";
+                        return Json(new { success = false, message = why });
+                    TempData["Error"] = why;
                     return RedirectToAction("ManageOrganization");
                 }
             }
@@ -445,11 +497,16 @@ namespace HcPortal.Controllers
             }
 
             bool hasUsers = await _context.Users.AnyAsync(u => u.Section == unit.Name || u.Unit == unit.Name);
-            if (hasUsers)
+            // NEW 403 (ORG-01, D-02): scan membership sekunder aktif di junction UserUnits
+            bool hasUnitMembership = await _context.UserUnits.AnyAsync(uu => uu.Unit == unit.Name && uu.IsActive);
+            if (hasUsers || hasUnitMembership)
             {
+                var why = (!hasUsers && hasUnitMembership)
+                    ? "Unit ini masih menjadi keanggotaan (sekunder) sejumlah pekerja yang tidak terlihat di unit utama mereka. Lepaskan keanggotaan unit ini dari pekerja terlebih dahulu."
+                    : "Unit ini masih memiliki pekerja yang ter-assign. Pindahkan pekerja terlebih dahulu.";
                 if (IsAjaxRequest())
-                    return Json(new { success = false, message = "Unit ini masih memiliki pekerja yang ter-assign. Pindahkan pekerja terlebih dahulu." });
-                TempData["Error"] = "Unit ini masih memiliki pekerja yang ter-assign. Pindahkan pekerja terlebih dahulu.";
+                    return Json(new { success = false, message = why });
+                TempData["Error"] = why;
                 return RedirectToAction("ManageOrganization");
             }
 
