@@ -251,6 +251,31 @@
 
 ### Phase Details
 
+### Phase 398.1: Tech-debt cleanup INJ (v32.2) (INSERTED)
+
+**Goal:** Tutup seluruh tech-debt/temuan code-review milestone v32.2 (+ carry v32.0) sebelum `/gsd-complete-milestone v32.2`, supaya bundle deploy bersih. Desimal `398.1` (BUKAN 399 — 399-404 dipakai v32.3 di branch ITHandoff; hindari konflik merge).
+**Requirements**: tech-debt only (tidak menambah REQ INJ baru; v32.2 tetap 13/13)
+**Depends on:** Phase 398
+**Branch:** main · **Migration:** false (semua fix logic/view/test)
+**Plans:** 0 plans (run /gsd-plan-phase 398.1)
+
+**⚠️ WAJIB sebelum fix:** verifikasi tiap "warning" code-review = bug NYATA vs false-positive di kode aktual (mindset receiving-code-review). Yang false-positive → catat & drop, jangan fix asal.
+
+**Scope (9 temuan + 1 cosmetic):**
+1. **396 WR-01** dup-NIP `ToDictionary` throw bila NIP duplikat di Excel (MED — edge crash, kini ketangkap outer try/catch)
+2. **396 WR-02** essay decimal truncation (LOW — akurasi skor)
+3. **396 WR-03** download form race / double-submit (LOW)
+4. **397 WR-01** unlink cross-batch correctness (MED)
+5. **397 WR-02** `GroupBy` `g.First` non-deterministic representative → butuh `OrderBy` deterministik (LOW-MED)
+6. **397 WR-03** stray TempData leftover (LOW kosmetik)
+7. **999.11 WR-01** PendingGrading edit-guard gap di `EditAssessment` (MED — carry v32.0; dir backlog `999.11-*` sudah ada → konsolidasi/rujuk, jangan duplikat)
+8. **999.12** 391 regression test tautological (LOW, test-only; dir backlog `999.12-*` ada)
+9. **999.13** e2e essay-submit helper flaky (`fillEssayAnswer`/`submitExamTwoStep` direct `hub.invoke('SaveTextAnswer')`) (LOW, test-only; dir backlog `999.13-*` ada — perbaiki HELPER bukan kode produk)
++ **cosmetic LBL-02** Legenda Excel kolom Tipe map enum `MultipleChoice` → label UI `Single Answer` (1-baris di `InjectExcelHelper.GenerateTemplate`)
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 398.1 to break down)
+
 ### Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan
 **Goal:** HC tetap dapat menambah peserta baru ke sebuah assessment yang **sedang berjalan** (ada peserta lain `InProgress`) tanpa friksi — penambahan membuat `AssessmentSession` baru per peserta yang ber-status siap-mulai (Open/Upcoming per jadwal via `DeriveReadyStatus`, BUKAN mewarisi status induk per D-01) sehingga peserta baru bisa langsung mengerjakan selama window ujian (`ExamWindowCloseDate`) belum lewat; guard status `Completed` pada sesi representatif tidak lagi salah-memblokir penambahan saat grup masih aktif; warning kosmetik ambigu diganti notice informatif; dan seluruh perilaku ini dikunci automated regression test agar tak regresi.
 **Depends on:** Tidak ada secara logika (melanjutkan dari Phase 387 v31.0; file-disjoint dari Phase 392 → boleh dikerjakan paralel).
