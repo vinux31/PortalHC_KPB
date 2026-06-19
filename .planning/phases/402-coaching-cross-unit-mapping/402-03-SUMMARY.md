@@ -1,6 +1,7 @@
 # Plan 402-03 Summary — CDP Self-Scope Union (CXU-05)
 
-**Status:** Auto-tasks complete; UAT checkpoint DEFERRED to combined session after Plan 04 (user decision — single multi-unit fixture + browser session).
+**Status:** COMPLETE — auto-tasks + UAT PASSED (combined live browser session 2026-06-19, @5270, multi-unit fixture rustam{Alkylation,Amine}).
+**UAT result:** PASS — CDP dropdown ENABLED, options = coach's own 2 units, default "Semua Unit"; "Semua Unit" = union (2 coachees: Iwan@Amine + Rino@Alkylation); narrow "Amine" = 1 (Iwan only, Rino gone). Fixture seeded+restored (SEED_JOURNAL 2026-06-19, 0 residue).
 **Migration:** FALSE
 **Commit:** e199b715
 

@@ -1,6 +1,7 @@
 # Plan 402-04 Summary — Assign Modal Cross-Unit UI
 
-**Status:** Auto-tasks complete; UAT checkpoint COMBINED with Plan 03 (single multi-unit fixture session, pending user run).
+**Status:** COMPLETE — auto-tasks + UAT PASSED (combined live browser session 2026-06-19, @5270).
+**UAT result:** PASS — IC-1 (select coach Rustam/GAST → checklist filtered to GAST, "Filter Seksi" hidden, Bagian Penugasan=GAST+disabled), IC-2 (Iwan multi-unit→per-row dropdown default Alkylation primary; Moch/Arsyad single→no dropdown), IC-3 (Iwan+Arsyad checked together, neither disabled), IC-4 (submit → DB: iwan3 AssignmentUnit=Amine [per-row pick] + arsyad=Alkylation, both Section=GAST, 1 batch to Rustam — CXU-02/03/04 end-to-end through real server). Rustam coachee count 1→3. Fixture seeded+restored (0 residue).
 **Migration:** FALSE
 **Commit:** 4946ff59
 
