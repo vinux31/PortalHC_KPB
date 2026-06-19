@@ -99,4 +99,20 @@ public class AssignmentUnitInUserUnitsTests
         // TargetUnit kosong → ditolak (jangan resolve dari primary)
         Assert.False(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, "w1", ""));
     }
+
+    // PSU-03 (401-03): Assign batch — semua coachee dapat AssignmentUnit SAMA (req.AssignmentUnit).
+    // Loop reject batch bila ADA satu coachee yg tak punya unit itu (CoachMappingController Assign
+    // :474+). Primitif keputusan per-coachee: c1 punya "UnitA" → true; c2 tak punya → false.
+    [Fact]
+    public async Task Assign_batch_rejects_when_one_coachee_lacks_unit()
+    {
+        await using var ctx = InMemoryContext();
+        ctx.UserUnits.Add(new UserUnit { UserId = "c1", Unit = "UnitA", IsPrimary = true, IsActive = true });
+        ctx.UserUnits.Add(new UserUnit { UserId = "c2", Unit = "UnitB", IsPrimary = true, IsActive = true });
+        await ctx.SaveChangesAsync();
+
+        // batch assign "UnitA" ke {c1, c2}: c1 lolos, c2 gagal ⇒ loop tolak seluruh batch
+        Assert.True(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, "c1", "UnitA"));
+        Assert.False(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, "c2", "UnitA"));
+    }
 }

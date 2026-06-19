@@ -37,14 +37,20 @@ public class ReactivateUnitValidationTests
         Assert.False(stillValid); // unit dilepas → reaktivasi harus ditolak (401-03)
     }
 
-    // AF-4 window ±5s must remain — see grep guard in 401-03.
-    // TODO 401-03: CoachCoacheeMappingReactivate guard (reject AssignmentUnit ∉ active UserUnits).
-    [Fact(Skip = "RED until 401-03 adds reactivation unit guard (window AF-4 untouched)")]
-    public Task Reactivate_rejects_when_AssignmentUnit_no_longer_in_UserUnits()
+    // 401-03 (PSU-07b): reactivation-guard primitive — unit dilepas ∉ active UserUnits → false
+    // (guard tolak reaktivasi, :1031 sebelum IsActive=true :1037); unit masih ∈ → true (allow).
+    // AF-4 window ±5s (DateDiffSecond, :1052-1076) WAJIB tetap utuh — grep guard di acceptance 401-03.
+    [Fact]
+    public async Task Reactivate_rejects_when_AssignmentUnit_no_longer_in_UserUnits()
     {
-        // Seed inactive mapping AssignmentUnit="UnitDilepas" where UnitDilepas ∉ coachee active
-        // UserUnits → reactivation must be rejected. Window AF-4 (DateDiffSecond ±5) preserved.
-        // Wired & asserted in 401-03.
-        return Task.CompletedTask;
+        await using var ctx = InMemoryContext();
+        var coacheeId = Guid.NewGuid().ToString();
+        ctx.UserUnits.Add(new UserUnit { UserId = coacheeId, Unit = "UnitSekarang", IsPrimary = true, IsActive = true });
+        await ctx.SaveChangesAsync();
+
+        // mapping lama AssignmentUnit="UnitDilepas" sudah ∉ active UserUnits → guard tolak reaktivasi
+        Assert.False(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, coacheeId, "UnitDilepas"));
+        // unit masih dimiliki coachee → reaktivasi diizinkan
+        Assert.True(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, coacheeId, "UnitSekarang"));
     }
 }
