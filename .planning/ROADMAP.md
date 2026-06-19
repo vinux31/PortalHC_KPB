@@ -32,8 +32,30 @@
 - ✅ **v31.0 Hotfix Pra-Ujian Lisensor** — Phases 385-387 (shipped local + audited PASSED 2026-06-16, 14/14 REQ PXF-01..14; **0 migration**; 385-386 = bundle urgent pra-acara [deploy IT #1], 387 = polish pasca-acara [deploy IT #2]; NOT PUSHED) — [archive](milestones/v31.0-ROADMAP.md) — [audit](milestones/v31.0-MILESTONE-AUDIT.md)
 - ✅ **v32.1 Perbaikan Teks & Desain** — Phases 388-390 + 390.1 (shipped local + audited PASSED + closed 2026-06-18, 7/7 REQ LBL-03 + DSN-01..06 + DSN-07 bonus; **0 migration, 0 backend** — pure UI/teks 3 surface; branch ITHandoff, NOT pushed [close bareng v32.3]) — [archive](milestones/v32.1-ROADMAP.md) — [audit](milestones/v32.1-MILESTONE-AUDIT.md)
 - 📋 **v32.3 Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial** — Phases 399-404 (brainstorm selesai 2026-06-18, spec committed; migration=TRUE [UserUnits junction]; branch ITHandoff) — [spec](../docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md)
+- 📋 **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — Phases 405-408 (design approved + spec committed 2026-06-19; migration=TRUE [AssessmentSession retake cols + AssessmentAttemptResponseArchive]; branch ITHandoff; **PLANNED — aktifkan setelah v32.3 close, JANGAN /gsd-new-milestone sebelum itu**) — [spec](../docs/superpowers/specs/2026-06-19-attempt-retake-assessment-design.md) — [plan 405](../docs/superpowers/plans/2026-06-19-v32.4-phase-405-backend-core.md) — [requirements](v32.4-PLANNED-REQUIREMENTS.md)
 
 ## Phases
+
+<details>
+<summary>📋 v32.4 Ujian Ulang (Attempt/Retake Assessment) (Phases 405-408) — design approved 2026-06-19 (14 REQ RTK-01..14, migration=TRUE) — PLANNED, aktifkan setelah v32.3 close</summary>
+
+**Status:** Design approved + spec + plan 405 committed 2026-06-19. **NOT YET ACTIVE** — v32.3 masih executing. ⚠️ JANGAN `/gsd-new-milestone v32.4` sampai v32.3 close (hindari clobber REQUIREMENTS/STATE/PROJECT live v32.3, hazard sama [[project_v32_0_close_deferred]]). Saat aktivasi: promosikan `v32.4-PLANNED-REQUIREMENTS.md` → `REQUIREMENTS.md` + pindah section ini ke active.
+**Spec:** `docs/superpowers/specs/2026-06-19-attempt-retake-assessment-design.md` (AUTHORITATIVE — 16 bagian, 10 keputusan, 7 must-fix dari verifikasi adversarial 6-agen).
+**Plan:** Phase 405 ditulis `docs/superpowers/plans/2026-06-19-v32.4-phase-405-backend-core.md` (9-task TDD, kode riil). Phase 406/407/408 belum ditulis (`/gsd-plan-phase` atau superpowers:writing-plans saat aktif).
+**Requirements:** `.planning/v32.4-PLANNED-REQUIREMENTS.md` (RTK-01..14, traceability fase).
+**Goal:** Pekerja boleh ujian ulang assessment yang gagal (self-service, di bawah batas lulus); Admin/HC toggle on/off + MaxAttempts (default 2) + cooldown (default 24 jam) per-assessment. Reuse mesin `ResetAssessment` + `AttemptNumber` existing; attempt terakhir = catatan resmi.
+**Migration:** **TRUE hanya di Phase 405** (3 kolom `AssessmentSession`: AllowRetake/MaxAttempts/RetakeCooldownHours + tabel `AssessmentAttemptResponseArchive` snapshot per-soal). Phase 406/407/408 = 0 migration. Notify IT saat promosi (bundle dgn v32.1+v32.3 migration=TRUE).
+**Phase numbering:** lanjut **405-408** (399-404 = v32.3 di ITHandoff).
+**Wave eksekusi:** `405 → (406 ∥ 407) → 408`. 406/407 PARALEL (depends 405, cluster file disjoint: 406 = Views admin + AssessmentMonitoringDetail; 407 = CMPController + Views/CMP/Results). 408 = test & UAT terakhir.
+
+### Phases
+
+- [ ] **Phase 405: Backend Core (RTK-01..07, RTK-13)** — migration (3 kolom + `AssessmentAttemptResponseArchive`) + `RetakeRules` (pure eligibility) + `RetakeArchiveBuilder` (pure snapshot via `IsQuestionCorrect`/`BuildAnswerCell`) + `RetakeService` (shared archive→reset engine, claim atomik anti double-archive, clear token TempData, audit `RetakeAssessment`) + refactor `ResetAssessment`→service (HC override) + endpoint `UpdateRetakeSettings` + sibling propagation + ManagePackages ViewBag + binding EditAssessment bulk-add. **migration=TRUE.** No UI. Wave 0 — solo. **(PLAN READY)**
+- [ ] **Phase 406: Admin Config UI + Riwayat HC (RTK-05, RTK-08)** — card "Ujian Ulang" di `ManagePackages.cshtml` (mirror shuffle, hide Pre-Test/Manual via `ShouldHideRetakeToggle`) + binding form `CreateAssessment`/`EditAssessment` + view riwayat percobaan HC di `AssessmentMonitoringDetail` (drill-down archived+current, per-soal). 0 migration. Wave 1 (paralel 407, depends 405).
+- [ ] **Phase 407: Worker Self-Service (RTK-09..12, RTK-13)** — endpoint `CMP/RetakeExam` (CSRF+ownership+eligibility re-cek server-side+clear-token) + `Results.cshtml` tombol "Ujian Ulang" + "Percobaan X/N" + cooldown countdown + lock message + gating tier-feedback baru (skor+tanda-salah, kunci ditahan selama gagal+attempt-sisa) + view riwayat percobaan pekerja. 0 migration. Wave 1 (paralel 406, depends 405).
+- [ ] **Phase 408: Test & UAT (RTK-14)** — xUnit (`RetakeRules`+`RetakeArchiveBuilder`+`RetakeService`) + integration (retake-then-pass 1 cert, counting `(UserId,Title,Category)` no-conflate Pre/Post) + Playwright lifecycle penuh @5270 (gagal→skor+tanda-salah→Ujian Ulang→cooldown→ulang→lulus→cert; cap habis→lock; riwayat pekerja+HC) + security audit. 0 migration. Wave 2 (depends 406+407).
+
+</details>
 
 <details open>
 <summary>📋 v32.3 Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial (Phases 399-404) — ROADMAP created 2026-06-18 (24/24 REQ, migration=TRUE [Phase 399 only])</summary>
