@@ -237,4 +237,72 @@ public class UnlinkInjectGroupTests : IClassFixture<InjectAssessmentFixture>
         Assert.Equal(injSibBefore, inj2.LinkedSessionId);
         Assert.Equal(postSibBefore, post2!.LinkedSessionId);
     }
+
+    // ── 398.1 WR-01 (cross-batch): DUA batch inject adopt grup Kasus A yang SAMA → unlink(grup).
+    //    Unlink BY-GROUP (signature `(int injectGroupId)` tak punya batch discriminator) → group-wide revert
+    //    adalah PERILAKU BY-DESIGN (UI hanya expose unlink level-grup; per-batch narrow = perubahan
+    //    signature+UI = di luar scope tech-debt → WR-01 DROP). Test ini MENGUNCI invariant keselamatan
+    //    yang BENAR-BENAR penting (T-397-04): skor/status ONLINE tiap batch TIDAK tersentuh, atomic. ──
+    [Fact]
+    public async Task Unlink_CrossBatch_OnlineScoreStatus_Unchanged_GroupWideByDesign()
+    {
+        string uid1, nip1, uid2, nip2; int postW1Id, postW2Id; int groupId;
+        await using (var seed = NewCtx())
+        {
+            (uid1, nip1) = await SeedUserAsync(seed, "XB1");
+            (uid2, nip2) = await SeedUserAsync(seed, "XB2");
+            var dt = new DateTime(2026, 3, 14);
+            // Dua online Post (per worker) di-grup Kasus A yang sama (group = post w1).
+            postW1Id = await SeedOnlineSessionAsync(seed, uid1, "Post XBATCH", "PostTest", 80, null, dt);
+            postW2Id = await SeedOnlineSessionAsync(seed, uid2, "Post XBATCH", "PostTest", 85, null, dt);
+            var p1 = await seed.AssessmentSessions.FindAsync(postW1Id);
+            var p2 = await seed.AssessmentSessions.FindAsync(postW2Id);
+            p1!.LinkedGroupId = postW1Id; p2!.LinkedGroupId = postW1Id;   // Kasus A (sudah grouped)
+            await seed.SaveChangesAsync();
+        }
+
+        // Batch-1: inject Pre worker1 adopt grup (target = post w1).
+        var req1 = new InjectRequest
+        {
+            Title = "Inject Pre XB1 " + Guid.NewGuid().ToString("N")[..6], Category = "IHT", AssessmentType = "PreTest",
+            CompletedAt = new DateTime(2026, 2, 14), PassPercentage = 70, CertMode = InjectCertMode.None,
+            LinkTargetRepId = postW1Id, Questions = OneMcQuestion(), Workers = new() { McWorker(nip1) }
+        };
+        var r1 = await NewInjectService(NewCtx()).InjectBatchAsync(req1, "actor", "Actor");
+        Assert.True(r1.Success, r1.Message);
+        var inj1Id = r1.SuccessSessionIds[0];
+
+        // Batch-2: inject Pre worker2 adopt grup SAMA (target = post w2, yang ber-LinkedGroupId = post w1).
+        var req2 = new InjectRequest
+        {
+            Title = "Inject Pre XB2 " + Guid.NewGuid().ToString("N")[..6], Category = "IHT", AssessmentType = "PreTest",
+            CompletedAt = new DateTime(2026, 2, 14), PassPercentage = 70, CertMode = InjectCertMode.None,
+            LinkTargetRepId = postW2Id, Questions = OneMcQuestion(), Workers = new() { McWorker(nip2) }
+        };
+        var r2 = await NewInjectService(NewCtx()).InjectBatchAsync(req2, "actor", "Actor");
+        Assert.True(r2.Success, r2.Message);
+        var inj2Id = r2.SuccessSessionIds[0];
+
+        await using (var c = NewCtx())
+        {
+            // Kedua batch adopt grup SAMA (= post w1 id).
+            groupId = (await c.AssessmentSessions.FindAsync(inj1Id))!.LinkedGroupId!.Value;
+            Assert.Equal(groupId, (await c.AssessmentSessions.FindAsync(inj2Id))!.LinkedGroupId!.Value);
+        }
+
+        var unlink = await NewInjectService(NewCtx()).UnlinkInjectGroupAsync(groupId, "actor", "Actor");
+        Assert.True(unlink.Success, unlink.Message);   // atomic, sukses
+
+        await using var verify = NewCtx();
+        // Group-wide revert BY-DESIGN: KEDUA batch inject ter-revert (UI hanya unlink level-grup).
+        Assert.Null((await verify.AssessmentSessions.FindAsync(inj1Id))!.LinkedGroupId);
+        Assert.Null((await verify.AssessmentSessions.FindAsync(inj2Id))!.LinkedGroupId);
+        // INVARIANT KESELAMATAN (T-397-04): skor & status ONLINE tiap batch TIDAK tersentuh.
+        var post1 = await verify.AssessmentSessions.FindAsync(postW1Id);
+        var post2 = await verify.AssessmentSessions.FindAsync(postW2Id);
+        Assert.Equal(80, post1!.Score);
+        Assert.Equal(AssessmentConstants.AssessmentStatus.Completed, post1.Status);
+        Assert.Equal(85, post2!.Score);
+        Assert.Equal(AssessmentConstants.AssessmentStatus.Completed, post2.Status);
+    }
 }
