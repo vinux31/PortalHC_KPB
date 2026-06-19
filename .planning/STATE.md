@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
-stopped_at: Phase 398.1 context gathered
-last_updated: "2026-06-19T06:41:17.833Z"
+stopped_at: Phase 398.1 COMPLETE (verifier 10/10) — ready re-audit v32.2
+last_updated: "2026-06-19T08:00:24.756Z"
 last_activity: 2026-06-19 -- Phase 398.1 execution started
 progress:
   total_phases: 26
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 30
-  completed_plans: 26
-  percent: 87
+  completed_plans: 30
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -165,6 +165,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 398.1 context gathered
+Stopped at: Phase 398.1 COMPLETE (verifier 10/10) — ready re-audit v32.2
 
 Next action: **`/gsd-execute-phase 397` lanjut Plan 02 (Wave 1 — implementasi service INJ-12, GREEN gate)** — implement di `Services/InjectAssessmentService.cs`: `UnlinkInjectGroupAsync` BARU (D-12, mirror atomic+audit `DeleteAssessmentGroup`) + `PreviewPairingAsync` BARU (D-07 dry-run NO write) + resolusi link per-pekerja di `InjectBatchAsync` digerakkan `req.LinkTargetRepId` (ganti broadcast `:120` → sibling by-UserId; Kasus A adopt / Kasus B tulis-ke-SEMUA-sesi-target + bidirectional write-back + audit `"LinkPrePost"`; anti-double preflight D-08 daftar-lengkap; audit `"LinkPrePostUndo"` saat unlink) → 5 file RED + fast suite GREEN. **Gate verifikasi Wave 1:** `dotnet test --filter "FullyQualifiedName~InjectLink"` / `~AntiDoubleLink` / `~PreviewPairing` / `~CrossGrouping` / `~UnlinkInject` (real SQLEXPRESS) + `dotnet test` penuh. 0 migration (kolom `LinkedGroupId`/`LinkedSessionId` sudah ada). Branch main. ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). Plan 03 = controller (SearchLinkTargets JSON + UnlinkInjectGroup endpoint + extend PreviewInjectScore/MapToRequest); Plan 04 = view modal/chip + Playwright. Setelah fase 397: Phase 398 (test+UAT seakan-online). Sisa 396: secure/validate/verifier sudah TUNTAS (HEAD `b465a5ab`); notify IT (migration=FALSE).
