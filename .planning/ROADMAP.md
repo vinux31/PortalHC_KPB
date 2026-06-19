@@ -174,7 +174,7 @@
   3. Regression suite (xUnit + Playwright) hijau dan tidak ada regresi pada jalur assessment online existing; audit milestone v32.2 menyatakan 13/13 REQ INJ-01..13 satisfied + integration wired (0 orphan/0 broken). *(INJ-13)*
   4. `dotnet build` 0 error + `dotnet test` (full suite) hijau + Playwright E2E hijau + `dotnet run` (localhost:5277) UAT browser "seakan online" → notify IT (commit hash + migration=FALSE). *(INJ-13)*
 **Plans:** 3 plans
-- [ ] 398-01-PLAN.md — Wave 1: spec konsolidasi inject-seakan-online-398 (Form+essay+ElemenTeknis / Auto-gen / Excel / Pre-Post linked / side-by-side parity) — 4 surface downstream (D-02/03/04)
+- [x] 398-01-PLAN.md — Wave 1: spec konsolidasi inject-seakan-online-398 (Form+essay+ElemenTeknis / Auto-gen / Excel / Pre-Post linked / side-by-side parity) — 4 surface downstream (D-02/03/04)
 - [ ] 398-02-PLAN.md — Wave 2: regresi (full dotnet test + rerun online-path e2e existing) + 0-migration gate + SEED_JOURNAL cleaned + 398-VALIDATION compliant (D-05)
 - [ ] 398-03-PLAN.md — Wave 3 (checkpoint): /gsd-audit-milestone v32.2 13/13 + checkpoint keputusan close (D-06)
 **UI hint:** yes
@@ -190,7 +190,7 @@
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 3/3 | Complete    | 2026-06-18 |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 5/5 | Complete    | 2026-06-18 |
 | 397. Link Pre/Post ke room existing (INJ-12) | 4/4 | Complete    | 2026-06-18 |
-| 398. Test + UAT "seakan online" (INJ-13) | 0/3 | Not started | - |
+| 398. Test + UAT "seakan online" (INJ-13) | 1/3 | In Progress|  |
 
 ### Dependency Graph
 

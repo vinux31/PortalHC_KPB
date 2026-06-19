@@ -4,14 +4,14 @@ milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
 stopped_at: Phase 398 context gathered
-last_updated: "2026-06-18T12:56:44.965Z"
-last_activity: 2026-06-18 -- Phase 398 planning complete
+last_updated: "2026-06-19T00:42:45.400Z"
+last_activity: 2026-06-19
 progress:
   total_phases: 29
   completed_phases: 5
   total_plans: 22
-  completed_plans: 19
-  percent: 86
+  completed_plans: 20
+  percent: 91
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 397 — link-pre-post-ke-room-existing (4/4 SELESAI → ready_for_verification)
+**Current focus:** Phase 398 — test-uat-seakan-online
 
 ## Current Position
 
-Phase: 398
-Plan: Not started
+Phase: 398 (test-uat-seakan-online) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-18 -- Phase 398 planning complete
+Last activity: 2026-06-19
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 

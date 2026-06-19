@@ -39,7 +39,7 @@
 
 ### Verifikasi "Seakan Online" (INJ) — fase 398
 
-- [ ] **INJ-13**: Hasil inject **terverifikasi identik online** end-to-end — muncul di `/CMP/Records` pekerja (label "Assessment Online"), rincian jawaban per-soal benar/salah + elemen teknis di `/CMP/Results`, dan sertifikat dapat di-download — dikunci E2E + regression test + audit milestone.
+- [x] **INJ-13**: Hasil inject **terverifikasi identik online** end-to-end — muncul di `/CMP/Records` pekerja (label "Assessment Online"), rincian jawaban per-soal benar/salah + elemen teknis di `/CMP/Results`, dan sertifikat dapat di-download — dikunci E2E + regression test + audit milestone.
 
 ---
 
@@ -76,7 +76,7 @@
 | INJ-10 | Phase 396 | Complete |
 | INJ-11 | Phase 396 | Complete |
 | INJ-12 | Phase 397 | Complete |
-| INJ-13 | Phase 398 | Pending |
+| INJ-13 | Phase 398 | Complete |
 
 **Coverage: 13/13 v32.2 requirements mapped ✓ — Orphans: 0 — Duplicates: 0**
 
