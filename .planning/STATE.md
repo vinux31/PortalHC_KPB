@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: verifying
-stopped_at: Phase 403 UI-SPEC approved
-last_updated: "2026-06-19T05:53:23.156Z"
+stopped_at: Phase 402 context gathered
+last_updated: "2026-06-19T06:25:28.500Z"
 last_activity: 2026-06-19
 progress:
-  total_phases: 30
+  total_phases: 31
   completed_phases: 4
   total_plans: 13
   completed_plans: 13
@@ -133,6 +133,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 403 UI-SPEC approved
+Stopped at: Phase 402 context gathered
 
 Next action: **`/gsd-verify-work 400`** (Phase 400 = 1/1 plan complete). Lalu lanjut Wave-1 paralel {401 (sudah PLANNED, 6 plan), 403 (TBD)} (depends 399 done; cluster file disjoint, git worktree). Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context). **migration=FALSE Phase 400** — notify IT saat milestone push (satu-satunya migration v32.3 = 399 `AddUserUnitsTable` `fc015f4d`).
