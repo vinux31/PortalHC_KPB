@@ -1825,6 +1825,17 @@ namespace HcPortal.Controllers
                     .Where(a => a.LinkedGroupId == assessment.LinkedGroupId)
                     .ToListAsync();
 
+                // 999.11 D-02: hard-block edit grup Pre/Post saat ada sesi PendingGrading (penilaian essay in-flight) — cegah korup skor.
+                //             Carve-out !hasAddition mirror guard Completed (Phase 391 D-02 penambahan peserta tetap boleh).
+                bool hasAdditionPrePost = NewUserIds != null && NewUserIds.Count > 0;
+                bool anyPendingGradingGroup = allGroupSessions.Any(a =>
+                    a.Status == AssessmentConstants.AssessmentStatus.PendingGrading);
+                if (!hasAdditionPrePost && anyPendingGradingGroup)
+                {
+                    TempData["Error"] = "Tidak dapat mengedit grup Pre/Post saat ada sesi menunggu penilaian.";
+                    return RedirectToAction("ManageAssessment");
+                }
+
                 var preGroup = allGroupSessions.Where(a => a.AssessmentType == "PreTest").ToList();
                 var postGroup = allGroupSessions.Where(a => a.AssessmentType == "PostTest").ToList();
 
@@ -1999,6 +2010,21 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "Cannot edit completed assessments.";
                 return RedirectToAction("ManageAssessment");
+            }
+
+            // 999.11 D-02: hard-block edit murni saat ada sesi PendingGrading (penilaian essay in-flight) — cegah korup skor in-flight.
+            //             Carve-out !hasAddition mirror guard Completed (Phase 391 D-02 penambahan peserta tetap boleh).
+            if (!hasAddition)
+            {
+                bool anyPendingGrading = await _context.AssessmentSessions.AnyAsync(a =>
+                    a.Title == assessment.Title && a.Category == assessment.Category
+                    && a.Schedule.Date == assessment.Schedule.Date
+                    && a.Status == AssessmentConstants.AssessmentStatus.PendingGrading);
+                if (anyPendingGrading)
+                {
+                    TempData["Error"] = "Tidak dapat mengedit assessment saat ada sesi menunggu penilaian (essay belum dinilai). Selesaikan penilaian dahulu.";
+                    return RedirectToAction("ManageAssessment");
+                }
             }
 
             // Rate limit: guard before any DB work
