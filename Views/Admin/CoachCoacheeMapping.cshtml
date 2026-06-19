@@ -415,7 +415,7 @@ else
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Coach <span class="text-danger">*</span></label>
-                    <select id="assignCoachSelect" class="form-select" onchange="updateCoachSuggestHint()">
+                    <select id="assignCoachSelect" class="form-select" onchange="updateCoachSuggestHint(); applyCoachScope();">
                         <option value="">— Pilih Coach —</option>
                         @foreach (var coach in eligibleCoaches)
                         {
@@ -424,7 +424,7 @@ else
                     </select>
                     <div id="coachSuggestHint" class="form-text text-success" style="display:none;"></div>
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" id="coacheeSectionFilterGroup">
                     <label class="form-label fw-semibold">Filter Seksi Coachee</label>
                     <select id="assignSectionFilter" class="form-select" onchange="filterCoacheesBySection()">
                         <option value="">— Semua Seksi —</option>
@@ -436,10 +436,15 @@ else
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Coachee (pilih satu atau lebih) <span class="text-danger">*</span></label>
+                    @{ var coacheeUnitsDict = (ViewBag.CoacheeUnits as Dictionary<string, List<string>>) ?? new Dictionary<string, List<string>>(); }
                     <div id="coacheeChecklist" style="max-height:200px; overflow-y:auto; border:1px solid #ced4da; border-radius:6px; padding:0.5rem;">
+                        <p id="coacheePrompt" class="text-muted small mb-0">Pilih coach terlebih dahulu untuk menampilkan daftar coachee.</p>
                         @foreach (var coachee in eligibleCoachees)
                         {
-                            <div class="form-check coachee-item" data-section="@coachee.Section" data-unit="@coachee.Unit">
+                            var cUnits = coacheeUnitsDict.GetValueOrDefault((string)coachee.Id) ?? new List<string>();
+                            <div class="form-check coachee-item"
+                                 data-section="@coachee.Section"
+                                 data-units='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(cUnits))'>
                                 <input class="form-check-input coachee-checkbox" type="checkbox"
                                        id="chk-@coachee.Id" value="@coachee.Id" onchange="updateAssignmentDefaults()" />
                                 <label class="form-check-label" for="chk-@coachee.Id">
@@ -453,6 +458,17 @@ else
                                         <span class="badge bg-light text-dark border ms-1 small">@coachee.Section</span>
                                     }
                                 </label>
+                                @if (cUnits.Count > 1)
+                                {
+                                    <select class="form-select form-select-sm coachee-unit-select mt-1 w-auto d-inline-block"
+                                            data-coachee-id="@coachee.Id"
+                                            aria-label="Unit penugasan @coachee.FullName">
+                                        @foreach (var u in cUnits)
+                                        {
+                                            <option value="@u">@u</option>
+                                        }
+                                    </select>
+                                }
                             </div>
                         }
                         @if (!eligibleCoachees.Any())
@@ -460,8 +476,8 @@ else
                             <p class="text-muted small mb-0">Tidak ada coachee yang tersedia (semua sudah memiliki coach aktif).</p>
                         }
                     </div>
-                    <div id="coacheeUnitConstraintHint" class="form-text text-muted" style="display:none;">
-                        Satu batch assign hanya untuk satu unit. Coachee dari unit lain dinonaktifkan — kosongkan pilihan untuk berganti unit.
+                    <div id="coacheeUnitConstraintHint" class="form-text text-muted">
+                        Pilih unit penugasan untuk coachee yang memiliki lebih dari satu unit. Semua coachee harus berada dalam @OrgLabels.GetLabel(0) yang sama dengan coach.
                     </div>
                 </div>
                 <div class="mb-3">
@@ -472,12 +488,6 @@ else
                         {
                             <option value="@sec">@sec</option>
                         }
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">@OrgLabels.GetLabel(1) Penugasan <span class="text-danger">*</span></label>
-                    <select id="assignAssignmentUnit" class="form-select">
-                        <option value="">— Pilih @OrgLabels.GetLabel(1) —</option>
                     </select>
                 </div>
                 <div class="mb-3">
@@ -677,9 +687,42 @@ else
         }
     }
 
+    // Phase 402 (CXU-01 / IC-1): coach-first auto-scope. Pilih coach => filter checklist ke coach.Section,
+    // auto-set + disable Bagian Penugasan = coach.Section, sembunyikan filter seksi manual.
+    function applyCoachScope() {
+        var sel = document.getElementById('assignCoachSelect');
+        var opt = sel.options[sel.selectedIndex];
+        var coachSection = (opt && opt.getAttribute('data-section')) || '';
+        var prompt = document.getElementById('coacheePrompt');
+        var filterGroup = document.getElementById('coacheeSectionFilterGroup');
+        var items = document.querySelectorAll('#coacheeChecklist .coachee-item');
+        var secSelect = document.getElementById('assignAssignmentSection');
+
+        // Ganti coach => uncheck semua + re-filter (IC-1)
+        items.forEach(function (item) { var cb = item.querySelector('.coachee-checkbox'); if (cb) cb.checked = false; });
+
+        if (!coachSection) {
+            if (prompt) prompt.style.display = '';
+            items.forEach(function (item) { item.style.display = 'none'; });
+            if (filterGroup) filterGroup.style.display = '';
+            if (secSelect) { secSelect.disabled = false; secSelect.value = ''; }
+            return;
+        }
+        if (prompt) prompt.style.display = 'none';
+        // Filter checklist ke coach.Section (CXU-01 client; server enforce CXU-02)
+        items.forEach(function (item) {
+            item.style.display = (item.getAttribute('data-section') === coachSection) ? '' : 'none';
+        });
+        // Sembunyikan filter seksi manual (redundant — Bagian dikunci coach)
+        if (filterGroup) filterGroup.style.display = 'none';
+        // Auto-set + disable Bagian Penugasan = coach.Section (IC-1)
+        if (secSelect) { secSelect.value = coachSection; secSelect.disabled = true; }
+    }
+
     function filterAssignmentUnits(prefix) {
         var sectionVal = document.getElementById(prefix + 'AssignmentSection').value;
         var unitSelect = document.getElementById(prefix + 'AssignmentUnit');
+        if (!unitSelect) return;   // Phase 402: assign-modal batch unit select removed (per-coachee); edit modal still uses this
         unitSelect.innerHTML = '<option value="">— Pilih @OrgLabels.GetLabel(1) —</option>';
         if (sectionVal && sectionUnitsMap[sectionVal]) {
             sectionUnitsMap[sectionVal].forEach(function(u) {
@@ -713,85 +756,61 @@ else
     }
 
     function updateAssignmentDefaults() {
-        var checked = document.querySelectorAll('.coachee-checkbox:checked');
-        var hint = document.getElementById('coacheeUnitConstraintHint');
-
-        // AF-2 (Phase 356): RESET saat tak ada centang — re-enable semua, hilangkan text-muted, sembunyikan hint
-        if (checked.length === 0) {
-            document.querySelectorAll('#coacheeChecklist .coachee-item').forEach(function (item) {
-                item.querySelector('.coachee-checkbox').disabled = false;
-                item.classList.remove('text-muted');
-            });
-            if (hint) hint.style.display = 'none';
-            return;
-        }
-
-        // AF-2 guard: kunci unit dari centang pertama, disable checkbox coachee unit berbeda.
-        // HANYA toggle disabled + text-muted; JANGAN sentuh style.display (milik filterCoacheesBySection).
-        var lockedUnit = checked[0].closest('.coachee-item').getAttribute('data-unit') || '';
-        document.querySelectorAll('#coacheeChecklist .coachee-item').forEach(function (item) {
-            var cb = item.querySelector('.coachee-checkbox');
-            var sameUnit = (item.getAttribute('data-unit') || '') === lockedUnit;
-            cb.disabled = !sameUnit && !cb.checked;            // JANGAN disable yang sudah dicentang
-            item.classList.toggle('text-muted', !sameUnit && !cb.checked);
-        });
-        if (hint) hint.style.display = '';
-
-        var sections = new Set();
-        var units = new Set();
-        checked.forEach(function(cb) {
-            var item = cb.closest('.coachee-item');
-            var sec = item.getAttribute('data-section') || '';
-            var unit = item.getAttribute('data-unit') || '';
-            if (sec) sections.add(sec);
-            if (unit) units.add(unit);
-        });
-
-        // Find which bagian contains these units
-        if (units.size === 1) {
-            var theUnit = Array.from(units)[0];
-            // Find the section (bagian) that contains this unit
-            for (var bagian in sectionUnitsMap) {
-                if (sectionUnitsMap[bagian].indexOf(theUnit) >= 0) {
-                    var secSelect = document.getElementById('assignAssignmentSection');
-                    secSelect.value = bagian;
-                    filterAssignmentUnits('assign');
-                    document.getElementById('assignAssignmentUnit').value = theUnit;
-                    return;
-                }
-            }
-        }
-        // Multiple different units or no match — don't auto-fill
+        // Phase 402 (CXU-04 / IC-3): lock di-relax ke level Bagian. Coachee multi-unit dalam 1 Bagian
+        // boleh dicentang bersama. Bagian Penugasan sudah di-set dari coach.Section (applyCoachScope);
+        // tidak ada lagi lock per-unit / auto-fill batch unit (dihapus Phase 402).
     }
 
     function submitAssign() {
-        var coachId = document.getElementById('assignCoachSelect').value;
-        var coacheeIds = Array.from(document.querySelectorAll('.coachee-checkbox:checked')).map(cb => cb.value);
-        var trackId = document.getElementById('assignProtonTrack').value;
-        var startDate = document.getElementById('assignStartDate').value;
-        var assignmentSection = document.getElementById('assignAssignmentSection').value;
-        var assignmentUnit = document.getElementById('assignAssignmentUnit').value;
-
+        var sel = document.getElementById('assignCoachSelect');
+        var coachId = sel.value;
         if (!coachId) { alert('Pilih coach terlebih dahulu.'); return; }
-        if (coacheeIds.length === 0) { alert('Pilih minimal satu coachee.'); return; }
-        // AF-2 backstop: tolak submit bila >1 unit terpilih (sabuk pengaman race manipulasi DOM)
-        var selectedUnits = new Set(
-            Array.from(document.querySelectorAll('.coachee-checkbox:checked'))
-                 .map(cb => cb.closest('.coachee-item').getAttribute('data-unit') || ''));
-        if (selectedUnits.size > 1) {
-            alert('Satu batch assign hanya untuk satu unit. Kosongkan pilihan dan pilih ulang dari satu unit saja.');
+        var opt = sel.options[sel.selectedIndex];
+        var coachSection = (opt && opt.getAttribute('data-section')) || '';
+
+        var checked = Array.from(document.querySelectorAll('.coachee-checkbox:checked'));
+        if (checked.length === 0) { alert('Pilih minimal satu coachee.'); return; }
+
+        // E-2 backstop (Bagian-level, IC-3): semua coachee tercentang harus 1 Bagian = coach.Section.
+        var crossBagian = checked.some(function (cb) {
+            return cb.closest('.coachee-item').getAttribute('data-section') !== coachSection;
+        });
+        if (crossBagian) {
+            alert('Semua coachee harus berada dalam ' + '@OrgLabels.GetLabel(0)' + ' yang sama dengan coach. Periksa kembali pilihan Anda.');
             return;
         }
-        if (!assignmentSection) { alert('Pilih Bagian Penugasan.'); return; }
-        if (!assignmentUnit) { alert('Pilih Unit Penugasan.'); return; }
+
+        // Build per-coachee unit map (IC-4): per-row select (multi-unit) atau single unit dari data-units.
+        var assignmentUnits = {};
+        for (var i = 0; i < checked.length; i++) {
+            var cb = checked[i];
+            var coacheeId = cb.value;
+            var item = cb.closest('.coachee-item');
+            var rowSelect = item.querySelector('.coachee-unit-select');
+            if (rowSelect) {
+                assignmentUnits[coacheeId] = rowSelect.value;
+            } else {
+                var units = [];
+                try { units = JSON.parse(item.getAttribute('data-units') || '[]'); } catch (e) { units = []; }
+                if (units.length === 1) { assignmentUnits[coacheeId] = units[0]; }
+            }
+            if (!assignmentUnits[coacheeId]) {
+                alert('Unit penugasan wajib dipilih untuk setiap coachee multi-unit.');   // E-3
+                return;
+            }
+        }
+
+        var coacheeIds = checked.map(function (cb) { return cb.value; });
+        var trackId = document.getElementById('assignProtonTrack').value;
+        var startDate = document.getElementById('assignStartDate').value;
 
         var payload = {
             CoachId: coachId,
             CoacheeIds: coacheeIds,
             ProtonTrackId: trackId ? parseInt(trackId) : null,
             StartDate: startDate || null,
-            AssignmentSection: assignmentSection,
-            AssignmentUnit: assignmentUnit
+            AssignmentSection: coachSection,           // single = coach.Section (IC-1)
+            AssignmentUnits: assignmentUnits           // per-coachee map (IC-4 / D-05)
         };
 
         fetch(appUrl('/Admin/CoachCoacheeMappingAssign'), {
@@ -804,29 +823,8 @@ else
         })
         .then(r => r.json())
         .then(data => {
-            if (data.success) {
-                location.reload();
-            } else if (data.warning) {
-                if (confirm(data.message)) {
-                    payload.ConfirmProgressionWarning = true;
-                    fetch(appUrl('/Admin/CoachCoacheeMappingAssign'), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]').value
-                        },
-                        body: JSON.stringify(payload)
-                    })
-                    .then(r => r.json())
-                    .then(d => {
-                        if (d.success) location.reload();
-                        else alert(d.message);
-                    })
-                    .catch(err => alert('Terjadi kesalahan: ' + err.message));
-                }
-            } else {
-                alert(data.message);
-            }
+            if (data.success) { location.reload(); }
+            else { alert(data.message); }            // E-1 server message surfaced here
         })
         .catch(err => alert('Terjadi kesalahan: ' + err.message));
     }
