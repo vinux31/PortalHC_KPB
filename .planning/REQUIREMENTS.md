@@ -55,27 +55,34 @@
 
 ## Traceability
 
-Diisi saat pembuatan roadmap.
-
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| PART-05 | TBD | pending |
-| PART-06 | TBD | pending |
-| PART-07 | TBD | pending |
-| PRMV-01 | TBD | pending |
-| PRMV-02 | TBD | pending |
-| PRMV-03 | TBD | pending |
-| PRMV-04 | TBD | pending |
-| PRMV-05 | TBD | pending |
-| PLIV-01 | TBD | pending |
-| PLIV-02 | TBD | pending |
-| PLIV-03 | TBD | pending |
+| PART-05 | 412 | pending |
+| PART-06 | 410 | pending |
+| PART-07 | 410 | pending |
+| PRMV-01 | 411 | pending |
+| PRMV-02 | 412 | pending |
+| PRMV-03 | 409 | pending |
+| PRMV-04 | 411 | pending |
+| PRMV-05 | 411 | pending |
+| PLIV-01 | 412 | pending |
+| PLIV-02 | 412 | pending |
+| PLIV-03 | 411 | pending |
+
+**Phase mapping (5 fase, 409-413):**
+- **Phase 409** Data Foundation + Re-entry Guards + Exclude-Removed Query — PRMV-03 (migration=TRUE `AddParticipantRemovalColumns`; fondasi exclude-query untuk PLIV-01)
+- **Phase 410** Add-Participant Backend Live — PART-06, PART-07
+- **Phase 411** Remove + Restore Backend Live — PRMV-01, PRMV-04, PRMV-05, PLIV-03
+- **Phase 412** Live Monitoring UI + SignalR — PART-05, PRMV-02, PLIV-01, PLIV-02
+- **Phase 413** Test + UAT — (no new REQ; verifikasi end-to-end semua 11 REQ)
 
 **Coverage:**
 - v1 requirements: 11 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 11 ⚠️ (diisi roadmapper)
+- Mapped to phases: 11 ✓ (PRMV-03→409; PART-06/07→410; PRMV-01/04/05 + PLIV-03→411; PART-05 + PRMV-02 + PLIV-01/02→412)
+- Unmapped: 0 — Orphans: 0 — Duplicates: 0
+- migration=TRUE hanya Phase 409 (`AddParticipantRemovalColumns`); Phase 410-413 = migration=FALSE
+- Depends chain: 409 → (410 ∥ 411, file-overlap `AssessmentAdminController.cs` → sequential) → 412 → 413
 
 ---
 *Requirements defined: 2026-06-19*
-*Last updated: 2026-06-19 — initial definition v32.5*
+*Last updated: 2026-06-19 — roadmap created (Phases 409-413), traceability filled, 11/11 mapped*
