@@ -87,18 +87,18 @@ public class AssessmentAttemptResponseArchive
 {
     public int Id { get; set; }
     public int AttemptHistoryId { get; set; }       // FK → AssessmentAttemptHistory.Id (cascade)
-    public int QuestionId { get; set; }             // soal asli (plain int, no FK — soal bisa terhapus)
-    public string? SelectedOptionIds { get; set; }  // CSV/JSON opsi terpilih (MC/MA)
-    public string? EssayText { get; set; }          // jawaban essay
-    public decimal? AwardedScore { get; set; }      // skor per-soal (termasuk nilai essay manual)
-    public bool IsCorrect { get; set; }             // hasil grading per-soal (untuk "tanda soal salah")
+    public int PackageQuestionId { get; set; }      // soal asli (plain int, no FK — soal bisa terhapus)
+    public string QuestionText { get; set; } = "";  // snapshot teks soal (beku, tahan edit/hapus)
+    public string? AnswerText { get; set; }         // jawaban worker (display) via BuildAnswerCell
+    public bool? IsCorrect { get; set; }            // verdict beku via IsQuestionCorrect (null=essay pending)
+    public int AwardedScore { get; set; }           // skor per-soal saat archive
     public DateTime ArchivedAt { get; set; }
 }
 ```
 
 - FK `AttemptHistoryId` → `AssessmentAttemptHistory` (sudah ada, punya `AttemptNumber`). Index di `AttemptHistoryId`.
-- `QuestionId` plain int (konsisten pola `AssessmentAttemptHistory.SessionId` yang juga plain int).
-- Snapshot di-build dari `PackageUserResponses` + hasil grading **sebelum** `RemoveRange` (`ResetAssessment:4261-4266`).
+- `PackageQuestionId` plain int (konsisten pola `AssessmentAttemptHistory.SessionId`).
+- Verdict (`IsCorrect`) + `AnswerText` di-build via helper terpusat `AssessmentScoreAggregator.IsQuestionCorrect`/`BuildAnswerCell` (kill-drift, no re-grade inline) **sebelum** `PackageUserResponses` di-`RemoveRange` (`ResetAssessment:4261-4266`). Helper builder pure: `RetakeArchiveBuilder.Build(attemptHistoryId, questions, responses)`.
 
 ---
 
