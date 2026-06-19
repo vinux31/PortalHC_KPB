@@ -390,47 +390,42 @@ export async function checkMAOptionsForQuestion(
  * @param answer essay text untuk fill
  */
 export async function fillEssayAnswer(page: Page, qCard: Locator, answer: string): Promise<void> {
-  // Set textarea value via fill (UI state visible to user) — TRIGGER char counter + answered state
-  const textarea = qCard.locator('textarea.exam-essay');
-  await textarea.fill(answer);
-  await textarea.evaluate((el) => {
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-  });
+  // 999.13 (398.1): JANGAN re-implement product save via direct hub.invoke. ANDALKAN product flushEssay()
+  //   yang dipicu #reviewSubmitBtn (StartExam.cshtml:1024-1045: flushEssay() clear debounce + invoke
+  //   'SaveTextAnswer' pakai ta.dataset.questionId DOM yang BENAR + tunggu hasPendingSaves() SEBELUM submit).
+  //   Pola PERSIS essay-flush-385.spec.ts:130-152 (PROVEN 3/3 reliable). Kenapa bukan direct invoke:
+  //   direct invoke pakai qId hasil parse `qcard_{id}` yang bisa ≠ ta.dataset.questionId di ujian ter-shuffle
+  //   → save ke pertanyaan salah / tak persist (akar flaky 999.13). Product flush baca DOM live → selalu benar.
 
-  // Extract qId dari qcard id attribute (format `qcard_{qId}`)
+  // 1) Tunggu hub Connected (flushEssay best-effort skip bila belum Connected).
+  await page.waitForFunction(
+    () => {
+      const w = window as unknown as { assessmentHub?: { state?: string } };
+      return !!w.assessmentHub && w.assessmentHub.state === 'Connected';
+    },
+    undefined,
+    { timeout: 15_000 }
+  );
+
+  // 2) Sanity format qcard id (kontrak pemanggil).
   const qcardId = await qCard.getAttribute('id');
-  const qIdMatch = qcardId?.match(/qcard_(\d+)/);
-  if (!qIdMatch) {
+  if (!qcardId?.match(/qcard_(\d+)/)) {
     throw new Error(`fillEssayAnswer: qcard id "${qcardId}" tidak match pattern qcard_{qId}`);
   }
-  const qId = parseInt(qIdMatch[1], 10);
 
-  // DIRECT SignalR hub invoke + await (bypass UI debounce fire-and-forget race).
-  //   StartExam.cshtml:893-902 debounce 2s setTimeout calls `assessmentHub.invoke` BUT immediately
-  //   sets indicator to 'saved' WITHOUT awaiting the SignalR roundtrip. Indicator lies. `#reviewSubmitBtn`
-  //   listener cuma track HTTP saves (pendingSaves), Essay SignalR tidak di-track → submit dapat fire
-  //   sebelum server persist PackageUserResponse → ExamSummary `unanswered > 0` → submit btn disabled.
-  //
-  //   Test invoke hub directly + await — guarantees TextAnswer persist sebelum proceed ke submit.
-  //   SessionId extracted from page URL (`/CMP/StartExam/{sessionId}`) since `const SESSION_ID`
-  //   di Razor script-scope tidak attached ke window.
-  const sessionId = parseInt(page.url().match(/StartExam\/(\d+)/)?.[1] || '0', 10);
-  if (!sessionId) {
-    throw new Error(`fillEssayAnswer: page URL "${page.url()}" missing StartExam/{sessionId} segment`);
+  // 3) Set value via evaluate (bukan page.fill: fill hormati maxlength + butuh visible; evaluate robust
+  //    di ujian paginasi) + dispatch 'input' → product input listener arm debounce/flush path.
+  const textarea = qCard.locator('textarea.exam-essay');
+  await textarea.evaluate((el, v) => {
+    (el as HTMLTextAreaElement).value = v as string;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }, answer);
+  // 4) Guard regresi empty-fill: pastikan teks benar-benar masuk sebelum submit.
+  const actual = await textarea.inputValue();
+  if (actual !== answer) {
+    throw new Error(`fillEssayAnswer: textarea value mismatch (len ${actual.length} vs ${answer.length})`);
   }
-  await page.evaluate(
-    async ({ sid, qIdNum, text }) => {
-      const w = window as unknown as {
-        assessmentHub?: { state?: string; invoke: (m: string, ...args: unknown[]) => Promise<void> };
-      };
-      const hub = w.assessmentHub;
-      if (!hub || hub.state !== 'Connected') {
-        throw new Error(`fillEssayAnswer: SignalR hub not connected (state=${hub?.state})`);
-      }
-      await hub.invoke('SaveTextAnswer', sid, qIdNum, text);
-    },
-    { sid: sessionId, qIdNum: qId, text: answer }
-  );
+  // Persist dijamin product flushEssay() saat #reviewSubmitBtn diklik (submitExamTwoStep). NO direct hub.invoke.
 }
 
 /**
