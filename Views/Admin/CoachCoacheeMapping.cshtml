@@ -446,7 +446,8 @@ else
                                  data-section="@coachee.Section"
                                  data-units='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(cUnits))'>
                                 <input class="form-check-input coachee-checkbox" type="checkbox"
-                                       id="chk-@coachee.Id" value="@coachee.Id" onchange="updateAssignmentDefaults()" />
+                                       id="chk-@coachee.Id" value="@coachee.Id" onchange="updateAssignmentDefaults()"
+                                       @(cUnits.Count == 0 ? "disabled" : "") />
                                 <label class="form-check-label" for="chk-@coachee.Id">
                                     @coachee.FullName
                                     @if (!string.IsNullOrEmpty((string)coachee.NIP))
@@ -458,6 +459,11 @@ else
                                         <span class="badge bg-light text-dark border ms-1 small">@coachee.Section</span>
                                     }
                                 </label>
+                                @if (cUnits.Count == 0)
+                                {
+                                    @* Phase 402 (WR-04): coachee tanpa unit aktif tidak bisa dipilih (tidak ada unit penugasan). *@
+                                    <span class="text-muted small fst-italic ms-1">— tidak punya unit aktif, tambahkan unit dulu</span>
+                                }
                                 @if (cUnits.Count > 1)
                                 {
                                     <select class="form-select form-select-sm coachee-unit-select mt-1 w-auto d-inline-block"
@@ -795,7 +801,7 @@ else
                 if (units.length === 1) { assignmentUnits[coacheeId] = units[0]; }
             }
             if (!assignmentUnits[coacheeId]) {
-                alert('Unit penugasan wajib dipilih untuk setiap coachee multi-unit.');   // E-3
+                alert('Pilih unit penugasan untuk setiap coachee.');   // E-3 (WR-04: pesan unit-agnostic)
                 return;
             }
         }
@@ -1049,6 +1055,11 @@ else
         document.getElementById('importMappingFile')?.addEventListener('change', function() {
             document.getElementById('btnImportMapping').disabled = !this.files.length;
         });
+
+        // Phase 402 (WR-01): jalankan applyCoachScope() saat modal assign dibuka supaya state awal
+        // sesuai kontrak coach-first (prompt tampil, coachee disembunyikan, filter seksi manual disembunyikan,
+        // Bagian Penugasan kosong). Tanpa ini, sebelum admin menyentuh dropdown coach semua coachee tampil.
+        document.getElementById('assignModal')?.addEventListener('show.bs.modal', applyCoachScope);
     });
 </script>
 
