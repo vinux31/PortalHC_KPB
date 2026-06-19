@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: executing
-stopped_at: Phase 398.1 COMPLETE (verifier 10/10) — ready re-audit v32.2
+status: milestone_complete
+stopped_at: v32.2 CLOSED (archived + tagged local v32.2). Ready push + next milestone.
 last_updated: "2026-06-19T08:38:43.861Z"
 last_activity: 2026-06-19
 progress:
-  total_phases: 26
-  completed_phases: 9
-  total_plans: 30
-  completed_plans: 30
+  total_phases: 7
+  completed_phases: 7
+  total_plans: 26
+  completed_plans: 26
   percent: 100
 ---
 
@@ -21,22 +21,26 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 398.1 — Tech-debt cleanup INJ (v32.2)
+**Current focus:** v32.2 CLOSED — planning next (v32.3 akun multi-unit di branch ITHandoff, atau `/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 398.1 (Tech-debt cleanup INJ (v32.2)) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 398.1
+Milestone: v32.2 — ✅ SHIPPED local + audited PASSED + CLOSED + tagged (local) 2026-06-19
+Status: milestone complete; ready push + next milestone
 Last activity: 2026-06-19
 
-**Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
+**Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — CLOSED. 7 fase (393-398 + 398.1), 26 plan, 13/13 REQ INJ-01..13, **0 migration**. Re-audit-2 PASSED (7/7 phase VERIFICATION, integration 7/7 WIRED 0-regression, nyquist 6/6, tech-debt RESOLVED via 398.1: 8 FIX/2 DROP). Archive: `milestones/v32.2-*` + `milestones/v32.2-phases/`. Tag lokal `v32.2`. Branch main. **NOT PUSHED.**
 
-**v32.0 (Phases 391+392) COMPLETE local 2026-06-17 — belum diarsip** (dir phases 391/392 masih live; `/gsd-complete-milestone` belum dijalankan, atas keputusan user). Sisa v32.0: secure/validate 392 + audit-milestone + notify IT (migration=FALSE) — non-blocking untuk v32.2.
+**v32.0 (Phases 391+392) COMPLETE local — BELUM diarsip** (dir `391-*`/`392-*` masih di `.planning/phases/`; audit PASSED ada `v32.0-MILESTONE-AUDIT.md`). ⚠️ JANGAN `/gsd-complete-milestone v32.0` standar (destruktif — REQUIREMENTS/STATE/PROJECT live milestone berikut akan clobber). Close MANUAL: buat `milestones/v32.0-ROADMAP+REQUIREMENTS` dari git (PART/WRKR) + tag v32.0 @`423a2e76`, TANPA sentuh file live. Non-blocking.
 
 ## Next Action
 
-**Phase 397 SELESAI 4/4 plan — INJ-12 COMPLETE → ready_for_verification.** Next: orchestrator jalankan verify (gsd-verifier) untuk Phase 397, lalu (opsional) secure + validate, kemudian transition → **Phase 398** (Test + UAT "seakan online", INJ-13 — E2E full lifecycle inject→/CMP/Records+/CMP/Results per-soal+sertifikat + regression suite + audit milestone v32.2). Saat push: notify IT (commit hash; migration=FALSE — git diff Migrations/ Data/ kosong sepanjang fase). Branch main. ❌ tidak ada edit Dev/Prod. ⚠️ 394+395+396+397 belum di-push (deploy bareng). Plan 04 detail di Current Position di atas + SUMMARY `397-04-SUMMARY.md`.
+**v32.2 CLOSED.** Sisa:
+1. **Push** `git push origin main` (~207 commit ahead) + `git push origin v32.2` (tag) — saat koordinasi deploy. **Notify IT: migration=FALSE** (0 migration sepanjang v32.2; carry lama PendingProtonBypass/360 + ShuffleToggles/372 sudah pending dari milestone lampau).
+2. **v32.0 close manual** (lihat Current Position) — opsional, non-blocking.
+3. **Next milestone:** v32.3 (akun multi-unit, sudah jalan di branch `ITHandoff` — lihat memory `project_akun_multirole_multiunit_research`) ATAU `/gsd-new-milestone`.
+
+❌ Tidak ada edit kode/DB Dev/Prod (promosi = IT).
 
 ---
 

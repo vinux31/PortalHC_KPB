@@ -4,6 +4,35 @@
 
 ---
 
+## Milestone: v32.2 — Inject Hasil Assessment Manual (Seakan Online)
+
+**Shipped:** 2026-06-19 (local, not pushed)
+**Phases:** 7 (393-398 + 398.1) | **Plans:** 26 | **Migration:** 0
+
+### What Was Built
+Page `/Admin/InjectAssessment` (Section C, Admin+HC) untuk inject hasil assessment manual identik online — wizard 6-langkah, `InjectBatchAsync` reuse GradingService/Aggregator/CertNumberHelper (nol duplikasi), mode jawaban input-asli/auto-gen, import Excel matrix (+retire BulkBackfill), link Pre/Post silang inject↔online. 398.1 tech-debt cleanup (8 FIX/2 DROP).
+
+### What Worked
+- **Reuse-bukan-paralel** sebagai tesis arsitektur: satu grading entry-point + satu read projection + satu renderer → inject tak bisa dibedakan dari online by-construction (integration checker 7/7 WIRED konfirmasi struktural).
+- **Verify-first (D-01) di tech-debt phase**: 2 dari 10 temuan ternyata false-positive/by-design (essay decimal int-only, unlink cross-batch) — di-DROP dengan bukti, bukan blind-fix. Cegah refactor sia-sia + regresi.
+- **Interactive execute (398.1)**: runtime verification menangkap fix yang salah — 999.13 "rely product flush + page.fill" + "direct invoke" GAGAL Flow K, percobaan-3 (mirror essay-flush-385: evaluate + product flush) baru PASS. Tanpa e2e runtime, fix salah lolos grep+build.
+
+### What Was Inefficient
+- **v32.0 tak diarsip sebelum v32.2 mulai** → ROADMAP/REQUIREMENTS/phases intermingled; CLI milestone-complete over-count (9 phase) perlu koreksi manual. Lesson: archive milestone SEBELUM mulai berikut.
+- 999.13 makan 3 percobaan (root cause: parsed qcard-id ≠ DOM dataset.questionId di shuffled exam) — diagnosis butuh baca produk flushEssay.
+
+### Patterns Established
+- Tech-debt phase desimal (398.1) sebagai penutup milestone: verify-first + drop-with-evidence + behavior-lock test untuk yang tak-fixable in-scope.
+- e2e essay helper: andalkan product flush (baca DOM live), JANGAN re-implement save dengan id hasil-parse.
+
+### Key Lessons
+- Archive milestone N sebelum milestone N+1 dimulai (hindari intermingling).
+- Runtime e2e WAJIB untuk fix test-helper/UI — grep+build tak cukup (ulang lesson 354/392).
+
+### Cost Observations
+- Model mix: opus (plan/execute/pattern), sonnet (verify/checker/integration).
+- Sessions: 1 panjang (audit→insert 398.1→discuss→plan→execute interactive→re-audit→close).
+
 ## Milestone: v31.0 — Hotfix Pra-Ujian Lisensor
 
 **Shipped:** 2026-06-16 (local; NOT pushed)
