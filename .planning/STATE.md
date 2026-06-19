@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: verifying
-stopped_at: Phase 398 context gathered
-last_updated: "2026-06-19T01:54:42.004Z"
+stopped_at: Phase 398.1 context gathered
+last_updated: "2026-06-19T06:00:17.856Z"
 last_activity: 2026-06-19
 progress:
-  total_phases: 29
-  completed_phases: 6
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 26
+  completed_phases: 8
+  total_plans: 26
+  completed_plans: 26
   percent: 100
 ---
 
@@ -126,6 +126,7 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 ### Roadmap Evolution
 
+- **Phase 398.1 disisipkan 2026-06-19** setelah Phase 398 (desimal, INSERTED) — Tech-debt cleanup INJ (v32.2): tutup 9 temuan code-review + carry (396 WR-01/02/03, 397 WR-01/02/03, 999.11/12/13) + cosmetic Legenda LBL-02, SEBELUM `/gsd-complete-milestone v32.2`. Desimal 398.1 dipilih (BUKAN 399 — 399-404 dipakai v32.3 di branch ITHandoff, hindari konflik merge). Branch main, migration=false. ⚠️ verifikasi tiap warning real vs false-positive dulu (receiving-code-review). Next: `/gsd-plan-phase 398.1`. v32.2 tetap 13/13 REQ (tak nambah REQ INJ).
 - **v32.2 milestone dimulai 2026-06-17** — Inject Hasil Assessment Manual ("Seakan Online"), 6 fase (393-398, LANJUT dari 392; tidak reset). Sumber: brainstorm + design spec `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Skip research (sudah research codebase saat brainstorm). Keputusan kunci: reuse mesin existing (authoring + GradingService + CertNumberHelper, nol duplikasi); standalone-alur tapi reuse-kode; sertifikat toggle per-room (auto/manual/tanpa); link Pre/Post silang inject↔online; retire/absorb BulkBackfill; 0 migration. v32.0 (391/392) TIDAK dihapus dir-nya (lanjut tanpa `phases clear`, atas keputusan user). Requirements + roadmap menyusul.
 - **v32.0 roadmap dibuat 2026-06-17** — Phases 391-392, 7 REQ (PART-01..04 + WRKR-01..03). Penomoran LANJUT dari v31.0 phase terakhir (387) → mulai 391 (tidak reset). Phasing by file-overlap (split alami 2 fase, fitur file-disjoint & independen): PART-01..04 (`AssessmentAdminController.cs` + view/monitoring + test) → 391; WRKR-01..03 (`Views/Admin/CreateWorker.cshtml` view-only) → 392. 0 migration (kedua fase). Out of scope: hard-block penambahan saat InProgress, perubahan controller/model CreateWorker, AD-sync, migration.
 - **v31.0 roadmap dibuat 2026-06-15** — Phases 385-386, 5 PXF (PXF-01..05). Penomoran LANJUT dari v30.0 (384). Phasing by file-overlap: PXF-01+PXF-03 (file view) → 385; PXF-02+PXF-04+PXF-05 (semua `AssessmentAdminController.cs`) → 386 (gabung hindari konflik write paralel). 0 migration. (Phase 387 ditambah pasca-acara: 7 REQ polish PXF-06..13.)
@@ -164,6 +165,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 398 context gathered
+Stopped at: Phase 398.1 context gathered
 
 Next action: **`/gsd-execute-phase 397` lanjut Plan 02 (Wave 1 — implementasi service INJ-12, GREEN gate)** — implement di `Services/InjectAssessmentService.cs`: `UnlinkInjectGroupAsync` BARU (D-12, mirror atomic+audit `DeleteAssessmentGroup`) + `PreviewPairingAsync` BARU (D-07 dry-run NO write) + resolusi link per-pekerja di `InjectBatchAsync` digerakkan `req.LinkTargetRepId` (ganti broadcast `:120` → sibling by-UserId; Kasus A adopt / Kasus B tulis-ke-SEMUA-sesi-target + bidirectional write-back + audit `"LinkPrePost"`; anti-double preflight D-08 daftar-lengkap; audit `"LinkPrePostUndo"` saat unlink) → 5 file RED + fast suite GREEN. **Gate verifikasi Wave 1:** `dotnet test --filter "FullyQualifiedName~InjectLink"` / `~AntiDoubleLink` / `~PreviewPairing` / `~CrossGrouping` / `~UnlinkInject` (real SQLEXPRESS) + `dotnet test` penuh. 0 migration (kolom `LinkedGroupId`/`LinkedSessionId` sudah ada). Branch main. ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). Plan 03 = controller (SearchLinkTargets JSON + UnlinkInjectGroup endpoint + extend PreviewInjectScore/MapToRequest); Plan 04 = view modal/chip + Playwright. Setelah fase 397: Phase 398 (test+UAT seakan-online). Sisa 396: secure/validate/verifier sudah TUNTAS (HEAD `b465a5ab`); notify IT (migration=FALSE).
