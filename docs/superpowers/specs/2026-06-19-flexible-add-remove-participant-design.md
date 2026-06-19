@@ -64,7 +64,7 @@ Definisi: sesi **soft-removed** ⇔ `RemovedAt != null`. Sesi **aktif** ⇔ `Rem
    - **Belum mulai + tanpa data** (`StartedAt == null` & 0 `PackageUserResponse`) → **hard-delete** sesi tunggal via `RecordCascadeDeleteService.ExecuteAsync` (single root). Bersih, tanpa jejak.
    - **Sudah mulai / Completed / ada data** → **soft-remove**: set `RemovedAt=UtcNow`, `RemovedBy`, `RemovalReason`. **JANGAN sentuh** `Score`, `IsPassed`, `NomorSertifikat`, file sertifikat, response.
 3. Kalau peserta InProgress saat dihapus → push SignalR `examRemoved` (payload `reason`) ke worker (target user/grup batch).
-4. **Pre/Post:** kalau sesi linked Pre/Post → terapkan jalur yang sama ke **kedua** sesi pasangan orang itu (mirror partner-handling `DeletePrePostGroup`).
+4. **Pre/Post:** kalau sesi linked Pre/Post → perlakukan **pasangan sebagai satu unit** (jaga konsistensi, jangan tinggalkan setengah pasangan). Evaluasi gabungan: kalau **salah satu** dari Pre/Post sudah punya data (`StartedAt != null` atau ada response) → **soft-remove keduanya**; kalau **kedua-duanya** belum-mulai + tanpa data → **hard-delete keduanya** (mirror partner-handling `DeletePrePostGroup`).
 5. Audit `RemoveParticipantLive` (flag hard/soft + reason). Return JSON outcome.
 6. **Setelah commit**, broadcast SignalR `participantRemoved` (payload `sessionId`) ke `monitor-{batchKey}`.
 
