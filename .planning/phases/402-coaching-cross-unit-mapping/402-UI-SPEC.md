@@ -1,10 +1,11 @@
 ---
 phase: 402
 slug: coaching-cross-unit-mapping
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-19
+reviewed_at: 2026-06-19
 ---
 
 # Phase 402 — UI Design Contract
