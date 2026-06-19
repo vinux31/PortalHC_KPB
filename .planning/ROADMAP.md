@@ -65,7 +65,7 @@
  (completed 2026-06-18)
 - [x] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration. (completed 2026-06-18)
 - [x] **Phase 397: Link Pre/Post ke room existing (INJ-12)** — Search picker assessment room existing (reuse query `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` untuk sesi inject Pre/Post, dukung skenario **silang inject↔online** (Pre di-inject ↔ Post real, atau sebaliknya) tanpa merusak grouping PrePost. Sequential setelah 394. 0 migration. (completed 2026-06-18)
-- [ ] **Phase 398: Test + UAT "seakan online" (INJ-13)** — E2E full lifecycle (inject form/auto-gen/Excel → muncul di `/CMP/Records` label "Assessment Online" + rincian per-soal benar/salah + elemen teknis di `/CMP/Results` + sertifikat dapat diunduh) + regression suite hijau (tak regresi jalur online) + audit milestone 13/13. Depends 393-397. 0 migration.
+- [x] **Phase 398: Test + UAT "seakan online" (INJ-13)** — E2E full lifecycle (inject form/auto-gen/Excel → muncul di `/CMP/Records` label "Assessment Online" + rincian per-soal benar/salah + elemen teknis di `/CMP/Results` + sertifikat dapat diunduh) + regression suite hijau (tak regresi jalur online) + audit milestone 13/13. Depends 393-397. 0 migration. (completed 2026-06-19)
 
 ### Phase Details
 
@@ -173,7 +173,7 @@
   2. `/CMP/Results` sesi inject menampilkan rincian jawaban per-soal benar/salah yang benar (MC/MA all-or-nothing, essay graded) + breakdown elemen teknis + tombol/unduh sertifikat — diverifikasi identik dengan jalur online. *(INJ-13)*
   3. Regression suite (xUnit + Playwright) hijau dan tidak ada regresi pada jalur assessment online existing; audit milestone v32.2 menyatakan 13/13 REQ INJ-01..13 satisfied + integration wired (0 orphan/0 broken). *(INJ-13)*
   4. `dotnet build` 0 error + `dotnet test` (full suite) hijau + Playwright E2E hijau + `dotnet run` (localhost:5277) UAT browser "seakan online" → notify IT (commit hash + migration=FALSE). *(INJ-13)*
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 - [x] 398-01-PLAN.md — Wave 1: spec konsolidasi inject-seakan-online-398 (Form+essay+ElemenTeknis / Auto-gen / Excel / Pre-Post linked / side-by-side parity) — 4 surface downstream (D-02/03/04)
 - [x] 398-02-PLAN.md — Wave 2: regresi (full dotnet test + rerun online-path e2e existing) + 0-migration gate + SEED_JOURNAL cleaned + 398-VALIDATION compliant (D-05)
 - [x] 398-03-PLAN.md — Wave 3 (checkpoint): /gsd-audit-milestone v32.2 13/13 + checkpoint keputusan close (D-06)
@@ -190,7 +190,7 @@
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 3/3 | Complete    | 2026-06-18 |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 5/5 | Complete    | 2026-06-18 |
 | 397. Link Pre/Post ke room existing (INJ-12) | 4/4 | Complete    | 2026-06-18 |
-| 398. Test + UAT "seakan online" (INJ-13) | 3/3 | Complete   | 2026-06-19 |
+| 398. Test + UAT "seakan online" (INJ-13) | 3/3 | Complete    | 2026-06-19 |
 
 ### Dependency Graph
 
