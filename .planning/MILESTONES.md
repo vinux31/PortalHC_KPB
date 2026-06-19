@@ -1,5 +1,25 @@
 # Milestones
 
+## v32.2 Inject Hasil Assessment Manual (Seakan Online) (Shipped: 2026-06-19)
+
+**Phases completed:** 7 phases (393-398 + 398.1), 26 plans
+**Requirements:** 13/13 INJ-01..INJ-13 · **Migration:** 0 (semua fase) · **Branch:** main (belum push — deploy bareng, notify IT)
+**Audit:** re-audit-2 PASSED — 7/7 phase VERIFICATION, integration 7/7 WIRED (0 regression), nyquist 6/6 compliant, tech-debt RESOLVED.
+
+> ⚠️ CLI auto-count menyertakan Phase 391+392 (9 phase/30 plan) — itu **v32.0** (milestone deferred, belum di-close), bukan v32.2. Scope v32.2 sebenarnya = 393-398.1 (7 phase, 26 plan). 391/392 ditangani terpisah saat close v32.0.
+
+**Key accomplishments:**
+
+- **Page baru `/Admin/InjectAssessment`** (Section C, RBAC Admin,HC) — wizard 6-langkah inject hasil assessment manual "seakan online": setup room + authoring soal (reuse ManagePackages) + worker picker + sertifikat 3-mode. (393-394)
+- **`InjectBatchAsync` byte-identik online** — pre-flight reject-all + cert-aware dedup + transaction atomic; delegasi `GradingService` + `AssessmentScoreAggregator` (NOL duplikasi pipeline grading) + essay finalize + backdate + cert auto/manual/suppress + audit 3 ActionType. (393)
+- **Mode jawaban** input-asli per-soal + auto-generate pola dari skor target (`BuildAutoGenAnswers` subset-sum + SHA-256 seed) + preview==commit dry-run. (395)
+- **Import Excel** (`InjectExcelHelper` 2-sheet template + matrix parser, atomic validate, preview==commit) + retire BulkBackfill (routes 404, single batch-inject entry-point). (396)
+- **Link Pre/Post silang inject↔online** per-worker bidirectional (Kasus A adopt / Kasus B sticker-to-all), anti-double-link, PreviewPairing dry-run, UnlinkInjectGroup atomic revert — cross-grouping §13 utuh, data online TAK disentuh. (397)
+- **E2E "seakan online"** — inject tampil identik online di /CMP/Records + /CMP/Results per-soal + sertifikat; full xUnit 557/0 + online-path e2e green (tak regresi). (398)
+- **Tech-debt cleanup (398.1)** — 8 FIX + 2 DROP-with-evidence (dup-NIP GroupBy, g.First→OrderBy, PendingGrading edit-guard, LBL-02, download debounce, de-tautologize 391 test, fix flaky essay e2e helper); verifier 10/10, 0 regression.
+
+---
+
 ## v31.0 Hotfix Pra-Ujian Lisensor (Shipped: 2026-06-15)
 
 **Phases completed:** 6 phases, 12 plans, 28 tasks

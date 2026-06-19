@@ -4,8 +4,8 @@ milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
 stopped_at: Phase 398.1 COMPLETE (verifier 10/10) — ready re-audit v32.2
-last_updated: "2026-06-19T08:00:24.756Z"
-last_activity: 2026-06-19 -- Phase 398.1 execution started
+last_updated: "2026-06-19T08:38:43.861Z"
+last_activity: 2026-06-19
 progress:
   total_phases: 26
   completed_phases: 9
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md
 Phase: 398.1 (Tech-debt cleanup INJ (v32.2)) — EXECUTING
 Plan: 1 of 4
 Status: Executing Phase 398.1
-Last activity: 2026-06-19 -- Phase 398.1 execution started
+Last activity: 2026-06-19
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 
@@ -66,6 +66,13 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 - `v32.2` — milestone aktif (Inject Hasil Assessment Manual); requirements + roadmap in-progress; belum di-plan.
 
 ## Deferred Items
+
+> 📌 **Acknowledged @ v32.2 close (2026-06-19):** pre-close audit-open surfaced 60+ open artifact — SEMUA pre-existing / v32.0 / backlog-lama, BUKAN v32.2 (v32.2 sendiri bersih, audit PASSED). Di-acknowledge + deferred:
+> - **391/392 UAT + VERIFICATION gaps** (`391-HUMAN-UAT` resolved, `392-HUMAN-UAT` 1-pending, 391/392 VERIFICATION human_needed) = **v32.0** (milestone deferred, di-close manual terpisah — bukan v32.2).
+> - **14 debug session** (276-psrt03, kkj-*, monitoring, dll, [diagnosed]/[investigating]) = pre-existing, tak terkait v32.2.
+> - **46 quick-task [missing]** = backlog project-wide lama (file artifact hilang) — acknowledged-deferred.
+> - 999.x backlog (6/9/10 functional-closed; 11/12/13 RESOLVED oleh 398.1) — dir diarsip ke `milestones/v32.2-phases/`.
+> Tidak ada satupun blocker v32.2. Buka lagi hanya bila muncul bug/kebutuhan nyata.
 
 > ✅ **ACCEPTED OK 2026-06-14** (keputusan user): semua carry-over v11.2/v13/v14/v15 di bawah = **phase lama, dianggap OK / non-blocking** (kode sudah ship + jalan; tak ada bug report di milestone v16-v31). Bukan pekerjaan tertunda aktif. Tetap dicatat sebagai histori, bukan TODO. Buka lagi hanya bila muncul bug/kebutuhan nyata.
 
