@@ -63,9 +63,12 @@
  (completed 2026-06-18)
 - [x] **Phase 395: Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09)** — Form input jawaban asli per pekerja (MC/MA pilih opsi, Essay teks+skor) + auto-generate pola jawaban dari skor target (MC/MA pola benar-salah konsisten; Essay set skor langsung) dengan **skor final aktual ditampilkan sebelum commit** (perhitungkan pembulatan). Sequential setelah 394 (file-overlap controller/view/service). 0 migration.
  (completed 2026-06-18)
-- [x] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration. (completed 2026-06-18)
-- [x] **Phase 397: Link Pre/Post ke room existing (INJ-12)** — Search picker assessment room existing (reuse query `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` untuk sesi inject Pre/Post, dukung skenario **silang inject↔online** (Pre di-inject ↔ Post real, atau sebaliknya) tanpa merusak grouping PrePost. Sequential setelah 394. 0 migration. (completed 2026-06-18)
-- [x] **Phase 398: Test + UAT "seakan online" (INJ-13)** — E2E full lifecycle (inject form/auto-gen/Excel → muncul di `/CMP/Records` label "Assessment Online" + rincian per-soal benar/salah + elemen teknis di `/CMP/Results` + sertifikat dapat diunduh) + regression suite hijau (tak regresi jalur online) + audit milestone 13/13. Depends 393-397. 0 migration. (completed 2026-06-19)
+- [x] **Phase 396: Import Excel + retire BulkBackfill (INJ-10, INJ-11)** — Template Excel ter-generate dari paket soal + parser matrix (baris=NIP, kolom=soal) dengan validasi atomic (NIP valid, opsi valid, rollback bila error) lewat `InjectAssessmentService` yang sama + pensiun/redirect tool lama `BulkBackfill` (`TrainingAdminController.cs:787/836`) sehingga tidak ada dua entry-point duplikat. Sequential setelah 394. 0 migration.
+ (completed 2026-06-18)
+- [x] **Phase 397: Link Pre/Post ke room existing (INJ-12)** — Search picker assessment room existing (reuse query `ManageAssessmentTab_Assessment`) + wiring `LinkedGroupId`/`LinkedSessionId` untuk sesi inject Pre/Post, dukung skenario **silang inject↔online** (Pre di-inject ↔ Post real, atau sebaliknya) tanpa merusak grouping PrePost. Sequential setelah 394. 0 migration.
+ (completed 2026-06-18)
+- [x] **Phase 398: Test + UAT "seakan online" (INJ-13)** — E2E full lifecycle (inject form/auto-gen/Excel → muncul di `/CMP/Records` label "Assessment Online" + rincian per-soal benar/salah + elemen teknis di `/CMP/Results` + sertifikat dapat diunduh) + regression suite hijau (tak regresi jalur online) + audit milestone 13/13. Depends 393-397. 0 migration.
+ (completed 2026-06-19)
 
 ### Phase Details
 
@@ -257,7 +260,7 @@
 **Requirements**: tech-debt only (tidak menambah REQ INJ baru; v32.2 tetap 13/13)
 **Depends on:** Phase 398
 **Branch:** main · **Migration:** false (semua fix logic/view/test)
-**Plans:** 0 plans (run /gsd-plan-phase 398.1)
+**Plans:** 4 plans (4 waves, sequential di main — cluster A/B/C/D)
 
 **⚠️ WAJIB sebelum fix:** verifikasi tiap "warning" code-review = bug NYATA vs false-positive di kode aktual (mindset receiving-code-review). Yang false-positive → catat & drop, jangan fix asal.
 
@@ -273,8 +276,11 @@
 9. **999.13** e2e essay-submit helper flaky (`fillEssayAnswer`/`submitExamTwoStep` direct `hub.invoke('SaveTextAnswer')`) (LOW, test-only; dir backlog `999.13-*` ada — perbaiki HELPER bukan kode produk)
 + **cosmetic LBL-02** Legenda Excel kolom Tipe map enum `MultipleChoice` → label UI `Single Answer` (1-baris di `InjectExcelHelper.GenerateTemplate`)
 
-Plans:
-- [ ] TBD (run /gsd-plan-phase 398.1 to break down)
+**Plans:** 4/4 plans (Cluster A->B->C->D, sequential di main, no worktree per D-06)
+- [ ] 398.1-01-PLAN.md — Cluster A (396): WR-01 dup-NIP (fix/drop) + WR-02 essay decimal (likely DROP D-03) + WR-03 download race + LBL-02 Legenda
+- [ ] 398.1-02-PLAN.md — Cluster B (397): WR-01 unlink cross-batch (narrow/drop D-04) + WR-02 g.First OrderBy + WR-03 stray TempData
+- [ ] 398.1-03-PLAN.md — Cluster C (999.11): PendingGrading edit-guard hard-block di EditAssessment (D-02)
+- [ ] 398.1-04-PLAN.md — Cluster D (test-only): 999.12 de-tautologize 391 test + 999.13 fix e2e helper fillEssayAnswer
 
 ### Phase 391: Penambahan Peserta Fleksibel saat Ujian Berjalan
 **Goal:** HC tetap dapat menambah peserta baru ke sebuah assessment yang **sedang berjalan** (ada peserta lain `InProgress`) tanpa friksi — penambahan membuat `AssessmentSession` baru per peserta yang ber-status siap-mulai (Open/Upcoming per jadwal via `DeriveReadyStatus`, BUKAN mewarisi status induk per D-01) sehingga peserta baru bisa langsung mengerjakan selama window ujian (`ExamWindowCloseDate`) belum lewat; guard status `Completed` pada sesi representatif tidak lagi salah-memblokir penambahan saat grup masih aktif; warning kosmetik ambigu diganti notice informatif; dan seluruh perilaku ini dikunci automated regression test agar tak regresi.
