@@ -786,10 +786,12 @@ namespace HcPortal.Controllers
                     return Json(new { success = false, message = "Section/Unit tidak ditemukan di data organisasi aktif." });
             }
 
-            // Phase 401 (PSU-03): validasi ∈ UserUnits SEBELUM tx (Pitfall 4 — jangan pecah rebuild Phase 129).
-            if (!string.IsNullOrEmpty(unitEdit) &&
-                !await ValidateAssignmentUnitInUserUnits(_context, mapping.CoacheeId, unitEdit))
-                return Json(new { success = false, message = "Unit penugasan bukan anggota Unit aktif coachee." });
+            // Phase 401 (PSU-03 / WR-02): Edit WAJIB punya AssignmentUnit sah ∈ UserUnits aktif coachee
+            // SEBELUM tx (Pitfall 4 — jangan pecah rebuild Phase 129). Tolak juga unit KOSONG: line 813
+            // menulis req.AssignmentUnit ke mapping AKTIF, blank → orphan (Invariant #4, persis yg dicegah
+            // indikator D-01). Parity dgn Assign (hard-require) + validasi client (submitEdit alert).
+            if (!await ValidateAssignmentUnitInUserUnits(_context, mapping.CoacheeId, unitEdit))
+                return Json(new { success = false, message = "Unit penugasan wajib dan harus anggota Unit aktif coachee." });
 
             // CRIT-02 fix: wrap ALL mutations (mapping fields, ProtonTrack rebuild, Phase 129
             // unit-change rebuild, audit log) in ONE transaction. Disk file deletes are deferred
