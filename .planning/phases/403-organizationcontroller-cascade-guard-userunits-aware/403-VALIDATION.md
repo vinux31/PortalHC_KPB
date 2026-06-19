@@ -1,10 +1,11 @@
 ---
 phase: 403
 slug: organizationcontroller-cascade-guard-userunits-aware
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: verified
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-18
+updated: 2026-06-19
 ---
 
 # Phase 403 — Validation Strategy
@@ -40,14 +41,14 @@ created: 2026-06-18
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 403-01-W0 | 01 | 0 | ORG-01/02 | — | RBAC `[Authorize(Admin,HC)]` + `[ValidateAntiForgeryToken]` dipertahankan utuh | unit (scaffold RED) | `dotnet test --filter "FullyQualifiedName~OrganizationController" --nologo` | ❌ W0 (extend `OrganizationControllerTests.cs`) | ⬜ pending |
-| 403-rename | 01 | 1 | ORG-01 | T-403 mass-assign | Rename Level≥1 → semua baris `UserUnits.Unit==oldName` ter-rename (incl sekunder) + mirror `ApplicationUser.Unit` konsisten; `IsPrimary` tak disentuh | unit | idem | ❌ W0 | ⬜ pending |
-| 403-del-guard | 01 | 1 | ORG-01 | T-403 priv-bypass | DeleteOrganizationUnit (:447) tolak unit dgn membership sekunder aktif (`UserUnits.IsActive`) | unit | idem | ❌ W0 | ⬜ pending |
-| 403-deact-guard | 01 | 1 | ORG-01 | — | ToggleOrganizationUnitActive (:391) deactivate-branch tolak unit dgn membership sekunder aktif | unit | idem | ❌ W0 | ⬜ pending |
-| 403-split-block | 01 | 1 | ORG-02 | T-403 invariant-1 | Reparent cross-Bagian: worker yg akan terpecah >1 Bagian → BLOCK + pesan sebut NIP/nama | unit | idem | ❌ W0 | ⬜ pending |
-| 403-no-split | 01 | 1 | ORG-02 | — | Reparent single-unit worker (no split) → ALLOW + Section ter-update (regresi perilaku existing L235-265) | unit | idem | ❌ W0 | ⬜ pending |
-| 403-preview-parity | 01 | 1 | ORG-02 | — | `PreviewEditCascade.affectedUserUnitsCount` == jumlah baris UserUnits yg di-rename aktual (filter identik, +fixture IsActive=false diskriminatif) | unit | idem | ❌ W0 | ⬜ pending |
-| 403-uat | 01 | 1 | ORG-01/02 | — | Rename propagasi DB `HcPortalDB_Dev` + delete/reparent tolak + preview cocok modal | manual UAT | `dotnet run` localhost:5277 + cek DB + Playwright | manual (SC#5) | ⬜ pending |
+| 403-01-W0 | 01 | 0 | ORG-01/02 | — | RBAC `[Authorize(Admin,HC)]` + `[ValidateAntiForgeryToken]` dipertahankan utuh | static + security-audit | grep ×9/×7 + 403-SECURITY.md T-403-02/03 | `OrganizationControllerTests.cs` (seam) | ✅ green (static — attr deklaratif, di-audit secure 9/9) |
+| 403-rename | 01 | 1 | ORG-01 | T-403 mass-assign | Rename Level≥1 → semua baris `UserUnits.Unit==oldName` ter-rename (incl sekunder) + mirror `ApplicationUser.Unit` konsisten; `IsPrimary` tak disentuh | unit | `dotnet test --filter "FullyQualifiedName~OrganizationController" --nologo` | `EditOrganizationUnit_RenameLevel1_RenamesAllUserUnitsRows` | ✅ green |
+| 403-del-guard | 01 | 1 | ORG-01 | T-403 priv-bypass | DeleteOrganizationUnit tolak unit dgn membership sekunder aktif (`UserUnits.IsActive`) | unit | idem | `DeleteOrganizationUnit_SecondaryMembershipActive_Rejected` | ✅ green |
+| 403-deact-guard | 01 | 1 | ORG-01 | — | ToggleOrganizationUnitActive deactivate-branch tolak unit dgn membership sekunder aktif | unit | idem | `ToggleOrganizationUnitActive_SecondaryMembershipActive_Rejected` | ✅ green |
+| 403-split-block | 01 | 1 | ORG-02 | T-403 invariant-1 | Reparent cross-Bagian: worker yg akan terpecah >1 Bagian → BLOCK + pesan sebut NIP/nama | unit | idem | `EditOrganizationUnit_ReparentSplitsWorker_Blocked` | ✅ green |
+| 403-no-split | 01 | 1 | ORG-02 | — | Reparent single-unit worker (no split) → ALLOW + Section ter-update (regresi perilaku existing) | unit | idem | `EditOrganizationUnit_ReparentSingleUnitWorker_Allowed` | ✅ green |
+| 403-preview-parity | 01 | 1 | ORG-02 | — | `PreviewEditCascade.affectedUserUnitsCount` == jumlah baris UserUnits yg di-rename aktual (filter identik, +fixture IsActive=false diskriminatif) | unit | idem | `PreviewEditCascade_RenameLevel1_UserUnitsCountMatchesActual` | ✅ green |
+| 403-uat | 01/02 | 1/2 | ORG-01/02 | — | Rename propagasi DB `HcPortalDB_Dev` + delete/reparent tolak + preview cocok modal (5 skenario A/B/C/D/pure-edge) | manual UAT | `dotnet run` localhost:5270 + cek DB + Playwright | manual (SC#5) — DONE 5/5 (403-02-SUMMARY) | ✅ green (executor-driven Playwright @5270, DB cross-check + restore) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -55,9 +56,9 @@ created: 2026-06-18
 
 ## Wave 0 Requirements
 
-- [ ] Extend `HcPortal.Tests/OrganizationControllerTests.cs` — tambah ~6 test ORG-01/02 (rename UserUnits, delete-guard, deactivate-guard, split-block, no-split-allow, preview-parity). Reuse `MakeController()` + helper extractor existing.
-- [ ] **Decision per Pitfall 1 (InMemory `TransactionIgnoredWarning`):** untuk test yang memanggil `EditOrganizationUnit` (transaction-wrapped pasca-D-04) → opsi B: tambah `.ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` di `MakeController()`. Untuk split-detection logic murni → boleh opsi A (ekstrak helper non-transaksi & uji helper). Rekomendasi: B untuk parity test, A untuk split-detection.
-- [ ] Tidak perlu framework install (xUnit + InMemory sudah ada). Tidak perlu conftest-equivalent (fixture inline via `MakeController`).
+- [x] Extend `HcPortal.Tests/OrganizationControllerTests.cs` — 6 test ORG-01/02 (rename UserUnits, delete-guard, deactivate-guard, split-block, no-split-allow, preview-parity) ditambahkan + `GetMessage` helper. Reuse `MakeController()`. [commit RED `02d32d6f`]
+- [x] **Pitfall 1 resolved (opsi B):** `MakeController()` tambah `.ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` → parity test EditOrganizationUnit (tx-wrapped) tetap hijau di InMemory.
+- [x] Tidak perlu framework install (xUnit + InMemory sudah ada). Fixture inline via `MakeController`.
 
 *SQL-riil filtered-unique invariant test = **Phase 404 (QA-01..04), JANGAN duplikat di 403.** Logika 403 (rename/guard/split-detect) = correctness-of-query, valid in-memory.*
 
@@ -73,11 +74,22 @@ created: 2026-06-18
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (extend `OrganizationControllerTests.cs`)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (6 unit tests + RBAC static/security-audit; 1 manual-only UAT done 5/5)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (`OrganizationControllerTests.cs` extended, 6/6 green)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s (quick filter ~1s)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** verified 2026-06-19
+
+---
+
+## Validation Audit 2026-06-19
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+State A audit (post-execution). All 6 behavioral requirements COVERED by green xUnit tests (`dotnet test --filter ~OrganizationController` → 14/14; full suite 532/0/5). RBAC (403-01-W0) is declarative attributes — verified via grep + 403-SECURITY.md (T-403-02/03 CLOSED), not unit-testable through the InMemory controller seam (attributes not enforced on direct calls). UI modal (403-uat) is Razor/JS dynamic → manual-only by design (lesson Phase 354), executed 5/5 via Playwright @5270 with DB cross-check. No test generation needed. `wave_0_complete: true`, `nyquist_compliant: true`.
