@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v32.2
-milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
-status: milestone_complete
-stopped_at: v32.2 CLOSED (archived + tagged local v32.2). Ready push + next milestone.
-last_updated: "2026-06-19T08:38:43.861Z"
+milestone: v32.5
+milestone_name: Flexible Add/Remove Participant
+status: defining_requirements
+stopped_at: v32.5 started — defining requirements + roadmap (fase mulai 409)
+last_updated: "2026-06-19T09:30:00.000Z"
 last_activity: 2026-06-19
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 26
-  completed_plans: 26
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -21,26 +21,28 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.2 CLOSED — planning next (v32.3 akun multi-unit di branch ITHandoff, atau `/gsd-new-milestone`)
+**Current focus:** v32.5 Flexible Add/Remove Participant — defining requirements + roadmap (fase mulai 409). Design spec committed `ccdc78ef`. migration=TRUE.
 
 ## Current Position
 
-Milestone: v32.2 — ✅ SHIPPED local + audited PASSED + CLOSED + tagged (local) 2026-06-19
-Status: milestone complete; ready push + next milestone
-Last activity: 2026-06-19
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-19 — Milestone v32.5 started
 
-**Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — CLOSED. 7 fase (393-398 + 398.1), 26 plan, 13/13 REQ INJ-01..13, **0 migration**. Re-audit-2 PASSED (7/7 phase VERIFICATION, integration 7/7 WIRED 0-regression, nyquist 6/6, tech-debt RESOLVED via 398.1: 8 FIX/2 DROP). Archive: `milestones/v32.2-*` + `milestones/v32.2-phases/`. Tag lokal `v32.2`. Branch main. **NOT PUSHED.**
-
-**v32.0 (Phases 391+392) — ✅ CLOSED manual 2026-06-19** (non-destruktif). Archive `milestones/v32.0-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md` + `milestones/v32.0-phases/`; entry `## v32.0` di MILESTONES.md; tag lokal `v32.0` @`423a2e76`. 7/7 REQ PART/WRKR, 0 migration. NOT pushed (deploy bareng main + tag).
+Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE**. RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
 ## Next Action
 
-**v32.2 CLOSED.** Sisa:
-1. **Push** `git push origin main` (~207 commit ahead) + `git push origin v32.2` (tag) — saat koordinasi deploy. **Notify IT: migration=FALSE** (0 migration sepanjang v32.2; carry lama PendingProtonBypass/360 + ShuffleToggles/372 sudah pending dari milestone lampau).
-2. **v32.0 close manual** (lihat Current Position) — opsional, non-blocking.
-3. **Next milestone:** v32.3 (akun multi-unit, sudah jalan di branch `ITHandoff` — lihat memory `project_akun_multirole_multiunit_research`) ATAU `/gsd-new-milestone`.
+Define REQUIREMENTS.md → spawn roadmapper (fase mulai **409**) → approve roadmap → `/gsd-plan-phase 409`.
 
-❌ Tidak ada edit kode/DB Dev/Prod (promosi = IT).
+## Accumulated Context (carry)
+
+- **v32.2 CLOSED (NOT PUSHED):** `git push origin main` (~207 commit ahead) + `git push origin v32.2` (tag) saat koordinasi deploy IT. v32.2 migration=FALSE — TAPI v32.5 tambah **migration=TRUE** (3 kolom AssessmentSession) → notify IT saat bundle deploy.
+- **Carry-migration IT lama** pending notify: 360 PendingProtonBypass + 372 ShuffleToggles.
+- **v32.0 (391+392)** close manual opsional non-blocking — sudah archived + tag lokal `423a2e76`.
+- **v32.3/v32.4** ada di branch ITHandoff (terpisah dari main). v32.5 mulai fase **409** untuk hindari tabrak (v32.3=399-404, v32.4=405-408). v32.4 retake juga sentuh `AssessmentSession` (kolom beda) → koordinasi migration.
+- ❌ Tidak ada edit kode/DB Dev/Prod (promosi = IT).
 
 ---
 
