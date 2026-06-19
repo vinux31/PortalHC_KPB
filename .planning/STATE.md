@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: executing
+status: verifying
 stopped_at: Phase 403 UI-SPEC approved
-last_updated: "2026-06-19T01:43:13.765Z"
+last_updated: "2026-06-19T05:42:07.620Z"
 last_activity: 2026-06-19
 progress:
   total_phases: 30
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
-  completed_plans: 12
-  percent: 92
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md
 
 Phase: 403 (organizationcontroller-cascade-guard-userunits-aware) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-19
 
 > ⏸ RESUME: see `.planning/phases/401-proton-unit-resolution-hardening/.continue-here.md`

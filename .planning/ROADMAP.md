@@ -140,7 +140,7 @@
   5. `dotnet build` 0 error + `dotnet run` (localhost:5277) + cek DB lokal: rename unit propagasi ke baris `UserUnits` + mirror; delete unit ber-membership-sekunder ditolak; reparent cross-Bagian ditolak; preview cocok hasil aktual. *(semua REQ)*
 **Plans:** 2 plans (2 wave)
 - [x] 403-01-PLAN.md — Wave 1: OrganizationController UserUnits-aware (rename cascade + reparent split-block + delete/deactivate guard sekunder + affectedUserUnitsCount + tx wrap) + extend OrganizationControllerTests.cs ~6 test (ORG-01/02) [migration=FALSE]
-- [ ] 403-02-PLAN.md — Wave 2: modal #cascadeConfirmModal baris ke-5 'baris keanggotaan unit' (ManageOrganization.cshtml + orgTree.js populate/total) + checkpoint UAT browser (ORG-02/D-03)
+- [x] 403-02-PLAN.md — Wave 2: modal #cascadeConfirmModal baris ke-5 'baris keanggotaan unit' (ManageOrganization.cshtml + orgTree.js populate/total) + checkpoint UAT browser (ORG-02/D-03)
 **UI hint:** yes
 
 ### Phase 404: Test (SQL Riil) + UAT + Docs + Invariants
@@ -166,7 +166,7 @@
 | 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 1/1 | Complete    | 2026-06-18 |
 | 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 6/6 | Complete    | 2026-06-19 |
 | 402. Coaching Cross-Unit Mapping (CXU-01..05) | 0/0 | Not started | - |
-| 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 1/2 | In Progress|  |
+| 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 2/2 | Complete   | 2026-06-19 |
 | 404. Test (SQL Riil) + UAT + Docs + Invariants (QA-01..04) | 0/0 | Not started | - |
 
 ### Coverage Validation
