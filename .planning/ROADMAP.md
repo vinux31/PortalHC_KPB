@@ -176,7 +176,7 @@
 **Plans:** 3 plans
 - [x] 398-01-PLAN.md — Wave 1: spec konsolidasi inject-seakan-online-398 (Form+essay+ElemenTeknis / Auto-gen / Excel / Pre-Post linked / side-by-side parity) — 4 surface downstream (D-02/03/04)
 - [x] 398-02-PLAN.md — Wave 2: regresi (full dotnet test + rerun online-path e2e existing) + 0-migration gate + SEED_JOURNAL cleaned + 398-VALIDATION compliant (D-05)
-- [ ] 398-03-PLAN.md — Wave 3 (checkpoint): /gsd-audit-milestone v32.2 13/13 + checkpoint keputusan close (D-06)
+- [x] 398-03-PLAN.md — Wave 3 (checkpoint): /gsd-audit-milestone v32.2 13/13 + checkpoint keputusan close (D-06)
 **UI hint:** yes
 
 **Active mapped: 13/13 ✓ (INJ-01 + INJ-02 → 393; INJ-03..07 → 394; INJ-08 + INJ-09 → 395; INJ-10 + INJ-11 → 396; INJ-12 → 397; INJ-13 → 398) — Orphans: 0 — Duplicates: 0 — 0 migration (semua phase).**
@@ -190,7 +190,7 @@
 | 395. Mode jawaban (input asli + auto-generate) (INJ-08, INJ-09) | 3/3 | Complete    | 2026-06-18 |
 | 396. Import Excel + retire BulkBackfill (INJ-10, INJ-11) | 5/5 | Complete    | 2026-06-18 |
 | 397. Link Pre/Post ke room existing (INJ-12) | 4/4 | Complete    | 2026-06-18 |
-| 398. Test + UAT "seakan online" (INJ-13) | 2/3 | In Progress|  |
+| 398. Test + UAT "seakan online" (INJ-13) | 3/3 | Complete   | 2026-06-19 |
 
 ### Dependency Graph
 
