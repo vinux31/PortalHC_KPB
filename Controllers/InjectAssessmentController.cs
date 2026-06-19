@@ -267,8 +267,8 @@ namespace HcPortal.Controllers
             var actorUserId = _userManager.GetUserId(User) ?? "";
             var actorName = User?.Identity?.Name ?? actorUserId;
             var res = await _injectService.UnlinkInjectGroupAsync(injectGroupId, actorUserId, actorName);
-            if (res.Success) TempData["Success"] = res.Message ?? "Tautan dilepas.";
-            else TempData["Error"] = res.Message ?? "Gagal melepas tautan.";
+            // WR-03 (398.1): stray TempData dihapus — action ini return Json (fetch+toast JS), TempData tak dikonsumsi
+            // & bocor ke view berikutnya. Notice dibawa lewat JSON `message`.
             return Json(new { ok = res.Success, message = res.Message ?? (res.Success ? "Tautan dilepas." : "Gagal melepas tautan.") });
         }
 

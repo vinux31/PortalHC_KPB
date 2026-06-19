@@ -127,9 +127,11 @@ namespace HcPortal.Services
                                         ? targetRoomSessions.Select(t => t.Id).Contains(s.Id)
                                         : s.LinkedGroupId == resolvedGroupId))
                         .ToListAsync();
+                    // WR-02 (398.1): OrderBy(CreatedAt).ThenBy(Id) — sibling pick deterministik antar-request
+                    // (CreatedAt bisa tabrakan dalam 1 batch → ThenBy(Id) pemecah-seri). Byte-identik dgn preview.
                     siblingByUserId = siblingQuery
                         .GroupBy(s => s.UserId)
-                        .ToDictionary(g => g.Key, g => g.First());
+                        .ToDictionary(g => g.Key, g => g.OrderBy(s => s.CreatedAt).ThenBy(s => s.Id).First());
                 }
 
                 foreach (var (spec, user) in toProcess)
@@ -675,14 +677,15 @@ namespace HcPortal.Services
                 .Where(s => ctx.kasusB
                         ? ctx.targetSessions.Select(t => t.Id).Contains(s.Id)
                         : (s.LinkedGroupId == ctx.groupId && s.AssessmentType == ctx.opposite))
-                .Select(s => new { s.UserId, s.CompletedAt })
+                .Select(s => new { s.UserId, s.CompletedAt, s.CreatedAt, s.Id })   // WR-02: CreatedAt+Id untuk pick deterministik
                 .ToListAsync();
 
             var injectIdSet = injectUserIds.ToHashSet();
             // 1 sibling per UserId (online normalnya 1 tipe-lawan per user per grup).
+            // WR-02 (398.1): OrderBy(CreatedAt).ThenBy(Id) — pick deterministik (oldest), byte-identik dgn commit (preview==commit; jaga DateWarn :697 konsisten).
             var siblingByUser = targetSessions
                 .GroupBy(t => t.UserId)
-                .ToDictionary(g => g.Key, g => g.First());
+                .ToDictionary(g => g.Key, g => g.OrderBy(t => t.CreatedAt).ThenBy(t => t.Id).First());
 
             result.Paired = injectUserIds.Count(uid => siblingByUser.ContainsKey(uid));   // LinkedSessionId terisi
             result.Unpaired = injectUserIds.Count - result.Paired;                        // D-03 sisi tunggal
