@@ -302,7 +302,20 @@ namespace HcPortal.Controllers
             // Server-side enforcement: override section/unit for restricted roles
             int roleLevel = UserRoles.GetRoleLevel(userRole);
             if (UserRoles.HasSectionAccess(roleLevel)) { section = user.Section; }
-            else if (UserRoles.IsCoachingRole(roleLevel)) { section = user.Section; unit = user.Unit; }
+            else if (UserRoles.IsCoachingRole(roleLevel))
+            {
+                section = user.Section;                                  // Bagian locked (Invariant #1)
+                // Phase 402 (CXU-05): do NOT force primary. Validate operator-supplied unit in coach.UserUnits; else null = union.
+                if (!string.IsNullOrWhiteSpace(unit))
+                {
+                    var coachUnits = await _context.UserUnits
+                        .Where(uu => uu.UserId == user.Id && uu.IsActive)
+                        .Select(uu => uu.Unit).ToListAsync();
+                    if (!coachUnits.Any(u => string.Equals(u.Trim(), unit.Trim(), StringComparison.OrdinalIgnoreCase)))
+                        unit = null;                                    // foreign unit rejected -> union
+                }
+                // unit == null => BuildProtonProgressSubModelAsync post-filter skipped => union (CXU-05 default)
+            }
 
             var (model, _) = await BuildProtonProgressSubModelAsync(user, userRole, section, unit, category, track);
             return PartialView("Shared/_CoachingProtonContentPartial", model);
@@ -323,7 +336,20 @@ namespace HcPortal.Controllers
             // Server-side enforcement sama seperti FilterCoachingProton (scope role)
             int roleLevel = UserRoles.GetRoleLevel(userRole);
             if (UserRoles.HasSectionAccess(roleLevel)) { section = user.Section; }
-            else if (UserRoles.IsCoachingRole(roleLevel)) { section = user.Section; unit = user.Unit; }
+            else if (UserRoles.IsCoachingRole(roleLevel))
+            {
+                section = user.Section;                                  // Bagian locked (Invariant #1)
+                // Phase 402 (CXU-05): do NOT force primary. Validate operator-supplied unit in coach.UserUnits; else null = union.
+                if (!string.IsNullOrWhiteSpace(unit))
+                {
+                    var coachUnits = await _context.UserUnits
+                        .Where(uu => uu.UserId == user.Id && uu.IsActive)
+                        .Select(uu => uu.Unit).ToListAsync();
+                    if (!coachUnits.Any(u => string.Equals(u.Trim(), unit.Trim(), StringComparison.OrdinalIgnoreCase)))
+                        unit = null;                                    // foreign unit rejected -> union
+                }
+                // unit == null => BuildProtonProgressSubModelAsync post-filter skipped => union (CXU-05 default)
+            }
 
             var (model, _) = await BuildProtonProgressSubModelAsync(user, userRole, section, unit, category, track);
             var rows = model.CoacheeRows;
@@ -644,7 +670,7 @@ namespace HcPortal.Controllers
             // Phase 121: Determine locked values and available options
             string? lockedSection = null, lockedUnit = null;
             if (UserRoles.HasSectionAccess(roleLevel)) { lockedSection = user.Section; }
-            else if (UserRoles.IsCoachingRole(roleLevel)) { lockedSection = user.Section; lockedUnit = user.Unit; }
+            else if (UserRoles.IsCoachingRole(roleLevel)) { lockedSection = user.Section; /* Phase 402 (CXU-05): lockedUnit stays null — coach chooses among own units */ }
 
             var availableSections = await _context.GetAllSectionsAsync();
             var effectiveSection = lockedSection ?? section;
@@ -652,6 +678,16 @@ namespace HcPortal.Controllers
                 ? await _context.GetUnitsForSectionAsync(effectiveSection)
                 : new List<string>();
             // Graceful fallback: jika availableSections kosong, tampilkan semua (jangan block user)
+
+            // Phase 402 (CXU-05): coaching-role dropdown shows ONLY the coach's own active units (not every unit in the Bagian).
+            bool unitFilterEnabled = false;
+            if (UserRoles.IsCoachingRole(roleLevel))
+            {
+                availableUnits = await _context.UserUnits
+                    .Where(uu => uu.UserId == user.Id && uu.IsActive)
+                    .Select(uu => uu.Unit).Distinct().ToListAsync();
+                unitFilterEnabled = true;                                // enable dropdown for multi-unit coach (harmless for single-unit)
+            }
 
             var subModel = new ProtonProgressSubModel
             {
@@ -678,7 +714,8 @@ namespace HcPortal.Controllers
                 AvailableSections = availableSections,
                 AvailableUnits = availableUnits,
                 AvailableCategories = availableCategories!,
-                AvailableTracks = availableTracks!
+                AvailableTracks = availableTracks!,
+                UnitFilterEnabled = unitFilterEnabled
             };
 
             return (subModel, scopeLabel);

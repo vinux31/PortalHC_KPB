@@ -64,6 +64,10 @@ public class ProtonProgressSubModel
     public List<string> AvailableUnits { get; set; } = new();
     public List<string> AvailableCategories { get; set; } = new();
     public List<string> AvailableTracks { get; set; } = new();
+
+    // Phase 402 (CXU-05): true => unit dropdown enabled (coaching-role multi-unit can narrow among own units).
+    // Default false preserves existing behavior for non-coaching roles.
+    public bool UnitFilterEnabled { get; set; }
 }
 
 // ============================================================
