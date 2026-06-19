@@ -319,4 +319,48 @@ public class InjectExcelImportTests : IClassFixture<InjectAssessmentFixture>
         await using var verify = NewCtx();
         Assert.Equal(0, await verify.AssessmentSessions.CountAsync(x => x.Title == title));
     }
+
+    // =========================================================================
+    // 4) 398.1 WR-01: 2 akun aktif ber-NIP SAMA (NIP tak unique-indexed) → picker punya 2 baris.
+    //    `picker.ToDictionary(p => p.Nip, ...)` LAMA melempar ArgumentException (regresi);
+    //    GroupBy + OrderBy(Id).First() = build aman + UserId deterministik antar-request.
+    //    Mirror persis ekspresi UploadInjectExcel (InjectAssessmentController.cs:355-360).
+    // =========================================================================
+    [Fact]
+    public async Task DuplicateNip_PickerBuild_DoesNotThrow_AndIsDeterministic()
+    {
+        var nip = "DUP-" + Guid.NewGuid().ToString("N")[..6];
+        // Dua akun aktif berbagi NIP yang sama (skema mengizinkan — tak ada unique-index NIP).
+        await using (var seed = NewCtx()) { await SeedUserAsync(seed, nip); await SeedUserAsync(seed, nip); }
+
+        var userIds = new List<string>();
+        await using (var ctx = NewCtx())
+            userIds = await ctx.Users.Where(u => u.NIP == nip).Select(u => u.Id).ToListAsync();
+        Assert.Equal(2, userIds.Count);   // skema MEMANG izinkan dup-NIP → ini skenario nyata, bukan mustahil.
+
+        // Replikasi query picker controller (UploadInjectExcel) → 2 baris ber-NIP sama.
+        List<(string Id, string Nip, string Name)> picker;
+        await using (var ctx = NewCtx())
+            picker = (await ctx.Users
+                .Where(u => userIds.Contains(u.Id) && u.NIP != null && u.NIP != "")
+                .Select(u => new { u.Id, Nip = u.NIP!, Name = u.FullName ?? "" })
+                .ToListAsync())
+                .Select(x => (x.Id, x.Nip, x.Name)).ToList();
+        Assert.Equal(2, picker.Count);
+
+        // (a) Ekspresi LAMA → ArgumentException (membuktikan bug WR-01 nyata pada data ini).
+        Assert.Throws<ArgumentException>(() => picker.ToDictionary(p => p.Nip, p => p.Id));
+
+        // (b) Ekspresi BARU (fix 398.1) → tidak throw + deterministik (OrderBy(Id).First()).
+        var nipToUserId = picker.GroupBy(p => p.Nip)
+                                .ToDictionary(g => g.Key, g => g.OrderBy(p => p.Id).First().Id);
+        var nipToName = picker.GroupBy(p => p.Nip)
+                              .ToDictionary(g => g.Key, g => g.OrderBy(p => p.Id).First().Name);
+
+        var expected = picker.OrderBy(p => p.Id).First().Id;
+        Assert.Equal(expected, nipToUserId[nip]);                 // representative deterministik
+        Assert.Equal(expected, picker.GroupBy(p => p.Nip)         // stabil bila diulang (anti non-determinism)
+                                     .ToDictionary(g => g.Key, g => g.OrderBy(p => p.Id).First().Id)[nip]);
+        Assert.True(nipToName.ContainsKey(nip));
+    }
 }

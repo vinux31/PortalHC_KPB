@@ -1859,6 +1859,10 @@
     var downloadBtn = document.getElementById('btnDownloadTemplate');
     if (downloadBtn) {
         downloadBtn.addEventListener('click', function () {
+            // WR-03 (398.1): debounce — cegah klik-ganda cepat memicu 2 unduhan.
+            // Download tak punya response event, jadi re-enable via timeout.
+            if (downloadBtn.disabled) return;
+            downloadBtn.disabled = true;
             serializeQuestionsHidden();
             var url = downloadBtn.getAttribute('data-download-url');
             var tmp = document.createElement('form');
@@ -1877,6 +1881,7 @@
             document.body.appendChild(tmp);
             tmp.submit();
             document.body.removeChild(tmp);
+            setTimeout(function () { downloadBtn.disabled = false; }, 1500);
         });
     }
 
