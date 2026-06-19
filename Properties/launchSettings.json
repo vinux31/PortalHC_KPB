@@ -1,9 +1,10 @@
-﻿{
+{
+  "_ithandoff_note": "PORT 5270 KHUSUS BRANCH ITHandoff — geser dari 5277 biar tidak tabrakan dengan worktree 'main' (sibling dir ...\\Desktop\\PortalHC_KPB) yang pakai 5277. SAAT MERGE KE main: KEMBALIKAN port ke 5277 (jalankan: git checkout main -- Properties/launchSettings.json). main TIDAK pakai 5270. Detail: docs/DEV_WORKFLOW.md Section 1.",
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:5277",
+      "applicationUrl": "http://localhost:5270",
       "sslPort": 0
     }
   },
@@ -12,7 +13,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:5277",
+      "applicationUrl": "http://localhost:5270",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
