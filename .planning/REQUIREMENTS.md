@@ -21,12 +21,12 @@ Requirements untuk milestone v32.3. Tiap REQ map ke satu phase.
 
 ### PROTON Sekuensial Multi-Unit (PSU)
 
-- [ ] **PSU-01**: Unit PROTON di-resolve dari **`AssignmentUnit` eksplisit** (mapping aktif), fallback `User.Unit` dibuang (ambigu saat multi). Pekerja dapat menjalani Tahun 1 @ unit X lalu (setelah selesai) Tahun 2 @ unit Y secara **sekuensial**; sertifikat tiap unit tersimpan utuh sebagai histori.
-- [ ] **PSU-02**: Semua filter coachee/tim/bypass pada surface PROTON memakai **`AssignmentUnit`** (bukan `User.Unit`), sehingga coachee yang di-PROTON-kan di unit non-primary tetap tampil di unit yang benar (BypassList, coachee-scope CDP).
-- [ ] **PSU-03**: `AssignmentUnit` divalidasi **∈ `coachee.UserUnits`** di jalur Assign/Edit/Import; bypass `TargetUnit` divalidasi **∈ `worker.UserUnits`** + valid di org-tree (saat ini hanya cek non-empty).
-- [ ] **PSU-04**: `CleanupCoachCoacheeMappingOrg` dan Import **tidak** menimpa (`clobber`) `AssignmentUnit` ke unit primary — pertahankan unit yang sah (UserUnits-aware).
-- [ ] **PSU-05**: Setelah fallback dibuang, **6 read-path** resolusi unit PROTON (`CoachMappingController` GetEligibleCoachees + AutoCreateProgress, `AssessmentAdminController` gate eligibility exam, `CDPController` defensive-filter ×2, `ProtonDataController`) **wajib skip coachee + audit-warn** bila `AssignmentUnit` kosong — **dilarang** diam-diam memakai `User.Unit` primary. Khusus gate eligibility (penentu penerbitan session/cert) tak boleh menerbitkan dengan unit ter-resolve dari primary.
-- [ ] **PSU-07**: Jalur **reactivation** (`CoachCoacheeMappingReactivate` + Import-reactivate): (a) jangan timpa `AssignmentUnit` ke primary — pertahankan unit asli mapping; (b) validasi `AssignmentUnit ∈ coachee.UserUnits` aktif sebelum reaktivasi (tolak bila unit sudah dilepas); (c) reaktivasi `ProtonTrackAssignment` harus cocok unit dengan mapping (bukan sekadar "assignment terakhir").
+- [x] **PSU-01**: Unit PROTON di-resolve dari **`AssignmentUnit` eksplisit** (mapping aktif), fallback `User.Unit` dibuang (ambigu saat multi). Pekerja dapat menjalani Tahun 1 @ unit X lalu (setelah selesai) Tahun 2 @ unit Y secara **sekuensial**; sertifikat tiap unit tersimpan utuh sebagai histori.
+- [x] **PSU-02**: Semua filter coachee/tim/bypass pada surface PROTON memakai **`AssignmentUnit`** (bukan `User.Unit`), sehingga coachee yang di-PROTON-kan di unit non-primary tetap tampil di unit yang benar (BypassList, coachee-scope CDP).
+- [x] **PSU-03**: `AssignmentUnit` divalidasi **∈ `coachee.UserUnits`** di jalur Assign/Edit/Import; bypass `TargetUnit` divalidasi **∈ `worker.UserUnits`** + valid di org-tree (saat ini hanya cek non-empty).
+- [x] **PSU-04**: `CleanupCoachCoacheeMappingOrg` dan Import **tidak** menimpa (`clobber`) `AssignmentUnit` ke unit primary — pertahankan unit yang sah (UserUnits-aware).
+- [x] **PSU-05**: Setelah fallback dibuang, **6 read-path** resolusi unit PROTON (`CoachMappingController` GetEligibleCoachees + AutoCreateProgress, `AssessmentAdminController` gate eligibility exam, `CDPController` defensive-filter ×2, `ProtonDataController`) **wajib skip coachee + audit-warn** bila `AssignmentUnit` kosong — **dilarang** diam-diam memakai `User.Unit` primary. Khusus gate eligibility (penentu penerbitan session/cert) tak boleh menerbitkan dengan unit ter-resolve dari primary.
+- [x] **PSU-07**: Jalur **reactivation** (`CoachCoacheeMappingReactivate` + Import-reactivate): (a) jangan timpa `AssignmentUnit` ke primary — pertahankan unit asli mapping; (b) validasi `AssignmentUnit ∈ coachee.UserUnits` aktif sebelum reaktivasi (tolak bila unit sudah dilepas); (c) reaktivasi `ProtonTrackAssignment` harus cocok unit dengan mapping (bukan sekadar "assignment terakhir").
 
 ### Coaching Cross-Unit (CXU)
 
@@ -76,12 +76,12 @@ Diisi saat pembuatan roadmap.
 | MU-05 | Phase 399 | Complete |
 | MU-07 | Phase 399 | Complete |
 | MU-06 | Phase 400 | Complete |
-| PSU-01 | Phase 401 | Pending |
-| PSU-02 | Phase 401 | Pending |
-| PSU-03 | Phase 401 | Pending |
-| PSU-04 | Phase 401 | Pending |
-| PSU-05 | Phase 401 | Pending |
-| PSU-07 | Phase 401 | Pending |
+| PSU-01 | Phase 401 | Complete |
+| PSU-02 | Phase 401 | Complete |
+| PSU-03 | Phase 401 | Complete |
+| PSU-04 | Phase 401 | Complete |
+| PSU-05 | Phase 401 | Complete |
+| PSU-07 | Phase 401 | Complete |
 | CXU-01 | Phase 402 | Pending |
 | CXU-02 | Phase 402 | Pending |
 | CXU-03 | Phase 402 | Pending |
