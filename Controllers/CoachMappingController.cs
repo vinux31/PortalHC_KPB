@@ -187,6 +187,18 @@ namespace HcPortal.Controllers
             ViewBag.EligibleCoachees = coacheeRoleUsers
                 .Where(u => u.IsActive && !activeCoacheeIds.Contains(u.Id))
                 .OrderBy(u => u.FullName).ToList();
+
+            // Phase 402 (CXU-03 / D-02): expose active units per eligible coachee (primary-first) for per-row unit picker.
+            // ApplicationUser has NO UserUnits nav (Pitfall 1) — query junction table directly + batch dict.
+            var eligibleCoacheeIds = ((IEnumerable<ApplicationUser>)ViewBag.EligibleCoachees).Select(u => u.Id).ToList();
+            var unitsByEligibleCoachee = (await _context.UserUnits
+                    .Where(uu => eligibleCoacheeIds.Contains(uu.UserId) && uu.IsActive)
+                    .Select(uu => new { uu.UserId, uu.Unit, uu.IsPrimary }).ToListAsync())
+                .GroupBy(x => x.UserId)
+                .ToDictionary(g => g.Key,
+                    g => g.OrderByDescending(x => x.IsPrimary).Select(x => x.Unit.Trim()).ToList());
+            ViewBag.CoacheeUnits = unitsByEligibleCoachee;   // coacheeId -> active units, primary-first (D-02 default)
+
             ViewBag.AllUsers = activeUsers.OrderBy(u => u.FullName).ToList();
             ViewBag.ProtonTracks = await _context.ProtonTracks
                 .OrderBy(t => t.Urutan).ToListAsync();
@@ -533,19 +545,42 @@ namespace HcPortal.Controllers
             if (req.CoacheeIds.Contains(req.CoachId))
                 return Json(new { success = false, message = "Coach tidak dapat menjadi coachee dirinya sendiri." });
 
-            if (string.IsNullOrWhiteSpace(req.AssignmentSection) || string.IsNullOrWhiteSpace(req.AssignmentUnit))
-                return Json(new { success = false, message = "Assignment Section dan Unit wajib diisi." });
+            if (string.IsNullOrWhiteSpace(req.AssignmentSection))
+                return Json(new { success = false, message = "Bagian penugasan wajib diisi." });
 
+            // Phase 402 (CXU-02): coach.Section authoritative (Invariant #1). Load + enforce cross-Bagian reject.
+            var coach = await _context.Users.Where(u => u.Id == req.CoachId)
+                .Select(u => new { u.Id, u.Section }).FirstOrDefaultAsync();
+            if (coach == null || string.IsNullOrWhiteSpace(coach.Section))
+                return Json(new { success = false, message = "Coach tidak valid atau belum memiliki Bagian." });
+            if (!string.Equals(req.AssignmentSection!.Trim(), coach.Section.Trim(), StringComparison.OrdinalIgnoreCase))
+                return Json(new { success = false, message = "Bagian penugasan harus sama dengan Bagian coach." });
+
+            // CXU-02: reject any coachee not in coach's Bagian (server-side; client filter is UX-only).
+            var crossBagian = new List<string>();
+            foreach (var cid in req.CoacheeIds)
+                if (!await CoacheeSectionMatchesCoach(_context, cid, coach.Section))
+                    crossBagian.Add(cid);
+            if (crossBagian.Any())
+                return Json(new { success = false, message = $"{crossBagian.Count} coachee bukan anggota Bagian coach (cross-Bagian ditolak)." });
+
+            // Phase 402 (CXU-03): resolve AssignmentUnit PER-COACHEE (req.AssignmentUnits[cid] ?? fallback req.AssignmentUnit).
+            // Tiap unit harus ∈ org-tree(coach.Section) DAN ∈ coachee.UserUnits aktif (Invariant #4, helper 401).
             var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
-            if (!sectionUnitsDict.TryGetValue(req.AssignmentSection!.Trim(), out var validUnits)
-                || !validUnits.Contains(req.AssignmentUnit!.Trim()))
-                return Json(new { success = false, message = "Section/Unit tidak ditemukan di data organisasi aktif." });
+            if (!sectionUnitsDict.TryGetValue(coach.Section.Trim(), out var validUnits))
+                return Json(new { success = false, message = "Bagian coach tidak ditemukan di data organisasi." });
 
-            // Phase 401 (PSU-03): AssignmentUnit harus ∈ UserUnits aktif tiap coachee (jaga Invariant #4).
+            var resolvedUnits = new Dictionary<string, string>();
             foreach (var cid in req.CoacheeIds)
             {
-                if (!await ValidateAssignmentUnitInUserUnits(_context, cid, req.AssignmentUnit))
-                    return Json(new { success = false, message = $"Unit '{req.AssignmentUnit}' bukan anggota Unit aktif coachee terpilih — tambahkan unit ke coachee dulu." });
+                var unit = (req.AssignmentUnits?.GetValueOrDefault(cid) ?? req.AssignmentUnit)?.Trim();
+                if (string.IsNullOrWhiteSpace(unit))
+                    return Json(new { success = false, message = "Unit penugasan wajib dipilih untuk setiap coachee." });
+                if (!validUnits.Contains(unit))
+                    return Json(new { success = false, message = $"Unit '{unit}' bukan anak Bagian coach." });
+                if (!await ValidateAssignmentUnitInUserUnits(_context, cid, unit))
+                    return Json(new { success = false, message = $"Unit '{unit}' bukan anggota unit aktif coachee terpilih — tambahkan unit ke coachee dulu." });
+                resolvedUnits[cid] = unit;
             }
 
             // Check for duplicate active mappings
@@ -650,8 +685,8 @@ namespace HcPortal.Controllers
                 CoacheeId = id,
                 IsActive = true,
                 StartDate = startDate,
-                AssignmentSection = req.AssignmentSection!.Trim(),
-                AssignmentUnit = req.AssignmentUnit!.Trim()
+                AssignmentSection = coach.Section!.Trim(),
+                AssignmentUnit = resolvedUnits[id]
             }).ToList();
 
             await using var tx = await _context.Database.BeginTransactionAsync();
@@ -739,7 +774,7 @@ namespace HcPortal.Controllers
 
             var count = newMappings.Count;
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Assign",
-                $"Assigned coach to {count} coachee(s) [Section: {req.AssignmentSection}, Unit: {req.AssignmentUnit}]",
+                $"Assign {count} coachee, Bagian {coach.Section}, units: {string.Join(", ", resolvedUnits.Values.Distinct())}",
                 targetType: "CoachCoacheeMapping");
 
             // COACH-01: Notify coach for each coachee assigned
