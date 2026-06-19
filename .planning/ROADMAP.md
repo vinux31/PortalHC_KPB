@@ -127,7 +127,7 @@
   5. Coach/Supervisor ber-akun **multi-unit** melihat & meng-export **semua** coachee yang dimapping di seluruh unit-nya dalam Bagian (`CDPController` self-scope `unit=user.Unit` → `IN(coach.UserUnits)` di 305/326/636 + post-filter 490-491). *(CXU-05)*
   6. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright/UAT bila ada UI: assign cross-unit dalam 1 Bagian sukses (coachee unit-X & unit-Y dalam satu batch ke 1 coach); cross-Bagian ditolak server; coach multi-unit lihat semua coachee. *(semua REQ)*
 **Plans:** 4 plans (3 waves)
-- [ ] 402-01-PLAN.md — Wave 0 (BLOCKING): static seam `CoacheeSectionMatchesCoach` + `CoachAssignRequest.AssignmentUnits` map field + RED unit tests (CrossUnitAssign + CdpCoachUnionScope) + e2e skeleton (CXU-01/02/03/05) [migration=FALSE]
+- [x] 402-01-PLAN.md — Wave 0 (BLOCKING): static seam `CoacheeSectionMatchesCoach` + `CoachAssignRequest.AssignmentUnits` map field + RED unit tests (CrossUnitAssign + CdpCoachUnionScope) + e2e skeleton (CXU-01/02/03/05) [migration=FALSE]
 - [ ] 402-02-PLAN.md — Wave 1: backend assign — CXU-02 cross-Bagian server guard + CXU-03 per-coachee unit loop (∈ org-tree ∩ coachee.UserUnits) + CXU-01 ViewBag.CoacheeUnits dict (CXU-01/02/03)
 - [ ] 402-03-PLAN.md — Wave 1 (PARALEL): CDP self-scope union — stop forcing primary :305/:326/:647 + coach.UserUnits AvailableUnits + UnitFilterEnabled flag + dropdown enable + UAT checkpoint (CXU-05)
 - [ ] 402-04-PLAN.md — Wave 2 (depends 02): assign modal UI — IC-1 coach-first auto-scope + IC-2 per-row unit select + IC-3 relax lock + IC-4 payload map + e2e fill + UAT checkpoint (CXU-01/03/04)
@@ -171,7 +171,7 @@
 | 399. Foundation — UserUnits Junction + Primary-Mirror + Multi-Select UI (MU-01/02/03/04/05/07) | 4/4 | Complete    | 2026-06-18 |
 | 400. Membership Listing Set-Aware + Rollup Dedup (MU-06) | 1/1 | Complete    | 2026-06-18 |
 | 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 6/6 | Complete    | 2026-06-19 |
-| 402. Coaching Cross-Unit Mapping (CXU-01..05) | 0/4 | Planned     | - |
+| 402. Coaching Cross-Unit Mapping (CXU-01..05) | 1/4 | In Progress|  |
 | 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 2/2 | Complete    | 2026-06-19 |
 | 404. Test (SQL Riil) + UAT + Docs + Invariants (QA-01..04) | 0/0 | Not started | - |
 

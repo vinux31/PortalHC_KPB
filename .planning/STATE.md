@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: verifying
-stopped_at: Phase 402 context gathered
-last_updated: "2026-06-19T06:25:28.500Z"
-last_activity: 2026-06-19
+status: executing
+stopped_at: Phase 402 UI-SPEC approved
+last_updated: "2026-06-19T07:32:50.476Z"
+last_activity: 2026-06-19 -- Phase 402 execution started
 progress:
   total_phases: 31
   completed_phases: 4
-  total_plans: 13
+  total_plans: 17
   completed_plans: 13
-  percent: 100
+  percent: 76
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 403 — organizationcontroller-cascade-guard-userunits-aware
+**Current focus:** Phase 402 — Coaching Cross-Unit Mapping
 
 ## Current Position
 
-Phase: 404
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-19
+Phase: 402 (Coaching Cross-Unit Mapping) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 402
+Last activity: 2026-06-19 -- Phase 402 execution started
 
 > ⏸ RESUME: see `.planning/phases/401-proton-unit-resolution-hardening/.continue-here.md`
 > Next = satisfy BLOCKING human-verify D-01 render checkpoint (Razor; Playwright or user "approved"), then Plan 03 Task 4 (turn-green tests) → 401-03-SUMMARY → verify phase. migration=FALSE. Run gsd-tools from ITHandoff toplevel ONLY.
@@ -133,6 +133,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 402 context gathered
+Stopped at: Phase 402 UI-SPEC approved
 
 Next action: **`/gsd-verify-work 400`** (Phase 400 = 1/1 plan complete). Lalu lanjut Wave-1 paralel {401 (sudah PLANNED, 6 plan), 403 (TBD)} (depends 399 done; cluster file disjoint, git worktree). Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context). **migration=FALSE Phase 400** — notify IT saat milestone push (satu-satunya migration v32.3 = 399 `AddUserUnitsTable` `fc015f4d`).
