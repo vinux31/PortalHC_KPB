@@ -4,8 +4,8 @@ milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
 stopped_at: Phase 398.1 context gathered
-last_updated: "2026-06-19T06:39:24.141Z"
-last_activity: 2026-06-19 -- Phase 398.1 planning complete
+last_updated: "2026-06-19T06:41:17.833Z"
+last_activity: 2026-06-19 -- Phase 398.1 execution started
 progress:
   total_phases: 26
   completed_phases: 8
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 398 — test-uat-seakan-online
+**Current focus:** Phase 398.1 — Tech-debt cleanup INJ (v32.2)
 
 ## Current Position
 
-Phase: 999.11
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-19 -- Phase 398.1 planning complete
+Phase: 398.1 (Tech-debt cleanup INJ (v32.2)) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 398.1
+Last activity: 2026-06-19 -- Phase 398.1 execution started
 
 **Milestone v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — 6 fase (393-398), LANJUT dari v32.0 phase terakhir (392; tidak reset). 0 migration. Branch main. Design spec: `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Requirements (INJ-01..13) + ROADMAP.md SELESAI; menunggu approval user + plan Phase 393.
 

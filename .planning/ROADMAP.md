@@ -277,7 +277,7 @@
 + **cosmetic LBL-02** Legenda Excel kolom Tipe map enum `MultipleChoice` → label UI `Single Answer` (1-baris di `InjectExcelHelper.GenerateTemplate`)
 
 **Plans:** 4/4 plans (Cluster A->B->C->D, sequential di main, no worktree per D-06)
-- [ ] 398.1-01-PLAN.md — Cluster A (396): WR-01 dup-NIP (fix/drop) + WR-02 essay decimal (likely DROP D-03) + WR-03 download race + LBL-02 Legenda
+- [x] 398.1-01-PLAN.md — Cluster A (396): WR-01 dup-NIP (fix/drop) + WR-02 essay decimal (likely DROP D-03) + WR-03 download race + LBL-02 Legenda
 - [ ] 398.1-02-PLAN.md — Cluster B (397): WR-01 unlink cross-batch (narrow/drop D-04) + WR-02 g.First OrderBy + WR-03 stray TempData
 - [ ] 398.1-03-PLAN.md — Cluster C (999.11): PendingGrading edit-guard hard-block di EditAssessment (D-02)
 - [ ] 398.1-04-PLAN.md — Cluster D (test-only): 999.12 de-tautologize 391 test + 999.13 fix e2e helper fillEssayAnswer
