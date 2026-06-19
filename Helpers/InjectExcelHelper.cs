@@ -113,7 +113,7 @@ namespace HcPortal.Helpers
 
                 leg.Cell(lrow, 1).Value = idx;
                 leg.Cell(lrow, 2).Value = q.QuestionText ?? "";
-                leg.Cell(lrow, 3).Value = type;
+                leg.Cell(lrow, 3).Value = QuestionTypeLabels.Short(type);
                 leg.Cell(lrow, 4).Value = q.ScoreValue;
 
                 if (type == "Essay")

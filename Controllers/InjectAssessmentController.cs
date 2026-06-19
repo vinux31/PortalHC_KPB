@@ -353,8 +353,12 @@ namespace HcPortal.Controllers
                     return Json(result);
                 }
                 var allowedNips = picker.Select(p => p.Nip).ToHashSet();
-                var nipToUserId = picker.ToDictionary(p => p.Nip, p => p.Id);
-                var nipToName = picker.ToDictionary(p => p.Nip, p => p.Name);
+                // WR-01 (398.1): NIP tidak unique-indexed di EF model → 2 akun aktif bisa berbagi NIP.
+                // GroupBy + OrderBy(Id).First() = build aman (anti ArgumentException) + representative deterministik antar-request.
+                var nipToUserId = picker.GroupBy(p => p.Nip)
+                                        .ToDictionary(g => g.Key, g => g.OrderBy(p => p.Id).First().Id);
+                var nipToName = picker.GroupBy(p => p.Nip)
+                                      .ToDictionary(g => g.Key, g => g.OrderBy(p => p.Id).First().Name);
 
                 // 3. Parse (try/catch di helper → file rusak jadi error ramah, BUKAN 500).
                 List<InjectAssessmentViewModel.InjectWorkerAnswersVM> workers;
