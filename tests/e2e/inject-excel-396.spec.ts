@@ -342,6 +342,38 @@ test.describe('Sel kosong = warn-but-allow (D-06)', () => {
   });
 });
 
+// ── Scenario 7 (398.1 WR-03): Download debounce — klik-ganda cepat tak memicu 2 unduhan ──
+test.describe('398.1 WR-03 download debounce', () => {
+  test('klik-ganda cepat #btnDownloadTemplate → tombol disabled, hanya 1 unduhan', async ({ page }) => {
+    await loginAdmin(page);
+    await page.goto('/Admin/InjectAssessment');
+    await fillToStep5(page, 'ZZ Excel DEBOUNCE ' + TS);
+    await switchToExcel(page);
+
+    let downloadCount = 0;
+    page.on('download', () => { downloadCount++; });
+
+    // Dua klik SINKRON dalam window debounce (1500ms): klik-1 set disabled + submit (1 unduhan);
+    // klik-2 kena guard `if (downloadBtn.disabled) return` (+ tombol disabled tak dispatch click) → TAK ada unduhan kedua.
+    // (evaluate dipakai supaya 2 klik benar-benar back-to-back; page.click async terlalu lambat untuk reproduksi race.)
+    await page.evaluate(() => {
+      const b = document.getElementById('btnDownloadTemplate') as HTMLButtonElement;
+      b.click();
+      b.click();
+    });
+    await page.waitForTimeout(1_000); // tunggu event download settle, masih < 1500ms re-enable
+    expect(downloadCount).toBe(1);    // TANPA fix → 2; DENGAN fix → 1
+    // Re-enable setelah timeout (download tak punya response event).
+    await expect(page.locator('#btnDownloadTemplate')).toBeEnabled({ timeout: 3_000 });
+  });
+});
+
+// NOTE (398.1 LBL-02): verifikasi label Legenda dilakukan via ClosedXML UNIT test
+//   (HcPortal.Tests/InjectExcelHelperTests.cs::GenerateTemplate_LegendaTipe_UsesUiLabel),
+//   BUKAN di sini — template di-generate ClosedXML dan exceljs.readFile TIDAK kompatibel
+//   membaca output ClosedXML (lihat catatan di atas, baris 14/107). ClosedXML membaca
+//   output-nya sendiri dengan andal → unit test lebih deterministik daripada e2e exceljs.
+
 // ── Scenario 6 (INJ-11): tool lama BulkBackfill dipensiunkan — route 404 + entry-point UI hilang ──
 //   Route controller = [Route("Admin/[action]")]; action dihapus ⇒ tak ada endpoint ⇒ 404 (sebelum auth).
 //   Kontras: /Admin/InjectAssessment (action ada, butuh auth) tanpa login → 302 redirect login, BUKAN 404.

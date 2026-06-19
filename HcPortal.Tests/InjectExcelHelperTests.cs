@@ -295,4 +295,31 @@ public class InjectExcelHelperTests
 
         Assert.Contains(errors, e => e.Message.Contains("15") || e.Message.Contains("10"));
     }
+
+    // =========================================================================
+    // 9) 398.1 LBL-02: sheet Legenda kolom Tipe pakai label UI (QuestionTypeLabels.Short),
+    //    BUKAN enum mentah. Dibaca via ClosedXML (output-nya sendiri — andal, beda dgn exceljs).
+    // =========================================================================
+
+    [Fact]
+    public void GenerateTemplate_LegendaTipe_UsesUiLabel()
+    {
+        // Urutan: MC (order 1), MA (order 2), Essay (order 3) → baris Legenda 2,3,4.
+        var questions = new List<InjectQuestionSpec> { Mc(901, 10, 1), Ma(902, 10, 2), Essay(903, 10, 3) };
+        var wb = InjectExcelHelper.GenerateTemplate(questions, new[] { ("123", "Budi") });
+
+        var leg = wb.Worksheet("Legenda");
+        // Kolom 3 = Tipe. Label UI, bukan enum.
+        Assert.Equal("Single Answer", leg.Cell(2, 3).GetString());    // MultipleChoice → Single Answer
+        Assert.Equal("Multiple Answer", leg.Cell(3, 3).GetString());  // MultipleAnswer → Multiple Answer
+        Assert.Equal("Essay", leg.Cell(4, 3).GetString());
+
+        // Enum mentah TIDAK boleh muncul di kolom Tipe mana pun.
+        for (int r = 2; r <= 4; r++)
+        {
+            var tipe = leg.Cell(r, 3).GetString();
+            Assert.DoesNotContain("MultipleChoice", tipe);
+            Assert.DoesNotContain("MultipleAnswer", tipe);
+        }
+    }
 }
