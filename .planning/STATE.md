@@ -4,14 +4,14 @@ milestone: v32.2
 milestone_name: Inject Hasil Assessment Manual ("Seakan Online")
 status: executing
 stopped_at: Phase 398 context gathered
-last_updated: "2026-06-19T00:42:45.400Z"
+last_updated: "2026-06-19T01:21:42.610Z"
 last_activity: 2026-06-19
 progress:
   total_phases: 29
   completed_phases: 5
   total_plans: 22
-  completed_plans: 20
-  percent: 91
+  completed_plans: 21
+  percent: 95
 ---
 
 # Project State: Portal HC KPB
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 398 (test-uat-seakan-online) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-19
 
@@ -109,6 +109,7 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 | 999.9 label residu "Backfill/Restore" di UI BulkBackfill | kosmetik (LOW) |
 | 999.6 impersonate identity (dir tersisa) | sudah ditutup fungsional v28.0/377; dir backlog tinggal |
 | 999.10 route CMP (dir tersisa) | sudah ditutup v28.0/378; dir backlog tinggal |
+| 999.13 e2e essay-submit helper flaky (`fillEssayAnswer`/`submitExamTwoStep` → exam-types FLOW L + exam-taking Flow K "belum dijawab") | pre-existing test-infra, NON-inject (393-397 nol ubah Views/CMP+AssessmentHub.cs) & NON-defect produk (essay-flush-385 3/3 + 557 xUnit PASS); jalur DIRECT `hub.invoke('SaveTextAnswer')` tak konsisten vs jalur produk `flushEssay`. Perbaiki helper (bukan kode produk). Ditemukan Phase 398 D-05 ii |
 | 43 quick-task todo (audit-open, semua status `[missing]`) | acknowledged deferred (backlog project-wide lama, todo file ada artifact hilang) |
 
 ### Push IT
