@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: executing
-stopped_at: Completed 412-01-PLAN.md
-last_updated: "2026-06-21T08:08:06.930Z"
-last_activity: 2026-06-21 -- Phase 412 planning complete
+stopped_at: Completed 412-02-PLAN.md
+last_updated: "2026-06-21T08:26:08.363Z"
+last_activity: 2026-06-21 -- Phase 412-01 executed (server-side SignalR + query)
 progress:
   total_phases: 17
   completed_phases: 3
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 8
+  percent: 89
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 412 — live-monitoring-ui-signalr IN PROGRESS (1/3 plan: 412-01 server-side broadcast + removedSessions query DONE)
+**Current focus:** Phase 412 — live-monitoring-ui-signalr IN PROGRESS (2/3 plan: 412-01 server-side broadcast + 412-02 UI panel/modal/handlers DONE)
 
 ## Current Position
 
 Phase: 412
-Plan: 01 SELESAI (broadcast SignalR post-commit 3 endpoint + ViewBag.RemovedSessions typed). Fase 412 = 1/3 plan. Sisa 412-02 (view panel+modal+handlers), 412-03 (StartExam force-kick).
-Status: Ready to execute (412-02)
-Last activity: 2026-06-21 -- Phase 412-01 executed (server-side SignalR + query)
+Plan: 02 SELESAI (UI live AssessmentMonitoringDetail.cshtml: picker Tambah + modal hapus keras/ringan D-01 + panel Peserta Dikeluarkan + handler participantAdded/Removed). Fase 412 = 2/3 plan. Sisa 412-03 (StartExam examRemoved force-kick).
+Status: Ready to execute (412-03)
+Last activity: 2026-06-21 -- Phase 412-02 executed (UI panel/modal + SignalR DOM handlers + runtime smoke @5277)
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
@@ -42,7 +42,11 @@ Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta ass
 
 ## Next Action
 
-**Phase 412-01 COMPLETE (1/3 plan).** Server-side fondasi UI Monitoring live: broadcast SignalR post-commit + query removedSessions. Commits: `da1e62e5` (broadcast 3 endpoint participantAdded×2/participantRemoved+Pre-Post pair/examRemoved) + `6d3f0e26` (query RemovedAt!=null + RemovedParticipantViewModel typed + ViewBag.RemovedSessions) + `8623e68e` (Rule-1 fix: hapus .Include nav-null InMemory + NoopHubContext stub). migration=FALSE, branch main NOT pushed. Build 0 error, full suite **597/597**, FlexibleParticipant+Monitoring 38/38 hijau, app boot @5277 (monitoring 302). PLIV-01/PLIV-02/PRMV-02 marked complete. SUMMARY @ `.planning/phases/412-live-monitoring-ui-signalr/412-01-SUMMARY.md`.
+**Phase 412-02 COMPLETE (2/3 plan).** UI live `AssessmentMonitoringDetail.cshtml` (+731 baris): picker "Tambah Peserta" → AddParticipantsLive, item Hapus per-baris + modal keras/ringan D-01 → RemoveParticipantLive, panel collapsible "Peserta Dikeluarkan" + Restore 1-klik D-04 → RestoreParticipantLive, handler SignalR participantAdded (dedup+restore-from-panel) / participantRemoved (mode-aware hard remove vs soft→panel). Commits: `f2781740` (markup tombol+modal+panel) + `d6ca5765` (JS picker/hapus/restore + 2 handler SignalR + perluas buildActionsHtml/updateSummaryFromDOM). migration=FALSE, branch main NOT pushed. Build 0 error. **Runtime smoke @5277 PASS** (login admin/123456 → detail 200 103KB; markup+handler render; eligible endpoint 200 JSON; panel display:none saat 0-removed; NOL console/server error). PART-05 marked complete (PRMV-02/PLIV-01/PLIV-02 sudah dari 412-01). SUMMARY @ `.planning/phases/412-live-monitoring-ui-signalr/412-02-SUMMARY.md`.
+
+**412-02 highlights/carry:** (a) **window.mon\* bridge** — helper IIFE-private (`buildActionsHtml`/`flashRow`/`statusBadgeClass`) diekspos ke `window` agar handler SignalR di blok `@section Scripts` (satu-satunya tempat `window.assessmentHub` tersedia) bisa pakai. (b) Tingkat modal hapus **label-aware** (Pitfall 1): `data-status === "InProgress"` ATAU `Completed`+cert → keras; lainnya ringan. (c) **XSS-safe**: panel Razor `@`-encode (0 Html.Raw) + JS `textContent` nama/alasan/oleh (0 innerHTML utk reason). (d) `updateSummaryFromDOM` selector `tbody:not(#tbodyRemoved)` (Pitfall 2). (e) Fallback inject 3 detik + `monClearAddedFallback` cancel saat echo (anti double-inject Pitfall 4). **NEXT: `/gsd-execute-phase 412` lanjut 412-03** (StartExam `examRemoved` force-kick + modal `#examRemovedModal` mirror `examClosed`; reason via textContent; redirect ke CMP/Assessment + TempData banner D-02).
+
+_(Histori 412-01 — arsip)_ **Phase 412-01 COMPLETE (1/3 plan).** Server-side fondasi UI Monitoring live: broadcast SignalR post-commit + query removedSessions. Commits: `da1e62e5` (broadcast 3 endpoint participantAdded×2/participantRemoved+Pre-Post pair/examRemoved) + `6d3f0e26` (query RemovedAt!=null + RemovedParticipantViewModel typed + ViewBag.RemovedSessions) + `8623e68e` (Rule-1 fix: hapus .Include nav-null InMemory + NoopHubContext stub). migration=FALSE, branch main NOT pushed. Build 0 error, full suite **597/597**, FlexibleParticipant+Monitoring 38/38 hijau, app boot @5277 (monitoring 302). PLIV-01/PLIV-02/PRMV-02 marked complete. SUMMARY @ `.planning/phases/412-live-monitoring-ui-signalr/412-01-SUMMARY.md`.
 
 **412-01 highlights/carry:** (a) **.Include(s=>s.User) JANGAN dipakai di endpoint yang dipanggil read-path InMemory test** — provider mem-filter baris ber-FK-nav-null → NotFound (lihat AddLive test :87-88). Pakai dict lookup `_context.Users`. (b) **NoopHubContext** (`HcPortal.Tests/NoopHubContext.cs`) reusable utk write-path test endpoint yang broadcast post-commit. (c) Open-Q1 RESOLVED: `examRemoved` hanya `wasInProgress` (capture pre-core). Open-Q2 RESOLVED: Pre/Post → 2 event participantRemoved via outcome.PartnerId. (d) Kontrak JSON 410/411 TIDAK berubah (broadcast additive). **NEXT: `/gsd-execute-phase 412` lanjut 412-02** (view AssessmentMonitoringDetail.cshtml: picker modal + modal hapus keras D-01 + panel "Peserta Dikeluarkan" dari ViewBag.RemovedSessions + handler participantAdded/Removed; carry T-409-10 encode-at-render RemovalReason via @/textContent; Pitfall 1 label Indonesia, Pitfall 2 exclude #tbodyRemoved, Pitfall 6 mode hard/soft) lalu 412-03 (StartExam examRemoved force-kick mirror examClosed).
 
@@ -191,6 +195,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 412-01-PLAN.md
+Stopped at: Completed 412-02-PLAN.md
 
 Next action: **Phase 411 COMPLETE (2/2 plan).** Plan 01 backend = core + 3 endpoint + un-hide form (`764516d0`+`220382ec`); Plan 02 test = 15 test de-tautologis (`cafd641d` read+soft + `3ec00420` hard-delete mini-DI; full suite **596/596**, 15/15 hijau filter `~FlexibleParticipantRemove`). migration=FALSE; NOT pushed. **NEXT: `/gsd-verify-work 411`** (verify gate — build 0 error + suite 596/596 + 15 test FlexibleParticipantRemove de-tautologis; SQLEXPRESS write-path BENAR run, DB test auto-disposed) → lalu **412 (UI+SignalR**, depends 410+411; konsumsi JSON outcome `{sessionId, mode, linkedSessionId}` + escape `RemovalReason` carry T-409-10) → 413 (test+UAT). **Mini-DI pattern 411-02 (`BuildCascadeServiceProvider`/`StubWebHostEnvironment`/`MakeLiveControllerWithCascade`) reusable** untuk fase yang drive cascade lewat `HttpContext.RequestServices`. Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0`; 410+411 + 412-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.
