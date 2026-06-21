@@ -1129,6 +1129,23 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
+### Phase 999.12: One-time cleanup ~45 sesi test/audit legacy di HcPortalDB_Dev lokal (PROMOTED from todo 2026-06-11, BACKLOG)
+
+**Goal:** [Captured 2026-06-11, promoted from pending todo saat close v32.3 2026-06-21] HcPortalDB_Dev lokal penuh ±45 sesi assessment bekas test/audit fase lama (Legacy Exam, Timer Expired, Repro, UAT v14, ojt v1.9/1.10/14.2, Multi Worker, MATRIX_TEST, dll) yang TAMPIL di default view sejak Phase 370 hapus window 7-hari. Rekap HC perlu bersih. **DB LOKAL saja** (Dev 10.55.3.3 = jalur IT, jangan edit langsung).
+
+**Context:**
+- Precondition TERPENUHI: Phase 367 (Delete Records Cascade Overhaul) SHIPPED (`15cfbbcb`, cascade aman 28-temuan ditutup). DB lokal saat ini 2026-06-21: 60 sesi total, ~45 match pola test/legacy (filter LUAS — review per-sesi, hati-hati jangan tangkap data riil).
+- SOP: snapshot DB (`sqlcmd BACKUP` + SEED_JOURNAL) → hapus via fitur cascade-delete 367 (preview konfirmasi, BUKAN raw SQL — raw = orphan-bleed) → verify zero-orphan per-tabel (pola integration test 367 SC1) → bisa digabung one-time cleanup AttemptHistory orphan (Phase 368).
+- Sumber: di-promote dari `.planning/todos/completed/2026-06-11-one-time-cleanup-data-test-lokal-setelah-367-ship.md` saat close v32.3.
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.11: Audit trail EditOrganizationUnit cascade (rename/reparent) — gap traceability (BACKLOG)
 
 **Goal:** [Captured Phase 403 review/verify, 2026-06-19] `EditOrganizationUnit` TIDAK menulis `AuditLog` padahal `DeleteOrganizationUnit` menulis (asimetri pre-existing). Phase 403 memperlebar cascade ke junction `UserUnits` (incl baris IsActive=false) → mutasi admin-only rename/reparent unit tak ter-trace.

@@ -24,3 +24,7 @@ Setelah Phase 367 (Delete Records Cascade Overhaul) SHIPPED:
 3. Verifikasi zero orphan (assert per tabel — integration test 367 SC1 sudah sediakan pola).
 4. Koordinasi: Phase 368 punya one-time cleanup AttemptHistory orphan legacy — bisa digabung satu sesi.
 5. Lingkup = DB LOKAL saja. Dev (10.55.3.3) = jalur IT, jangan edit langsung.
+
+## Resolution
+
+**Promoted to backlog Phase 999.12 at v32.3 close (2026-06-21).** No longer a loose pending todo — now tracked milestone-backlog work. Precondition met (Phase 367 cascade overhaul SHIPPED `15cfbbcb`); DB still holds ~45 legacy test/audit sessions (60 total). Execute via `/gsd-review-backlog` → snapshot → 367 cascade-delete (preview, not raw SQL) → verify zero-orphan. Not a v32.3 deliverable.
