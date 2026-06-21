@@ -213,6 +213,10 @@ namespace HcPortal.Controllers
             // InProgress is included so workers can resume mid-exam sessions (Phase 42)
             query = query.Where(a => a.Status == "Open" || a.Status == "Upcoming" || a.Status == "InProgress");
 
+            // v32.5 Phase 409 (PRMV-03/PLIV-01 — review WR-02): sesi soft-removed tak boleh tampil di daftar aktif
+            // (hindari loop klik-Mulai→guard-bounce). completedHistory :324 SENGAJA tetap tampil (boundary riwayat/sertifikat).
+            query = query.Where(a => a.RemovedAt == null);
+
             // ========== SEARCH FILTER ==========
             if (!string.IsNullOrEmpty(search))
             {
@@ -363,6 +367,11 @@ namespace HcPortal.Controllers
             // Only the session owner may save answers
             if (session.UserId != user.Id)
                 return Json(new { success = false, error = "Unauthorized" });
+
+            // v32.5 Phase 409 (PRMV-03 — review WR-01): sesi soft-removed tak boleh simpan jawaban.
+            // Parallel write-path ke Hub SaveTextAnswer/SaveMultipleAnswer; soft-remove TAK ubah Status (D-04) → cek eksplisit RemovedAt.
+            if (IsParticipantRemoved(session))
+                return Json(new { success = false, error = "Anda telah dikeluarkan dari ujian ini." });
 
             // Session must still be in progress
             if (session.Status == "Completed" || session.Status == "Abandoned" || session.Status == "Cancelled")
