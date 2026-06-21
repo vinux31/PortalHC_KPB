@@ -182,7 +182,11 @@
   3. Test invariant **`AssignmentUnit ∈ coachee.UserUnits`** di setiap junction-write (Assign/Edit/Import/bypass TargetUnit/reactivate) + B-06 anti-dobel `ProtonDeliverableBootstrap` lintas-unit (CoacheeId sama, deliverable unit X vs Y tak saling skip) + `ProtonKompetensi.Unit` 1:1 per deliverable. *(QA-04)*
   4. UAT lokal lulus (`dotnet build` + `dotnet run` localhost:5277 + cek DB lokal, Playwright bila ada) + docs mencatat batasan **D1=b** (cert/analytics atribusi primary unit). *(QA-02)*
   5. `dotnet build` 0 error + `dotnet test` hijau (suite multi-unit SQL riil + suite existing tak regresi) + UAT browser sign-off; milestone siap 1 push → notify IT re-deploy Dev (**migration=TRUE** Phase 399, commit hash). *(semua REQ)*
-**Plans:** TBD
+**Plans:** 4 plans (wave 1: 01 · wave 2: 02 ∥ 03 · wave 3: 04 [checkpoint UAT])
+- [ ] 404-01-PLAN.md — Wave 1: MultiUnitSqlFixture (MigrateAsync incl 399 + canonical {X,Y}/coach/PROTON seed) + implement CrossUnitAssignTests:105 single-active stub (QA-01/QA-03) [migration=FALSE]
+- [ ] 404-02-PLAN.md — Wave 2: single-active SQL-real — CoachCoacheeMapping via DbUpdateException (filtered-unique) + ProtonTrackAssignment via Count==1 after bypass T1@X→T2@Y (Pitfall #1 split-assert) + reactivate path (QA-03) [migration=FALSE]
+- [ ] 404-03-PLAN.md — Wave 2 (∥ 02): AssignmentUnit∈UserUnits helper + B-06 anti-dobel cross-unit + ProtonKompetensi 1:1 + one-primary + 3 backfill stubs (QA-01/QA-04) [migration=FALSE]
+- [ ] 404-04-PLAN.md — Wave 3: UAT browser PROTON sekuensial cross-unit @5270 (snapshot→seed→restore) + IT handoff HTML (migration=TRUE Phase 399) + D1=b markdown (QA-02) [checkpoint, migration=FALSE]
 
 **Active mapped: 24/24 ✓ (MU-01/02/03/04/05/07 → 399 · MU-06 → 400 · PSU-01/02/03/04/05/07 → 401 · CXU-01..05 → 402 · ORG-01/02 → 403 · QA-01..04 → 404) — Orphans: 0 — Duplicates: 0 — migration=TRUE Phase 399 only. Critical path 399 → 401 → 402 → 404; Wave 1 {400, 401, 403} paralel setelah 399.**
 
