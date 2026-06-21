@@ -17,6 +17,7 @@
 using System;
 using System.Threading.Tasks;
 using HcPortal.Data;
+using HcPortal.Models;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -69,24 +70,57 @@ public class UserUnitsBackfillIntegrationTests : IClassFixture<UserUnitsBackfill
         _fixture = fixture;
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02/404 (backfill 1 primary-row/pekerja Unit non-null)")]
-    public void Backfill_UserWithNonNullUnit_HasExactlyOnePrimaryRow()
+    // VERBATIM copy of the migration-399 backfill statement (Migrations/20260618045427_AddUserUnitsTable.cs:51-57).
+    // Re-running the migration's OWN SQL is what truthfully proves idempotency — do NOT hand-roll new SQL.
+    private const string BackfillSql = @"
+                INSERT INTO UserUnits (UserId, Unit, IsPrimary, IsActive)
+                SELECT u.Id, u.Unit, 1, 1
+                FROM Users u
+                WHERE u.Unit IS NOT NULL AND u.Unit <> ''
+                  AND NOT EXISTS (SELECT 1 FROM UserUnits uu WHERE uu.UserId = u.Id)
+            ";
+
+    [Fact]
+    public async Task Backfill_UserWithNonNullUnit_HasExactlyOnePrimaryRow()
     {
-        // plan 02/404: seed Users (Unit non-null), apply backfill → 1 baris IsPrimary=1 per user.
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02/404");
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var userId = $"bf-nn-{Guid.NewGuid():N}";
+        ctx.Users.Add(new ApplicationUser { Id = userId, UserName = userId, FullName = $"Worker {userId[..8]}", Unit = "UnitX-bf" });
+        await ctx.SaveChangesAsync();
+
+        await ctx.Database.ExecuteSqlRawAsync(BackfillSql);
+
+        Assert.Equal(1, await ctx.UserUnits.CountAsync(uu => uu.UserId == userId && uu.IsPrimary));
+        Assert.Equal(1, await ctx.UserUnits.CountAsync(uu => uu.UserId == userId)); // exactly one total
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02/404 (Unit null → 0 baris)")]
-    public void Backfill_UserWithNullUnit_HasZeroRows()
+    [Fact]
+    public async Task Backfill_UserWithNullUnit_HasZeroRows()
     {
-        // plan 02/404: user Unit null/empty → 0 baris UserUnits.
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02/404");
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var nullUser = $"bf-null-{Guid.NewGuid():N}";
+        var emptyUser = $"bf-empty-{Guid.NewGuid():N}";
+        ctx.Users.Add(new ApplicationUser { Id = nullUser, UserName = nullUser, FullName = $"Worker {nullUser[..8]}", Unit = null });
+        ctx.Users.Add(new ApplicationUser { Id = emptyUser, UserName = emptyUser, FullName = $"Worker {emptyUser[..8]}", Unit = "" });
+        await ctx.SaveChangesAsync();
+
+        await ctx.Database.ExecuteSqlRawAsync(BackfillSql);
+
+        Assert.Equal(0, await ctx.UserUnits.CountAsync(uu => uu.UserId == nullUser));
+        Assert.Equal(0, await ctx.UserUnits.CountAsync(uu => uu.UserId == emptyUser));
     }
 
-    [Fact(Skip = "Wave 0 scaffold — diisi plan 02/404 (idempotent re-run no dup)")]
-    public void Backfill_RerunIsIdempotent_NoDuplicateRows()
+    [Fact]
+    public async Task Backfill_RerunIsIdempotent_NoDuplicateRows()
     {
-        // plan 02/404: jalankan backfill SQL dua kali → run-2 INSERT 0 baris (WHERE NOT EXISTS).
-        Assert.True(false, "Wave 0 scaffold — diisi plan 02/404");
+        await using var ctx = new ApplicationDbContext(_fixture.Options);
+        var userId = $"bf-idem-{Guid.NewGuid():N}";
+        ctx.Users.Add(new ApplicationUser { Id = userId, UserName = userId, FullName = $"Worker {userId[..8]}", Unit = "UnitY-bf" });
+        await ctx.SaveChangesAsync();
+
+        await ctx.Database.ExecuteSqlRawAsync(BackfillSql); // run 1 → inserts 1 row
+        await ctx.Database.ExecuteSqlRawAsync(BackfillSql); // run 2 → WHERE NOT EXISTS makes it insert 0 rows
+
+        Assert.Equal(1, await ctx.UserUnits.CountAsync(uu => uu.UserId == userId)); // still exactly 1 (idempotent)
     }
 }
