@@ -70,7 +70,11 @@
   5. `ResetAssessment` HC di-refactor → panggil `ExecuteAsync(..., bypassGuards:true, reason:"hc_reset")` (bypass cap/cooldown, tetap snapshot+archive); guard HC (IsResettable/Pre-Post block/status) **tetap di controller**; `ResetGuardTests` regresi hijau. *(RTK-06)*
   6. Endpoint `UpdateRetakeSettings(assessmentId, allowRetake, maxAttempts, retakeCooldownHours)` — `[Authorize(Admin,HC)]` + `[ValidateAntiForgeryToken]` + sibling propagation key `(Title, Category, Schedule.Date)` + audit `UpdateRetakeSettings` + clamp range (1–5 / 0–168). *(RTK-04)*
   7. `dotnet build` 0 error + `dotnet ef database update` (kolom + tabel hadir, verifikasi `sqlcmd -C -I`) + `dotnet test` hijau (`RetakeRulesTests` semua cabang + `RetakeArchiveBuilderTests` + `RetakeServiceTests` claim-atomik/clear-token/bypass/cooldown-boundary + `ResetGuardTests` regresi). *(semua REQ)*
-**Plans:** TBD — plan superpowers tersedia `docs/superpowers/plans/2026-06-19-v32.4-phase-405-backend-core.md` (9-task TDD); `gsd-plan-phase 405` materialize ke `.planning/phases/405-*/PLAN.md`.
+**Plans:** 4 plans (wave 1: 01 · wave 2: 02 · wave 3: 03 · wave 4: 04) — chain sekuensial 01→02→03→04 (file-disjoint tapi dependency-coupled: tipe entitas + migration → helper → service → controller)
+- [ ] 405-01-PLAN.md — Wave 1 [BLOCKING]: entitas AssessmentAttemptResponseArchive + 3 kolom config AssessmentSession + DbSet/FK cascade/index + migration AddRetakeColumnsAndArchive (RTK-01/02) [migration=TRUE]
+- [ ] 405-02-PLAN.md — Wave 2 [TDD]: RetakeRules pure (CanRetake semua cabang + ShouldHideRetakeToggle) + RetakeArchiveBuilder pure (verdict beku via IsQuestionCorrect, essay full-text Pitfall 2) + unit tests (RTK-03/02/13)
+- [ ] 405-03-PLAN.md — Wave 3: RetakeService (claim-atomik DULU → snapshot → archive → delete → audit → SignalR reason) + CanRetakeAsync (D-01 snapshot-presence + counting Title/Category) + DI scoped + integration test SQL-real (claim-atomic, D-01 legacy-no-count, counting, snapshot-before-delete) (RTK-07/13)
+- [ ] 405-04-PLAN.md — Wave 4: refactor ResetAssessment→delegasi service + clear token + UpdateRetakeSettings endpoint (RBAC+AntiForgery+sibling propagation+clamp+audit+PRG) + bulk-add carry savedAssessment + ManagePackages ViewBag (RTK-06/04/01)
 **UI hint:** no
 
 ### Phase 406: Admin Config UI + Riwayat HC
@@ -119,7 +123,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 0/0 | Not started | — |
+| 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 0/4 | Planned | — |
 | 406. Admin Config UI + Riwayat HC (RTK-05/08) | 0/0 | Not started | — |
 | 407. Worker Self-Service + Gating + Riwayat Pekerja (RTK-09/10/11/12/13) | 0/0 | Not started | — |
 | 408. Test & UAT (RTK-14) | 0/0 | Not started | — |
