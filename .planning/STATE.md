@@ -4,14 +4,14 @@ milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
 stopped_at: Phase 404 context gathered
-last_updated: "2026-06-21T01:39:58.150Z"
-last_activity: 2026-06-21 -- Phase 404 execution started
+last_updated: "2026-06-21T05:23:54.254Z"
+last_activity: 2026-06-21
 progress:
-  total_phases: 31
-  completed_phases: 5
+  total_phases: 32
+  completed_phases: 6
   total_plans: 21
-  completed_plans: 17
-  percent: 81
+  completed_plans: 21
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md
 Phase: 404 (test-sql-riil-uat-docs-invariants) — EXECUTING
 Plan: 1 of 4
 Status: Executing Phase 404
-Last activity: 2026-06-21 -- Phase 404 execution started
+Last activity: 2026-06-21
 
 > ⏸ RESUME: see `.planning/phases/401-proton-unit-resolution-hardening/.continue-here.md`
 > Next = satisfy BLOCKING human-verify D-01 render checkpoint (Razor; Playwright or user "approved"), then Plan 03 Task 4 (turn-green tests) → 401-03-SUMMARY → verify phase. migration=FALSE. Run gsd-tools from ITHandoff toplevel ONLY.

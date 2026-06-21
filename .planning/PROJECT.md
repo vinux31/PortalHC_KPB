@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v32.3 Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial
+## Last Shipped Milestone: v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21 (next: v32.4, activate via /gsd-new-milestone)
 
 **Goal:** Pekerja boleh jadi anggota >1 Unit dalam 1 Bagian (Section tetap scalar); coach bisa pegang coachee lintas-unit selama 1 Bagian; PROTON jalan sekuensial lintas-unit (Tahun1@X → Tahun2@Y). migration=TRUE (junction `UserUnits`). Cert/analytics atribusi primary (D1=b). Design: `docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md`.
 
@@ -25,7 +25,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v32.1 closed 2026-06-18** (archive-only, tag lokal, NOT pushed — deploy bareng v32.3). v32.0/v32.2 di branch main.
 
-## Current State: v31.0 Hotfix Pra-Ujian Lisensor — SHIPPED (local) + audited PASSED + closed 2026-06-16
+## Current State: v32.3 Akun Multi-Unit — SHIPPED (local) + audited PASSED + closed 2026-06-21
+
+**v32.3 shipped (local) + audit PASSED + closed (2026-06-21)** — Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial (phases 399-404, **24/24 REQ** MU-01..07/PSU-01..05,07/CXU-01..05/ORG-01,02/QA-01..04, **migration=TRUE** [`UserUnits` junction, Fase 399]): junction `UserUnits` + primary-mirror write-through + multi-select UI + display semua unit (399); roster listing set-aware + rollup dedup (400); PROTON unit dari `AssignmentUnit` eksplisit (drop `User.Unit` fallback) + filter-axis + validasi ∈UserUnits + skip-on-blank audit-warn (401); coaching cross-unit dalam 1 Bagian (eligible set-aware + server guard ⊆Bagian + AssignmentUnit per-coachee + CDP self-scope union) (402); OrganizationController cascade/guard UserUnits-aware + reparent lintas-Bagian hard-block (403); test SQL-riil multi-unit (`MultiUnitSqlFixture` + invariant single-active/AssignmentUnit∈UserUnits/B-06/1:1) + UAT browser 3/3 @5270 + docs handoff IT + D1=b (404). Audit PASSED 24/24 + adversarial re-verify 33/33 (0 refuted). +INT-01 fix (404.1): drop lone residual `?? User.Unit` fallback di `ProtonDataController` Phase-129 auto-sync (skip+audit-warn). Suite **562/0/2** (flaky-on-load: `OrgLabelMigrationFixture` migration-chain timeout, green-on-retry). D1=b: cert/analytics atribusi primary unit (cert per-track tetap utuh). Archive `milestones/v32.3-*` + tag lokal `v32.3`. **NOT PUSHED** (branch ITHandoff — close bareng v32.1; deploy = 1 push origin/ITHandoff + notify IT migration=TRUE Fase 399).
 
 **v31.0 shipped (local) + audit passed + closed (2026-06-16)** — Hotfix Pra-Ujian Lisensor (phases 385-387, 14/14 REQ PXF-01..14, **0 migration**): pra-ujian-lisensor hardening alur assessment SA+MA+Essay+soal-bergambar — (385) gambar PathBase-aware sub-path `/KPB-PortalHC` + essay flush pra-submit/blur/timeout; (386) validasi opsi soal + essay-kosong finalizable + PDF/Excel MA all-or-nothing (SetEquals) via shared `IsQuestionCorrect`+`BuildAnswerCell`; (387 pasca-acara) SubmitEssayScore guards + cert retry/log/surface + Excel essay cell + monitor broadcast + aria opsi huruf + SubmitExam MC no-null + SaveTextAnswer timer guard. Audit PASSED (integration 11/11 wired, SA+essay licensure flow coherent; GAP-1 PXF-08 certError-surface ditemukan+fix inline `3005733d`). Tests: 347/347 fast + 8/8 Integration + Playwright 3/3 + UAT (385:2/2, 386:4/4, 387:3/3). Secure 387 SECURED 10/10; nyquist 385 compliant / 386·387 partial. Archive: `milestones/v31.0-*` + `milestones/v31.0-phases/`. **NOT PUSHED** (branch ITHandoff) — bundle 385+386 = deploy IT #1 (pra-acara ~2026-06-17), 387 = deploy IT #2 (pasca-acara). Notify IT: migration=FALSE.
 
@@ -69,7 +71,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** v32.1 Perbaikan Teks & Desain STARTED 2026-06-17 (branch ITHandoff; main pegang v32.0 di branch terpisah). Pure UI/teks polish 3 surface admin/hasil — 0 backend, 0 migration. v31.0 CLOSED + MERGED→main + PUSHED origin/main 2026-06-16. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify.
+**Current focus:** v32.3 Akun Multi-Unit CLOSED 2026-06-21 (branch ITHandoff, tag lokal v32.3, NOT pushed). v32.1 juga closed (bundle). **Next: v32.4 Ujian Ulang (Attempt/Retake)** — planned + spec committed, aktifkan via `/gsd-new-milestone v32.4`. Deploy v32.1+v32.3 = 1 push origin/ITHandoff + notify IT **migration=TRUE (Fase 399 UserUnits)**. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify. v32.0 close masih deferred (non-destruktif).
 
 ## Current Milestone: v32.1 Perbaikan Teks & Desain — 🚧 STARTED 2026-06-17
 

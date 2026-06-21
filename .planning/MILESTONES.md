@@ -1,5 +1,34 @@
 # Milestones
 
+## v32.3 Akun Multi-Unit (1 Bagian) (Shipped: 2026-06-21)
+
+**Phases completed:** 10 phases, 21 plans, 45 tasks
+
+**Key accomplishments:**
+
+- Tabel junction `UserUnits` (filtered-unique 1-primary/user) + migration `AddUserUnitsTable` dengan backfill idempotent 1 primary-row/pekerja, diterapkan + diverifikasi di DB lokal SQLEXPRESS; 7 test scaffold Wave 0 mendefinisikan kontrak MU-01..07.
+- Write-through terpusat `SyncUserUnitsAsync` (junction UserUnits + mirror `ApplicationUser.Unit` + audit set-diff) di-wire ke WorkerController Create/Edit/Import; validasi Unit∈Bagian tiap write; MU-07 guard asimetris (PTA aktif hard-block / coach-mapping aktif confirm→auto-deactivate atomic); Import pipe multi-unit + Export primary-first comma-join; 6 test logic Wave 0 hijau (19 fakta); round-trip 2-unit terverifikasi di SQL Server lokal (mirror MATCH + filtered-unique enforce).
+- Widget multi-select Unit (`initSectionUnitMultiCascade` — checkbox-list + radio Utama per baris, state machine UI-SPEC §A 8-state) di-render client-side dari `ViewBag.SectionUnitsJson` (no AJAX) di CreateWorker/EditWorker; Bagian tetap single `<select>`; MU-07 confirm modal (coach-mapping aktif → re-prompt; PROTON aktif → error merah hard-block); EditWorker GET pre-fill `Units`/`PrimaryUnit` dari junction untuk round-trip; runtime Playwright 9/9 hijau (round-trip 2-unit Create→Edit + default-primary D-02 + promote-on-uncheck + a11y) — DB di-snapshot+RESTORE (baseline UserUnits=6).
+- Display SEMUA unit pekerja (primary ditandai badge hijau+bintang+"Utama", primary-first ordering) di 5 surface HTML (Profile/Settings/WorkerDetail/ManageWorkers/Home) + `_PSign` cetak all-units primary-first comma-join (D-07 LOCKED) + Excel export primary-first (399-02); VM (Profile/Settings/PSign/DashboardHome) diperluas Units/PrimaryUnit, AccountController inject ApplicationDbContext BARU + populate dari UserUnits; spec Playwright multiunit-display-399 8/8 hijau headless (incl _PSign + Excel verifikasi otomatis), DB restore baseline (UserUnits=6).
+- Filter unit listing pekerja diubah dari scalar `u.Unit == unitFilter` (hanya primary) menjadi keanggotaan set-aware via correlated EXISTS terhadap junction `UserUnits`, sehingga pekerja anggota >1 unit dalam 1 Bagian muncul di tiap unit-nya — dengan kolom Unit kontekstual D-02 dan dedup rollup Bagian by-construction (tanpa `.Distinct()`).
+- Shipped the single-source `ValidateAssignmentUnitInUserUnits` testable seam + 5 RED test scaffolds — the contract every Wave-1/2 plan (401-02..06) implements against.
+- Dropped the ambiguous `?? User.Unit` fallback from both CoachMappingController PROTON resolvers and wired the D-03 hybrid audit channel — eligibility/cert can no longer be issued against a primary-resolved (wrong) unit.
+- Hardened the AssessmentAdminController cert-issuing eligibility gate — empty AssignmentUnit now BLOCKs session/cert issuance (no primary-resolved unit) and persists a ProtonUnitUnresolved AuditLog.
+- Swapped CDP coachee-scope from scalar User.Unit to AssignmentUnit at 4 filter sites + 2 defensive resolvers — a coachee assigned at a non-primary unit now appears under the correct unit, never the primary mirror.
+- BypassList now scopes by AssignmentUnit and BypassSave rejects a TargetUnit the worker doesn't own — closing the orphan-AssignmentUnit hole where a client payload could break Invariant #4.
+- Status:
+- Status:
+- Status:
+- Status:
+- [Regression-guard, not a defect] Test 5 hijau sejak RED
+- [Scope addition, additive] Pure-edge scenario ditambahkan
+- Disposable SQL-real `MultiUnitSqlFixture` (MigrateAsync full chain incl 399 AddUserUnitsTable + canonical {X,Y}/coach/PROTON seed) + live single-active anchor that closes the 402 carry.
+- QA-03 single-active proven on real SQL across all write-paths: mapping (DbUpdateException, covers Assign/Edit/Import/Reactivate via the shared filtered-unique index) + reactivate-without-deactivate replication + PTA bypass T1@X→T2@Y (COUNT == 1, cert histori preserved).
+- QA-04 unit-membership invariants proven SQL-real (AssignmentUnit∈UserUnits via production helper, B-06 cross-unit no-skip via production bootstrap, ProtonKompetensi/deliverable 1:1 + one-primary UserUnits via DbUpdateException) + the 3 residual migration-399 backfill stubs implemented and passing.
+- Milestone-closing browser UAT (PROTON sequential cross-unit T1@X→T2@Y, cert histori intact, coach multi-unit view) PASS 3/3 @5270 + IT handoff HTML (migration=TRUE Fase 399) + D1=b limitation note.
+
+---
+
 ## v32.1 Perbaikan Teks & Desain (Shipped: 2026-06-18)
 
 **Phases completed:** 4 phases (388-390 + 390.1), 7 plans — **0 migration, 0 backend** (pure UI/teks 3 surface). Audit PASSED 7/7 REQ.
