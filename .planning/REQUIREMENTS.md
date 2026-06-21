@@ -37,7 +37,7 @@ Pekerja boleh **ujian ulang** assessment yang gagal (skor < `PassPercentage`), s
 | Fase | Requirements | Status |
 |------|--------------|--------|
 | 405 Backend Core | RTK-01, RTK-02, RTK-03, RTK-04, RTK-06, RTK-07, RTK-13 | ✅ COMPLETE (4/4 plan; 405-01/02/03 + 405-04: RTK-01/02/03/04/06/07/13 ✓) |
-| 406 Admin Config UI + Riwayat HC | RTK-05, RTK-08 | in progress (2/3 plan: 406-01 riwayat BACKEND + 406-02 retake config UI ✅ — **RTK-05 ✓** card `ManagePackages` + binding `CreateAssessment`/`EditAssessment` + e2e 6/6 @5270; RTK-08 BELUM 100% [view drill-down mount di AssessmentMonitoringDetail = 406-03]) |
+| 406 Admin Config UI + Riwayat HC | RTK-05, RTK-08 | ✅ COMPLETE (3/3 plan: 406-01 riwayat BACKEND + 406-02 retake config UI + 406-03 riwayat HC modal mount — **RTK-05 ✓** card `ManagePackages` + binding `CreateAssessment`/`EditAssessment` + e2e 6/6 @5270; **RTK-08 ✓** drill-down modal di `AssessmentMonitoringDetail` (dropdown trigger + shared modal + lazy-fetch _RiwayatPercobaan accordion+per-soal tri-state) + e2e 5/5 @5270; migration=FALSE) |
 | 407 Worker Self-Service | RTK-09, RTK-10, RTK-11, RTK-12, RTK-13 | not started |
 | 408 Test & UAT | RTK-14 | not started |
 

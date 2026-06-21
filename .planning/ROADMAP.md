@@ -90,7 +90,7 @@
 **Plans:** 3 plans (2 waves)
 - [x] 406-01-PLAN.md — Wave 1: Riwayat backend (RiwayatUnifier pure + xUnit, RiwayatPercobaan GET [Authorize Admin,HC], _RiwayatPercobaan partial accordion+per-soal) (RTK-08)
 - [x] 406-02-PLAN.md — Wave 1: Retake config card ManagePackages (mirror shuffle, no lock, disclosure+warning+hide) + asp-for binding Create/Edit + Playwright (RTK-05)
-- [ ] 406-03-PLAN.md — Wave 2: Riwayat modal trigger + shell + lazy-fetch JS in AssessmentMonitoringDetail + Playwright (RTK-08); depends 406-01
+- [x] 406-03-PLAN.md — Wave 2: Riwayat modal trigger + shell + lazy-fetch JS in AssessmentMonitoringDetail + Playwright (RTK-08); depends 406-01
 **UI hint:** yes
 
 ### Phase 407: Worker Self-Service + Gating Tier Feedback + Riwayat Pekerja
@@ -127,7 +127,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 4/4 | Complete   | 2026-06-21 |
-| 406. Admin Config UI + Riwayat HC (RTK-05/08) | 2/3 | In Progress|  |
+| 406. Admin Config UI + Riwayat HC (RTK-05/08) | 3/3 | Complete   | 2026-06-21 |
 | 407. Worker Self-Service + Gating + Riwayat Pekerja (RTK-09/10/11/12/13) | 0/0 | Not started | — |
 | 408. Test & UAT (RTK-14) | 0/0 | Not started | — |
 
