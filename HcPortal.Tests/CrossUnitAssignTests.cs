@@ -102,7 +102,29 @@ public class CrossUnitAssignTests
         Assert.Empty(CoachMappingController.FilterEligibleCoachees(null!, null!));
     }
 
-    // Deferred: single-active unique index is SQL-real (filtered-unique index NOT enforced by InMemory) — Phase 404 QA-03.
-    [Fact(Skip = "deferred to Phase 404 QA-03 — SQL-real single-active invariant")]
-    public void SingleActive_invariant_is_sql_real_phase404() { }
+}
+
+// Phase 404 (QA-03 anchor, 402-carry) — single-active mapping is DB-enforced via filtered-unique
+// IX_CoachCoacheeMappings_CoacheeId_ActiveUnique (ApplicationDbContext.cs:333-336). InMemory does NOT
+// enforce filtered-unique indexes, so this MUST run SQL-real via MultiUnitSqlFixture. This live, passing
+// Fact replaces the prior [Skip]-empty stub (the 402 VALIDATION anchor name resolves here now).
+[Trait("Category", "Integration")]
+public class CrossUnitAssignSqlTests : IClassFixture<MultiUnitSqlFixture>
+{
+    private readonly MultiUnitSqlFixture _fixture;
+    public CrossUnitAssignSqlTests(MultiUnitSqlFixture fixture) => _fixture = fixture;
+    private ApplicationDbContext NewCtx() => new ApplicationDbContext(_fixture.Options);
+
+    [Fact]
+    public async Task SingleActive_invariant_is_sql_real_phase404()
+    {
+        // Inserting a 2nd ACTIVE mapping for the same coachee MUST throw DbUpdateException on real SQL
+        // (filtered-unique WHERE [IsActive]=1). Per-Fact unique coachee — DB is shared across Facts in the fixture.
+        await using var ctx = NewCtx();
+        var coachee = $"sa-{Guid.NewGuid():N}";
+        ctx.CoachCoacheeMappings.Add(new CoachCoacheeMapping { CoachId = "co-a", CoacheeId = coachee, IsActive = true, StartDate = DateTime.UtcNow, AssignmentUnit = MultiUnitSqlFixture.UnitX });
+        await ctx.SaveChangesAsync();
+        ctx.CoachCoacheeMappings.Add(new CoachCoacheeMapping { CoachId = "co-b", CoacheeId = coachee, IsActive = true, StartDate = DateTime.UtcNow, AssignmentUnit = MultiUnitSqlFixture.UnitY });
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
 }
