@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-06-21T13:21:22.717Z",
+  "phase": "406",
+  "phase_name": "Admin Config UI + Riwayat HC",
+  "phase_dir": ".planning/phases/406-admin-config-ui-riwayat-hc",
+  "milestone": "v32.4",
+  "milestone_name": "Ujian Ulang (Attempt/Retake Assessment)",
+  "branch": "ITHandoff",
+  "head": "09aa71ca",
+  "driver": "/milestone-autopilot 32.4",
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "Milestone v32.4 ACTIVATED (new-milestone + roadmap materialized 405-408)", "status": "done", "commit": "e1bb6e5b"},
+    {"id": 2, "name": "Phase 405 Backend Core CLOSED (all gates: 4 plans, suite 598/0/2, verify 7/7, review 0C/3W fixed, secure 17/17, nyquist-compliant; migration=TRUE AddRetakeColumnsAndArchive applied local)", "status": "done", "commit": "0eea3057"},
+    {"id": 3, "name": "Phase 406 discuss (4 decisions D-01..D-04) + ui-phase (UI-SPEC 6/6) + plan (3 plans, checker PASSED)", "status": "done", "commit": "2c7a8a04"},
+    {"id": 4, "name": "Phase 406 execute: 406-01 backend (RiwayatUnifier+endpoint+partial, unifier 6/6) + 406-02 card+binding (Playwright 6/6) + 406-03 modal (Playwright 5/5); suite 604/0/2", "status": "done", "commit": "c7ca346e"},
+    {"id": 5, "name": "Phase 406 verify PASSED 10/10", "status": "done", "commit": "4596a7cb"},
+    {"id": 6, "name": "Phase 406 code-review 0C/1W/3I → fix WR-01 all_fixed (3-branch pending badge)", "status": "done", "commit": "819beb76"},
+    {"id": 7, "name": "Phase 406 secure SECURED 13/13 threats_open:0", "status": "done", "commit": "09aa71ca"}
+  ],
+  "remaining_tasks": [
+    {"id": 8, "name": "Phase 406 VALIDATE gate (Nyquist): /gsd-validate-phase 406 → confirm RTK-05/08 coverage (RiwayatUnifier xUnit + Playwright e2e 11/11) → nyquist_compliant:true. Then mark phase 406 complete (roadmap checkbox + progress table + STATE).", "status": "not_started"},
+    {"id": 9, "name": "Phase 407 Worker Self-Service (RTK-09/10/11/12/13): CMP/RetakeExam endpoint + Results UI (tombol/counter/cooldown/lock) + gating showWrongFlagsOnly + riwayat pekerja. FRONTEND → discuss+ui-phase+plan+execute+gates+Playwright UAT. depends 405.", "status": "not_started"},
+    {"id": 10, "name": "Phase 408 Test & UAT (RTK-14): xUnit + integration (retake-then-pass 1 cert) + Playwright lifecycle penuh + security. depends 406+407.", "status": "not_started"},
+    {"id": 11, "name": "After all phases: audit-milestone v32.4 → STOP before complete-milestone (user owns). notify IT migration=TRUE (405 AddRetakeColumnsAndArchive).", "status": "not_started"}
+  ],
+  "blockers": [],
+  "human_actions_pending": [
+    {"action": "Eventually: deploy bundle (v32.1+v32.3+v32.4) = 1 push origin/ITHandoff + notify IT migration=TRUE (405 AddRetakeColumnsAndArchive + carry 399 UserUnits + 360 PendingProtonBypass + 372 ShuffleToggles)", "context": "All work local NOT pushed; promotion = IT responsibility (CLAUDE.md)", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "Sequential-on-main execution (USE_WORKTREES=false) for all phase executes", "rationale": ".NET + EF migration chain + Playwright + shared SQLEXPRESS/port-5270 → worktree parallelism not worth merge/contention complexity", "phase": "405/406"},
+    {"decision": "405 WR-01: HC reset of Open-status session = success no-op (not error)", "rationale": "fixes regression vs old ResetAssessment; Open session has nothing to clear; error would be worse UX. Behavior-contract change (surfaced to user, accepted).", "phase": "405"},
+    {"decision": "406 D-01 riwayat = AJAX endpoint RiwayatPercobaan + lazy-fetch modal (not pre-render-all)", "rationale": "pre-render-all is N queries/worker on page load, expensive for 30-100 participants; HC opens 1-2", "phase": "406"},
+    {"decision": "406 current-attempt per-soal reuses RetakeArchiveBuilder.Build(0,...) sentinel", "rationale": "shape-identical to archive → single render path, kill-drift", "phase": "406"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "/gsd-validate-phase 406 (Nyquist gate — last gate for 406). Then mark 406 complete + resume /milestone-autopilot 32.4 → phase 407 discuss.",
+  "context_notes": "Driving v32.4 via milestone-autopilot. Pipeline per phase: discuss(interactive)→ui-phase(if frontend)→plan→execute→verify→regression→code-review(+fix)→secure→validate→Playwright UAT(in execute for UI)→commit, then next phase. Phase 406 is 1 gate from done (validate). All commits local on ITHandoff, NOT pushed. App localhost:5270, SQL localhost\\SQLEXPRESS/HcPortalDB_Dev, EF commands need ASPNETCORE_ENVIRONMENT=Development (base appsettings=SQLite). Playwright @5270 needs Authentication__UseActiveDirectory=false + admin@pertamina.com + SEED_WORKFLOW (snapshot→seed→restore) + --workers=1. Full suite currently 604/0/2 (2 skip = pre-existing PROTON endtoend)."
+}
