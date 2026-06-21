@@ -189,6 +189,18 @@
                 <i class="bi bi-people me-2 text-primary"></i>Status Per-Peserta
             </h5>
             <div class="d-flex gap-2 align-items-center">
+                @* Phase 412 PART-05: Tambah Peserta live — picker modal. Proton dikecualikan (spec §F). *@
+                @if (Model.Category != "Assessment Proton")
+                {
+                    <button type="button"
+                            class="btn btn-outline-primary btn-sm"
+                            id="btnTambahPeserta"
+                            data-bs-toggle="modal"
+                            data-bs-target="#tambahPesertaModal"
+                            title="Tambah peserta ke batch ujian ini">
+                        <i class="bi bi-person-plus me-1"></i>Tambah Peserta
+                    </button>
+                }
                 <!-- Ekspor Hasil: GET download, no antiforgery needed -->
                 <form asp-action="ExportAssessmentResults" asp-controller="AssessmentAdmin" method="get" class="d-inline">
                     <input type="hidden" name="title" value="@Model.Title" />
@@ -341,6 +353,21 @@
                                                             </form>
                                                         </li>
                                                     }
+                                                    @* Phase 412 PRMV-02: Hapus Peserta per-baris (modal keras/ringan). Proton dikecualikan. *@
+                                                    @if (Model.Category != "Assessment Proton")
+                                                    {
+                                                        <li>
+                                                            <button type="button" class="dropdown-item text-danger btn-hapus-peserta"
+                                                                    data-session-id="@session.Id"
+                                                                    data-worker-name="@session.UserFullName"
+                                                                    data-status="@session.UserStatus"
+                                                                    data-has-cert="@((!string.IsNullOrEmpty(session.NomorSertifikat)).ToString().ToLower())"
+                                                                    title="Hapus @session.UserFullName dari batch"
+                                                                    style="min-height:40px;">
+                                                                <i class="bi bi-person-x me-1"></i>Hapus Peserta
+                                                            </button>
+                                                        </li>
+                                                    }
                                                     @if (session.UserStatus == "InProgress")
                                                     {
                                                         <li>
@@ -377,6 +404,72 @@
             </div>
         </div>
     </div>
+
+    @* ===== PANEL "PESERTA DIKELUARKAN" (Phase 412 PLIV-01) ===== *@
+    @* Pitfall 5: SELALU render untuk batch non-Proton (collapsed default) supaya handler SignalR
+       tak perlu bangun panel dari scratch. Visible hanya bila ada >=1 baris removed. *@
+    @if (Model.Category != "Assessment Proton")
+    {
+        var removedList = ViewBag.RemovedSessions as List<HcPortal.Models.RemovedParticipantViewModel> ?? new List<HcPortal.Models.RemovedParticipantViewModel>();
+        <div class="card border-0 shadow-sm mt-4" style="border-left: 4px solid #dc3545 !important;@(removedList.Count == 0 ? " display:none;" : "")"
+             id="panelPesertaDikeluarkan">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center"
+                 id="panelPesertaDikeluarkanHeader"
+                 style="cursor:pointer;"
+                 data-bs-toggle="collapse"
+                 data-bs-target="#panelPesertaDikeluarkanBody"
+                 aria-expanded="false"
+                 aria-controls="panelPesertaDikeluarkanBody">
+                <h5 class="mb-0 fw-semibold">
+                    <i class="bi bi-person-slash me-2 text-danger"></i>
+                    Peserta Dikeluarkan
+                    <span class="badge bg-secondary ms-2 small fw-normal" id="countRemoved">@removedList.Count</span>
+                </h5>
+                <i class="bi bi-chevron-down text-muted" id="panelRemovedChevron"></i>
+            </div>
+            <div class="collapse" id="panelPesertaDikeluarkanBody"
+                 aria-labelledby="panelPesertaDikeluarkanHeader">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tblRemoved">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Waktu Dikeluarkan</th>
+                                    <th>Oleh</th>
+                                    <th>Alasan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyRemoved">
+                                @foreach (var r in removedList)
+                                {
+                                    <tr data-session-id="@r.Id" data-removed="true">
+                                        <td class="fw-semibold">@r.FullName
+                                            <br><small class="text-muted">@r.Nip</small>
+                                        </td>
+                                        <td class="text-muted small">@(r.RemovedAt.HasValue ? r.RemovedAt.Value.ToString("dd MMM yyyy HH:mm") + " WIB" : "—")</td>
+                                        <td class="text-muted small">@(string.IsNullOrEmpty(r.RemovedByName) ? "—" : r.RemovedByName)</td>
+                                        <td class="text-muted small" style="max-width:200px; word-break:break-word;">@(string.IsNullOrEmpty(r.RemovalReason) ? "—" : r.RemovalReason)</td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn btn-outline-success btn-sm btn-restore-peserta"
+                                                    data-session-id="@r.Id"
+                                                    data-worker-name="@r.FullName"
+                                                    style="min-height:40px;"
+                                                    title="Pulihkan @r.FullName ke batch aktif">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     @* ===== ESSAY GRADING SECTION (Phase 298-05) ===== *@
     @{
@@ -702,6 +795,147 @@
             </div>
         </div>
     }
+
+    @* ===== MODAL PICKER "TAMBAH PESERTA" (Phase 412 PART-05) ===== *@
+    <div class="modal fade" id="tambahPesertaModal" tabindex="-1"
+         aria-labelledby="tambahPesertaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-semibold" id="tambahPesertaModalLabel">
+                        <i class="bi bi-person-plus me-2"></i>Tambah Peserta
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white"
+                            data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="tambahPesertaLoading" class="text-center py-3">
+                        <span class="spinner-border spinner-border-sm me-2"></span>Memuat daftar peserta...
+                    </div>
+                    <div id="tambahPesertaContent" style="display:none;">
+                        <p class="text-muted small mb-2">
+                            Pilih satu atau lebih pekerja untuk ditambahkan ke batch ini.
+                        </p>
+                        <div id="tambahPesertaEmpty" style="display:none;" class="text-center text-muted py-3">
+                            <i class="bi bi-people fs-3 d-block mb-2"></i>
+                            Semua pekerja aktif sudah terdaftar dalam batch ini.
+                        </div>
+                        <div id="tambahPesertaList">
+                            @* Diisi JS: checkbox list *@
+                        </div>
+                    </div>
+                    <div id="tambahPesertaError" style="display:none;" class="alert alert-danger mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span id="tambahPesertaErrorMsg">Gagal memuat daftar peserta.</span>
+                        Tutup dan coba lagi.
+                    </div>
+                </div>
+                <div class="modal-footer" id="tambahPesertaFooter" style="display:none;">
+                    <span class="me-auto text-muted small" id="tambahPesertaSelectedCount">0 dipilih</span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnKonfirmasiTambah" disabled>
+                        <i class="bi bi-check-lg me-1"></i>Tambah (<span id="tambahCount">0</span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ===== MODAL HAPUS — RINGAN (Phase 412 PRMV-02, D-01) ===== *@
+    <div class="modal fade" id="hapusPesertaLightModal" tabindex="-1"
+         aria-labelledby="hapusPesertaLightLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-semibold" id="hapusPesertaLightLabel">
+                        <i class="bi bi-person-x me-2 text-danger"></i>Hapus Peserta
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Hapus <strong id="hapusLightWorkerName"></strong> dari batch ini?</p>
+                    <div class="mb-3">
+                        <label for="hapusLightReason" class="form-label fw-semibold">
+                            Alasan penghapusan
+                            <span class="text-muted small fw-normal">(wajib bila peserta sudah mengerjakan)</span>
+                        </label>
+                        <input type="text" id="hapusLightReason" class="form-control"
+                               maxlength="500" placeholder="Masukkan alasan..." />
+                        <div class="form-text text-danger d-none" id="hapusLightReasonError">
+                            Alasan wajib diisi untuk peserta ini.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="btnHapusLightKonfirmasi">
+                        <i class="bi bi-person-x me-1"></i>Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ===== MODAL HAPUS — KERAS (Phase 412 PRMV-02, D-01) ===== *@
+    <div class="modal fade" id="hapusPesertaHardModal" tabindex="-1"
+         data-bs-backdrop="static" data-bs-keyboard="false"
+         aria-labelledby="hapusPesertaHardLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-semibold" id="hapusPesertaHardLabel">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>Konfirmasi Hapus Peserta
+                    </h5>
+                    @* Tidak ada btn-close: backdrop=static, harus klik "Batal" *@
+                </div>
+                <div class="modal-body">
+                    <div id="hapusHardWarnInProgress" style="display:none;">
+                        <div class="alert alert-danger d-flex align-items-start gap-2 mb-3">
+                            <i class="bi bi-exclamation-octagon-fill fs-5 flex-shrink-0 mt-1"></i>
+                            <div>
+                                <strong>Peserta sedang mengerjakan ujian.</strong><br>
+                                <span class="small">Menghapus peserta ini akan <strong>memaksa keluar</strong> dari ujian secara langsung.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="hapusHardWarnCompleted" style="display:none;">
+                        <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+                            <i class="bi bi-shield-exclamation fs-5 flex-shrink-0 mt-1"></i>
+                            <div>
+                                <strong>Peserta sudah menyelesaikan ujian dan memiliki sertifikat.</strong><br>
+                                <span class="small">Data jawaban dan sertifikat akan diarsipkan (soft-remove, dapat dipulihkan).</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="mb-2">Hapus <strong id="hapusHardWorkerName"></strong> dari batch ini?</p>
+
+                    <div class="mb-3">
+                        <label for="hapusHardReason" class="form-label fw-semibold">
+                            Alasan penghapusan
+                            <span class="text-muted small fw-normal">(wajib bila peserta sudah mengerjakan)</span>
+                        </label>
+                        <input type="text" id="hapusHardReason" class="form-control"
+                               maxlength="500" placeholder="Masukkan alasan penghapusan..." />
+                        <div class="form-text text-danger d-none" id="hapusHardReasonError">
+                            Alasan wajib diisi untuk peserta ini.
+                        </div>
+                    </div>
+
+                    <p class="text-danger small mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        Tindakan ini akan dicatat di audit log.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger fw-semibold" id="btnHapusHardKonfirmasi">
+                        <i class="bi bi-person-x me-1"></i>Ya, Hapus Peserta Ini
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 
