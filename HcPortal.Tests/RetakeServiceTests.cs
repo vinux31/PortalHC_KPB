@@ -194,8 +194,12 @@ public class RetakeServiceTests : IClassFixture<RetakeServiceFixture>
     }
 
     // ====================== Test 1: claim-atomik anti double-archive ======================
+    // WR-01 fix (review 405): reset sesi yang SUDAH Open kini = SUCCESS no-op (bukan error "sudah terbuka"),
+    // selaras controller yang mengizinkan reset status Open. Invariant LOAD-BEARING tetap: execute ke-2 TIDAK
+    // membuat AttemptHistory kedua (anti double-archive, histCount==1). Sebelumnya test ini meng-encode
+    // perilaku lama (Open di-exclude dari claim → r2.Success==false) yang justru regresi WR-01.
     [Fact]
-    public async Task Claim_DoubleExecute_SecondAborts()
+    public async Task Claim_DoubleExecute_NoSecondArchive()
     {
         await using var ctx = NewCtx();
         var userId = await SeedUserAsync(ctx);
@@ -208,16 +212,63 @@ public class RetakeServiceTests : IClassFixture<RetakeServiceFixture>
         Assert.True(r1.Success);
         Assert.Null(r1.Error);
 
-        // Execute ke-2 (sesi kini Open) → abort (rows==0): anti double-archive.
+        // Execute ke-2 (sesi kini Open) → SUCCESS no-op (WR-01): tak ada archive kedua dibuat.
         var r2 = await svc.ExecuteAsync(sessionId, userId, "Tester", "ResetAssessment", "test_second");
-        Assert.False(r2.Success);
-        Assert.NotNull(r2.Error);
+        Assert.True(r2.Success);
+        Assert.Null(r2.Error);
 
         // Hanya 1 AttemptHistory ter-create untuk (UserId,Title,Category) → tidak double-archive.
         await using var verify = NewCtx();
         int histCount = await verify.AssessmentAttemptHistory
             .CountAsync(h => h.UserId == userId && h.Title == "ClaimTitle" && h.Category == "Test");
         Assert.Equal(1, histCount);
+    }
+
+    // ====================== Test 1b: WR-01 — reset sesi Open = SUCCESS no-op ======================
+    // HC klik Reset pada sesi yang legitim ber-status Open (assigned-not-started). Service kini balas SUCCESS
+    // tanpa error "sudah terbuka", TANPA membuat AttemptHistory (WR-03: tak ada childless orphan).
+    [Fact]
+    public async Task Execute_OpenSession_SuccessNoArchive()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var sessionId = await SeedSessionAsync(ctx, userId, "OpenTitle", "Test", status: "Open");
+        var svc = NewService(ctx);
+
+        var r = await svc.ExecuteAsync(sessionId, userId, "Tester", "ResetAssessment", "hc_reset_open");
+        Assert.True(r.Success);
+        Assert.Null(r.Error);
+
+        // Tidak ada AttemptHistory childless yang terbuat untuk sesi Open.
+        await using var verify = NewCtx();
+        int histCount = await verify.AssessmentAttemptHistory
+            .CountAsync(h => h.UserId == userId && h.Title == "OpenTitle" && h.Category == "Test");
+        Assert.Equal(0, histCount);
+    }
+
+    // ====================== Test 1c: WR-03 — Completed tanpa assignment TIDAK buat orphan ======================
+    // Sesi Completed yang assignment-nya sudah hilang (questions kosong) → tak ada snapshot → AttemptHistory
+    // TIDAK di-insert (deferred-insert). Sebelumnya menghasilkan baris AttemptHistory childless (orphan).
+    [Fact]
+    public async Task Execute_CompletedNoAssignment_NoChildlessHistory()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        // Completed tetapi TANPA package/assignment/responses (assignment null → questionIds kosong).
+        var sessionId = await SeedSessionAsync(ctx, userId, "OrphanTitle", "Test", status: "Completed");
+        var svc = NewService(ctx);
+
+        var r = await svc.ExecuteAsync(sessionId, userId, "Tester", "ResetAssessment", "hc_reset_orphan");
+        Assert.True(r.Success);
+
+        // Tak ada AttemptHistory (childless) yang persist — WR-03.
+        await using var verify = NewCtx();
+        int histCount = await verify.AssessmentAttemptHistory
+            .CountAsync(h => h.UserId == userId && h.Title == "OrphanTitle" && h.Category == "Test");
+        Assert.Equal(0, histCount);
+        // Sesi tetap ter-reset ke Open (claim sukses, commit).
+        var status = await verify.AssessmentSessions.Where(a => a.Id == sessionId).Select(a => a.Status).SingleAsync();
+        Assert.Equal("Open", status);
     }
 
     // ====================== Test 2: snapshot ditulis SEBELUM responses dihapus ======================

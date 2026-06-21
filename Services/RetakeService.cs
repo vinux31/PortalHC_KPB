@@ -27,6 +27,14 @@ namespace HcPortal.Services
     /// (2) <b>SNAPSHOT per-soal SEBELUM delete</b> via <see cref="RetakeArchiveBuilder.Build"/> (hanya bila
     /// sesi sebelumnya Completed). (3) counting <c>(UserId, Title, Category)</c> + snapshot-presence (D-01).</para>
     ///
+    /// <para><b>Review 405 fixes:</b>
+    /// WR-01 — reset sesi ber-status <c>Open</c> (assigned-not-started / baru di-reset) = <b>SUCCESS no-op</b>
+    /// (selaras controller <c>ResetAssessment</c> yang mengizinkan status Open), bukan error "sudah terbuka".
+    /// WR-02 — seluruh urutan mutasi (claim → insert AttemptHistory → snapshot → delete) dibungkus SATU
+    /// <c>BeginTransactionAsync</c>+<c>CommitAsync</c>; audit + SignalR di LUAR commit (warn-only).
+    /// WR-03 — <c>AttemptHistory</c> di-insert HANYA bila snapshot non-empty (deferred-insert) → tidak ada
+    /// baris childless/orphan saat Completed tanpa assignment/soal.</para>
+    ///
     /// <para><b>TempData token clear (must-fix #1)</b> BUKAN tanggung jawab service (HTTP-scoped) — caller WAJIB
     /// <c>TempData.Remove($"TokenVerified_{id}")</c> setelah ExecuteAsync sukses (controller plan 405-04 / Phase 407).</para>
     /// </summary>
@@ -66,12 +74,30 @@ namespace HcPortal.Services
             if (assessment == null)
                 return new RetakeResult(false, "Sesi tidak ditemukan.");
 
+            // Cancelled = final, TIDAK resettable (selaras controller ResetAssessment guard :4234-4235).
+            if (assessment.Status == "Cancelled")
+                return new RetakeResult(false, "Sesi tidak dapat direset (sudah dibatalkan).");
+
             // Tangkap status SEBELUM claim — menentukan apakah perlu archive snapshot.
             bool wasCompleted = assessment.Status == "Completed";
 
+            // WR-01 (review 405): sesi yang SUDAH Open (assigned-not-started ATAU baru di-reset) tidak punya
+            // skor/response untuk diarsip/dihapus — controller mengizinkan reset status Open (:4234-4235), jadi
+            // perlakukan sebagai SUCCESS no-op. Ini juga menutup double-click: request ke-2 (sesi sudah di-Open
+            // oleh request ke-1) tak membuat archive kedua (anti double-archive, Pitfall 1) — invariant histCount==1
+            // tetap dijaga oleh wasCompleted==false + deferred-insert (WR-03) di bawah.
+            if (assessment.Status == "Open")
+                return new RetakeResult(true, null);
+
+            // WR-02 (review 405): bungkus claim → snapshot → archive-insert → delete dalam SATU transaksi eksplisit
+            // (mirror pola bulk-assign AssessmentAdminController :2196). ExecuteUpdateAsync ikut enlist di transaksi
+            // pada koneksi yang sama. Audit + SignalR (langkah 5-6) SENGAJA di luar commit (warn-only side effect).
+            await using var tx = await _context.Database.BeginTransactionAsync();
+
             // 2. CLAIM-ATOMIK DULU (anti double-archive — Pitfall 1).
             //    WHERE Status NOT IN (Cancelled, Open): Cancelled = final tak resettable;
-            //    Open = sudah di-claim oleh request lain (cegah double-click double-archive).
+            //    Open = sudah di-claim oleh request lain (cegah double-click double-archive) — sudah di-handle
+            //    sebagai SUCCESS no-op di atas, di sini hanya defensif terhadap race antar-koneksi.
             var rows = await _context.AssessmentSessions
                 .Where(s => s.Id == sessionId && s.Status != "Cancelled" && s.Status != "Open")
                 .ExecuteUpdateAsync(s => s
@@ -86,36 +112,18 @@ namespace HcPortal.Services
                     .SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
 
             if (rows == 0)
-                return new RetakeResult(false, "Sesi tidak dapat direset (sudah dibatalkan atau sudah terbuka).");
+            {
+                // Race antar-koneksi: sesi sudah di-claim (Open) oleh request lain antara load & claim.
+                // Perlakukan sebagai no-op sukses (selaras WR-01) — tak ada archive kedua dibuat.
+                await tx.RollbackAsync();
+                return new RetakeResult(true, null);
+            }
 
             // 3. Jika sesi sebelumnya Completed: SNAPSHOT per-soal SEBELUM delete (D-04 retain).
+            //    WR-03 (review 405): AttemptHistory di-INSERT HANYA bila snapshot non-empty (defer insert sampai
+            //    questions terbukti ada) → tidak ada baris AttemptHistory childless (orphan) yang persist.
             if (wasCompleted)
             {
-                // Counting era-retake (UserId, Title, Category) — must-fix #3 anti-konflasi Pre/Post +
-                // D-01 snapshot-presence (arsip ber-child saja; legacy HC-reset natural-excluded).
-                int eraRetakeArchives = await _context.AssessmentAttemptHistory
-                    .Where(h => h.UserId == assessment.UserId
-                             && h.Title == assessment.Title
-                             && h.Category == assessment.Category
-                             && _context.AssessmentAttemptResponseArchives.Any(a => a.AttemptHistoryId == h.Id))
-                    .CountAsync();
-
-                var attemptHistory = new AssessmentAttemptHistory
-                {
-                    SessionId     = assessment.Id,
-                    UserId        = assessment.UserId,
-                    Title         = assessment.Title ?? "",
-                    Category      = assessment.Category ?? "",
-                    Score         = assessment.Score,
-                    IsPassed      = assessment.IsPassed,
-                    StartedAt     = assessment.StartedAt,
-                    CompletedAt   = assessment.CompletedAt,
-                    AttemptNumber = eraRetakeArchives + 1,   // A1/D-01: era-retake count (bukan termasuk HC-reset legacy)
-                    ArchivedAt    = DateTime.UtcNow
-                };
-                _context.AssessmentAttemptHistory.Add(attemptHistory);
-                await _context.SaveChangesAsync();   // assign attemptHistory.Id sebelum builder snapshot
-
                 // Muat soal (urutan beku via assignment shuffle) + responses, lalu Build SEBELUM RemoveRange.
                 var assignment = await _context.UserPackageAssignments
                     .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
@@ -132,6 +140,31 @@ namespace HcPortal.Services
 
                 if (questions.Count > 0)
                 {
+                    // Counting era-retake (UserId, Title, Category) — must-fix #3 anti-konflasi Pre/Post +
+                    // D-01 snapshot-presence (arsip ber-child saja; legacy HC-reset natural-excluded).
+                    int eraRetakeArchives = await _context.AssessmentAttemptHistory
+                        .Where(h => h.UserId == assessment.UserId
+                                 && h.Title == assessment.Title
+                                 && h.Category == assessment.Category
+                                 && _context.AssessmentAttemptResponseArchives.Any(a => a.AttemptHistoryId == h.Id))
+                        .CountAsync();
+
+                    var attemptHistory = new AssessmentAttemptHistory
+                    {
+                        SessionId     = assessment.Id,
+                        UserId        = assessment.UserId,
+                        Title         = assessment.Title ?? "",
+                        Category      = assessment.Category ?? "",
+                        Score         = assessment.Score,
+                        IsPassed      = assessment.IsPassed,
+                        StartedAt     = assessment.StartedAt,
+                        CompletedAt   = assessment.CompletedAt,
+                        AttemptNumber = eraRetakeArchives + 1,   // A1/D-01: era-retake count (bukan termasuk HC-reset legacy)
+                        ArchivedAt    = DateTime.UtcNow
+                    };
+                    _context.AssessmentAttemptHistory.Add(attemptHistory);
+                    await _context.SaveChangesAsync();   // assign attemptHistory.Id sebelum builder snapshot (DALAM tx)
+
                     var snapshot = RetakeArchiveBuilder.Build(attemptHistory.Id, questions, responses);
                     if (snapshot.Count > 0)
                         _context.AssessmentAttemptResponseArchives.AddRange(snapshot);
@@ -158,6 +191,7 @@ namespace HcPortal.Services
                 _context.SessionElemenTeknisScores.RemoveRange(etScores);
 
             await _context.SaveChangesAsync();   // flush snapshot AddRange + semua delete dalam satu batch
+            await tx.CommitAsync();              // WR-02: commit claim+archive+delete sebagai satu unit atomik
 
             // 5. AUDIT (try/catch warn-only — gagal audit tak boleh batalkan reset yang sudah commit).
             try
