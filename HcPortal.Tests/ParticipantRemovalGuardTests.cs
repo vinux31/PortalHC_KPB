@@ -80,7 +80,21 @@ public class ParticipantRemovalExcludeTests
         };
         ctrl.ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
         ctrl.TempData = new TempDataDictionary(new DefaultHttpContext(), new NullTempDataProvider());
+        ctrl.Url = new StubUrlHelper(ctrl.ControllerContext);   // AssessmentMonitoringDetail set ViewBag.BackUrl via Url.Action
         return (ctrl, ctx);
+    }
+
+    // Stub IUrlHelper minimal: action AssessmentMonitoringDetail memanggil Url.Action("AssessmentMonitoring","Admin")
+    // untuk ViewBag.BackUrl — bukan jalur yang diuji; cukup kembalikan string non-null agar action selesai.
+    private sealed class StubUrlHelper : Microsoft.AspNetCore.Mvc.IUrlHelper
+    {
+        public StubUrlHelper(ActionContext ctx) { ActionContext = ctx; }
+        public ActionContext ActionContext { get; }
+        public string? Action(Microsoft.AspNetCore.Mvc.Routing.UrlActionContext actionContext) => "/stub";
+        public string? Content(string? contentPath) => contentPath;
+        public bool IsLocalUrl(string? url) => true;
+        public string? Link(string? routeName, object? values) => "/stub";
+        public string? RouteUrl(Microsoft.AspNetCore.Mvc.Routing.UrlRouteContext routeContext) => "/stub";
     }
 
     // EF InMemory melakukan navigation-join in-memory → baris dengan FK absen di-drop diam-diam.

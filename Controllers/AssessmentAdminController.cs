@@ -118,6 +118,7 @@ namespace HcPortal.Controllers
             // Phase 311 Plan 03: AsNoTracking di chain start read-only partial action.
             var managementQuery = _context.AssessmentSessions
                 .AsNoTracking()
+                .Where(a => a.RemovedAt == null)   // v32.5 Phase 409 PLIV-01 — exclude soft-removed
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
@@ -2821,6 +2822,7 @@ namespace HcPortal.Controllers
             // D-05: .AsNoTracking() — read-only method (no SaveChanges), selaras Tab Assessment Phase 311.
             var query = _context.AssessmentSessions
                 .AsNoTracking()
+                .Where(a => a.RemovedAt == null)   // v32.5 Phase 409 PLIV-01 — exclude soft-removed
                 .AsQueryable();
 
             // Text search by title
@@ -3329,7 +3331,8 @@ namespace HcPortal.Controllers
                 .Include(a => a.User)
                 .Where(a => a.Title == title
                          && a.Category == category
-                         && a.Schedule.Date == scheduleDate.Date);
+                         && a.Schedule.Date == scheduleDate.Date
+                         && a.RemovedAt == null);   // v32.5 Phase 409 PLIV-01 — InProgressCount/TotalCount ikut bersih
 
             if (!string.IsNullOrEmpty(assessmentType))
                 query = query.Where(a => a.AssessmentType == assessmentType);
