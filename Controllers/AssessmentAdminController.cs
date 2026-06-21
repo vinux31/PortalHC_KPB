@@ -3474,6 +3474,55 @@ namespace HcPortal.Controllers
             return View(model);
         }
 
+        // --- RIWAYAT PERCOBAAN per-worker (v32.4 Phase 406 RTK-08) ---
+        // GET lazy-AJAX (mirror EditHistoryPartial :3252): kembalikan PartialView @-encoded berisi
+        // accordion per-attempt + tabel per-soal. Arsip di-query by AttemptHistoryId; attempt LIVE
+        // saat ini dibangun via RetakeArchiveBuilder.Build(0,...) HANYA bila session.Status=="Completed"
+        // (Pitfall 2/5 — anti partial-answer leak in-progress). RBAC identik AssessmentMonitoringDetail
+        // (:3290) — T-406-01 IDOR/answer-leak guard. Read-only GET → tanpa [ValidateAntiForgeryToken].
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> RiwayatPercobaan(int sessionId)
+        {
+            var session = await _context.AssessmentSessions.Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+            if (session == null) return NotFound();
+
+            // Arsip: history by (UserId, Title, Category) anti-konflasi Pre/Post (Pitfall 3),
+            // baris arsip by AttemptHistoryId.
+            var histories = await _context.AssessmentAttemptHistory
+                .Where(h => h.UserId == session.UserId
+                         && h.Title == session.Title && h.Category == session.Category)
+                .OrderByDescending(h => h.AttemptNumber)
+                .ToListAsync();
+            var histIds = histories.Select(h => h.Id).ToList();
+            var archiveRows = await _context.AssessmentAttemptResponseArchives
+                .Where(a => histIds.Contains(a.AttemptHistoryId))
+                .ToListAsync();
+
+            // Attempt LIVE saat ini — sumber data persis RetakeService (:128-139), sentinel id=0.
+            var currentRows = new List<HcPortal.Models.AssessmentAttemptResponseArchive>();
+            if (session.Status == "Completed")
+            {
+                var assign = await _context.UserPackageAssignments
+                    .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+                var qids = assign?.GetShuffledQuestionIds() ?? new List<int>();
+                if (qids.Count > 0)
+                {
+                    var qs = await _context.PackageQuestions.Include(q => q.Options)
+                        .Where(q => qids.Contains(q.Id)).ToListAsync();
+                    var resp = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == sessionId).ToListAsync();
+                    if (qs.Count > 0)
+                        currentRows = HcPortal.Helpers.RetakeArchiveBuilder.Build(0, qs, resp);
+                }
+            }
+
+            ViewBag.WorkerName = session.User?.FullName ?? "";
+            var vm = HcPortal.Helpers.RiwayatUnifier.Build(session, histories, archiveRows, currentRows);
+            return PartialView("_RiwayatPercobaan", vm);
+        }
+
         // --- ESSAY GRADING PAGE per-worker (Phase 384 UIG-02/03) ---
         // GET action BARU (append sebelah AssessmentMonitoringDetail). Clone single-session essay
         // loader dari builder "Essay grading items per session". Backend POST endpoint TAK diubah.
