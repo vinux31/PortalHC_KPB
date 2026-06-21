@@ -51,7 +51,7 @@
 ### Phases
 
 - [x] **Phase 405: Backend Core (RTK-01..07, RTK-13)** — migration (3 kolom + `AssessmentAttemptResponseArchive`) + `RetakeRules` (pure eligibility) + `RetakeArchiveBuilder` (pure snapshot via `IsQuestionCorrect`/`BuildAnswerCell`) + `RetakeService` (shared archive→reset engine, claim atomik anti double-archive, clear token TempData, audit `RetakeAssessment`) + refactor `ResetAssessment`→service (HC override) + endpoint `UpdateRetakeSettings` + sibling propagation + ManagePackages ViewBag + binding EditAssessment bulk-add. **migration=TRUE.** No UI. Wave 0 — solo. **✅ COMPLETE 2026-06-21** (4/4 plan; suite 598/0/2; verify 7/7; review 0C/3W→fix all; secure 17/17; nyquist-compliant)
-- [ ] **Phase 406: Admin Config UI + Riwayat HC (RTK-05, RTK-08)** — card "Ujian Ulang" di `ManagePackages.cshtml` (mirror shuffle, hide Pre-Test/Manual via `ShouldHideRetakeToggle`) + binding form `CreateAssessment`/`EditAssessment` + view riwayat percobaan HC di `AssessmentMonitoringDetail` (drill-down archived+current, per-soal). 0 migration. Wave 1 (paralel 407, depends 405).
+- [ ] **Phase 406: Admin Config UI + Riwayat HC (RTK-05, RTK-08)** — card "Ujian Ulang" di `ManagePackages.cshtml` (mirror shuffle, hide Pre-Test/Manual via `ShouldHideRetakeToggle`) + binding form `CreateAssessment`/`EditAssessment` + view riwayat percobaan HC di `AssessmentMonitoringDetail` (drill-down archived+current, per-soal). 0 migration. Wave 1 (paralel 407, depends 405). **3 plans / 2 waves** (W1: 01 riwayat-backend ∥ 02 config-card; W2: 03 modal-trigger depends 01).
 - [ ] **Phase 407: Worker Self-Service (RTK-09..12, RTK-13)** — endpoint `CMP/RetakeExam` (CSRF+ownership+eligibility re-cek server-side+clear-token) + `Results.cshtml` tombol "Ujian Ulang" + "Percobaan X/N" + cooldown countdown + lock message + gating tier-feedback baru (skor+tanda-salah, kunci ditahan selama gagal+attempt-sisa) + view riwayat percobaan pekerja. 0 migration. Wave 1 (paralel 406, depends 405).
 - [ ] **Phase 408: Test & UAT (RTK-14)** — xUnit (`RetakeRules`+`RetakeArchiveBuilder`+`RetakeService`) + integration (retake-then-pass 1 cert, counting `(UserId,Title,Category)` no-conflate Pre/Post) + Playwright lifecycle penuh @5270 (gagal→skor+tanda-salah→Ujian Ulang→cooldown→ulang→lulus→cert; cap habis→lock; riwayat pekerja+HC) + security audit. 0 migration. Wave 2 (depends 406+407).
 
@@ -87,7 +87,10 @@
   2. Binding config di `CreateAssessment.cshtml` (Step 3) + `EditAssessment.cshtml`; **warning non-blocking** bila `MaxAttempts` di-set < `attemptsUsed` peserta aktif mana pun (tidak hard-lock). *(RTK-05)*
   3. View riwayat HC di `AssessmentMonitoringDetail.cshtml` — drill-down **semua attempt per-pekerja** (archived + current) dengan skor, pass/fail, tanggal, dan detail per-soal benar/salah dari `AssessmentAttemptResponseArchive`. *(RTK-08)*
   4. `dotnet build` 0 error + `dotnet run` (localhost:5270) + Playwright/UAT: admin simpan config → tersimpan + **propagasi ke sibling** (Title/Category/Schedule.Date sama); HC buka Monitoring Detail → lihat semua attempt per-pekerja. *(semua REQ)*
-**Plans:** TBD — `gsd-plan-phase 406`.
+**Plans:** 3 plans (2 waves)
+- [ ] 406-01-PLAN.md — Wave 1: Riwayat backend (RiwayatUnifier pure + xUnit, RiwayatPercobaan GET [Authorize Admin,HC], _RiwayatPercobaan partial accordion+per-soal) (RTK-08)
+- [ ] 406-02-PLAN.md — Wave 1: Retake config card ManagePackages (mirror shuffle, no lock, disclosure+warning+hide) + asp-for binding Create/Edit + Playwright (RTK-05)
+- [ ] 406-03-PLAN.md — Wave 2: Riwayat modal trigger + shell + lazy-fetch JS in AssessmentMonitoringDetail + Playwright (RTK-08); depends 406-01
 **UI hint:** yes
 
 ### Phase 407: Worker Self-Service + Gating Tier Feedback + Riwayat Pekerja
@@ -124,7 +127,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 4/4 | Complete   | 2026-06-21 |
-| 406. Admin Config UI + Riwayat HC (RTK-05/08) | 0/0 | Not started | — |
+| 406. Admin Config UI + Riwayat HC (RTK-05/08) | 0/3 | Planned | — |
 | 407. Worker Self-Service + Gating + Riwayat Pekerja (RTK-09/10/11/12/13) | 0/0 | Not started | — |
 | 408. Test & UAT (RTK-14) | 0/0 | Not started | — |
 

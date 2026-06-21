@@ -37,7 +37,7 @@ Pekerja boleh **ujian ulang** assessment yang gagal (skor < `PassPercentage`), s
 | Fase | Requirements | Status |
 |------|--------------|--------|
 | 405 Backend Core | RTK-01, RTK-02, RTK-03, RTK-04, RTK-06, RTK-07, RTK-13 | ✅ COMPLETE (4/4 plan; 405-01/02/03 + 405-04: RTK-01/02/03/04/06/07/13 ✓) |
-| 406 Admin Config UI + Riwayat HC | RTK-05, RTK-08 | not started |
+| 406 Admin Config UI + Riwayat HC | RTK-05, RTK-08 | planned (3 plans, 2 waves) |
 | 407 Worker Self-Service | RTK-09, RTK-10, RTK-11, RTK-12, RTK-13 | not started |
 | 408 Test & UAT | RTK-14 | not started |
 
