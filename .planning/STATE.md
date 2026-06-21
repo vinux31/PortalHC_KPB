@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
-stopped_at: "Phase 402: plans 01-02 complete, next 402-03 (CDP self-scope, UAT checkpoint)"
-last_updated: "2026-06-19T09:57:04.010Z"
+stopped_at: Phase 404 context gathered
+last_updated: "2026-06-21T00:42:46.494Z"
 last_activity: 2026-06-19
 progress:
   total_phases: 31
@@ -133,6 +133,6 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 
 Last activity: 2026-06-18
 
-Stopped at: Phase 402: plans 01-02 complete, next 402-03 (CDP self-scope, UAT checkpoint)
+Stopped at: Phase 404 context gathered
 
 Next action: **`/gsd-verify-work 400`** (Phase 400 = 1/1 plan complete). Lalu lanjut Wave-1 paralel {401 (sudah PLANNED, 6 plan), 403 (TBD)} (depends 399 done; cluster file disjoint, git worktree). Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context). **migration=FALSE Phase 400** — notify IT saat milestone push (satu-satunya migration v32.3 = 399 `AddUserUnitsTable` `fc015f4d`).
