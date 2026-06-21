@@ -2511,6 +2511,12 @@ namespace HcPortal.Controllers
             return false;                                           // L5/L6 non-owner, L4 beda/null section, roleLevel 0
         }
 
+        // v32.5 Phase 409 (PRMV-03 / D-02 / D-04): sumber-kebenaran tunggal "peserta soft-removed".
+        // Soft-remove TIDAK mengubah Status (spec §B2) → deteksi WAJIB eksplisit via RemovedAt, BUKAN Status.
+        // Seam testable (pola IsResultsAuthorized): guard inline StartExam/SubmitExam memanggil helper ini.
+        // [Wave-0 stub: sengaja return false agar guard test RED sampai Task 2 implement RemovedAt != null.]
+        public static bool IsParticipantRemoved(AssessmentSession session) => false;
+
         /// <summary>
         /// Generate cryptographically secure random token
         /// </summary>
