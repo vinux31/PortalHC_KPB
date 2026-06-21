@@ -809,4 +809,70 @@ public class FlexibleParticipantRemoveWriteTests : IClassFixture<FlexiblePartici
         Assert.False(await verify.AssessmentSessions.AnyAsync(s => s.Id == postId));
         Assert.True(await verify.AssessmentSessions.AnyAsync(s => s.Id == otherPreId));   // peserta LAIN utuh (Pitfall 1)
     }
+
+    // B7 / IN-03 (review): restore simetri Pre/Post (PRMV-04/05 sisi restore — loop :2600).
+    //     Pasangan Pre+Post soft-removed (Pre berdata) → RestoreParticipantLive(preId) ASLI → restored=true;
+    //     KEDUA partner (preId DAN postId) punya RemovedAt/RemovedBy/RemovalReason == null NYATA di DB.
+    //     De-tautologis: drive RemoveParticipantLive lalu RestoreParticipantLive ASLI, assert kolom DB reload.
+    [Fact]
+    public async Task RestorePrePost_Pair_ClearsBothPartners()
+    {
+        var title = "Rm-Restore-PrePost-" + Guid.NewGuid().ToString("N")[..8];
+        const string cat = "OJT";
+        var preSched = DateTime.UtcNow.AddHours(7).AddHours(-3);
+        var postSched = DateTime.UtcNow.AddHours(7).AddHours(-1);
+        const int linkedGroupId = 7711;
+        string targetUser, actorId;
+        int preId, postId;
+
+        await using (var seed = NewCtx())
+        {
+            targetUser = await SeedUserAsync(seed, "Peserta Restore Pair");
+            actorId = await SeedUserAsync(seed, "Admin Actor", "00024");
+
+            // Pasangan target: Pre (berdata, StartedAt → jalur soft) + Post (bersih), LinkedSessionId cross-set.
+            preId = await SeedRepSessionAsync(seed, targetUser, title, cat, preSched, S.InProgress,
+                startedAt: DateTime.UtcNow.AddMinutes(-2), assessmentType: "PreTest", linkedGroupId: linkedGroupId);
+            postId = await SeedRepSessionAsync(seed, targetUser, title, cat, postSched, S.Open,
+                assessmentType: "PostTest", linkedGroupId: linkedGroupId, linkedSessionId: preId);
+            var pre = await seed.AssessmentSessions.FindAsync(preId);
+            pre!.LinkedSessionId = postId;   // cross-link Pre → Post
+            await seed.SaveChangesAsync();
+        }
+
+        // Soft-remove pasangan (pair-as-unit) — KEDUA partner RemovedAt!=null.
+        await using (var act = NewCtx())
+        {
+            var actor = await act.Users.FindAsync(actorId);
+            var ctrl = MakeLiveController(act, actor!);
+            var result = await ctrl.RemoveParticipantLive(preId, "keliru tambah pair");
+            Assert.Equal("soft", ModeOf(Assert.IsType<JsonResult>(result)));
+        }
+
+        // Sanity: KEDUA partner memang soft-removed SEBELUM restore (bukti assert-null bukan tautologi).
+        await using (var pre = NewCtx())
+        {
+            Assert.NotNull((await pre.AssessmentSessions.FindAsync(preId))!.RemovedAt);
+            Assert.NotNull((await pre.AssessmentSessions.FindAsync(postId))!.RemovedAt);
+        }
+
+        // Restore via salah satu partner (preId) → simetri pair: KEDUA harus ter-clear.
+        await using (var act2 = NewCtx())
+        {
+            var actor = await act2.Users.FindAsync(actorId);
+            var ctrl = MakeLiveController(act2, actor!, actionName: "RestoreParticipantLive");
+            var result = await ctrl.RestoreParticipantLive(preId);
+            var json = Assert.IsType<JsonResult>(result);
+            var raw = JsonSerializer.Serialize(json.Value);
+            using var doc = JsonDocument.Parse(raw);
+            Assert.True(doc.RootElement.GetProperty("restored").GetBoolean());
+        }
+
+        // KEDUA partner (Pre DAN Post) 3 kolom removal di-clear NYATA (PRMV-05 restore symmetry).
+        await using var verify = NewCtx();
+        var vPre = await verify.AssessmentSessions.FindAsync(preId);
+        var vPost = await verify.AssessmentSessions.FindAsync(postId);
+        Assert.Null(vPre!.RemovedAt);   Assert.Null(vPre.RemovedBy);   Assert.Null(vPre.RemovalReason);
+        Assert.Null(vPost!.RemovedAt);  Assert.Null(vPost.RemovedBy);  Assert.Null(vPost.RemovalReason);
+    }
 }
