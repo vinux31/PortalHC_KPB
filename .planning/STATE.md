@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: Phase 409 TUNTAS — Plan 01 (fondasi skema migration=TRUE) + Plan 02 (guard re-entry + exclude-removed query, migration=FALSE). Full suite 569/569 GREEN, build 0 error, run @5277 OK.
-stopped_at: Completed 409-02-PLAN.md (guard re-entry + exclude-removed query; Phase 409 SELESAI 2/2 plan, Plan 02 migration=FALSE)
-last_updated: "2026-06-21T02:08:58.038Z"
+stopped_at: Phase 410 context gathered
+last_updated: "2026-06-21T03:01:11.258Z"
 last_activity: 2026-06-21
 progress:
   total_phases: 16
@@ -180,6 +180,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 409-02-PLAN.md (guard re-entry + exclude-removed query; Phase 409 SELESAI 2/2 plan, Plan 02 migration=FALSE)
+Stopped at: Phase 410 context gathered
 
 Next action: **`/gsd-verify-work 409`** (Phase 409 SELESAI — build 0 error + suite 569/569 GREEN + 6 test ParticipantRemoval de-tautologis + run @5277, semua sudah PASS lokal). Setelah verify: `/gsd-plan-phase 410` ∥ `/gsd-plan-phase 411` (file-overlap `AssessmentAdminController.cs` → sequential) → 412 (UI+SignalR, depends 410+411) → 413 (test+UAT, depends semua). Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0` flag `AddParticipantRemovalColumns`; Plan 02 + 410-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.
