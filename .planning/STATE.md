@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: executing
-stopped_at: Phase 404 context gathered
+status: complete
+stopped_at: v32.3 milestone CLOSED 2026-06-21 (archived + tag lokal, NOT pushed)
 last_updated: "2026-06-21T05:23:54.254Z"
 last_activity: 2026-06-21
 progress:
@@ -21,41 +21,21 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 404 — test-sql-riil-uat-docs-invariants
+**Current focus:** v32.3 CLOSED 2026-06-21 → next: deploy bundle (v32.1+v32.3) + `/gsd-new-milestone v32.4`
 
 ## Current Position
 
-Phase: 404 (test-sql-riil-uat-docs-invariants) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 404
+**v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21.** All 6 phases (399-404) + INT-01 fix (404.1) shipped local, audited PASSED (24/24 REQ; adversarial re-verify 33/33, 0 refuted), archived `milestones/v32.3-*` + `milestones/v32.3-phases/`, tag lokal `v32.3` (HEAD `dcd7972a`). REQUIREMENTS.md removed (fresh for next milestone). migration=TRUE (Fase 399 `AddUserUnitsTable` only). **NOT pushed.**
 Last activity: 2026-06-21
-
-> ⏸ RESUME: see `.planning/phases/401-proton-unit-resolution-hardening/.continue-here.md`
-> Next = satisfy BLOCKING human-verify D-01 render checkpoint (Razor; Playwright or user "approved"), then Plan 03 Task 4 (turn-green tests) → 401-03-SUMMARY → verify phase. migration=FALSE. Run gsd-tools from ITHandoff toplevel ONLY.
 
 ## Next Action
 
-**`/gsd-verify-work 400`** (Phase 400 = 1/1 plan complete, ready_for_verification). Lalu lanjut Wave-1 paralel {401, 403} (depends 399 done; cluster file disjoint, git worktree). Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context).
+v32.3 closed. Remaining (user-owned, when ready):
+1. **Deploy bundle (v32.1 + v32.3):** isi `[COMMIT_HASH]` di `docs/milestone-v32.3/index.html` → **1 push `origin/ITHandoff`** → **notify IT migration=TRUE** (`AddUserUnitsTable` Fase 399 `fc015f4d` + backfill; v32.1 = migration=FALSE). Carry migration lama (360 `PendingProtonBypass`, 372 `ShuffleToggles`) juga notify.
+2. **Next milestone:** `/clear` → **`/gsd-new-milestone v32.4`** (Ujian Ulang/Attempt-Retake — planned + spec committed; promosikan `v32.4-PLANNED-REQUIREMENTS.md` → `REQUIREMENTS.md`).
+3. **v32.0 close** masih DEFERRED (non-destruktif, manual — lihat MEMORY `project_v32_0_close_deferred`).
 
-**migration=TRUE notify IT** saat milestone push (`AddUserUnitsTable` `fc015f4d`, Plan 01 — SATU-SATUNYA migration v32.3). Plan 02/03/04 = 0 migration.
-
-**Critical path:** `399 → 401 → 402 → 404`.
-
-**Critical path:** `399 → 401 → 402 → 404`.
-
-Urutan + paralelisme eksekusi v32.3 (spec §6):
-
-- **Wave 0 — Phase 399 (solo, migration=TRUE):** Model `UserUnit` + migration `AddUserUnitsTable` (filtered-unique index primary) + backfill 1 primary-row/pekerja + kontrak write-through primary-mirror (Worker Create/Edit/Import) + UI Bagian-single/Unit-multi-select + display semua unit (Profil/WorkerDetail/Settings/ManageWorkers/Excel/Home/`_PSign`) + Import multi-unit + validasi `Unit ∈ unit-Bagian` + audit set-diff + guard hapus-unit. REQ MU-01/02/03/04/05/07.
-- **Wave 1 — Phase 400 + 401 + 403 PARALEL** (cluster file disjoint, depends 399; eksekusi via git worktree terpisah, merge tiap selesai):
-  - **400** (MU-06) — listing set-aware `WorkerDataService`/`WorkerController`/CMP-view + rollup dedup. 0 migration.
-  - **401** (PSU-01/02/03/04/05/07) — resolusi PROTON `AssignmentUnit` eksplisit (drop fallback `User.Unit`) + filter axis + validasi ∈UserUnits + no-clobber + skip+audit-warn + reactivation guard. File `CoachMapping`/`CDP`/`ProtonData`/`Bypass`/`AssessmentAdmin`. 0 migration.
-  - **403** (ORG-01/02) — `OrganizationController` cascade/guard UserUnits-aware + reparent cross-Bagian hard-block + PreviewEditCascade. Terisolasi. 0 migration.
-- **Wave 2 — Phase 402 SERIAL setelah 401** (CXU-01..05) — coaching cross-unit: eligible set-aware + server guard ⊆Bagian + AssignmentUnit per-coachee + relax JS lock + self-scope multi-unit coach. Berat di `CoachMapping`+`CDP` (shared dgn 401) + butuh aturan AssignmentUnit dari 401. 0 migration.
-- **Wave 3 — Phase 404 setelah semua** (QA-01..04) — test SQL riil (SQLEXPRESS, fixture {X,Y} + coach cross-unit + PROTON T1@X→T2@Y) + invariant single-active + invariant `AssignmentUnit ∈ UserUnits` + B-06 anti-dobel + UAT + docs D1=b. 0 migration.
-
-**Invariant global WAJIB dijaga (spec §7):** (1) Section scalar 1 Bagian/akun (semua `UserUnits.Unit` anak Bagian); (2) PROTON single-active (1 `ProtonTrackAssignment` aktif, index `IX_CoachCoacheeMappings_CoacheeId_ActiveUnique` dipertahankan); (3) primary mirror `ApplicationUser.Unit`=baris `IsPrimary` (write-through); (4) `AssignmentUnit ∈ coachee.UserUnits` (pasca-401); (5) `ProtonKompetensi.Unit` 1:1 per deliverable. **D1=b** = cert/analytics atribusi primary (no kolom unit-at-issue). **De-risk:** authz Section (`IsResultsAuthorized`+SectionHead L4) 100% scalar → 0 perubahan.
-
-**Verifikasi tiap fase (CLAUDE.md Develop Workflow):** `dotnet build` + `dotnet run` (localhost:5277) + cek DB lokal + Playwright bila ada UI. ❌ tidak ada edit di Dev/Prod. Semua → 1 push → notify IT re-deploy Dev (**migration=TRUE** Phase 399, commit hash).
+Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted saat close v32.3).
 
 ## Tag Git
 
@@ -83,7 +63,7 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 | 999.9 label residu "Backfill/Restore" di UI BulkBackfill | kosmetik (LOW) |
 | 999.11 WR-01 PendingGrading guard (parked dari v32.0) | tech-debt parked |
 | 999.12 391 test WebApplicationFactory (parked dari v32.0) | tech-debt parked |
-| 43 quick-task todo (audit-open, status `[missing]`) | acknowledged deferred (artifact lama hilang) |
+| 43 quick-task/todo (audit-open) | ✅ RESOLVED 2026-06-21 (pre-close v32.3) — 42 quick-task ditandai `status: complete`; 1 todo legacy-session-cleanup di-promote ke backlog 999.12 |
 
 ### v2 / future (dari REQUIREMENTS v32.3)
 
@@ -98,7 +78,7 @@ Urutan + paralelisme eksekusi v32.3 (spec §6):
 |------|--------|
 | Notify IT — 2 migration carry lama (`PendingProtonBypass`+index/360, `ShuffleToggles`/372) | ⏳ PENDING (carry lama) |
 | **v32.1** — 0 migration, 0 backend; deploy ditunda (close bareng v32.3) | ⏳ pending (bundle dgn v32.3) |
-| **v32.3** — **migration=TRUE** (`AddUserUnitsTable` Phase 399 + backfill); 1 push → notify IT migration=TRUE (commit hash) | ⏳ pending (roadmap dibuat, belum di-plan/execute) |
+| **v32.3** — **migration=TRUE** (`AddUserUnitsTable` Phase 399 + backfill); 1 push → notify IT migration=TRUE (commit hash) | ✅ CLOSED 2026-06-21 (tag lokal v32.3); ⏳ pending deploy (push + notify IT) |
 
 ## Accumulated Context
 
