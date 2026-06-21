@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.4
 milestone_name: Ujian Ulang (Attempt/Retake Assessment)
 status: executing
-stopped_at: "Completed 406-01-PLAN.md (riwayat backend: RiwayatUnifier + RiwayatPercobaan endpoint + _RiwayatPercobaan partial)"
-last_updated: "2026-06-21T11:59:35.741Z"
+stopped_at: "Completed 406-02-PLAN.md (retake config UI: card + Create/Edit binding + e2e 6/6)"
+last_updated: "2026-06-21T12:24:27.012Z"
 last_activity: 2026-06-21
 progress:
   total_phases: 37
   completed_phases: 1
   total_plans: 7
-  completed_plans: 5
-  percent: 71
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State: Portal HC KPB
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md
 
 Milestone: **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — 🚧 STARTED 2026-06-21 (branch ITHandoff)
 Phase: 406 (Admin Config UI + Riwayat HC) — EXECUTING
-Plan: 2 of 3 (406-01 ✅ COMPLETE — riwayat backend)
-Status: Ready to execute (406-02 / 406-03)
-Last activity: 2026-06-21 -- Phase 406-01 riwayat backend shipped
+Plan: 3 of 3 (406-01 ✅ riwayat backend · 406-02 ✅ retake config UI — RTK-05, e2e 6/6 GREEN @5270, migration=FALSE)
+Status: Ready to execute 406-03 (Riwayat HC modal mount, RTK-08)
+Last activity: 2026-06-21 — Phase 406-02 retake config UI shipped (card + Create/Edit binding)
 
 **v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21** (predecessor; archived `milestones/v32.3-*` + tag lokal `v32.3` HEAD `dcd7972a`; migration=TRUE Fase 399 `AddUserUnitsTable`; NOT pushed). **v32.1 — ✅ CLOSED** (archive-only, NOT pushed). Deploy v32.1+v32.3 bundle = user-owned (lihat Push IT).
 
@@ -126,6 +126,6 @@ Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted 
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 406-01-PLAN.md (riwayat backend: RiwayatUnifier + RiwayatPercobaan endpoint + _RiwayatPercobaan partial)
+Stopped at: Completed 406-02-PLAN.md (retake config UI: card + Create/Edit binding + e2e 6/6)
 
 Next action: lanjut **`/gsd-execute-phase 406`** untuk plan **406-02** (config card "Ujian Ulang" ManagePackages mirror shuffle + binding Create/Edit, konsumsi ViewBag retake 405-04) lalu **406-03** (wire trigger+modal-shell+fetch JS di AssessmentMonitoringDetail konsumsi endpoint `RiwayatPercobaan` + **Playwright RUNTIME-verify** partial+card @5270 — Lesson 354 build+grep tak cukup utk Razor). **406-01 ✅ SHIPPED** (riwayat backend: `RiwayatUnifier` pure + `RiwayatPercobaan` GET [Authorize Admin,HC] + `_RiwayatPercobaan.cshtml` accordion tri-state; xUnit 6/6, suite 604/0/2, build 0 err, Html.Raw gate=0; migration=FALSE; commits `53ed0e37`/`6b47820a`/`c0199ee3`). 407 paralel (worker CMP). App port 5270 (branch ITHandoff). NOT pushed. migration=TRUE carry 405-01 `AddRetakeColumnsAndArchive` `69db727a` (notify IT saat deploy bundle v32.4).
