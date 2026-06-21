@@ -4,14 +4,14 @@ milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: executing
 stopped_at: Phase 413 context (auto)
-last_updated: "2026-06-21T10:32:59.255Z"
-last_activity: 2026-06-21 -- Phase 412-02 executed (UI panel/modal + SignalR DOM handlers + runtime smoke @5277)
+last_updated: "2026-06-21T10:57:11.042Z"
+last_activity: 2026-06-21 -- Phase 413 planning complete
 progress:
   total_phases: 17
   completed_phases: 4
-  total_plans: 9
+  total_plans: 12
   completed_plans: 9
-  percent: 100
+  percent: 75
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 412
 Plan: 02 SELESAI (UI live AssessmentMonitoringDetail.cshtml: picker Tambah + modal hapus keras/ringan D-01 + panel Peserta Dikeluarkan + handler participantAdded/Removed). Fase 412 = 2/3 plan. Sisa 412-03 (StartExam examRemoved force-kick).
-Status: Ready to execute (412-03)
-Last activity: 2026-06-21 -- Phase 412-02 executed (UI panel/modal + SignalR DOM handlers + runtime smoke @5277)
+Status: Ready to execute
+Last activity: 2026-06-21 -- Phase 413 planning complete
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
