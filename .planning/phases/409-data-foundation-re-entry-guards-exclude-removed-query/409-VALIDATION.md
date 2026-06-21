@@ -44,7 +44,10 @@ created: 2026-06-21
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | 01 | 1 | PRMV-03 | T-409-01 | removed session cannot Start/Submit/Join | integration | `dotnet test --filter ~ParticipantRemoval` | ❌ W0 | ⬜ pending |
+| 02-T1 | 02 | 2 | PRMV-03 | T-409-01..09 | test scaffold de-tautologis (guard+exclude+boundary) | integration | `dotnet test --filter ~ParticipantRemoval` | ❌ W0 (this task creates it) | ⬜ pending |
+| 02-T2 | 02 | 2 | PRMV-03 | T-409-01/02/03/08 | removed session cannot Start/Submit/Join; Save* discard | integration | `dotnet test --filter ~ParticipantRemoval` | ⬜ (02-T1) | ⬜ pending |
+| 02-T3 | 02 | 2 | PRMV-03 (PLIV-01 foundation) | T-409-09 | exclude removed from 3 monitoring queries; UserAssessmentHistory boundary intact | integration | `dotnet test --filter ~ParticipantRemoval` | ⬜ (02-T1) | ⬜ pending |
+| 01-T2 | 01 | 1 | PRMV-03 (foundation) | T-409-04/05/06/07 | migration AddParticipantRemovalColumns applies clean (3 cols nullable, chain intact) | integration (MigrateAsync) + manual sqlcmd | `dotnet test --filter "Category=Integration"` | ✅ fixture pattern | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

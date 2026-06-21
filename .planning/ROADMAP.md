@@ -74,7 +74,9 @@
   3. `AssessmentHub.JoinBatch` menolak join koneksi SignalR bila sesi `RemovedAt != null` (peserta dihapus tak bisa re-join grup monitoring/ujian). *(PRMV-03)*
   4. Semua daftar & perhitungan peserta **aktif** (Monitoring `:2815`/Detail `:3273` + `InProgressCount`, grouping `ManageAssessmentTab_Assessment` `:179`, hasil/grading list, cert count, pass-rate) **mengecualikan** sesi `RemovedAt != null` — sesi soft-removed lenyap dari hitungan aktif. *(fondasi PLIV-01)*
   5. `dotnet build` 0 error + `dotnet test` hijau (unit/integration: guard `StartExam`/`SubmitExam`/`JoinBatch` block sesi removed; query exclude `RemovedAt != null` di count/list) + `dotnet run` (localhost:5277). migration apply + DB lokal verified. *(PRMV-03)*
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 409-01-PLAN.md — Migration AddParticipantRemovalColumns (3 kolom nullable) + Fluent config + apply DB lokal (migration=TRUE, BLOCKING)
+- [ ] 409-02-PLAN.md — Guard re-entry (StartExam/SubmitExam/JoinBatch + A1 Save*) + exclude-removed 3 query monitoring + test de-tautologis
 **UI hint:** yes
 
 ### Phase 410: Add-Participant Backend Live
@@ -142,7 +144,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 0/? | Not started | - |
+| 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 0/2 | Not started | - |
 | 410. Add-Participant Backend Live (PART-06 + PART-07) | 0/? | Not started | - |
 | 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 0/? | Not started | - |
 | 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 0/? | Not started | - |
