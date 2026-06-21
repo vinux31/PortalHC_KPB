@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.4
 milestone_name: Ujian Ulang (Attempt/Retake Assessment)
 status: executing
-stopped_at: Phase 405 context gathered
-last_updated: "2026-06-21T06:51:01.870Z"
-last_activity: 2026-06-21 -- Phase 405 planning complete
+stopped_at: Completed 405-01-PLAN.md (migration=TRUE applied lokal)
+last_updated: "2026-06-21T07:05:20.141Z"
+last_activity: 2026-06-21
 progress:
   total_phases: 37
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 25
 ---
 
 # Project State: Portal HC KPB
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.4 Ujian Ulang (Attempt/Retake) STARTED 2026-06-21 — requirements promoted + roadmap active (405-408). Phase 405 plan READY. Next: `/gsd-plan-phase 406` lalu execute.
+**Current focus:** Phase 405 — Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint
 
 ## Current Position
 
 Milestone: **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — 🚧 STARTED 2026-06-21 (branch ITHandoff)
-Phase: Not started (roadmap active, Phase 405 plan ready)
-Plan: —
+Phase: 405 (Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-06-21 -- Phase 405 planning complete
+Last activity: 2026-06-21
 
 **v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21** (predecessor; archived `milestones/v32.3-*` + tag lokal `v32.3` HEAD `dcd7972a`; migration=TRUE Fase 399 `AddUserUnitsTable`; NOT pushed). **v32.1 — ✅ CLOSED** (archive-only, NOT pushed). Deploy v32.1+v32.3 bundle = user-owned (lihat Push IT).
 
@@ -94,6 +94,7 @@ Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted 
 
 ### Decisions (persist across milestones)
 
+- [405-01 / data-model + migration SHIPPED — Wave 1 BLOCKING COMPLETE]: Fondasi data ujian ulang v32.4 di chain. **Entity `AssessmentAttemptResponseArchive`** (`Models/`, snapshot per-soal beku: `Id`/`AttemptHistoryId`(FK)/`AttemptHistory`(nav)/`PackageQuestionId`(plain int no-FK)/`QuestionText`/`AnswerText`(null)/`IsCorrect`(bool? null=essay-pending)/`AwardedScore`/`ArchivedAt`). **3 kolom config `AssessmentSession`** (sisip setelah `ShuffleOptions:42`): `AllowRetake`(false)/`MaxAttempts`(2, `[Range(1,5)]`)/`RetakeCooldownHours`(24, `[Range(0,168)]`). **DbSet `AssessmentAttemptResponseArchives`** + entity config (`builder.Entity<...>`, BUKAN `modelBuilder` — param aktual = `builder`): `HasIndex(AttemptHistoryId)` + FK `OnDelete(Cascade)`→`AssessmentAttemptHistory`. **Migration `AddRetakeColumnsAndArchive`** (`20260621065918`, D-03 single-migration pola 399) digenerate via global `dotnet ef` 10.0.3 (env Development) + **applied LOKAL `HcPortalDB_Dev` saja**; snapshot ProductVersion tetap **8.0.0** (no drift 10.x); `has-pending-model-changes`=none. **DEVIASI [Rule 1]**: EF generate `MaxAttempts`/`RetakeCooldownHours` `defaultValue: 0` (C# property init `=2`/`=24` TIDAK ditarik ke backfill `AddColumn` baris existing) → hand-fix migration `Up()` → `2`/`24` (verified sqlcmd default constraint `((2))`/`((24))`). **sqlcmd verified**: 3 kolom+default benar, tabel archive (8 kolom, ObjectId `436196604`), FK `CASCADE`, index `IX_..._AttemptHistoryId`, **5 baris legacy `AssessmentAttemptHistory` retained (D-04)** + archive table lahir KOSONG (0 rows → D-01 snapshot-presence diskriminator natural-works). build 0 error. Commits `2d04f216` (entity) + `11fad1ef` (kolom+DbSet+config) + `69db727a` (migration, **migration=TRUE notify IT**). **Plan 405-01 = migration=TRUE** (BARU v32.4, applied lokal; IT promosi Dev/Prod, deploy bundle v32.4). RTK-01/02 BELUM 100% (RTK-01 sisa bulk-add→405-04; RTK-02 sisa `RetakeArchiveBuilder`→405-02) — TIDAK di-mark-complete prematur. Files: `Models/AssessmentAttemptResponseArchive.cs`, `Models/AssessmentSession.cs`, `Data/ApplicationDbContext.cs`, `Migrations/*AddRetakeColumnsAndArchive*`. **Chain `MigrateAsync`-ready untuk integration test 405-03.**
 - [400-01 / MU-06 set-aware listing SHIPPED — Phase 400 COMPLETE]: filter unit listing pekerja diubah dari scalar `u.Unit==unitFilter` (primary-only) → **set-aware correlated EXISTS** `_context.UserUnits.Any(uu=>uu.UserId==u.Id && uu.Unit==unitFilter && uu.IsActive)` di **3 lokasi** (`WorkerDataService.GetWorkersInSection` + `WorkerController.ManageWorkers` + `ExportWorkers`). Pekerja {X,Y} 1-Bagian muncul saat difilter **tiap** unit (termasuk non-primary); **dedup by-construction** (`.Any()` boolean subquery = 1 row/user, no fan-out — **TANPA `.Distinct()`**). Kolom **Unit kontekstual D-02** (filtered→matched unit / unfiltered→all-active primary-first comma-join `string.Join(", ", uList)` / 0-unit→fallback `user.Unit` D-05); **batch-load dict `unitsByUser` D-04** (1 query active-only primary-first, no N+1). **PITFALL #1 dihindari**: `_context.UserUnits` correlated, BUKAN nav-prop `u.UserUnits` (CS1061). **Anomali-backfill check `HcPortalDB_Dev`=0 → `.Any()` MURNI final** (NO OR-scalar-fallback; backfill 399 lengkap, RESEARCH Open Q2 resolved). **Consumer #4 `AssessmentAdminController:278`** (ManageAssessmentTab) mewarisi set-aware OTOMATIS (no code change). **No-drift D1=b (SC#3)**: analytics `CMPController:2581/:2589` scalar mirror + Team View `:543` no-filter call **UTUH** (diff bersih). Markup `_RecordsTeamBody.cshtml` byte-stable (value-driven). suite **507/0/3** (3 skip = `UserUnitsBackfillIntegrationTests` SQLEXPRESS-gated milik Phase 404; baseline ≥366 terlampaui, 0 regresi); filter `~WorkerDataServiceSearchTests` 17/17. **UAT lokal APPROVED** (Playwright+SQL snapshot→seed→RESTORE, journal cleaned `e203c9ad`: user Iwan GAST primary "Alkylation Unit (065)" + sekunder aktif "RFCC NHT (053)" → no-filter 1-baris dedup + kolom "Alkylation Unit (065), RFCC NHT (053)" / filter primary→match kolom "Alkylation Unit (065)" / **filter NON-primary RFCC→TETAP match** (set-aware ✓) kolom "RFCC NHT (053)" / EXISTS translation benar di SQL Server riil). 6 test MU-06 (set-aware both-units, dedup `Count==1`, IsActive D-03, kontekstual unfiltered/filtered D-02, fallback D-05) + regresi `Scope_Null_NoFilter_BackwardCompat` (SC#3). Commits RED `24a71b7f` + GREEN `520058b8`. **Plan 400-01 = 0 migration.** Files: `Services/WorkerDataService.cs`, `Controllers/WorkerController.cs`, `HcPortal.Tests/WorkerDataServiceSearchTests.cs`. **Phase 400 = 1/1 plan COMPLETE → ready `/gsd-verify-work`.**
 - [399-04 / display semua unit SHIPPED — Phase 399 LENGKAP]: 7 surface tampil SEMUA unit pekerja primary ditandai (**MU-03 done**). 5 HTML (Profile/Settings/WorkerDetail/ManageWorkers/Home hero) badge primary-first via `Units.OrderByDescending(x=>x==PrimaryUnit).ThenBy(x=>x)`: primary=`bg-success bg-opacity-10 text-success`+`bi-star-fill`+"Utama"(+visually-hidden), sekunder=`bg-secondary bg-opacity-25 text-dark` (UI-SPEC §B PERSIS). **`_PSign` cetak all-units primary-first comma-join (D-07 LOCKED, BUKAN primary-only, teks polos no-badge)**; Excel kolom 7 primary-first (399-02). VM **Profile/Settings/PSign/DashboardHome** diperluas `List<string> Units`+`string? PrimaryUnit` (Section TETAP scalar; PSign scalar `Unit` fallback dipertahankan). **AccountController inject `ApplicationDbContext` BARU** (sebelumnya TIDAK ada — VERIFIED) + Profile/Settings GET populate UserUnits primary-first → VM + nested PSign; **WorkerDetail GET `ViewBag.WorkerUnits`/`PrimaryUnit`** (read-only view-binding, @model=ApplicationUser bukan VM — Rule 3, TIDAK sentuh write-logic 399-02); **HomeController** populate `CurrentUserUnits`/`PrimaryUnit` (mode-role null-safe). Fallback D-09 ("Belum diisi" panel / "-" cell / no-row print). Mirror `user.Unit` dipertahankan (pembaca belum-migrasi). Spec `tests/e2e/multiunit-display-399.spec.ts` **8/8 hijau** headless `--workers=1` (D-01..D-08: WorkerDetail 2 badge+bintang+Utama, ordering primary-first, ManageWorkers cell, 0-unit fallback, Profile smoke, **_PSign D-07 login-as-pekerja-2-unit baca `.psign-label`**, **Excel D-08 JSZip `xl/sharedStrings.xml` primary-first comma**). **build 0 error**; **suite 366/366** (0 skip, no regresi); app boot localhost:5277 HTTP 200; DB snapshot→RESTORE baseline `UserUnits`=6 (SEED_JOURNAL cleaned). 3 deviasi auto-fix (Rule 3 WorkerDetail ViewBag view-binding; Rule 1 ×2 spec: createWorker re-select Bagian + Excel assert via JSZip ganti exceljs fragile). Commits `24e0f6f2`/`781c2bf2`/`87e3ad7d`/`79dadd33`. **Plan 04 = 0 migration.** **Phase 399 Foundation LENGKAP → ready `/gsd-verify-work`.**
 - [399-03 / multi-select widget SHIPPED]: `initSectionUnitMultiCascade(opts)` ditambah di `wwwroot/js/shared-cascade.js` (EXTEND — `initSectionUnitCascade`+`togglePassword` utuh) — render checkbox-list Unit `name="Units"` + radio `name="PrimaryUnit"` per baris client-side dari `ViewBag.SectionUnitsJson` (no AJAX, D-01). State machine **UI-SPEC §A 8-state WIRED**: Bagian kosong→placeholder; pilih Bagian→checkbox-list; centang→radio enabled; **default primary=first checked (D-02)**; uncheck primary→promote ke checked berikutnya; uncheck→radio disabled+clear; ganti Bagian→reset (invariant #1); HTML-escape nama unit (**T-399-03-04 mitigate**, bukan accept). Widget di **CreateWorker+EditWorker** (`#unitMultiContainer` role=group+aria-label; Bagian TETAP single `<select id=sectionSelect>`; idiom form + "Simpan" tak berubah, no inline font magic DSN-05). **MU-07 modal EditWorker** (`ViewBag.NeedConfirm`→modal "Konfirmasi Penghapusan {Unit}" + tombol "Ya, Hapus & Nonaktifkan" submit `form=editWorkerForm name=ConfirmedDeactivate value=true`; PROTON hard-block D-11 via validation-summary merah). **EditWorker GET pre-fill** `Model.Units`/`Model.PrimaryUnit` dari junction (**Rule 3 blocking round-trip**, view-binding necessity — no logic baru, tak sentuh write-through/guard 399-02). Spec `tests/e2e/multiunit-widget-399.spec.ts` 9 widget test test-first (data-driven `pickSectionWithUnits`, no hardcode Bagian) → **Playwright RUNTIME 9/9 hijau** (W-06 round-trip 2-unit Create→Edit + W-04 default-primary + W-05 promote + W-08 a11y; W-09 MU-07 skip fixture — logika server GREEN unit test 399-02). **build 0 error/0 warning**; app boot localhost:5277 HTTP 200; DB snapshot(setup)→RESTORE(teardown) baseline `UserUnits`=6 (worker round-trip temporary bersih, SEED_JOURNAL cleaned); suite 366/366. Scope display surfaces/`_PSign`/AccountController UTUH (= Plan 04). Commits `2a2767aa`/`b3756903`/`60aad1ab`/`03a775c6`. **Plan 03 = 0 migration.** **REQ MU-01/MU-02 done.**
@@ -123,6 +124,6 @@ Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted 
 
 Last activity: 2026-06-21
 
-Stopped at: Phase 405 context gathered
+Stopped at: Completed 405-01-PLAN.md (migration=TRUE applied lokal)
 
 Next action: `/clear` lalu **`/gsd-execute-phase 405`** (plan READY, 9-task TDD, migration=TRUE) — atau `/gsd-discuss-phase 405` bila mau revisit pendekatan. Wave eksekusi `405 → (406 ∥ 407) → 408`. App port 5270 (branch ITHandoff). NOT pushed.
