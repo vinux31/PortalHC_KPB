@@ -1,15 +1,16 @@
 ---
 phase: 404
 slug: test-sql-riil-uat-docs-invariants
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: passed
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-21
+finalized: 2026-06-21
 ---
 
-# Phase 404 — Validation Strategy
+# Phase 404 — Validation Strategy (FINALIZED)
 
-> Per-phase validation contract for feedback sampling during execution.
+> Per-phase validation contract. Finalized 2026-06-21 after execution: all SQL-real xUnit Facts green + UAT 3/3 PASS.
 
 ---
 
@@ -17,64 +18,51 @@ created: 2026-06-21
 
 | Property | Value |
 |----------|-------|
-| **Framework** | xUnit 2.9.3 (.NET 8.0.418) + EF SqlServer 8.0.0 (SQL-real) + Playwright (UI/UAT) |
-| **Config file** | `HcPortal.Tests/HcPortal.Tests.csproj` (mode SqlServer via `MultiUnitSqlFixture`) |
+| **Framework** | xUnit 2.9.3 (.NET 8.0) + EF SqlServer 8.0.0 (SQL-real) + Playwright (UI/UAT) |
+| **Config file** | `HcPortal.Tests/HcPortal.Tests.csproj` (SqlServer via `MultiUnitSqlFixture`) |
 | **Quick run command** | `dotnet test --no-build --filter "FullyQualifiedName~MultiUnitSql"` |
-| **Full suite command** | `dotnet test` |
-| **Estimated runtime** | filtered ~10-30s (MigrateAsync sekali) · full ~105-120s |
-
----
-
-## Sampling Rate
-
-- **After every task commit:** Run `dotnet test --no-build --filter "FullyQualifiedName~MultiUnitSql"`
-- **After every plan wave:** Run `dotnet test` (full suite — pastikan tak regresi baseline ~547/0/6)
-- **Before `/gsd-verify-work`:** Full suite green + `dotnet build` 0 error
-- **Max feedback latency:** ~120 seconds
+| **Full suite command** | `dotnet test` → **562 passed / 0 failed / 2 skipped** (2m) |
+| **Estimated runtime** | filtered ~10-30s (MigrateAsync once) · full ~120s |
 
 ---
 
 ## Per-Task Verification Map
 
-> Phase 404 = TEST/UAT/DOCS closer. "Secure Behavior" di sini = invariant DB yang dibuktikan, bukan mitigasi baru (NOL kode produksi).
+> Phase 404 = TEST/UAT/DOCS closer. "Secure Behavior" = invariant DB proven, not a new mitigation (NOL kode produksi; the lone INT-01 fix is tracked as 404.1).
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 404-01-xx | 01 | 1 | QA-01 | — | Fixture SQL-real {X,Y} 1 Bagian + coach cross-unit + PROTON T1@X→T2@Y via `Migrate()` (incl 399 AddUserUnits) | integration | `dotnet test --filter ~MultiUnitSql` | ❌ W0 | ⬜ pending |
-| 404-02-xx | 02 | 2 | QA-03 | — | single-active: CoachCoacheeMapping via `DbUpdateException` (filtered-unique `:333-336`); **PTA via `Count(IsActive)==1`** (app-level, no filtered-unique `:393`) + Reactivate/Import-reactivate | integration | `dotnet test --filter ~MultiUnitSql` | ❌ W0 | ⬜ pending |
-| 404-03-xx | 03 | 2 | QA-04 | — | `AssignmentUnit ∈ coachee.UserUnits` tiap write-path + B-06 anti-dobel `ProtonDeliverableBootstrap` lintas-unit + `ProtonKompetensi.Unit` 1:1 (`:429`) | integration | `dotnet test --filter ~MultiUnitSql` | ❌ W0 | ⬜ pending |
-| 404-04-xx | 04 | 3 | QA-02 | — | UAT browser PROTON sekuensial cross-unit @5270 + cert histori per-unit + coach multi-unit view; docs D1=b + HTML handoff IT | manual + docs | live UAT + `dotnet build` | N/A | ⬜ pending |
-
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+| Task ID | Plan | Wave | Requirement | Secure Behavior | Test Type | Automated Command | Status |
+|---------|------|------|-------------|-----------------|-----------|-------------------|--------|
+| 404-01 | 01 | 1 | QA-01/03 | `MultiUnitSqlFixture` SQL-real {X,Y}+coach+PROTON via `MigrateAsync` (incl 399) + single-active anchor (402 carry) | integration | `dotnet test --filter ~CrossUnitAssignSqlTests` | ✅ green (1/1) |
+| 404-02 | 02 | 2 | QA-03 | single-active: mapping `DbUpdateException` (filtered-unique) + reactivate replication + PTA `Count(IsActive)==1` via real bypass | integration | `dotnet test --filter ~SingleActiveInvariantSqlTests` | ✅ green (3/3) |
+| 404-03 | 03 | 2 | QA-01/04 | `AssignmentUnit∈UserUnits` + B-06 cross-unit no-skip + 1:1 + one-primary; 3 backfill stubs (verbatim migration SQL) | integration | `dotnet test --filter ~UnitMembershipInvariantSqlTests` + `~UserUnitsBackfillIntegrationTests` | ✅ green (4/4 + 3/3) |
+| 404-04 | 04 | 3 | QA-02 | UAT browser PROTON sekuensial cross-unit @5270 + cert histori + coach multi-unit view; docs D1=b + HTML handoff IT | manual + docs | live UAT 3/3 PASS + `dotnet build` | ✅ green (UAT 3/3) |
 
 ---
 
-## Wave 0 Requirements
+## Wave 0 Requirements (COMPLETE)
 
-- [ ] `HcPortal.Tests/MultiUnitSqlFixture.cs` — shared `IClassFixture` SQL-real (salin pola `OrgLabelMigrationFixture`: DB disposable `HcPortalDB_Test_<guid>@localhost\SQLEXPRESS` + `await ctx.Database.MigrateAsync()` + `EnsureDeletedAsync()` teardown) + `SeedCanonicalAsync` (dataset {X,Y}+coach+PROTON).
-- [ ] Implement stub existing `HcPortal.Tests/CrossUnitAssignTests.cs:105 SingleActive_invariant_is_sql_real_phase404()` (jangan biarkan body kosong — carry 402).
-- [ ] (Rekomendasi riset) Implement 3 stub `[Skip]` di `HcPortal.Tests/UserUnitsBackfillIntegrationTests.cs:72-91` (fixture sudah siap; menguatkan bukti migration 399) — planner putuskan masuk scope atau backlog.
-
-*Catatan: harness SQL-real sudah matang (6+ fixture precedent) — Wave 0 = tambah 1 fixture multi-unit, bukan install framework.*
+- [x] `HcPortal.Tests/MultiUnitSqlFixture.cs` — shared SQL-real `IClassFixture` (`MigrateAsync` full chain + `SeedCanonicalAsync`).
+- [x] Implement `CrossUnitAssignTests` single-active anchor `SingleActive_invariant_is_sql_real_phase404` (402 carry closed; `[Skip]` removed).
+- [x] Implement 3 `[Skip]` stubs in `UserUnitsBackfillIntegrationTests` (migration-399 backfill, verbatim SQL).
 
 ---
 
-## Manual-Only Verifications
+## Manual-Only Verifications (DONE)
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| PROTON sekuensial cross-unit T1@X→T2@Y end-to-end + cert histori per-unit utuh + coach multi-unit lihat/export coachee lintas-unit | QA-02 | Live browser UAT per CLAUDE.md Develop Workflow (alur paling berisiko, butuh mata manusia) | `dotnet run` @ localhost:5270 (branch ITHandoff, AD off) + seed temporary local-only (snapshot→insert→restore, SEED_JOURNAL cleaned) + DB check |
-| Docs: batasan D1=b + HTML handoff IT (migration=TRUE Phase 399 + commit hash) | QA-02 | Artefak dokumentasi (review manusia) | Render HTML + cek isi vs D-13/D-14 CONTEXT |
+| Behavior | Requirement | Result |
+|----------|-------------|--------|
+| PROTON sekuensial cross-unit T1@X→T2@Y + cert histori per-unit + coach multi-unit view/export | QA-02 | ✅ UAT 3/3 PASS @5270 (Playwright; active_PTA=1/total=2/cert_PFA=1; SEED_JOURNAL cleaned) |
+| Docs: batasan D1=b + HTML handoff IT (migration=TRUE Phase 399 + commit-hash placeholder) | QA-02 | ✅ `docs/milestone-v32.3/index.html` + `docs/milestone-v32.3-batasan-d1b.md` |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify (QA-01/03/04 SQL-real xUnit) or manual-only (QA-02 UAT/docs) coverage
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (MultiUnitSqlFixture + stub CrossUnitAssignTests:105)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify (QA-01/03/04 SQL-real xUnit) or manual-only (QA-02 UAT/docs) coverage
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (MultiUnitSqlFixture + anchor)
+- [x] No watch-mode flags
+- [x] Feedback latency < 120s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved (2026-06-21) — full suite 562/0/2, UAT 3/3 PASS, skip count dropped 6→2 (4 stubs live).
