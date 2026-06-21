@@ -107,7 +107,7 @@ Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted 
 
 - [push] Carry migration lama (`PendingProtonBypass`+index/360, `ShuffleToggles`/372) — notify IT flag. **v32.3 = migration BARU TRUE** (`AddUserUnitsTable` Phase 399 + backfill).
 - [v32.3 risiko utama (spec §10)]: (a) `CleanupCoachCoacheeMappingOrg` reset `AssignmentUnit`→primary = data-loss multi-unit → Fase 401 jadikan UserUnits-aware/gated SEBELUM data multi-unit produksi; (b) reparent unit lintas-Bagian = split-brain Section → Fase 403 hard-block; (c) primary-mirror desync → kontrak write-through terpusat + test; (d) EF-InMemory tak enforce filtered-unique-index → test palsu hijau → Fase 404 WAJIB SQL riil SQLEXPRESS; (e) atribusi cert primary bikin cert unit-Y muncul di laporan unit-X → diterima (D1=b), didokumentasikan.
-- [v32.3 / v32.0 close DEFERRED]: ⚠️ JANGAN `/gsd-complete-milestone v32.0` standar (REQUIREMENTS/STATE/PROJECT kini live v32.3 → step5 destruktif). Safe close v32.0 NANTI manual (post-v32.3). Lihat MEMORY `project_v32_0_close_deferred`.
+- [v32.0 sudah CLOSED]: v32.0 (Manajemen Peserta 391-392) di-close MANUAL non-destruktif 2026-06-19 di branch `main` (tag `v32.0` @`423a2e76` + archive `milestones/v32.0-*` + entry MILESTONES — di main). Dulu deferred krn `/gsd-complete-milestone v32.0` standar destruktif (file REQUIREMENTS/STATE/PROJECT live sudah pindah ke milestone lain) → diselesaikan manual via snapshot git. BUKAN pending close; sisa cuma ikut push deploy. Lihat MEMORY `project_v32_0_close_deferred`.
 
 ## Session Continuity
 
