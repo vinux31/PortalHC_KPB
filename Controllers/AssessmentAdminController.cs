@@ -2349,7 +2349,7 @@ namespace HcPortal.Controllers
         // Tambah ≥1 peserta baru ke batch live (AJAX). Resolve rep server-side → reject Proton → window guard
         // → idempotency skip (sesi APAPUN, D-01) → buat AssessmentSession + UPA EAGER (A1) ber-status siap-mulai
         // dalam 1 transaksi atomic → cabang Pre/Post pair → notif + audit → JSON added[]/skipped[].
-        // D-04: TIDAK sentuh _hubContext (broadcast participantAdded di-defer ke Phase 412).
+        // Phase 412 (PLIV-02): broadcast participantAdded ke grup monitor SETELAH CommitAsync (post-commit).
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
@@ -2477,8 +2477,26 @@ namespace HcPortal.Controllers
                 catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed for session {Id}", ns.Id); }
             }
 
+            // === Langkah 8b — broadcast participantAdded ke grup monitor (PLIV-02, Phase 412). ===
+            // HANYA setelah CommitAsync sukses (broadcast post-commit, hindari notif tx-rollback — spec §G).
+            // batchKey identik :3942/:4350. Pre/Post → kedua sesi di-broadcast (baris muncul live lintas-tab).
+            if (createdSessions.Count > 0)
+            {
+                var batchKey = $"{rep.Title}|{rep.Category}|{rep.Schedule.Date:yyyy-MM-dd}";
+                foreach (var s in createdSessions)
+                {
+                    await _hubContext.Clients.Group($"monitor-{batchKey}").SendAsync("participantAdded", new
+                    {
+                        sessionId = s.Id,
+                        userId    = s.UserId,
+                        fullName  = userDictionary.TryGetValue(s.UserId, out var bu) ? bu.FullName : "",
+                        nip       = userDictionary.TryGetValue(s.UserId, out var bu2) ? bu2.NIP : null,
+                        status    = s.Status
+                    });
+                }
+            }
+
             // === Langkah 9 — JSON response (D-03). added[] = sesi baru (Pre/Post → kedua sesi muncul). ===
-            // D-04: JANGAN sentuh _hubContext (broadcast participantAdded = Phase 412).
             var addedJson = createdSessions.Select(s => new
             {
                 id = s.Id,
@@ -2545,7 +2563,7 @@ namespace HcPortal.Controllers
         // PHASE 411 — REMOVE + RESTORE PESERTA LIVE (hybrid by-state + Pre/Post pair-as-unit)
         // Private shared core (RemoveParticipantCoreAsync) dibungkus 3 endpoint:
         //   RemoveParticipantLive (JSON) · RestoreParticipantLive (JSON) · DeleteAssessmentPeserta (redirect).
-        // D-03: TIDAK sentuh _hubContext (broadcast = Phase 412). migration=FALSE (set/clear kolom 409).
+        // Phase 412 (PLIV-02): broadcast participantRemoved/participantAdded + examRemoved post-commit. migration=FALSE (set/clear kolom 409).
         // ===================================================================================
 
         // POST /Admin/RemoveParticipantLive — wrapper JSON (untuk UI Monitoring Detail 412).
@@ -2555,7 +2573,10 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveParticipantLive(int sessionId, string? reason)
         {
-            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+            // Phase 412: Include(User) agar payload broadcast punya FullName/NIP (panel "Peserta Dikeluarkan").
+            var session = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
             if (session == null) return NotFound(new { error = "Sesi tidak ditemukan." });
 
             // Proton reject (guard dini, sebelum write) — mirror AddParticipantsLive.
@@ -2570,10 +2591,55 @@ namespace HcPortal.Controllers
             var actorId = hcUser?.Id ?? "";
             var actorName = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
 
+            // PRMV-02: tangkap status InProgress + identitas SEBELUM core mutasi (force-kick hanya utk sesi yang
+            // benar2 di tengah ujian; hard-delete men-detach entity → nama/nip harus ditangkap sebelum core).
+            bool wasInProgress = session.StartedAt != null && session.CompletedAt == null && session.RemovedAt == null;
+            string targetUserId = session.UserId;
+            string rBatchKey = $"{session.Title}|{session.Category}|{session.Schedule.Date:yyyy-MM-dd}";
+            string sFullName = session.User?.FullName ?? "";
+            string? sNip = session.User?.NIP;
+            // Resolve partner Pre/Post (untuk broadcast event KEDUA — kedua baris konsisten lintas-tab, Open-Q2).
+            AssessmentSession? rPartner = (IsPrePostSession(session) && session.LinkedSessionId.HasValue)
+                ? await _context.AssessmentSessions.Include(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value)
+                : null;
+            int? rPartnerId = rPartner?.Id;
+            string pFullName = rPartner?.User?.FullName ?? "";
+            string? pNip = rPartner?.User?.NIP;
+
             var outcome = await RemoveParticipantCoreAsync(session, reason, actorId, actorName);
             if (!outcome.Ok) return BadRequest(new { error = outcome.Message });   // reason-wajib-soft → 400 di sini
 
-            // D-03: JANGAN broadcast participantRemoved — Phase 412.
+            // PLIV-02: broadcast participantRemoved ke grup monitor (post-commit; outcome.Ok true → state ter-commit).
+            // mode "hard" → client tr.remove(); "soft" → pindah ke panel (Pitfall 6). removedAt/removalReason null bila hard.
+            await _hubContext.Clients.Group($"monitor-{rBatchKey}").SendAsync("participantRemoved", new
+            {
+                sessionId,
+                mode          = outcome.Mode,
+                fullName      = sFullName,
+                nip           = sNip,
+                removedAt     = session.RemovedAt,        // null bila hard (client abaikan utk hard)
+                removedBy     = actorName,
+                removalReason = session.RemovalReason
+            });
+            // Pre/Post pair → event KEDUA untuk partner (kedua baris konsisten; partner ikut soft/hard yang sama).
+            if (outcome.PartnerId != null)
+            {
+                await _hubContext.Clients.Group($"monitor-{rBatchKey}").SendAsync("participantRemoved", new
+                {
+                    sessionId     = outcome.PartnerId.Value,
+                    mode          = outcome.Mode,
+                    fullName      = pFullName,
+                    nip           = pNip,
+                    removedAt     = rPartner?.RemovedAt,
+                    removedBy     = actorName,
+                    removalReason = rPartner?.RemovalReason
+                });
+            }
+            // PRMV-02: force-kick worker HANYA bila tadinya InProgress (selalu jalur soft → entity masih hidup).
+            if (wasInProgress)
+                await _hubContext.Clients.User(targetUserId).SendAsync("examRemoved", new { reason });
+
             return Json(new { sessionId, mode = outcome.Mode, linkedSessionId = outcome.PartnerId });
         }
 
@@ -2584,7 +2650,10 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RestoreParticipantLive(int sessionId)
         {
-            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+            // Phase 412: Include(User) agar payload broadcast participantAdded punya FullName/NIP.
+            var session = await _context.AssessmentSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
             if (session == null) return NotFound(new { error = "Sesi tidak ditemukan." });
             if (session.RemovedAt == null)
                 return BadRequest(new { error = "Sesi ini tidak dalam keadaan dihapus." });
@@ -2595,7 +2664,8 @@ namespace HcPortal.Controllers
 
             // Pre/Post simetri: restore partner via LinkedSessionId juga (konsisten pair-as-unit dgn remove).
             var partner = (IsPrePostSession(session) && session.LinkedSessionId.HasValue)
-                ? await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value)
+                ? await _context.AssessmentSessions.Include(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value)
                 : null;
             foreach (var s in new[] { session, partner }.Where(x => x != null && x.RemovedAt != null))
             {
@@ -2608,7 +2678,20 @@ namespace HcPortal.Controllers
             await _auditLog.LogAsync(actorId, actorName, "RestoreParticipantLive",
                 $"Restored participant session [ID={sessionId}] '{session.Title}'", sessionId, "AssessmentSession");
 
-            // D-03: JANGAN broadcast — Phase 412.
+            // PLIV-02: baris balik aktif live — broadcast participantAdded utk sesi yg di-restore (post-SaveChanges).
+            var sBatchKey = $"{session.Title}|{session.Category}|{session.Schedule.Date:yyyy-MM-dd}";
+            foreach (var s in new[] { session, partner }.Where(x => x != null))
+            {
+                await _hubContext.Clients.Group($"monitor-{sBatchKey}").SendAsync("participantAdded", new
+                {
+                    sessionId = s!.Id,
+                    userId    = s.UserId,
+                    fullName  = s.User?.FullName ?? "",
+                    nip       = s.User?.NIP,
+                    status    = s.Status
+                });
+            }
+
             return Json(new { sessionId, restored = true });
         }
 
