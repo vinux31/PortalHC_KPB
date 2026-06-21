@@ -1117,6 +1117,22 @@
             + ' data-worker-name="' + wn.replace(/"/g, '&quot;') + '"'
             + ' title="Lihat activity log"><i class="bi bi-clock-history"></i></button>';
 
+        // Phase 412 PRMV-02: tombol Hapus Peserta untuk baris yang di-inject SignalR.
+        // Guard Proton (panel/hapus tak relevan untuk Assessment Proton).
+        if (hCategory !== 'Assessment Proton') {
+            // status payload: session.status (workerSubmitted-shape) atau session.UserStatus (raw)
+            var hpStatus = session.status || session.UserStatus || 'Not started';
+            var hasCert = session.nomorSertifikat ? 'true' : 'false';
+            var hpName = (wn || session.fullName || '').replace(/"/g, '&quot;');
+            html += '<button type="button"'
+                + ' class="btn btn-outline-danger btn-sm ms-1 btn-hapus-peserta"'
+                + ' data-session-id="' + session.sessionId + '"'
+                + ' data-worker-name="' + hpName + '"'
+                + ' data-status="' + hpStatus + '"'
+                + ' data-has-cert="' + hasCert + '"'
+                + ' title="Hapus dari batch"><i class="bi bi-person-x"></i></button>';
+        }
+
         return html;
     }
 
@@ -1260,6 +1276,293 @@
                 .catch(function () {
                     loading.innerHTML = '<span class="text-danger">Gagal memuat data. Tutup dan coba lagi.</span>';
                 });
+        });
+    }
+
+    // ============================================================
+    // Phase 412 — Flexible Add/Remove Participant (UI live)
+    // ============================================================
+    var REP_ID = @Model.RepresentativeId;          // representativeId untuk picker eligible
+    var IS_PROTON = (hCategory === 'Assessment Proton');
+
+    // Ekspos helper IIFE ke window agar handler SignalR (@@section Scripts, blok terpisah) bisa pakai.
+    window.monBuildActionsHtml   = buildActionsHtml;
+    window.monFlashRow           = flashRow;
+    window.monStatusBadgeClass   = statusBadgeClass;
+    window.monStatusDisplayLabel = statusDisplayLabel;
+    window.monIsPackageMode      = isPackageMode;
+
+    // ---- (c) Picker "Tambah Peserta" ----
+    var tambahModalEl = document.getElementById('tambahPesertaModal');
+    if (tambahModalEl) {
+        var pendingAddedFallback = {};  // sessionId -> timeoutId (fallback inject bila echo SignalR tak datang)
+
+        tambahModalEl.addEventListener('show.bs.modal', function () {
+            var loadingEl = document.getElementById('tambahPesertaLoading');
+            var contentEl = document.getElementById('tambahPesertaContent');
+            var errorEl   = document.getElementById('tambahPesertaError');
+            var footerEl  = document.getElementById('tambahPesertaFooter');
+            var listEl    = document.getElementById('tambahPesertaList');
+            var emptyEl   = document.getElementById('tambahPesertaEmpty');
+            loadingEl.style.display = '';
+            contentEl.style.display = 'none';
+            errorEl.style.display = 'none';
+            footerEl.style.display = 'none';
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'none';
+            updateTambahCount();
+
+            fetch(appUrl('/Admin/GetEligibleParticipantsToAdd?sessionId=' + REP_ID), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(function (data) {
+                loadingEl.style.display = 'none';
+                contentEl.style.display = '';
+                if (!Array.isArray(data) || data.length === 0) {
+                    emptyEl.style.display = '';
+                    footerEl.style.display = 'none';
+                    return;
+                }
+                var html = '';
+                data.forEach(function (p) {
+                    var nm = (p.fullName || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    var nip = (p.nip || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    html += '<div class="form-check py-1 border-bottom">'
+                        + '<input class="form-check-input tambah-peserta-check" type="checkbox" value="' + p.id + '" id="check_' + p.id + '" />'
+                        + '<label class="form-check-label w-100" for="check_' + p.id + '">'
+                        + '<span class="fw-semibold">' + nm + '</span>'
+                        + '<span class="text-muted small ms-2">' + nip + '</span>'
+                        + '</label></div>';
+                });
+                listEl.innerHTML = html;
+                footerEl.style.display = '';
+                listEl.querySelectorAll('.tambah-peserta-check').forEach(function (cb) {
+                    cb.addEventListener('change', updateTambahCount);
+                });
+                updateTambahCount();
+            })
+            .catch(function () {
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'none';
+                document.getElementById('tambahPesertaErrorMsg').textContent = 'Gagal memuat daftar peserta.';
+                errorEl.style.display = '';
+            });
+        });
+
+        function updateTambahCount() {
+            var checks = document.querySelectorAll('.tambah-peserta-check:checked');
+            var n = checks.length;
+            var cntEl = document.getElementById('tambahCount');
+            var selEl = document.getElementById('tambahPesertaSelectedCount');
+            var btn   = document.getElementById('btnKonfirmasiTambah');
+            if (cntEl) cntEl.textContent = n;
+            if (selEl) selEl.textContent = n + ' dipilih';
+            if (btn)   btn.disabled = (n === 0);
+        }
+
+        var btnKonfirmasiTambah = document.getElementById('btnKonfirmasiTambah');
+        if (btnKonfirmasiTambah) {
+            btnKonfirmasiTambah.addEventListener('click', function () {
+                var checks = document.querySelectorAll('.tambah-peserta-check:checked');
+                if (checks.length === 0) return;
+                var token = getToken();
+                var body = 'sessionId=' + REP_ID + '&__RequestVerificationToken=' + encodeURIComponent(token);
+                checks.forEach(function (cb) { body += '&userIds=' + encodeURIComponent(cb.value); });
+
+                var origHtml = btnKonfirmasiTambah.innerHTML;
+                btnKonfirmasiTambah.disabled = true;
+                btnKonfirmasiTambah.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menambahkan...';
+
+                fetch(appUrl('/Admin/AddParticipantsLive'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: body
+                })
+                .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+                .then(function (res) {
+                    btnKonfirmasiTambah.disabled = false;
+                    btnKonfirmasiTambah.innerHTML = origHtml;
+                    if (!res.ok) {
+                        document.getElementById('tambahPesertaErrorMsg').textContent =
+                            (res.body && (res.body.error || res.body.message)) || 'Terjadi kesalahan. Silakan coba lagi.';
+                        document.getElementById('tambahPesertaError').style.display = '';
+                        return;
+                    }
+                    var inst = bootstrap.Modal.getInstance(tambahModalEl);
+                    if (inst) inst.hide();
+                    var added = (res.body && res.body.added) || [];
+                    var addedN = (res.body && res.body.addedCount != null) ? res.body.addedCount : added.length;
+                    if (typeof window.showAssessmentToast === 'function') {
+                        window.showAssessmentToast(addedN + ' peserta ditambahkan ke batch');
+                    }
+                    // Fallback: bila SignalR participantAdded tak datang 3 detik, inject dari added[] (dedup di handler inject).
+                    added.forEach(function (a) {
+                        pendingAddedFallback[a.id] = setTimeout(function () {
+                            if (typeof window.monInjectParticipantRow === 'function') {
+                                window.monInjectParticipantRow({
+                                    sessionId: a.id, fullName: a.fullName, nip: a.nip,
+                                    status: a.status || 'Not started', nomorSertifikat: null
+                                });
+                            }
+                            delete pendingAddedFallback[a.id];
+                        }, 3000);
+                    });
+                })
+                .catch(function () {
+                    btnKonfirmasiTambah.disabled = false;
+                    btnKonfirmasiTambah.innerHTML = origHtml;
+                    document.getElementById('tambahPesertaErrorMsg').textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+                    document.getElementById('tambahPesertaError').style.display = '';
+                });
+            });
+        }
+        // Ekspos pembersih fallback agar handler SignalR bisa batalkan saat echo datang.
+        window.monClearAddedFallback = function (sessionId) {
+            if (pendingAddedFallback[sessionId]) {
+                clearTimeout(pendingAddedFallback[sessionId]);
+                delete pendingAddedFallback[sessionId];
+            }
+        };
+    }
+
+    // ---- (d) Modal hapus (delegated) ----
+    var hapusTargetSessionId = null;
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-hapus-peserta');
+        if (!btn) return;
+        var sessionId = btn.getAttribute('data-session-id');
+        var workerName = btn.getAttribute('data-worker-name') || '';
+        var status = btn.getAttribute('data-status') || '';
+        var hasCert = btn.getAttribute('data-has-cert') === 'true';
+        hapusTargetSessionId = sessionId;
+
+        // Tingkat modal (Pitfall 1): InProgress (English) ATAU Completed+cert → KERAS; lainnya → RINGAN.
+        var isHard = (status === 'InProgress') || (status === 'Completed' && hasCert);
+        if (isHard) {
+            document.getElementById('hapusHardWorkerName').textContent = workerName;
+            document.getElementById('hapusHardReason').value = '';
+            document.getElementById('hapusHardReasonError').classList.add('d-none');
+            // Warning block sesuai status
+            document.getElementById('hapusHardWarnInProgress').style.display = (status === 'InProgress') ? '' : 'none';
+            document.getElementById('hapusHardWarnCompleted').style.display = (status === 'Completed') ? '' : 'none';
+            new bootstrap.Modal(document.getElementById('hapusPesertaHardModal')).show();
+        } else {
+            document.getElementById('hapusLightWorkerName').textContent = workerName;
+            document.getElementById('hapusLightReason').value = '';
+            document.getElementById('hapusLightReasonError').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('hapusPesertaLightModal')).show();
+        }
+    });
+
+    function submitHapusPeserta(modalId, reasonId, errorId, btnEl) {
+        if (!hapusTargetSessionId) return;
+        var reason = document.getElementById(reasonId).value || '';
+        var token = getToken();
+        var origHtml = btnEl.innerHTML;
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghapus...';
+
+        fetch(appUrl('/Admin/RemoveParticipantLive'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+            body: 'sessionId=' + encodeURIComponent(hapusTargetSessionId)
+                + '&reason=' + encodeURIComponent(reason)
+                + '&__RequestVerificationToken=' + encodeURIComponent(token)
+        })
+        .then(function (r) { return r.json().then(function (j) { return { status: r.status, ok: r.ok, body: j }; }); })
+        .then(function (res) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = origHtml;
+            if (res.status === 400) {
+                // reason wajib (server penjaga akhir D-03) — jangan tutup modal
+                var errEl = document.getElementById(errorId);
+                if (errEl) {
+                    errEl.textContent = (res.body && (res.body.error || res.body.message)) || 'Alasan wajib diisi untuk peserta ini.';
+                    errEl.classList.remove('d-none');
+                }
+                return;
+            }
+            if (!res.ok) {
+                var errEl2 = document.getElementById(errorId);
+                if (errEl2) {
+                    errEl2.textContent = (res.body && (res.body.error || res.body.message)) || 'Terjadi kesalahan. Silakan coba lagi.';
+                    errEl2.classList.remove('d-none');
+                }
+                return;
+            }
+            var inst = bootstrap.Modal.getInstance(document.getElementById(modalId));
+            if (inst) inst.hide();
+            // Sumber kebenaran perubahan baris = SignalR participantRemoved (fallback di handler).
+            hapusTargetSessionId = null;
+        })
+        .catch(function () {
+            btnEl.disabled = false;
+            btnEl.innerHTML = origHtml;
+            var errEl3 = document.getElementById(errorId);
+            if (errEl3) { errEl3.textContent = 'Terjadi kesalahan. Silakan coba lagi.'; errEl3.classList.remove('d-none'); }
+        });
+    }
+
+    var btnHapusLight = document.getElementById('btnHapusLightKonfirmasi');
+    if (btnHapusLight) {
+        btnHapusLight.addEventListener('click', function () {
+            submitHapusPeserta('hapusPesertaLightModal', 'hapusLightReason', 'hapusLightReasonError', btnHapusLight);
+        });
+    }
+    var btnHapusHard = document.getElementById('btnHapusHardKonfirmasi');
+    if (btnHapusHard) {
+        btnHapusHard.addEventListener('click', function () {
+            submitHapusPeserta('hapusPesertaHardModal', 'hapusHardReason', 'hapusHardReasonError', btnHapusHard);
+        });
+    }
+
+    // ---- (e) Restore 1-klik (D-04, tanpa konfirmasi) ----
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-restore-peserta');
+        if (!btn) return;
+        var sessionId = btn.getAttribute('data-session-id');
+        var workerName = btn.getAttribute('data-worker-name') || '';
+        var origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        var token = getToken();
+
+        fetch(appUrl('/Admin/RestoreParticipantLive'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+            body: 'sessionId=' + encodeURIComponent(sessionId) + '&__RequestVerificationToken=' + encodeURIComponent(token)
+        })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+        .then(function (res) {
+            if (!res.ok) {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                alert('Gagal memulihkan peserta. Silakan coba lagi.');
+                return;
+            }
+            // Sumber kebenaran = SignalR participantAdded (baris balik live; fallback di handler).
+            // Biarkan tombol disabled+spinner sampai handler memindahkan baris.
+            if (typeof window.showAssessmentToast === 'function') {
+                window.showAssessmentToast(workerName + ' dipulihkan ke batch aktif');
+            }
+        })
+        .catch(function () {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+            alert('Gagal memulihkan peserta. Silakan coba lagi.');
+        });
+    });
+
+    // ---- (f) Chevron rotate panel "Peserta Dikeluarkan" ----
+    var panelBody = document.getElementById('panelPesertaDikeluarkanBody');
+    if (panelBody) {
+        var chevron = document.getElementById('panelRemovedChevron');
+        panelBody.addEventListener('shown.bs.collapse', function () {
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+        });
+        panelBody.addEventListener('hidden.bs.collapse', function () {
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
         });
     }
 })();
@@ -1490,7 +1793,8 @@ function eventLabel(eventType, detail) {
 
     // ---- Update summary counts from DOM (used by push events) ----
     function updateSummaryFromDOM() {
-        var rows = document.querySelectorAll('tbody tr[data-session-id]');
+        // Phase 412 Pitfall 2: exclude baris #tbodyRemoved (peserta dikeluarkan) dari hitungan aktif.
+        var rows = document.querySelectorAll('tbody:not(#tbodyRemoved) tr[data-session-id]');
         var total = rows.length;
         var completed = 0, inProgress = 0, notStarted = 0, cancelled = 0, abandoned = 0, pending = 0;
         rows.forEach(function(tr) {
@@ -1642,6 +1946,198 @@ function eventLabel(eventType, detail) {
             console.log('[toast]', msg);
         }
     });
+
+    // ============================================================
+    // Phase 412 — Handler SignalR participantAdded / participantRemoved
+    // ============================================================
+
+    // Inject baris peserta baru (atau pulihkan dari panel) ke tbody aktif.
+    // Dipakai handler participantAdded + fallback POST (window.monInjectParticipantRow).
+    window.monInjectParticipantRow = function (data) {
+        var activeBody = document.querySelector('table.table tbody:not(#tbodyRemoved)');
+        if (!activeBody) return;
+
+        // Dedup: skip bila baris aktif sudah ada.
+        if (document.querySelector('tbody:not(#tbodyRemoved) tr[data-session-id="' + data.sessionId + '"]')) {
+            if (typeof window.monClearAddedFallback === 'function') window.monClearAddedFallback(data.sessionId);
+            return;
+        }
+
+        // Batalkan placeholder "kosong" bila ada.
+        var emptyRow = activeBody.querySelector('td[colspan]');
+        if (emptyRow && emptyRow.parentElement) emptyRow.parentElement.remove();
+
+        var status = data.status || 'Not started';
+        if (status === 'Open' || status === 'Upcoming') status = 'Not started';
+
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-session-id', data.sessionId);
+
+        var tdName = document.createElement('td');
+        tdName.className = 'fw-semibold';
+        tdName.textContent = data.fullName || '';   // XSS-safe (Pitfall 3)
+        tr.appendChild(tdName);
+
+        var tdProg = document.createElement('td');
+        tdProg.className = 'text-center progress-cell';
+        tdProg.textContent = '—';
+        tr.appendChild(tdProg);
+
+        var tdStatus = document.createElement('td');
+        tdStatus.className = 'status-cell';
+        var badgeCls = (typeof window.monStatusBadgeClass === 'function') ? window.monStatusBadgeClass(status) : 'badge bg-light text-dark border';
+        var badgeLbl = (typeof window.monStatusDisplayLabel === 'function') ? window.monStatusDisplayLabel(status) : status;
+        var spanBadge = document.createElement('span');
+        spanBadge.className = badgeCls;
+        spanBadge.textContent = badgeLbl;   // XSS-safe
+        tdStatus.appendChild(spanBadge);
+        tr.appendChild(tdStatus);
+
+        var tdScore = document.createElement('td');
+        tdScore.className = 'score-cell';
+        tdScore.innerHTML = '<span class="text-muted">—</span>';
+        tr.appendChild(tdScore);
+
+        var tdResult = document.createElement('td');
+        tdResult.className = 'result-cell text-muted';
+        tdResult.textContent = '—';
+        tr.appendChild(tdResult);
+
+        var tdDone = document.createElement('td');
+        tdDone.className = 'completedat-cell text-muted small';
+        tdDone.textContent = '—';
+        tr.appendChild(tdDone);
+
+        var tdAct = document.createElement('td');
+        if (typeof window.monBuildActionsHtml === 'function') {
+            tdAct.innerHTML = window.monBuildActionsHtml(
+                { sessionId: data.sessionId, status: status, UserStatus: status, fullName: data.fullName, nomorSertifikat: data.nomorSertifikat || null },
+                window.monIsPackageMode
+            );
+        }
+        tr.appendChild(tdAct);
+
+        activeBody.appendChild(tr);
+        if (typeof window.monFlashRow === 'function') window.monFlashRow(tr, 'flash-update');
+        if (typeof window.monClearAddedFallback === 'function') window.monClearAddedFallback(data.sessionId);
+    };
+
+    // participantAdded: peserta ditambah ATAU dipulihkan (Restore) — baris muncul live.
+    window.assessmentHub.on('participantAdded', function (data) {
+        // 1. Dedup baris aktif.
+        if (document.querySelector('tbody:not(#tbodyRemoved) tr[data-session-id="' + data.sessionId + '"]')) {
+            if (typeof window.monClearAddedFallback === 'function') window.monClearAddedFallback(data.sessionId);
+            return;
+        }
+        // 2. Kasus Restore: baris ada di #tbodyRemoved → hapus dari panel, lalu inject ulang ke aktif.
+        var removedTr = document.querySelector('#tbodyRemoved tr[data-session-id="' + data.sessionId + '"][data-removed="true"]');
+        if (removedTr) {
+            removedTr.remove();
+            decrementRemovedCount();
+        }
+        // 3. Inject baris aktif (baru atau hasil restore).
+        window.monInjectParticipantRow({
+            sessionId: data.sessionId,
+            fullName: data.fullName,
+            nip: data.nip,
+            status: data.status || 'Not started',
+            nomorSertifikat: data.nomorSertifikat || null
+        });
+        updateSummaryFromDOM();
+        if (typeof window.showAssessmentToast === 'function') {
+            window.showAssessmentToast((data.fullName || 'Peserta') + ' ditambahkan ke batch');
+        }
+        var el = document.getElementById('last-updated-time');
+        if (el) el.textContent = new Date().toLocaleTimeString('id-ID');
+    });
+
+    // participantRemoved: mode hard → hapus baris; soft → pindah ke panel "Peserta Dikeluarkan".
+    window.assessmentHub.on('participantRemoved', function (data) {
+        var tr = document.querySelector('tbody:not(#tbodyRemoved) tr[data-session-id="' + data.sessionId + '"]');
+        if (!tr) return;
+
+        if (data.mode === 'hard') {
+            tr.remove();   // hard-delete tak masuk panel (Pitfall 6)
+        } else {
+            // soft → bangun baris removed (XSS-safe via textContent — Pitfall 3)
+            var newTr = document.createElement('tr');
+            newTr.setAttribute('data-session-id', data.sessionId);
+            newTr.setAttribute('data-removed', 'true');
+
+            var tdName = document.createElement('td');
+            tdName.className = 'fw-semibold';
+            tdName.textContent = data.fullName || '';
+            if (data.nip) {
+                var brEl = document.createElement('br');
+                var smEl = document.createElement('small');
+                smEl.className = 'text-muted';
+                smEl.textContent = data.nip;
+                tdName.appendChild(brEl);
+                tdName.appendChild(smEl);
+            }
+            newTr.appendChild(tdName);
+
+            var tdWaktu = document.createElement('td');
+            tdWaktu.className = 'text-muted small';
+            tdWaktu.textContent = formatRemovedAt(data.removedAt);
+            newTr.appendChild(tdWaktu);
+
+            var tdOleh = document.createElement('td');
+            tdOleh.className = 'text-muted small';
+            tdOleh.textContent = data.removedBy || '—';
+            newTr.appendChild(tdOleh);
+
+            var tdReason = document.createElement('td');
+            tdReason.className = 'text-muted small';
+            tdReason.style.maxWidth = '200px';
+            tdReason.style.wordBreak = 'break-word';
+            tdReason.textContent = data.removalReason ? data.removalReason : '—';   // XSS-safe
+            newTr.appendChild(tdReason);
+
+            var tdAksi = document.createElement('td');
+            var btnRestore = document.createElement('button');
+            btnRestore.type = 'button';
+            btnRestore.className = 'btn btn-outline-success btn-sm btn-restore-peserta';
+            btnRestore.setAttribute('data-session-id', data.sessionId);
+            btnRestore.setAttribute('data-worker-name', data.fullName || '');
+            btnRestore.style.minHeight = '40px';
+            btnRestore.title = 'Pulihkan ke batch aktif';
+            btnRestore.innerHTML = '<i class="bi bi-arrow-counterclockwise me-1"></i>Restore';
+            tdAksi.appendChild(btnRestore);
+            newTr.appendChild(tdAksi);
+
+            var tbodyRemoved = document.getElementById('tbodyRemoved');
+            if (tbodyRemoved) {
+                tbodyRemoved.prepend(newTr);
+                incrementRemovedCount();
+                var panel = document.getElementById('panelPesertaDikeluarkan');
+                if (panel) panel.style.display = '';
+            }
+            tr.remove();
+        }
+        updateSummaryFromDOM();
+        if (typeof window.showAssessmentToast === 'function') {
+            window.showAssessmentToast((data.fullName || 'Peserta') + ' dikeluarkan dari batch');
+        }
+        var elLu = document.getElementById('last-updated-time');
+        if (elLu) elLu.textContent = new Date().toLocaleTimeString('id-ID');
+    });
+
+    function formatRemovedAt(iso) {
+        if (!iso) return '—';
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return '—';
+        return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+            + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+    }
+    function incrementRemovedCount() {
+        var el = document.getElementById('countRemoved');
+        if (el) el.textContent = (parseInt(el.textContent, 10) || 0) + 1;
+    }
+    function decrementRemovedCount() {
+        var el = document.getElementById('countRemoved');
+        if (el) el.textContent = Math.max(0, (parseInt(el.textContent, 10) || 0) - 1);
+    }
 </script>
 
 <script>
