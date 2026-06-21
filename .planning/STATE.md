@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.4
 milestone_name: Ujian Ulang (Attempt/Retake Assessment)
-status: planning
+status: executing
 stopped_at: Phase 405 context gathered
-last_updated: "2026-06-21T06:17:39.686Z"
-last_activity: 2026-06-21 — Milestone v32.4 started (requirements + roadmap activated)
+last_updated: "2026-06-21T06:51:01.870Z"
+last_activity: 2026-06-21 -- Phase 405 planning complete
 progress:
   total_phases: 37
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +28,8 @@ See: .planning/PROJECT.md
 Milestone: **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — 🚧 STARTED 2026-06-21 (branch ITHandoff)
 Phase: Not started (roadmap active, Phase 405 plan ready)
 Plan: —
-Status: Requirements promoted + roadmap active; ready to plan/execute Phase 405
-Last activity: 2026-06-21 — Milestone v32.4 started (requirements + roadmap activated)
+Status: Ready to execute
+Last activity: 2026-06-21 -- Phase 405 planning complete
 
 **v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21** (predecessor; archived `milestones/v32.3-*` + tag lokal `v32.3` HEAD `dcd7972a`; migration=TRUE Fase 399 `AddUserUnitsTable`; NOT pushed). **v32.1 — ✅ CLOSED** (archive-only, NOT pushed). Deploy v32.1+v32.3 bundle = user-owned (lihat Push IT).
 
