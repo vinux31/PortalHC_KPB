@@ -180,7 +180,7 @@
   1. Test multi-unit dijalankan di **SQL riil (SQLEXPRESS)** dengan fixture: pekerja {X,Y} dalam 1 Bagian + coach cross-unit + PROTON Tahun1@X → Tahun2@Y — bukan EF-InMemory (yang tak meng-enforce filtered-unique index). *(QA-01)*
   2. Test invariant **single-active** di SQL riil — coachee multi-unit T1@X → bypass/reassign T2@Y meng-assert **tepat 1 `ProtonTrackAssignment` aktif + 1 `CoachCoacheeMapping` aktif** (filtered-unique terjaga), termasuk jalur Reactivate + Import-reactivate. *(QA-03)*
   3. Test invariant **`AssignmentUnit ∈ coachee.UserUnits`** di setiap junction-write (Assign/Edit/Import/bypass TargetUnit/reactivate) + B-06 anti-dobel `ProtonDeliverableBootstrap` lintas-unit (CoacheeId sama, deliverable unit X vs Y tak saling skip) + `ProtonKompetensi.Unit` 1:1 per deliverable. *(QA-04)*
-  4. UAT lokal lulus (`dotnet build` + `dotnet run` localhost:5277 + cek DB lokal, Playwright bila ada) + docs mencatat batasan **D1=b** (cert/analytics atribusi primary unit). *(QA-02)*
+  4. UAT lokal lulus (`dotnet build` + `dotnet run` localhost:5270 + cek DB lokal, Playwright bila ada) + docs mencatat batasan **D1=b** (cert/analytics atribusi primary unit). *(QA-02)*
   5. `dotnet build` 0 error + `dotnet test` hijau (suite multi-unit SQL riil + suite existing tak regresi) + UAT browser sign-off; milestone siap 1 push → notify IT re-deploy Dev (**migration=TRUE** Phase 399, commit hash). *(semua REQ)*
 **Plans:** 4 plans (wave 1: 01 · wave 2: 02 ∥ 03 · wave 3: 04 [checkpoint UAT])
 - [ ] 404-01-PLAN.md — Wave 1: MultiUnitSqlFixture (MigrateAsync incl 399 + canonical {X,Y}/coach/PROTON seed) + implement CrossUnitAssignTests:105 single-active stub (QA-01/QA-03) [migration=FALSE]

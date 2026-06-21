@@ -44,7 +44,7 @@ Requirements untuk milestone v32.3. Tiap REQ map ke satu phase.
 ### Test & UAT (QA)
 
 - [ ] **QA-01**: Test multi-unit dijalankan di **SQL riil** (EF-InMemory tidak meng-enforce filtered-unique index) — fixture pekerja {X,Y} dalam 1 Bagian + coach cross-unit + PROTON Tahun1@X → Tahun2@Y.
-- [ ] **QA-02**: UAT lokal (build + run localhost:5277 + DB lokal, Playwright bila ada) + docs mencatat batasan **D1=b** (cert/analytics atribusi primary unit).
+- [ ] **QA-02**: UAT lokal (build + run localhost:5270 + DB lokal, Playwright bila ada) + docs mencatat batasan **D1=b** (cert/analytics atribusi primary unit).
 - [ ] **QA-03**: Test invariant **single-active** di SQL riil — coachee multi-unit T1@X → bypass/reassign T2@Y meng-assert tepat 1 `ProtonTrackAssignment` aktif + 1 `CoachCoacheeMapping` aktif (filtered-unique terjaga), termasuk jalur Reactivate + Import-reactivate.
 - [ ] **QA-04**: Test invariant **`AssignmentUnit ∈ coachee.UserUnits`** di setiap junction-write (Assign/Edit/Import/bypass TargetUnit/reactivate) + test B-06 anti-dobel `ProtonDeliverableBootstrap` lintas-unit (CoacheeId sama, deliverable unit X vs Y tidak saling skip) + `ProtonKompetensi.Unit` 1:1 per deliverable.
 
