@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.4
 milestone_name: Ujian Ulang (Attempt/Retake Assessment)
-status: verifying
-stopped_at: "Phase 406 context gathered (next: ui-phase)"
-last_updated: "2026-06-21T10:55:22.389Z"
-last_activity: 2026-06-21
+status: executing
+stopped_at: Phase 406 UI-SPEC approved (6/6) — next plan-phase
+last_updated: "2026-06-21T11:32:38.581Z"
+last_activity: 2026-06-21 -- Phase 406 planning complete
 progress:
   total_phases: 37
   completed_phases: 1
-  total_plans: 4
+  total_plans: 7
   completed_plans: 4
-  percent: 100
+  percent: 57
 ---
 
 # Project State: Portal HC KPB
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md
 Milestone: **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — 🚧 STARTED 2026-06-21 (branch ITHandoff)
 Phase: 405 (Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint) — ✅ ALL 4 PLANS COMPLETE
 Plan: 4 of 4
-Status: Phase complete — ready for verification (`/gsd-verify-work`)
-Last activity: 2026-06-21
+Status: Ready to execute
+Last activity: 2026-06-21 -- Phase 406 planning complete
 
 **v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21** (predecessor; archived `milestones/v32.3-*` + tag lokal `v32.3` HEAD `dcd7972a`; migration=TRUE Fase 399 `AddUserUnitsTable`; NOT pushed). **v32.1 — ✅ CLOSED** (archive-only, NOT pushed). Deploy v32.1+v32.3 bundle = user-owned (lihat Push IT).
 
@@ -125,6 +125,6 @@ Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted 
 
 Last activity: 2026-06-21
 
-Stopped at: Phase 406 context gathered (next: ui-phase)
+Stopped at: Phase 406 UI-SPEC approved (6/6) — next plan-phase
 
 Next action: `/clear` lalu **`/gsd-verify-work`** (verifier Phase 405 — semua 4 plan done; build 0 error, ResetGuardTests 2/2, unit 436/438, RetakeService integration 5/5). Setelah verify: `/gsd-plan-phase 406` + `/gsd-plan-phase 407` (paralel, depends 405). Wave eksekusi `405 → (406 ∥ 407) → 408`. App port 5270 (branch ITHandoff). NOT pushed. migration=TRUE carry 405-01 `AddRetakeColumnsAndArchive` `69db727a` (notify IT saat deploy bundle v32.4).
