@@ -19,17 +19,17 @@
 
 ### Hapus & Pulihkan Peserta (PRMV)
 
-- [ ] **PRMV-01**: Admin/HC dapat menghapus peserta dari assessment via kontrol di Monitoring Detail — peserta yang **belum mulai & tanpa data** dihapus bersih (hard-delete cascade), sedangkan peserta yang **sudah mulai/selesai/punya jawaban** di-**soft-remove** (baris + jawaban + skor + sertifikat dipertahankan/diarsip, ditandai `RemovedAt/RemovedBy/RemovalReason`).
+- [x] **PRMV-01**: Admin/HC dapat menghapus peserta dari assessment via kontrol di Monitoring Detail — peserta yang **belum mulai & tanpa data** dihapus bersih (hard-delete cascade), sedangkan peserta yang **sudah mulai/selesai/punya jawaban** di-**soft-remove** (baris + jawaban + skor + sertifikat dipertahankan/diarsip, ditandai `RemovedAt/RemovedBy/RemovalReason`).
 - [ ] **PRMV-02**: Menghapus peserta yang **sedang aktif** mengerjakan ujian mewajibkan **konfirmasi keras** lebih dulu, lalu peserta langsung **dikeluarkan dari layar ujian (force-kick)** via SignalR dengan pesan jelas.
 - [x] **PRMV-03**: Peserta yang telah dihapus **tidak dapat melanjutkan atau mensubmit** ujian (guard di `StartExam`/`SubmitExam`/`Hub.JoinBatch`) — jawaban setelah penghapusan tidak terhitung.
-- [ ] **PRMV-04**: Admin/HC dapat **memulihkan (restore)** peserta yang di-soft-remove sehingga peserta kembali aktif di batch dan muncul lagi di daftar aktif.
-- [ ] **PRMV-05**: Menghapus peserta pada assessment **Pre/Post** memperlakukan pasangan Pre+Post **sebagai satu unit** (kedua sesi konsisten — sama-sama hard-delete bila keduanya belum-mulai, atau sama-sama soft-remove bila salah satu sudah berdata).
+- [x] **PRMV-04**: Admin/HC dapat **memulihkan (restore)** peserta yang di-soft-remove sehingga peserta kembali aktif di batch dan muncul lagi di daftar aktif.
+- [x] **PRMV-05**: Menghapus peserta pada assessment **Pre/Post** memperlakukan pasangan Pre+Post **sebagai satu unit** (kedua sesi konsisten — sama-sama hard-delete bila keduanya belum-mulai, atau sama-sama soft-remove bila salah satu sudah berdata).
 
 ### Live & Integritas Tampilan (PLIV)
 
 - [ ] **PLIV-01**: Peserta yang di-soft-remove **dikecualikan dari semua daftar & perhitungan aktif** (monitoring, hasil, jumlah peserta, pass-rate, count sertifikat) dan ditampilkan terpisah di panel **"Peserta Dikeluarkan"** di Monitoring Detail.
 - [ ] **PLIV-02**: Penambahan & penghapusan peserta **tersiar live** ke semua Admin/HC yang sedang memantau batch via SignalR (`participantAdded`/`participantRemoved` — baris ter-inject/terhapus + ringkasan count ter-update) tanpa reload.
-- [ ] **PLIV-03**: Semua aksi tambah/hapus/restore **tercatat di audit** (siapa, kapan, alasan) dan hanya dapat dilakukan oleh **Admin atau HC** (RBAC + antiforgery di setiap endpoint).
+- [x] **PLIV-03**: Semua aksi tambah/hapus/restore **tercatat di audit** (siapa, kapan, alasan) dan hanya dapat dilakukan oleh **Admin atau HC** (RBAC + antiforgery di setiap endpoint).
 
 ---
 
@@ -60,14 +60,14 @@
 | PART-05 | 412 | pending |
 | PART-06 | 410 | Complete |
 | PART-07 | 410 | Complete |
-| PRMV-01 | 411 | pending |
+| PRMV-01 | 411 | Complete |
 | PRMV-02 | 412 | pending |
 | PRMV-03 | 409 | Complete |
-| PRMV-04 | 411 | pending |
-| PRMV-05 | 411 | pending |
+| PRMV-04 | 411 | Complete |
+| PRMV-05 | 411 | Complete |
 | PLIV-01 | 412 | pending |
 | PLIV-02 | 412 | pending |
-| PLIV-03 | 411 | pending |
+| PLIV-03 | 411 | Complete |
 
 **Phase mapping (5 fase, 409-413):**
 - **Phase 409** Data Foundation + Re-entry Guards + Exclude-Removed Query — PRMV-03 (migration=TRUE `AddParticipantRemovalColumns`; fondasi exclude-query untuk PLIV-01)

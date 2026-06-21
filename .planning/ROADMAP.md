@@ -111,7 +111,7 @@
   4. SEMUA aksi tambah/hapus/restore **tercatat di audit** (siapa via `RemovedBy`, kapan, alasan via `RemovalReason`) dan setiap endpoint hanya dapat diakses **Admin atau HC** (`[Authorize(Roles="Admin, HC")]` + `[ValidateAntiForgeryToken]`); `EnsureCanDeleteAsync` dilonggarkan untuk HC hapus Completed/bersertifikat dengan mitigasi soft-remove + audit; sesi **Proton** ditolak; stub `DeleteAssessmentPeserta` tak lagi broken. *(PLIV-03)*
   5. `dotnet build` 0 error + `dotnet test` hijau (integration: hard-delete not-started baris hilang + soft-remove in-progress `RemovedAt` set & response/Score utuh + soft-remove completed-certified `NomorSertifikat`/file preserved & excluded dari list aktif + idempotent no-op + restore muncul lagi + Pre/Post pair konsisten + audit row tertulis + Proton tolak) + `dotnet run` (localhost:5277). migration=FALSE. *(PRMV-01, PRMV-04, PRMV-05, PLIV-03)*
 **Plans:** 2 plans
-- [ ] 411-01-PLAN.md — RemoveParticipantCoreAsync (hybrid hard/soft + Pre/Post pair via LinkedSessionId + audit) + RemoveParticipantLive/RestoreParticipantLive (JSON) + DeleteAssessmentPeserta (redirect, fix stub) + RBAC/antiforgery/Proton-reject + un-hide form view
+- [x] 411-01-PLAN.md — RemoveParticipantCoreAsync (hybrid hard/soft + Pre/Post pair via LinkedSessionId + audit) + RemoveParticipantLive/RestoreParticipantLive (JSON) + DeleteAssessmentPeserta (redirect, fix stub) + RBAC/antiforgery/Proton-reject + un-hide form view
 - [ ] 411-02-PLAN.md — FlexibleParticipantRemoveTests de-tautologis (read-path InMemory: Proton/idempotency/restore-guard; write-path SQLEXPRESS: soft preserve cert/score, reason-wajib, Pre/Post pair, audit; hard-delete via mini-DI service-provider stub: row+UPA gone D-01)
 **UI hint:** yes
 
@@ -170,7 +170,7 @@
 |-------|----------------|--------|-----------|
 | 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 2/2 | Complete    | 2026-06-21 |
 | 410. Add-Participant Backend Live (PART-06 + PART-07) | 2/2 | Complete   | 2026-06-21 |
-| 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 0/2 | Planned | - |
+| 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 1/2 | In Progress|  |
 | 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 0/? | Not started | - |
 | 413. Test + UAT | 0/? | Not started | - |
 | 414. Fix Visibilitas History Jawaban Admin/HC (AllowAnswerReview OFF, off-theme) | 0/? | Not started | - |
