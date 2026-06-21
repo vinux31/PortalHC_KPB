@@ -353,22 +353,13 @@ window.assessmentHub.on('participantRemoved', function(data) {
 
 **Catatan:** Semua klaim infrastruktur (endpoint, `_hubContext`, helper, batchKey, examClosed pattern) = `[VERIFIED: codebase file:line]`, BUKAN assumed. Tabel di atas hanya keputusan implementasi minor yang planner finalisasi.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Kondisi exact kirim `examRemoved`**
-   - What we know: kirim bila peserta InProgress; `Clients.User(userId)` pattern siap (`:4905`).
-   - What's unclear: apakah kirim juga untuk Completed-cert (soft) — biasanya worker sudah tak di halaman ujian.
-   - Recommendation: Kirim HANYA bila `session.StartedAt != null && session.CompletedAt == null` (benar-benar di tengah ujian) sebelum mutasi soft. Completed tak perlu kick.
+1. **Kondisi exact kirim `examRemoved`** — **RESOLVED:** kirim HANYA bila `session.StartedAt != null && session.CompletedAt == null && session.RemovedAt == null` (benar-benar di tengah ujian), di-capture sebagai `wasInProgress` SEBELUM core mutasi. Diterapkan di Plan 412-01 Task 1b. Completed tak di-kick.
 
-2. **Bentuk payload `participantRemoved` untuk Pre/Post pair**
-   - What we know: 411 soft-remove memperlakukan Pre+Post sebagai unit; `linkedSessionId` ada di outcome JSON (`:2577`).
-   - What's unclear: apakah broadcast 1 event (dengan partnerId) atau 2 event (per sesi).
-   - Recommendation: Broadcast 2 event `participantRemoved` (satu per sesi yang ter-soft-remove) agar client pindahkan kedua baris konsisten; atau 1 event + client cari partner. Planner pilih; pertimbangkan tampilan Monitoring Detail biasanya difilter per `assessmentType` (Pre ATAU Post per layar).
+2. **Bentuk payload `participantRemoved` untuk Pre/Post pair** — **RESOLVED:** broadcast **2 event** `participantRemoved` (satu per sesi ter-soft-remove) via `outcome.PartnerId` — client pindahkan kedua baris konsisten. Diterapkan di Plan 412-01 Task 1b.
 
-3. **IN-02 (411 deferred): EditAssessment query exclude soft-removed**
-   - What we know: CONTEXT tandai sebagai kandidat 412 atau backlog.
-   - What's unclear: apakah inkonsistensi tampilan EditAssessment (masih tampilkan removed) mengganggu UAT.
-   - Recommendation: Keluarkan dari 412 (scope UI Monitoring saja). Tetap 413/backlog kecuali planner lihat dampak langsung.
+3. **IN-02 (411 deferred): EditAssessment query exclude soft-removed** — **RESOLVED:** **dikeluarkan dari scope 412** (UI Monitoring saja). Tetap di 413/backlog. Tidak ada plan 412 menyentuhnya.
 
 ## Environment Availability
 
