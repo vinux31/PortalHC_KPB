@@ -43,10 +43,10 @@ Requirements untuk milestone v32.3. Tiap REQ map ke satu phase.
 
 ### Test & UAT (QA)
 
-- [ ] **QA-01**: Test multi-unit dijalankan di **SQL riil** (EF-InMemory tidak meng-enforce filtered-unique index) — fixture pekerja {X,Y} dalam 1 Bagian + coach cross-unit + PROTON Tahun1@X → Tahun2@Y.
-- [ ] **QA-02**: UAT lokal (build + run localhost:5270 + DB lokal, Playwright bila ada) + docs mencatat batasan **D1=b** (cert/analytics atribusi primary unit).
-- [ ] **QA-03**: Test invariant **single-active** di SQL riil — coachee multi-unit T1@X → bypass/reassign T2@Y meng-assert tepat 1 `ProtonTrackAssignment` aktif + 1 `CoachCoacheeMapping` aktif (filtered-unique terjaga), termasuk jalur Reactivate + Import-reactivate.
-- [ ] **QA-04**: Test invariant **`AssignmentUnit ∈ coachee.UserUnits`** di setiap junction-write (Assign/Edit/Import/bypass TargetUnit/reactivate) + test B-06 anti-dobel `ProtonDeliverableBootstrap` lintas-unit (CoacheeId sama, deliverable unit X vs Y tidak saling skip) + `ProtonKompetensi.Unit` 1:1 per deliverable.
+- [x] **QA-01**: Test multi-unit dijalankan di **SQL riil** (EF-InMemory tidak meng-enforce filtered-unique index) — fixture pekerja {X,Y} dalam 1 Bagian + coach cross-unit + PROTON Tahun1@X → Tahun2@Y.
+- [x] **QA-02**: UAT lokal (build + run localhost:5270 + DB lokal, Playwright bila ada) + docs mencatat batasan **D1=b** (cert/analytics atribusi primary unit).
+- [x] **QA-03**: Test invariant **single-active** di SQL riil — coachee multi-unit T1@X → bypass/reassign T2@Y meng-assert tepat 1 `ProtonTrackAssignment` aktif + 1 `CoachCoacheeMapping` aktif (filtered-unique terjaga), termasuk jalur Reactivate + Import-reactivate.
+- [x] **QA-04**: Test invariant **`AssignmentUnit ∈ coachee.UserUnits`** di setiap junction-write (Assign/Edit/Import/bypass TargetUnit/reactivate) + test B-06 anti-dobel `ProtonDeliverableBootstrap` lintas-unit (CoacheeId sama, deliverable unit X vs Y tidak saling skip) + `ProtonKompetensi.Unit` 1:1 per deliverable.
 
 ## v2 Requirements (Future / deferred)
 
@@ -89,10 +89,10 @@ Diisi saat pembuatan roadmap.
 | CXU-05 | Phase 402 | Complete |
 | ORG-01 | Phase 403 | Complete |
 | ORG-02 | Phase 403 | Complete |
-| QA-01 | Phase 404 | Pending |
-| QA-02 | Phase 404 | Pending |
-| QA-03 | Phase 404 | Pending |
-| QA-04 | Phase 404 | Pending |
+| QA-01 | Phase 404 | Complete |
+| QA-02 | Phase 404 | Complete |
+| QA-03 | Phase 404 | Complete |
+| QA-04 | Phase 404 | Complete |
 
 **Coverage:**
 - v1 requirements: 24 total (MU 7, PSU 6, CXU 5, ORG 2, QA 4)
