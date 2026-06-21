@@ -2541,6 +2541,92 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
         }
 
+        // ===================================================================================
+        // PHASE 411 — REMOVE + RESTORE PESERTA LIVE (hybrid by-state + Pre/Post pair-as-unit)
+        // Private shared core (RemoveParticipantCoreAsync) dibungkus 3 endpoint:
+        //   RemoveParticipantLive (JSON) · RestoreParticipantLive (JSON) · DeleteAssessmentPeserta (redirect).
+        // D-03: TIDAK sentuh _hubContext (broadcast = Phase 412). migration=FALSE (set/clear kolom 409).
+        // ===================================================================================
+
+        // Hasil RemoveParticipantCoreAsync — dikonsumsi wrapper JSON + redirect.
+        private readonly struct RemoveOutcome
+        {
+            public bool Ok { get; init; }
+            public string Mode { get; init; }        // "hard" | "soft" | "noop"
+            public string Message { get; init; }     // pesan user-facing (sukses/error)
+            public int? PartnerId { get; init; }      // LinkedSessionId pasangan (null jika bukan Pre/Post)
+            public static RemoveOutcome Fail(string msg) => new() { Ok = false, Mode = "", Message = msg, PartnerId = null };
+            public static RemoveOutcome Success(string mode, string msg, int? partnerId) => new() { Ok = true, Mode = mode, Message = msg, PartnerId = partnerId };
+        }
+
+        // Has-data detection (D-01). UPA eager (410) SENGAJA tak dihitung — bukan jejak pengerjaan.
+        private async Task<bool> SessionHasDataAsync(AssessmentSession s)
+        {
+            if (s.StartedAt != null) return true;                       // sudah mulai = berdata
+            return await _context.PackageUserResponses
+                .AnyAsync(r => r.AssessmentSessionId == s.Id);          // ada jawaban = berdata
+            // D-01: UserPackageAssignment (eager 410) SENGAJA TIDAK dihitung — bukan jejak pengerjaan.
+        }
+
+        // JANTUNG fase — orkestrasi hybrid by-state. Caller (wrapper) SUDAH load session + cek Proton + idempotency.
+        // Urutan WAJIB (Pitfall 5): resolve partner → evaluasi gabungan has-data → reason-gate D-02 → eksekusi → audit.
+        private async Task<RemoveOutcome> RemoveParticipantCoreAsync(AssessmentSession session, string? reason, string actorId, string actorName)
+        {
+            // 1. Resolve partner Pre/Post via LinkedSessionId (Pitfall 1 — BUKAN LinkedGroupId, BUKAN DeletePrePostGroup).
+            AssessmentSession? partner = null;
+            if (IsPrePostSession(session) && session.LinkedSessionId.HasValue)
+                partner = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value);
+
+            // 2. Evaluasi GABUNGAN has-data: salah satu berdata → soft KEDUANYA; keduanya bersih → hard KEDUANYA.
+            bool anyHasData = await SessionHasDataAsync(session)
+                              || (partner != null && await SessionHasDataAsync(partner));
+
+            // 3. Reason-gate (D-02) — SETELAH evaluasi jalur, SEBELUM eksekusi. Wajib HANYA pada jalur soft.
+            if (anyHasData && string.IsNullOrWhiteSpace(reason))
+                return RemoveOutcome.Fail("Alasan penghapusan wajib diisi.");
+
+            // Capture konteks audit SEBELUM mutasi/hapus (partner navigasi bisa stale pasca-cascade).
+            int sessionId = session.Id;
+            int? partnerId = partner?.Id;
+            string title = session.Title;
+
+            if (anyHasData)
+            {
+                // 4. Jalur SOFT — set 3 kolom removal untuk session + partner. JANGAN sentuh Score/IsPassed/
+                //    NomorSertifikat/ManualSertifikatUrl/Status/response (Pitfall 2). Cert utuh + reversibel.
+                foreach (var s in new[] { session, partner }.Where(x => x != null))
+                {
+                    s!.RemovedAt = DateTime.UtcNow;   // SUMBER KEBENARAN "removed"
+                    s.RemovedBy = actorId;            // userId Admin/HC
+                    s.RemovalReason = reason;         // WAJIB pada jalur soft (D-02)
+                }
+                await _context.SaveChangesAsync();
+
+                await _auditLog.LogAsync(actorId, actorName, "RemoveParticipantLive",
+                    $"Removed participant session [ID={sessionId}] '{title}' mode=soft reason='{reason}'",
+                    sessionId, "AssessmentSession");
+
+                return RemoveOutcome.Success("soft", "Peserta dikeluarkan (data diarsip, dapat dipulihkan).", partnerId);
+            }
+
+            // 5. Jalur HARD — bersih (belum-mulai + 0 response). Cascade hapus 9 artefak + UPA (D-01) dalam 1-tx.
+            //    Keputusan #5: TIDAK panggil EnsureCanDeleteAsync (hard hanya not-started → guard no-op natural).
+            var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
+            foreach (var s in new[] { session, partner }.Where(x => x != null))
+            {
+                var result = await cascade.ExecuteAsync("session", s!.Id, Enumerable.Empty<int>(), actorId, actorName);
+                if (!result.Success)
+                    return RemoveOutcome.Fail(result.ErrorMessage ?? "Gagal menghapus peserta.");
+            }
+
+            // 6. Audit endpoint (cascade tulis "CascadeDelete" internal; tambah konteks user-facing — double-log).
+            await _auditLog.LogAsync(actorId, actorName, "RemoveParticipantLive",
+                $"Removed participant session [ID={sessionId}] '{title}' mode=hard reason='{reason}'",
+                sessionId, "AssessmentSession");
+
+            return RemoveOutcome.Success("hard", "Peserta dihapus.", partnerId);
+        }
+
         // --- DELETE ASSESSMENT ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
