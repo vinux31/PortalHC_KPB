@@ -130,7 +130,7 @@
 **Plans:** 3 plans (wave 1 → wave 2∥2)
 - [x] 412-01-PLAN.md — Broadcast post-commit (participantAdded/participantRemoved/examRemoved) ke 3 endpoint 410/411 + query removedSessions + RemovedParticipantViewModel (PLIV-01/02 + PRMV-02 server)
 - [x] 412-02-PLAN.md — Monitoring Detail UI: picker Tambah + modal hapus keras/ringan + panel "Peserta Dikeluarkan" + Restore + handler SignalR DOM (PART-05 + PRMV-02 UI + PLIV-01/02 UI)
-- [ ] 412-03-PLAN.md — StartExam force-kick: handler examRemoved + modal #examRemovedModal (mirror examClosed) → lock UI + redirect daftar Assessment (PRMV-02 worker)
+- [x] 412-03-PLAN.md — StartExam force-kick: handler examRemoved + modal #examRemovedModal (mirror examClosed) → lock UI + redirect daftar Assessment (PRMV-02 worker)
 **UI hint:** yes
 
 ### Phase 413: Test + UAT
@@ -174,7 +174,7 @@
 | 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 2/2 | Complete    | 2026-06-21 |
 | 410. Add-Participant Backend Live (PART-06 + PART-07) | 2/2 | Complete   | 2026-06-21 |
 | 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 2/2 | Complete   | 2026-06-21 |
-| 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 2/3 | In Progress|  |
+| 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 3/3 | Complete   | 2026-06-21 |
 | 413. Test + UAT | 0/? | Not started | - |
 | 414. Fix Visibilitas History Jawaban Admin/HC (AllowAnswerReview OFF, off-theme) | 0/? | Not started | - |
 

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: executing
-stopped_at: Completed 412-02-PLAN.md
-last_updated: "2026-06-21T08:26:08.363Z"
-last_activity: 2026-06-21 -- Phase 412-01 executed (server-side SignalR + query)
+stopped_at: Completed 412-03-PLAN.md
+last_updated: "2026-06-21T08:39:38.181Z"
+last_activity: 2026-06-21 -- Phase 412-02 executed (UI panel/modal + SignalR DOM handlers + runtime smoke @5277)
 progress:
   total_phases: 17
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
-  percent: 89
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -195,6 +195,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 412-02-PLAN.md
+Stopped at: Completed 412-03-PLAN.md
 
 Next action: **Phase 411 COMPLETE (2/2 plan).** Plan 01 backend = core + 3 endpoint + un-hide form (`764516d0`+`220382ec`); Plan 02 test = 15 test de-tautologis (`cafd641d` read+soft + `3ec00420` hard-delete mini-DI; full suite **596/596**, 15/15 hijau filter `~FlexibleParticipantRemove`). migration=FALSE; NOT pushed. **NEXT: `/gsd-verify-work 411`** (verify gate — build 0 error + suite 596/596 + 15 test FlexibleParticipantRemove de-tautologis; SQLEXPRESS write-path BENAR run, DB test auto-disposed) → lalu **412 (UI+SignalR**, depends 410+411; konsumsi JSON outcome `{sessionId, mode, linkedSessionId}` + escape `RemovalReason` carry T-409-10) → 413 (test+UAT). **Mini-DI pattern 411-02 (`BuildCascadeServiceProvider`/`StubWebHostEnvironment`/`MakeLiveControllerWithCascade`) reusable** untuk fase yang drive cascade lewat `HttpContext.RequestServices`. Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0`; 410+411 + 412-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.
