@@ -338,17 +338,17 @@ public string? RemovalReason { get; set; }
 | A2 | `GetDeleteImpact`/`GetAkhiriSemuaCounts`/`ExportAssessmentResults`/`BulkExportPdf` TIDAK di-exclude di 409 (bukan "daftar peserta aktif" dalam arti monitoring; surface aksi/ekspor). | Summary + Boundary | Bila spec §D "hasil/grading list" dimaksud termasuk ekspor, sesi removed muncul di ekspor batch. Mitigasi: kecil (ekspor jarang; removed jarang). Planner konfirmasi cakupan literal §D. |
 | A3 | EF scaffolder (tool 10.0.3) menghasilkan snapshot `ProductVersion 8.0.x` (pakai design assembly project), bukan 10.x. | Pitfall 5 | Bila snapshot ter-stamp 10.x → build/runtime annotation mismatch. Mitigasi: review snapshot + pin tool 8.0.0. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Cakupan exclude literal §D "hasil/grading list + cert-count + pass-rate"**
+1. **Cakupan exclude literal §D "hasil/grading list + cert-count + pass-rate"** — **RESOLVED: A2 OUT scope.**
    - What we know: §D menyebut "Hasil/grading list, cert count, pass-rate" dalam konteks hasil-batch. 3 query monitoring jelas in-scope. `UserAssessmentHistory :5262` jelas out (per-pekerja, D-01a).
    - What's unclear: Apakah `ExportAssessmentResults`/`BulkExportPdf`/`GetDeleteImpact.certCount` termasuk "cert count hasil-batch"?
-   - Recommendation: Default ke **minimal** (3 query monitoring saja) sesuai prinsip blast-radius minimal D-01a + STATE Open Concern (c). Flag A2 untuk konfirmasi planner.
+   - **RESOLUTION (orchestrator, 2026-06-21):** A2 = **OUT scope 409** — minimal 3 query monitoring saja (D-01a blast-radius minimal). Diimplementasikan Plan 02 Task 3 + dicatat Deferred. Revisit 412/413 bila perlu.
 
-2. **Guard SignalR answer-write (A1)**
+2. **Guard SignalR answer-write (A1)** — **RESOLVED: A1 IN scope.**
    - What we know: Spec §E = 3 guard. PRMV-03 = "jawaban tak terhitung".
    - What's unclear: Apakah guard Save* masuk 409 atau cukup SubmitExam-discard.
-   - Recommendation: Tambahkan guard Save* (1 baris masing-masing) sebagai defense-in-depth murah; bila planner pegang ketat spec literal, defer ke 412 (force-kick) — tapi catat sebagai gap PRMV-03.
+   - **RESOLUTION (orchestrator, 2026-06-21):** A1 = **IN scope 409** — guard `&& RemovedAt==null` di `SaveTextAnswer`/`SaveMultipleAnswer` (defense-in-depth PRMV-03 "jawaban tak terhitung"). Diimplementasikan Plan 02 Task 2 section D.
 
 ## Environment Availability
 
