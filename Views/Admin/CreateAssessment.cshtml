@@ -549,6 +549,31 @@
                                     </div>
                                     <div class="form-text text-muted">Saat aktif, urutan pilihan jawaban (A, B, C, D) diacak berbeda di setiap soal untuk tiap peserta — jawaban benar tetap dinilai dengan benar, hanya posisinya yang berpindah. Saat nonaktif, urutan pilihan jawaban tampil sama untuk semua peserta sesuai urutan yang tersimpan di sistem.</div>
                                 </div>
+                                <!-- Ujian Ulang (v32.4 RTK-05 binding) -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">
+                                        <i class="bi bi-arrow-repeat text-primary me-1"></i>Ujian Ulang
+                                    </label>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" asp-for="AllowRetake" id="AllowRetake" />
+                                        <label class="form-check-label" for="AllowRetake">Izinkan Ujian Ulang</label>
+                                    </div>
+                                    <div class="form-text text-muted mb-2">Saat aktif, peserta yang gagal boleh mengulang ujian ini secara mandiri (di bawah batas percobaan dan setelah masa jeda).</div>
+                                    <div id="retakeFieldsCreate" class="@(Model.AllowRetake ? "" : "d-none")">
+                                        <div class="mb-2">
+                                            <label asp-for="MaxAttempts" class="form-label fw-bold">Maksimal Percobaan</label>
+                                            <input asp-for="MaxAttempts" type="number" class="form-control" min="1" max="5" id="MaxAttempts" />
+                                            <div class="form-text text-muted">Berapa kali peserta boleh mencoba (termasuk percobaan pertama). Rentang 1–5.</div>
+                                            <span asp-validation-for="MaxAttempts" class="text-danger"></span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label asp-for="RetakeCooldownHours" class="form-label fw-bold">Jeda Ujian Ulang (jam)</label>
+                                            <input asp-for="RetakeCooldownHours" type="number" class="form-control" min="0" max="168" id="RetakeCooldownHours" />
+                                            <div class="form-text text-muted">Jeda minimal sebelum boleh mencoba lagi. 0 = tanpa jeda. Satuan: jam (maksimal 168 = 7 hari).</div>
+                                            <span asp-validation-for="RetakeCooldownHours" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1434,6 +1459,16 @@ function generateToken() {
     if (tokenCheckbox) {
         tokenCheckbox.addEventListener('change', toggleTokenSection);
         toggleTokenSection(); // Init on load
+    }
+
+    // ---- Event: Ujian Ulang progressive disclosure (v32.4 RTK-05) ----
+    // asp-for="AllowRetake" emits id="AllowRetake"; reveal #retakeFieldsCreate when ON.
+    var allowRetakeCb = document.getElementById('AllowRetake');
+    var retakeFieldsCreate = document.getElementById('retakeFieldsCreate');
+    if (allowRetakeCb && retakeFieldsCreate) {
+        allowRetakeCb.addEventListener('change', function () {
+            retakeFieldsCreate.classList.toggle('d-none', !this.checked);
+        });
     }
 
     // ---- Event: Section filter + text search ----

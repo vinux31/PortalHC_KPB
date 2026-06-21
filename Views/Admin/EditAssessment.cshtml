@@ -410,6 +410,32 @@
                                 </div>
                                 <div class="form-text text-muted">Peserta dapat melihat jawaban benar/salah setelah selesai</div>
                             </div>
+
+                            <!-- Ujian Ulang (v32.4 RTK-05 binding) -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-arrow-repeat text-primary me-1"></i>Ujian Ulang
+                                </label>
+                                <div class="form-check form-switch mb-2">
+                                    <input asp-for="AllowRetake" class="form-check-input" type="checkbox" id="AllowRetake">
+                                    <label class="form-check-label" for="AllowRetake">Izinkan Ujian Ulang</label>
+                                </div>
+                                <div class="form-text text-muted mb-2">Saat aktif, peserta yang gagal boleh mengulang ujian ini secara mandiri (di bawah batas percobaan dan setelah masa jeda).</div>
+                                <div id="retakeFieldsEdit" class="@(Model.AllowRetake ? "" : "d-none")">
+                                    <div class="mb-2">
+                                        <label asp-for="MaxAttempts" class="form-label fw-semibold">Maksimal Percobaan</label>
+                                        <input asp-for="MaxAttempts" type="number" class="form-control" min="1" max="5" id="MaxAttempts" />
+                                        <span asp-validation-for="MaxAttempts" class="text-danger"></span>
+                                        <div class="form-text text-muted">Berapa kali peserta boleh mencoba (termasuk percobaan pertama). Rentang 1–5.</div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label asp-for="RetakeCooldownHours" class="form-label fw-semibold">Jeda Ujian Ulang (jam)</label>
+                                        <input asp-for="RetakeCooldownHours" type="number" class="form-control" min="0" max="168" id="RetakeCooldownHours" />
+                                        <span asp-validation-for="RetakeCooldownHours" class="text-danger"></span>
+                                        <div class="form-text text-muted">Jeda minimal sebelum boleh mencoba lagi. 0 = tanpa jeda. Satuan: jam (maksimal 168 = 7 hari).</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Terbitkan Sertifikat & Tanggal Tutup Ujian -->
@@ -678,6 +704,17 @@
 
     <script>
         initFormLoading('editAssessmentForm', 'Menyimpan...');
+
+        // Ujian Ulang progressive disclosure (v32.4 RTK-05).
+        // asp-for="AllowRetake" emits id="AllowRetake"; reveal #retakeFieldsEdit when ON.
+        (function () {
+            var allowRetakeCb = document.getElementById('AllowRetake');
+            var retakeFieldsEdit = document.getElementById('retakeFieldsEdit');
+            if (!allowRetakeCb || !retakeFieldsEdit) return;
+            allowRetakeCb.addEventListener('change', function () {
+                retakeFieldsEdit.classList.toggle('d-none', !this.checked);
+            });
+        })();
 
         // Helper: reset submit button loading state when validation fails
         function resetSubmitButton() {
