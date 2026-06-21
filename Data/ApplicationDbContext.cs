@@ -67,6 +67,9 @@ namespace HcPortal.Data
         // Attempt History — Phase 46
         public DbSet<AssessmentAttemptHistory> AssessmentAttemptHistory { get; set; }
 
+        // Attempt Response Archive (snapshot per-soal) — v32.4 RTK-02
+        public DbSet<AssessmentAttemptResponseArchive> AssessmentAttemptResponseArchives { get; set; } = null!;
+
         // Deliverable Status History — Phase 117
         public DbSet<DeliverableStatusHistory> DeliverableStatusHistories { get; set; }
 
@@ -578,6 +581,17 @@ namespace HcPortal.Data
                 entity.HasIndex(h => h.UserId);
                 entity.HasIndex(h => new { h.UserId, h.Title });
                 entity.Property(h => h.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // ========== Attempt Response Archive (v32.4 RTK-02) ==========
+            // Snapshot per-soal per attempt; cascade dari AttemptHistory.
+            builder.Entity<AssessmentAttemptResponseArchive>(entity =>
+            {
+                entity.HasIndex(e => e.AttemptHistoryId);
+                entity.HasOne(e => e.AttemptHistory)
+                      .WithMany()
+                      .HasForeignKey(e => e.AttemptHistoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ========== Deliverable Status History (Phase 117) ==========

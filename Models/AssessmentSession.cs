@@ -41,6 +41,18 @@ namespace HcPortal.Models
         [Display(Name = "Acak Pilihan Jawaban")]
         public bool ShuffleOptions { get; set; } = true;
 
+        // ===== v32.4 Retake config (mirror Shuffle pattern) =====
+        [Display(Name = "Izinkan Ujian Ulang")]
+        public bool AllowRetake { get; set; } = false;
+
+        [Range(1, 5)]
+        [Display(Name = "Maksimal Percobaan")]
+        public int MaxAttempts { get; set; } = 2;
+
+        [Range(0, 168)] // 0 = tanpa jeda; cap 1 minggu
+        [Display(Name = "Jeda Ujian Ulang (jam)")]
+        public int RetakeCooldownHours { get; set; } = 24;
+
         public bool? IsPassed { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime? StartedAt { get; set; }
