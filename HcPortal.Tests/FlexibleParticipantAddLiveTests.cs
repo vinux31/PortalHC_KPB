@@ -299,13 +299,15 @@ public class FlexibleParticipantAddLiveWriteTests : IClassFixture<FlexiblePartic
 
     private static async Task<int> SeedRepSessionAsync(ApplicationDbContext ctx, string userId, string title,
         string category, DateTime schedule, string status, DateTime? examWindowCloseDate = null,
-        string? assessmentType = null, int? linkedGroupId = null)
+        string? assessmentType = null, int? linkedGroupId = null, bool generateCertificate = false,
+        int durationMinutes = 60)
     {
         var s = new AssessmentSession
         {
             UserId = userId, Title = title, Category = category, Status = status, AccessToken = "",
-            Schedule = schedule, DurationMinutes = 60, PassPercentage = 70, Progress = 0,
-            ExamWindowCloseDate = examWindowCloseDate, AssessmentType = assessmentType, LinkedGroupId = linkedGroupId
+            Schedule = schedule, DurationMinutes = durationMinutes, PassPercentage = 70, Progress = 0,
+            ExamWindowCloseDate = examWindowCloseDate, AssessmentType = assessmentType, LinkedGroupId = linkedGroupId,
+            GenerateCertificate = generateCertificate
         };
         ctx.AssessmentSessions.Add(s);
         await ctx.SaveChangesAsync();
@@ -493,26 +495,39 @@ public class FlexibleParticipantAddLiveWriteTests : IClassFixture<FlexiblePartic
         Assert.False(await verify.AssessmentSessions.AnyAsync(a => a.Title == title && a.UserId == newUser));
     }
 
-    // T9 (Pre/Post pair, PART-07): rep AssessmentType "PreTest" + LinkedGroupId set → AddParticipantsLive ASLI →
-    //     2 sesi baru (PreTest+PostTest) untuk user, LinkedSessionId cross-set, keduanya ready-status.
+    // T9 (Pre/Post pair, PART-07 + WR-01 regression guard): batch Pre/Post realistis — existing PreTest **dan**
+    //     PostTest sibling dengan PostSchedule LEBIH LAMBAT + window/duration/cert DISTINCT. Caller passing PreTest
+    //     sebagai rep → AddParticipantsLive ASLI → 2 sesi baru. WR-01: newPost WAJIB inherit config sesi POST
+    //     (Schedule/window/duration/cert), BUKAN Pre's; newPre WAJIB cert=false. Tanpa fix WR-01 (single-rep), newPost
+    //     ikut config Pre → test ini GAGAL (regression guard). + LinkedSessionId cross-set, keduanya ready-status.
     [Fact]
     public async Task AddParticipantsLive_PrePost_CreatesPair_WithCrossLink()
     {
         var title = "Live-PrePost-" + Guid.NewGuid().ToString("N")[..8];
         const string cat = "OJT";
-        var schedule = DateTime.UtcNow.AddHours(7).AddHours(-1);
+        // Schedule keduanya lampau (WIB) → DeriveReadyStatus = Open. Post LEBIH LAMBAT dari Pre (cermin PostSchedule > PreSchedule).
+        var preSched  = DateTime.UtcNow.AddHours(7).AddHours(-3);            // Pre lebih awal
+        var postSched = DateTime.UtcNow.AddHours(7).AddHours(-1);            // Post lebih lambat (tanggal beda dari Pre bila lewat tengah malam — pakai .Date assert)
+        // Window DISTINCT antar Pre/Post: keduanya masih terbuka (di masa depan) tapi tanggal beda → assert tak ketukar.
+        var preWindow  = DateTime.UtcNow.AddHours(7).AddDays(3);
+        var postWindow = DateTime.UtcNow.AddHours(7).AddDays(10);           // window Post jauh lebih lama
+        const int preDuration = 45, postDuration = 90;                      // durasi DISTINCT
         const int linkedGroupId = 777;
         string repUser, newUser, actorId;
-        int repId;
+        int preRepId;
 
         await using (var seed = NewCtx())
         {
             repUser = await SeedUserAsync(seed);
             newUser = await SeedUserAsync(seed, "Peserta PrePost");
             actorId = await SeedUserAsync(seed, "Admin Actor", "00005");
-            // Rep = PreTest dengan LinkedGroupId → branch Pre/Post di AddParticipantsLive.
-            repId = await SeedRepSessionAsync(seed, repUser, title, cat, schedule, S.Open,
-                assessmentType: "PreTest", linkedGroupId: linkedGroupId);
+            // Existing batch Pre/Post peserta lama: PreTest (cert=false) + PostTest sibling (cert=true, schedule/window/durasi beda).
+            preRepId = await SeedRepSessionAsync(seed, repUser, title, cat, preSched, S.Open,
+                examWindowCloseDate: preWindow, assessmentType: "PreTest", linkedGroupId: linkedGroupId,
+                generateCertificate: false, durationMinutes: preDuration);
+            await SeedRepSessionAsync(seed, repUser, title, cat, postSched, S.Open,
+                examWindowCloseDate: postWindow, assessmentType: "PostTest", linkedGroupId: linkedGroupId,
+                generateCertificate: true, durationMinutes: postDuration);
         }
 
         await using (var act = NewCtx())
@@ -520,7 +535,8 @@ public class FlexibleParticipantAddLiveWriteTests : IClassFixture<FlexiblePartic
             var actor = await act.Users.FindAsync(actorId);
             var ctrl = MakeLiveController(act, actor!);
 
-            var result = await ctrl.AddParticipantsLive(repId, new List<string> { newUser });
+            // Caller passing PreTest sebagai rep (kasus paling mungkin — monitoring surface rep).
+            var result = await ctrl.AddParticipantsLive(preRepId, new List<string> { newUser });
             Assert.IsType<JsonResult>(result);
         }
 
@@ -536,6 +552,17 @@ public class FlexibleParticipantAddLiveWriteTests : IClassFixture<FlexiblePartic
         Assert.Equal(newPre.Id, newPost.LinkedSessionId);                    // cross-link Post → Pre
         Assert.Equal(linkedGroupId, newPre.LinkedGroupId);
         Assert.Equal(linkedGroupId, newPost.LinkedGroupId);
+
+        // === WR-01 REGRESSION GUARD: newPost WAJIB inherit config sesi POST, BUKAN Pre's. ===
+        Assert.Equal(postSched.Date, newPost.Schedule.Date);                // Post pakai jadwal Post, bukan Pre
+        Assert.Equal(preSched.Date,  newPre.Schedule.Date);                 // Pre pakai jadwal Pre
+        Assert.Equal(postWindow,     newPost.ExamWindowCloseDate);          // Post pakai window Post (distinct)
+        Assert.Equal(preWindow,      newPre.ExamWindowCloseDate);           // Pre pakai window Pre
+        Assert.Equal(postDuration,   newPost.DurationMinutes);              // Post pakai durasi Post
+        Assert.Equal(preDuration,    newPre.DurationMinutes);               // Pre pakai durasi Pre
+        Assert.True(newPost.GenerateCertificate);                           // Post inherit cert=true dari repPost
+        Assert.False(newPre.GenerateCertificate);                          // Pre WAJIB cert=false (analog :1963)
+
         // Ready-status (Open, schedule lampau) — NEVER InProgress (PART-06).
         Assert.Equal(S.Open, newPre.Status);
         Assert.Equal(S.Open, newPost.Status);
