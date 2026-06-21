@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
-status: ready_to_plan
-stopped_at: v32.5 roadmap created (5 fase 409-413, 11/11 REQ mapped) — ready to plan Phase 409
-last_updated: "2026-06-19T10:15:00.000Z"
-last_activity: 2026-06-19
+status: planning
+stopped_at: Phase 409 context gathered
+last_updated: "2026-06-21T00:24:18.893Z"
+last_activity: 2026-06-19 — Roadmap v32.5 created (Phases 409-413)
 progress:
-  total_phases: 5
+  total_phases: 16
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -33,6 +32,7 @@ Last activity: 2026-06-19 — Roadmap v32.5 created (Phases 409-413)
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
 **Roadmap (5 fase, depends chain 409 → (410 ∥ 411 sequential file-overlap) → 412 → 413):**
+
 - **409** Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) — **migration=TRUE** `AddParticipantRemovalColumns` 3 kolom nullable + guard `StartExam`/`SubmitExam`/`Hub.JoinBatch` + exclude `RemovedAt!=null` di semua list/count.
 - **410** Add-Participant Backend Live (PART-06, PART-07) — `AddParticipantsLive` (window/idempotent/auto UPA/ready-status/Pre-Post pair/Proton reject) + `GetEligibleParticipantsToAdd`. migration=FALSE.
 - **411** Remove + Restore Backend Live (PRMV-01, PRMV-04, PRMV-05, PLIV-03) — `RemoveParticipantLive` hybrid + Pre/Post pair-as-unit + `RestoreParticipantLive` + fix stub `DeleteAssessmentPeserta` + audit/RBAC. migration=FALSE.
@@ -175,6 +175,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-19
 
-Stopped at: v32.5 roadmap created (5 fase 409-413, 11/11 REQ mapped; ROADMAP.md + STATE.md + REQUIREMENTS.md traceability updated)
+Stopped at: Phase 409 context gathered
 
 Next action: **`/gsd-plan-phase 409`** (Data Foundation + Re-entry Guards + Exclude-Removed Query — migration=TRUE `AddParticipantRemovalColumns` 3 kolom nullable + guard `StartExam`/`SubmitExam`/`Hub.JoinBatch` + exclude `RemovedAt!=null` di semua list/count). Setelah 409: `/gsd-plan-phase 410` ∥ `/gsd-plan-phase 411` (file-overlap `AssessmentAdminController.cs` → sequential) → 412 (UI+SignalR, depends 410+411) → 413 (test+UAT, depends semua). Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 = migration=TRUE; 410-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.
