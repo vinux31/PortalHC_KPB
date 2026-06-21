@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
-status: verifying
+status: executing
 stopped_at: Phase 412 context gathered
-last_updated: "2026-06-21T07:04:31.519Z"
-last_activity: 2026-06-21 -- Phase 411 Plan 02 executed (integration tests remove+restore, 15/15)
+last_updated: "2026-06-21T07:41:18.258Z"
+last_activity: 2026-06-21 -- Phase 412 planning complete
 progress:
   total_phases: 17
   completed_phases: 3
-  total_plans: 6
+  total_plans: 9
   completed_plans: 6
-  percent: 100
+  percent: 67
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 411
 Plan: 01 SELESAI (backend Remove/Restore/DeletePeserta) + 02 SELESAI (15 test de-tautologis). Fase 411 = 2/2 plan COMPLETE.
-Status: Ready to verify (`/gsd-verify-work 411`) → next Phase 412
-Last activity: 2026-06-21 -- Phase 411 Plan 02 executed (integration tests remove+restore, 15/15)
+Status: Ready to execute
+Last activity: 2026-06-21 -- Phase 412 planning complete
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
