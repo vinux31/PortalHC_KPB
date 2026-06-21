@@ -4,6 +4,41 @@
 
 ---
 
+## Milestone: v32.3 — Akun Multi-Unit (1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial
+
+**Shipped:** 2026-06-21 (local; NOT pushed — bundle dengan v32.1)
+**Phases:** 6 (399-404) + 404.1 fix | **Plans:** 21 | **Requirements:** 24/24 (MU 7, PSU 6, CXU 5, ORG 2, QA 4) | **Migration:** TRUE (1 — `UserUnits` junction, Fase 399)
+
+### What Was Built
+Pekerja boleh anggota >1 Unit dalam 1 Bagian (junction `UserUnits` + primary-mirror, Section tetap scalar); coach pegang coachee lintas-unit selama 1 Bagian; PROTON sekuensial lintas-unit (Tahun1@X→Tahun2@Y) dengan unit di-resolve dari `AssignmentUnit` eksplisit (drop fallback `User.Unit`). Listing set-aware + rollup dedup; OrganizationController cascade/guard UserUnits-aware + reparent lintas-Bagian hard-block. Ditutup dengan suite invariant SQL-riil (`MultiUnitSqlFixture`: single-active filtered-unique, AssignmentUnit∈UserUnits, B-06 anti-dobel, 1:1, one-primary) + UAT browser PROTON sekuensial 3/3 + handoff IT.
+
+### What Worked
+- **Invariant proof di SQL-riil, bukan InMemory** — filtered-unique index (single-active mapping, one-primary) HANYA ke-enforce di SQL Server; `MultiUnitSqlFixture` (MigrateAsync full-chain) sekaligus jadi smoke-test migration deploy. InMemory akan "false-green".
+- **Ekstraksi seam pure** (CoerceCoachUnitScope/CoacheeMatchesUnitScope/FilterEligibleCoachees) bikin logic coaching-scope unit-testable tanpa WebApplicationFactory.
+- **Adversarial re-verify (5-auditor workflow)** pasca-close nangkap 1 overclaim riil (audit body stale) + 1 finding baru (INT-01 fallback survivor) + flakiness — yang single-pass audit lewatkan.
+
+### What Was Inefficient
+- **INT-01 lolos scope 401** — 1 dari ~6 PROTON resolver (`ProtonDataController` Phase-129 auto-sync) ketinggalan saat drop-fallback sweep; baru ke-catch milestone-integration-audit. Lesson: saat sweep "drop fallback X", grep SEMUA situs pola dulu + checklist, jangan andalkan plan-by-plan.
+- **404 close-out gates hand-authored** (VERIFICATION/SECURITY/VALIDATION ditulis dari evidence, bukan fresh subagent-gate run) — karena execute pilih UAT inline. Konsisten dgn evidence tapi provenance lebih lemah.
+- **Audit doc frontmatter-only remediation** → body jadi self-contradictory sampai adversarial-recheck nangkap. Lesson: remediasi audit = refresh BODY juga, bukan cuma flip frontmatter.
+
+### Patterns Established
+- **Assert-strategy split (SQL-riil invariant):** DB-enforced (filtered-unique) → `Assert.ThrowsAsync<DbUpdateException>`; app-enforced (non-unique index, mis. PTA single-active) → drive write-path + `Assert.Equal(1, CountAsync(...IsActive))`. NEVER expect DbUpdateException utk PTA.
+- **UserUnit FK:** test yang insert `UserUnits` WAJIB seed `ApplicationUser` dulu (SQL enforce FK; InMemory tidak).
+- **Per-Fact unique coachee** (`$"..-{Guid:N}"`) di shared-DB fixture — single-active index per-coachee, hindari false-fail antar-Fact.
+
+### Key Lessons
+- "Drop fallback X everywhere" = grep-sweep + checklist semua situs SEBELUM mulai; verifikasi dgn 1 grep akhir (PSU-01 INT-01).
+- Milestone-audit `gaps_found` itu fitur, bukan bug — surface close-out artifact + finding (INT-01) yang single-phase lewatkan.
+- Suite flaky-on-load (`OrgLabelMigrationFixture` ~91-migration timeout di OneDrive disk + parallel xUnit) → "562/0/2" = green-on-retry, bukan deterministik; butuh retry-policy / naikkan Connect Timeout.
+
+### Cost Observations
+- Model mix: mayoritas opus (orchestrasi + execute inline interactive) + sonnet (verifier/security/integration/plan-checker subagents).
+- Sessions: ditutup dalam 1 sesi panjang via `/gsd-manager` (secure 402 → execute 404 → audit → close).
+- Notable: adversarial 5-auditor verify-workflow (399k subagent tokens) worth-it — nangkap overclaim + INT-01 yang akan lolos ke deploy.
+
+---
+
 ## Milestone: v31.0 — Hotfix Pra-Ujian Lisensor
 
 **Shipped:** 2026-06-16 (local; NOT pushed)
