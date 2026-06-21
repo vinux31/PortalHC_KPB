@@ -18,14 +18,24 @@
         var attempt = Model[i];
         var panelId = $"att-{i}";
         var isFirst = i == 0;
-        var passSuccess = attempt.IsPassed == true;
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button @(isFirst ? "" : "collapsed")" type="button"
                         data-bs-toggle="collapse" data-bs-target="#@panelId"
                         aria-expanded="@(isFirst ? "true" : "false")" aria-controls="@panelId">
                     Percobaan ke-@attempt.AttemptNumber: @(attempt.ScorePercent.HasValue ? attempt.ScorePercent.Value.ToString() : "—")% —
-                    <span class="badge text-bg-@(passSuccess ? "success" : "danger") ms-2">@(passSuccess ? "Lulus" : "Gagal")</span>
+                    @if (attempt.IsPassed == true)
+                    {
+                        <span class="badge text-bg-success ms-2">Lulus</span>
+                    }
+                    else if (attempt.IsPassed == false)
+                    {
+                        <span class="badge text-bg-danger ms-2">Gagal</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark ms-2">Menunggu Penilaian</span>
+                    }
                     <span class="text-muted small ms-2">@(attempt.CompletedAt.HasValue ? attempt.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") : "—")</span>
                     @if (attempt.IsCurrent)
                     {
