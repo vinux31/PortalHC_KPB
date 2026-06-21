@@ -185,7 +185,7 @@
 **Plans:** 4 plans (wave 1: 01 · wave 2: 02 ∥ 03 · wave 3: 04 [checkpoint UAT])
 - [x] 404-01-PLAN.md — Wave 1: MultiUnitSqlFixture (MigrateAsync incl 399 + canonical {X,Y}/coach/PROTON seed) + implement CrossUnitAssignTests:105 single-active stub (QA-01/QA-03) [migration=FALSE]
 - [x] 404-02-PLAN.md — Wave 2: single-active SQL-real — CoachCoacheeMapping via DbUpdateException (filtered-unique) + ProtonTrackAssignment via Count==1 after bypass T1@X→T2@Y (Pitfall #1 split-assert) + reactivate path (QA-03) [migration=FALSE]
-- [ ] 404-03-PLAN.md — Wave 2 (∥ 02): AssignmentUnit∈UserUnits helper + B-06 anti-dobel cross-unit + ProtonKompetensi 1:1 + one-primary + 3 backfill stubs (QA-01/QA-04) [migration=FALSE]
+- [x] 404-03-PLAN.md — Wave 2 (∥ 02): AssignmentUnit∈UserUnits helper + B-06 anti-dobel cross-unit + ProtonKompetensi 1:1 + one-primary + 3 backfill stubs (QA-01/QA-04) [migration=FALSE]
 - [ ] 404-04-PLAN.md — Wave 3: UAT browser PROTON sekuensial cross-unit @5270 (snapshot→seed→restore) + IT handoff HTML (migration=TRUE Phase 399) + D1=b markdown (QA-02) [checkpoint, migration=FALSE]
 
 **Active mapped: 24/24 ✓ (MU-01/02/03/04/05/07 → 399 · MU-06 → 400 · PSU-01/02/03/04/05/07 → 401 · CXU-01..05 → 402 · ORG-01/02 → 403 · QA-01..04 → 404) — Orphans: 0 — Duplicates: 0 — migration=TRUE Phase 399 only. Critical path 399 → 401 → 402 → 404; Wave 1 {400, 401, 403} paralel setelah 399.**
@@ -199,7 +199,7 @@
 | 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 6/6 | Complete    | 2026-06-19 |
 | 402. Coaching Cross-Unit Mapping (CXU-01..05) | 4/4 | Complete    | 2026-06-19 |
 | 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 2/2 | Complete    | 2026-06-19 |
-| 404. Test (SQL Riil) + UAT + Docs + Invariants (QA-01..04) | 2/4 | In Progress|  |
+| 404. Test (SQL Riil) + UAT + Docs + Invariants (QA-01..04) | 3/4 | In Progress|  |
 
 ### Coverage Validation
 
