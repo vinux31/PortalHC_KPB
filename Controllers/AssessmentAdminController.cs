@@ -2400,6 +2400,21 @@ namespace HcPortal.Controllers
             var createdSessions = new List<AssessmentSession>();   // semua sesi yang dibuat (untuk JSON + eager-UPA)
             bool isPrePost = IsPrePostSession(rep);
 
+            // WR-01 (review): resolve representatif Pre & Post DISTINCT dari batch (cermin EditAssessment :1944-1945),
+            // BUKAN inherit kedua sesi dari satu `rep`. Pre & Post sengaja beda Schedule/window/duration/cert —
+            // PostTest baru WAJIB ikut config sesi Post, bukan Pre. Fallback ke `rep` bila salah satu sibling absen
+            // (batch hanya punya Pre, atau caller passing sesi Post tanpa Pre sibling) — config sebagian besar uniform.
+            AssessmentSession repPre = rep, repPost = rep;
+            if (isPrePost)
+            {
+                repPre = await _context.AssessmentSessions.FirstOrDefaultAsync(a =>
+                    a.Title == rep.Title && a.Category == rep.Category &&
+                    a.Schedule.Date == rep.Schedule.Date && a.AssessmentType == "PreTest") ?? rep;
+                repPost = await _context.AssessmentSessions.FirstOrDefaultAsync(a =>
+                    a.Title == rep.Title && a.Category == rep.Category &&
+                    a.Schedule.Date == rep.Schedule.Date && a.AssessmentType == "PostTest") ?? rep;
+            }
+
             if (toAdd.Count > 0)
             {
                 using var transaction = await _context.Database.BeginTransactionAsync();
@@ -2411,10 +2426,13 @@ namespace HcPortal.Controllers
                         {
                             // === Pre/Post pair (PART-07) — cermin :1942-1998, ganti hardcoded "Upcoming" → DeriveReadyStatus ===
                             var linkedGroupId = rep.LinkedGroupId!.Value;     // gabung grup existing
-                            var newPre = BuildReadyParticipantSession(rep, uid, actorId);
+                            // WR-01: newPre inherit dari repPre (Schedule/window/duration sendiri), newPost dari repPost.
+                            var newPre = BuildReadyParticipantSession(repPre, uid, actorId);
                             newPre.AssessmentType = "PreTest"; newPre.LinkedGroupId = linkedGroupId;
-                            var newPost = BuildReadyParticipantSession(rep, uid, actorId);
+                            newPre.GenerateCertificate = false;               // cermin analog :1963 — PreTest NEVER cert
+                            var newPost = BuildReadyParticipantSession(repPost, uid, actorId);
                             newPost.AssessmentType = "PostTest"; newPost.LinkedGroupId = linkedGroupId;
+                            newPost.ValidUntil = repPost.ValidUntil;          // cermin analog :1985 — masa berlaku cert Post
                             _context.AssessmentSessions.AddRange(newPre, newPost);
                             await _context.SaveChangesAsync();                 // dapat Id
                             newPre.LinkedSessionId = newPost.Id;               // cross-link
