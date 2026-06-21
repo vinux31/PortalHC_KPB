@@ -4,14 +4,14 @@ milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: executing
 stopped_at: Phase 411 context gathered
-last_updated: "2026-06-21T05:29:39.034Z"
-last_activity: 2026-06-21 -- Phase 410 Plan 02 executed (10 integration test de-tautologis, suite 581/581)
+last_updated: "2026-06-21T05:55:29.239Z"
+last_activity: 2026-06-21 -- Phase 411 planning complete
 progress:
   total_phases: 17
   completed_phases: 2
-  total_plans: 4
+  total_plans: 6
   completed_plans: 4
-  percent: 100
+  percent: 67
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 410
 Plan: 02 SELESAI (test de-tautologis 10/10); Plan 01 SELESAI (backend endpoint). Fase 410 COMPLETE (2/2 plan).
-Status: Executing
-Last activity: 2026-06-21 -- Phase 410 Plan 02 executed (10 integration test de-tautologis, suite 581/581)
+Status: Ready to execute
+Last activity: 2026-06-21 -- Phase 411 planning complete
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
@@ -77,7 +77,7 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 - `v31.0` — ✅ shipped local + MERGED origin/main 2026-06-16 (merge `7ea6c81e`; branch ITHandoff HEAD `64456bd5`).
 - `v32.0` — phases 391+392 COMPLETE local, closed manual (tag lokal `423a2e76`).
 - `v32.2` — shipped local + audited PASSED + closed 2026-06-19 (Inject Hasil Assessment Manual); NOT PUSHED (branch main).
-- `v32.5` — milestone aktif (Flexible Add/Remove Participant); roadmap created (5 fase 409-413); belum di-plan.
+- `v32.5` — milestone aktif (Flexible Add/Remove Participant); roadmap created (5 fase tema 409-413 + **Phase 414 off-theme** bugfix visibilitas review jawaban admin saat `AllowAnswerReview` OFF, ditambah 2026-06-21); belum di-plan.
 
 ## Deferred Items
 
@@ -147,6 +147,7 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 ### Roadmap Evolution
 
+- **Phase 414 ditambahkan 2026-06-21** — Fix Visibilitas History Jawaban Admin/HC saat `AllowAnswerReview` OFF. **Off-theme** dari Flexible Add/Remove (PART/PRMV/PLIV), dibundel ke v32.5 atas keputusan user (TIDAK menambah REQ ke akuntansi 11/11; bugfix terpisah). Root cause: `CMPController.Results` (`:2207`, di-share worker & admin/HC via auth `IsResultsAuthorized` `:2218`) membangun `QuestionReviews` hanya `if (assessment.AllowAnswerReview)` (`:2266`) + `Views/CMP/Results.cshtml:316/413` gate flag sama, tanpa cek role → admin/HC ikut buta saat OFF. Fix arah: decouple gate dari role (`showReview = assessment.AllowAnswerReview || user.Id != assessment.UserId`). Scope 3 file (`CMPController.Results` + `AssessmentResultsViewModel` + `Views/CMP/Results.cshtml`) + test admin-bypass/worker-gated. migration=FALSE. Belum di-plan → `/gsd-plan-phase 414`. Dir `.planning/phases/414-fix-admin-hc-answer-history-visibility-when-allowanswerrevie/`.
 - **v32.5 roadmap dibuat 2026-06-19** — Phases 409-413, 11 REQ (PART-05/06/07 + PRMV-01..05 + PLIV-01/02/03). Penomoran mulai **409** (BUKAN lanjut 398 main) — pilihan eksplisit user agar tak tabrak v32.3 (399-404) + v32.4 (405-408) di branch ITHandoff saat merge antar-branch. 5 fase by arsitektur spec (A-H): **409** fondasi data+guard+exclude-query (migration=TRUE `AddParticipantRemovalColumns`, PRMV-03) → **410** add backend (PART-06/07) ∥ **411** remove/restore backend (PRMV-01/04/05 + PLIV-03) [file-overlap `AssessmentAdminController.cs` → sequential] → **412** UI+SignalR live (PART-05 + PRMV-02 + PLIV-01/02) → **413** test+UAT. Spec-driven (skip domain-research; audit kode 4-agen sudah peta file:line). Branch main. Scope OUT: Proton add/remove, self-service, bulk-import-live, force-disconnect, notif peserta, migration selain 3 kolom removal. migration=TRUE hanya 409; 410-413 = FALSE.
 - **Phase 398.1 disisipkan 2026-06-19** setelah Phase 398 (desimal, INSERTED) — Tech-debt cleanup INJ (v32.2): tutup 9 temuan code-review + carry (396 WR-01/02/03, 397 WR-01/02/03, 999.11/12/13) + cosmetic Legenda LBL-02, SEBELUM `/gsd-complete-milestone v32.2`. Desimal 398.1 dipilih (BUKAN 399 — 399-404 dipakai v32.3 di branch ITHandoff, hindari konflik merge). Branch main, migration=false. ⚠️ verifikasi tiap warning real vs false-positive dulu (receiving-code-review). v32.2 tetap 13/13 REQ (tak nambah REQ INJ).
 - **v32.2 milestone dimulai 2026-06-17** — Inject Hasil Assessment Manual ("Seakan Online"), 6 fase (393-398, LANJUT dari 392; tidak reset). Sumber: brainstorm + design spec `docs/superpowers/specs/2026-06-17-inject-assessment-manual-design.md`. Skip research (sudah research codebase saat brainstorm). Keputusan kunci: reuse mesin existing (authoring + GradingService + CertNumberHelper, nol duplikasi); standalone-alur tapi reuse-kode; sertifikat toggle per-room (auto/manual/tanpa); link Pre/Post silang inject↔online; retire/absorb BulkBackfill; 0 migration. v32.0 (391/392) TIDAK dihapus dir-nya (lanjut tanpa `phases clear`, atas keputusan user). Requirements + roadmap menyusul.
