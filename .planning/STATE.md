@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: executing
-stopped_at: Completed 411-01-PLAN.md
-last_updated: "2026-06-21T06:08:44.799Z"
-last_activity: 2026-06-21 -- Phase 411 planning complete
+stopped_at: Completed 411-02-PLAN.md
+last_updated: "2026-06-21T06:24:29Z"
+last_activity: 2026-06-21 -- Phase 411 Plan 02 executed (integration tests remove+restore, 15/15)
 progress:
   total_phases: 17
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 411 — remove-restore-backend-live (Plan 01 SELESAI backend; Plan 02 test pending)
+**Current focus:** Phase 411 — remove-restore-backend-live COMPLETE (2/2 plan: backend + integration tests)
 
 ## Current Position
 
 Phase: 411
-Plan: 01 SELESAI (backend Remove/Restore/DeletePeserta). Plan 02 (test write-path) PENDING. Fase 411 = 1/2 plan.
-Status: Ready to execute (411-02)
-Last activity: 2026-06-21 -- Phase 411 Plan 01 executed (backend remove+restore live)
+Plan: 01 SELESAI (backend Remove/Restore/DeletePeserta) + 02 SELESAI (15 test de-tautologis). Fase 411 = 2/2 plan COMPLETE.
+Status: Ready to verify (`/gsd-verify-work 411`) → next Phase 412
+Last activity: 2026-06-21 -- Phase 411 Plan 02 executed (integration tests remove+restore, 15/15)
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
@@ -42,11 +42,11 @@ Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta ass
 
 ## Next Action
 
-**Phase 411 Plan 01 SELESAI (backend).** Commits `764516d0` (core) + `220382ec` (3 endpoint + un-hide form), migration=FALSE, branch main NOT pushed. Build 0 error, fast suite **581/581**, 3 route terdaftar (302 auth-challenge bukan 404). PRMV-01/04/05 + PLIV-03 marked complete. SUMMARY @ `.planning/phases/411-remove-restore-backend-live/411-01-SUMMARY.md`.
+**Phase 411 COMPLETE (2/2 plan).** Plan 01 backend: `764516d0` (core) + `220382ec` (3 endpoint + un-hide form). Plan 02 test: `cafd641d` (read-path InMemory + write-path soft/restore/Pre-Post/audit) + `3ec00420` (hard-delete via mini-DI). migration=FALSE, branch main NOT pushed. Build 0 error, full suite **596/596** (581 + 15 baru), 15/15 `~FlexibleParticipantRemove` hijau. PRMV-01/04/05 + PLIV-03 marked complete (sudah di-mark Plan 01). SUMMARY @ `.planning/phases/411-remove-restore-backend-live/411-0{1,2}-SUMMARY.md`.
 
-**NEXT: `/gsd-execute-phase 411` (Plan 02)** — test write-path `FlexibleParticipantRemoveTests.cs` (NEW) de-tautologis PRMV-01/04/05 + PLIV-03. ⚠ **Gap test-infra terbesar 411:** jalur hard-delete panggil `HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>()` → test WAJIB set `ControllerContext.HttpContext.RequestServices` ke mini-DI (`RecordCascadeDeleteService` + `ProtonCompletionService` + `AuditLogService` + `IWebHostEnvironment` stub WebRootPath temp). Lihat 411-PATTERNS.md §"TEST-INFRA GAP TERBESAR".
+**411-02 highlights:** `FlexibleParticipantRemoveTests.cs` (812 baris, 15 [Fact]) de-tautologis 999.12. Bagian A InMemory (5): Proton-400/idempotent-noop/404×2/restore-guard-400. Bagian B SQLEXPRESS soft (7): soft preserve Score/cert/Status, reason-wajib-soft 400+0-write (D-02), idempotent-write, restore clear-3-kolom, Pre/Post pair soft-both + batch-isolation (Pitfall 1), audit row. **Hard-delete mini-DI (3):** `BuildCascadeServiceProvider`+`StubWebHostEnvironment`+`MakeLiveControllerWithCascade` set `HttpContext.RequestServices` → drive `RemoveParticipantLive` ASLI → row gone + UPA gone (D-01) + Pre/Post both-clean hard. NO replica `SessionHasDataAsync`, NO `ExecuteAsync` langsung (komentar saja). SQLEXPRESS (SQL Server 2025) write-path BENAR run (no skip); DB test auto-disposed; migration=FALSE.
 
-Setelah 411 complete (2/2): `/gsd-verify-work 411` → 412 (UI+SignalR, depends 410+411; konsumsi JSON outcome `{sessionId, mode, linkedSessionId}` + escape `RemovalReason` carry T-409-10) → 413 (test+UAT). Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (411 = migration=FALSE; carry 409 migration=TRUE hash `01cd7dd0`).
+**NEXT: `/gsd-verify-work 411`** → 412 (UI+SignalR, depends 410+411; konsumsi JSON outcome `{sessionId, mode, linkedSessionId}` + escape `RemovalReason` carry T-409-10) → 413 (test+UAT). Mini-DI pattern (`BuildCascadeServiceProvider`/`MakeLiveControllerWithCascade`) reusable utk fase yang drive cascade lewat `HttpContext.RequestServices`. Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (411 = migration=FALSE; carry 409 migration=TRUE hash `01cd7dd0`).
 
 **Carry Phase 412/413:** (a) escape/encode `RemovalReason` saat render panel "Peserta Dikeluarkan" (T-409-10 XSS-at-render, di-defer dari 409). (b) A2 export/impact (`ExportAssessmentResults`/`BulkExportPdf`/`GetDeleteImpact`) belum di-exclude removed (defer — revisit bila perlu). (c) reuse `CMPController.IsParticipantRemoved` seam + invarian `RemovedAt==null` di 410/411. (d) jangan regresi 6 test ParticipantRemoval.
 
@@ -187,6 +187,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 411-01-PLAN.md
+Stopped at: Completed 411-02-PLAN.md
 
-Next action: **Phase 410 COMPLETE (2/2 plan).** Plan 01 = 2 endpoint AJAX + 2 helper (`01e6251f`+`422b4359`); Plan 02 = 10 test de-tautologis (`2ff434c5`, suite 581/581, 10/10 hijau filter `~FlexibleParticipantAddLive`). migration=FALSE; NOT pushed. **NEXT: `/gsd-verify-work 410`** (verify gate — build 0 error + suite 581/581 + 10 test FlexibleParticipantAddLive de-tautologis + run @5277 sudah PASS lokal) → lalu **`/gsd-plan-phase 411`** (file-overlap `AssessmentAdminController.cs` → sequential, `BuildReadyParticipantSession` reusable) → 412 (UI+SignalR, broadcast `participantAdded` konsumsi JSON 410, depends 410+411) → 413 (test+UAT). Pola test 410-02 (read InMemory real-controller + write SQLEXPRESS Opsi-2a stub UserManager) siap reuse untuk 411 Remove/Restore. Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0`; 410 Plan 01+02 + 411-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.
+Next action: **Phase 411 COMPLETE (2/2 plan).** Plan 01 backend = core + 3 endpoint + un-hide form (`764516d0`+`220382ec`); Plan 02 test = 15 test de-tautologis (`cafd641d` read+soft + `3ec00420` hard-delete mini-DI; full suite **596/596**, 15/15 hijau filter `~FlexibleParticipantRemove`). migration=FALSE; NOT pushed. **NEXT: `/gsd-verify-work 411`** (verify gate — build 0 error + suite 596/596 + 15 test FlexibleParticipantRemove de-tautologis; SQLEXPRESS write-path BENAR run, DB test auto-disposed) → lalu **412 (UI+SignalR**, depends 410+411; konsumsi JSON outcome `{sessionId, mode, linkedSessionId}` + escape `RemovalReason` carry T-409-10) → 413 (test+UAT). **Mini-DI pattern 411-02 (`BuildCascadeServiceProvider`/`StubWebHostEnvironment`/`MakeLiveControllerWithCascade`) reusable** untuk fase yang drive cascade lewat `HttpContext.RequestServices`. Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0`; 410+411 + 412-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.

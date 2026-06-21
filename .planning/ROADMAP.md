@@ -112,7 +112,7 @@
   5. `dotnet build` 0 error + `dotnet test` hijau (integration: hard-delete not-started baris hilang + soft-remove in-progress `RemovedAt` set & response/Score utuh + soft-remove completed-certified `NomorSertifikat`/file preserved & excluded dari list aktif + idempotent no-op + restore muncul lagi + Pre/Post pair konsisten + audit row tertulis + Proton tolak) + `dotnet run` (localhost:5277). migration=FALSE. *(PRMV-01, PRMV-04, PRMV-05, PLIV-03)*
 **Plans:** 2 plans
 - [x] 411-01-PLAN.md — RemoveParticipantCoreAsync (hybrid hard/soft + Pre/Post pair via LinkedSessionId + audit) + RemoveParticipantLive/RestoreParticipantLive (JSON) + DeleteAssessmentPeserta (redirect, fix stub) + RBAC/antiforgery/Proton-reject + un-hide form view
-- [ ] 411-02-PLAN.md — FlexibleParticipantRemoveTests de-tautologis (read-path InMemory: Proton/idempotency/restore-guard; write-path SQLEXPRESS: soft preserve cert/score, reason-wajib, Pre/Post pair, audit; hard-delete via mini-DI service-provider stub: row+UPA gone D-01)
+- [x] 411-02-PLAN.md — FlexibleParticipantRemoveTests de-tautologis (read-path InMemory: Proton/idempotency/restore-guard; write-path SQLEXPRESS: soft preserve cert/score, reason-wajib, Pre/Post pair, audit; hard-delete via mini-DI service-provider stub: row+UPA gone D-01) — 15/15 PASS, suite 596/596
 **UI hint:** yes
 
 ### Phase 412: Live Monitoring UI + SignalR
@@ -170,7 +170,7 @@
 |-------|----------------|--------|-----------|
 | 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 2/2 | Complete    | 2026-06-21 |
 | 410. Add-Participant Backend Live (PART-06 + PART-07) | 2/2 | Complete   | 2026-06-21 |
-| 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 1/2 | In Progress|  |
+| 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 2/2 | Complete   | 2026-06-21 |
 | 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 0/? | Not started | - |
 | 413. Test + UAT | 0/? | Not started | - |
 | 414. Fix Visibilitas History Jawaban Admin/HC (AllowAnswerReview OFF, off-theme) | 0/? | Not started | - |
@@ -182,10 +182,10 @@
 | PRMV-03 | 409 | `CMPController.StartExam` `:974` + `SubmitExam` `:1573` + `AssessmentHub.JoinBatch` `:21` — guard `RemovedAt != null` (anti-resubmit peserta dihapus) | Pending |
 | PART-06 | 410 | `AssessmentAdminController.AddParticipantsLive` — auto Session+UPA ready-status + window guard + idempotent | Pending |
 | PART-07 | 410 | `AddParticipantsLive` cabang Pre/Post `:1926` — pasangan Pre+Post + Proton reject | Pending |
-| PRMV-01 | 411 | `AssessmentAdminController.RemoveParticipantLive` — hybrid hard-delete/soft-remove by-state | Pending |
-| PRMV-04 | 411 | `AssessmentAdminController.RestoreParticipantLive` — `RemovedAt=null` (soft-removed only) | Pending |
-| PRMV-05 | 411 | `RemoveParticipantLive` Pre/Post pair-as-unit (mirror `DeletePrePostGroup` `:2566`) | Pending |
-| PLIV-03 | 411 | audit `Add/Remove/RestoreParticipantLive` + RBAC `[Authorize(Roles="Admin, HC")]` + antiforgery semua endpoint | Pending |
+| PRMV-01 | 411 | `AssessmentAdminController.RemoveParticipantLive` — hybrid hard-delete/soft-remove by-state | Complete |
+| PRMV-04 | 411 | `AssessmentAdminController.RestoreParticipantLive` — `RemovedAt=null` (soft-removed only) | Complete |
+| PRMV-05 | 411 | `RemoveParticipantLive` Pre/Post pair-as-unit (mirror `DeletePrePostGroup` `:2566`) | Complete |
+| PLIV-03 | 411 | audit `Add/Remove/RestoreParticipantLive` + RBAC `[Authorize(Roles="Admin, HC")]` + antiforgery semua endpoint | Complete |
 | PART-05 | 412 | `Views/Admin/AssessmentMonitoringDetail.cshtml` — kontrol Tambah + DOM inject live tanpa reload | Pending |
 | PRMV-02 | 412 | modal konfirmasi keras + SignalR `examRemoved` force-kick worker (`AssessmentHub.cs` + handler client) | Pending |
 | PLIV-01 | 412 | exclude-removed dari count aktif (fondasi 409) + panel "Peserta Dikeluarkan" + Restore di Monitoring Detail | Pending |
