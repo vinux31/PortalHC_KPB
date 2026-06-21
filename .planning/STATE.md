@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
-status: Phase 409 TUNTAS — Plan 01 (fondasi skema migration=TRUE) + Plan 02 (guard re-entry + exclude-removed query, migration=FALSE). Full suite 569/569 GREEN, build 0 error, run @5277 OK.
+status: executing
 stopped_at: Phase 410 context gathered
-last_updated: "2026-06-21T03:01:11.258Z"
-last_activity: 2026-06-21
+last_updated: "2026-06-21T03:28:59.069Z"
+last_activity: 2026-06-21 -- Phase 410 planning complete
 progress:
   total_phases: 16
   completed_phases: 1
-  total_plans: 2
+  total_plans: 4
   completed_plans: 2
-  percent: 100
+  percent: 50
 ---
 
 # Project State: Portal HC KPB
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 410
 Plan: Not started
-Status: Phase 409 TUNTAS — Plan 01 (fondasi skema migration=TRUE) + Plan 02 (guard re-entry + exclude-removed query, migration=FALSE). Full suite 569/569 GREEN, build 0 error, run @5277 OK.
-Last activity: 2026-06-21
+Status: Ready to execute
+Last activity: 2026-06-21 -- Phase 410 planning complete
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
