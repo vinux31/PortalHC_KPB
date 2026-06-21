@@ -911,6 +911,13 @@ namespace HcPortal.Controllers
             if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
                 return Forbid();
 
+            // v32.5 Phase 409 (PRMV-03 / D-02): sesi soft-removed tak boleh lanjut ujian. Guard SEBELUM mark-InProgress.
+            if (IsParticipantRemoved(assessment))
+            {
+                TempData["Error"] = "Anda telah dikeluarkan dari ujian ini.";
+                return RedirectToAction("Assessment");
+            }
+
             // Auto-transition: Upcoming → Open when scheduled date+time has arrived in WIB (persisted to DB)
             if (assessment.Status == "Upcoming" && assessment.Schedule <= DateTime.UtcNow.AddHours(7))
             {
@@ -1589,6 +1596,13 @@ namespace HcPortal.Controllers
             if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
             {
                 return Forbid();
+            }
+
+            // v32.5 Phase 409 (PRMV-03 / D-02a): discard submit dari sesi soft-removed SEBELUM grading.
+            if (IsParticipantRemoved(assessment))
+            {
+                TempData["Error"] = "Anda telah dikeluarkan dari ujian ini.";
+                return RedirectToAction("Assessment");
             }
 
             // TOK-02 (WSE-10 / T-382-09): gate bersama STAT-01 di awal handler, SEBELUM mutasi. Sesi token-required
@@ -2514,8 +2528,7 @@ namespace HcPortal.Controllers
         // v32.5 Phase 409 (PRMV-03 / D-02 / D-04): sumber-kebenaran tunggal "peserta soft-removed".
         // Soft-remove TIDAK mengubah Status (spec §B2) → deteksi WAJIB eksplisit via RemovedAt, BUKAN Status.
         // Seam testable (pola IsResultsAuthorized): guard inline StartExam/SubmitExam memanggil helper ini.
-        // [Wave-0 stub: sengaja return false agar guard test RED sampai Task 2 implement RemovedAt != null.]
-        public static bool IsParticipantRemoved(AssessmentSession session) => false;
+        public static bool IsParticipantRemoved(AssessmentSession session) => session.RemovedAt != null;
 
         /// <summary>
         /// Generate cryptographically secure random token

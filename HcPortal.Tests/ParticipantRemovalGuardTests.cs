@@ -45,7 +45,10 @@ namespace HcPortal.Tests;
 // =====================================================================================================
 public class ParticipantRemovalExcludeTests
 {
-    private static (AssessmentAdminController ctrl, ApplicationDbContext ctx) MakeController()
+    // actionName WAJIB di-set: controller meng-override View()/View(model) yang merujuk
+    // ControllerContext.ActionDescriptor.ActionName (NRE bila null). View tidak di-render di unit test
+    // (hanya assert .Model), jadi path .cshtml tak perlu eksis.
+    private static (AssessmentAdminController ctrl, ApplicationDbContext ctx) MakeController(string actionName)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -70,7 +73,11 @@ public class ParticipantRemovalExcludeTests
             protonBypassService:     null!);
         #pragma warning restore CS8625
 
-        ctrl.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+        ctrl.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext(),
+            ActionDescriptor = new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor { ActionName = actionName }
+        };
         ctrl.ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
         ctrl.TempData = new TempDataDictionary(new DefaultHttpContext(), new NullTempDataProvider());
         return (ctrl, ctx);
@@ -100,7 +107,7 @@ public class ParticipantRemovalExcludeTests
     [Fact]
     public async Task ManageAssessmentTab_Excludes_RemovedSession()
     {
-        var (ctrl, ctx) = MakeController();
+        var (ctrl, ctx) = MakeController("ManageAssessmentTab_Assessment");
         var sched = DateTime.UtcNow.AddDays(-1);   // status Open agar tak ke-hide oleh default-hide-Closed
         ctx.Users.AddRange(MakeUser("u-active", "Aktif"), MakeUser("u-removed", "Dihapus"));
         ctx.AssessmentSessions.AddRange(
@@ -127,17 +134,15 @@ public class ParticipantRemovalExcludeTests
     [Fact]
     public async Task MonitoringDetail_Counts_ExcludeRemoved()
     {
-        var (ctrl, ctx) = MakeController();
+        var (ctrl, ctx) = MakeController("AssessmentMonitoringDetail");
         var sched = new DateTime(2026, 6, 17, 8, 0, 0);
         ctx.Users.AddRange(MakeUser("md-active", "Aktif"), MakeUser("md-removed", "Dihapus"));
-        ctx.AssessmentSessions.AddRange(
-            MakeSession(11, "md-active",  "BATCH Y", "OJT", sched, S.InProgress, removedAt: null,
-                        completedAt: null),
-            MakeSession(12, "md-removed", "BATCH Y", "OJT", sched, S.InProgress, removedAt: DateTime.UtcNow,
-                        completedAt: null));
-        // StartedAt agar DeriveUserStatus si-aktif = "InProgress"
-        ctx.AssessmentSessions.First(s => s.Id == 11).StartedAt = DateTime.UtcNow;
-        ctx.AssessmentSessions.First(s => s.Id == 12).StartedAt = DateTime.UtcNow;
+        var active = MakeSession(11, "md-active", "BATCH Y", "OJT", sched, S.InProgress, removedAt: null, completedAt: null);
+        var removed = MakeSession(12, "md-removed", "BATCH Y", "OJT", sched, S.InProgress, removedAt: DateTime.UtcNow, completedAt: null);
+        // StartedAt agar DeriveUserStatus = "InProgress" (set sebelum Add — InMemory query tak lihat unsaved).
+        active.StartedAt = DateTime.UtcNow;
+        removed.StartedAt = DateTime.UtcNow;
+        ctx.AssessmentSessions.AddRange(active, removed);
         ctx.SaveChanges();
 
         var result = await ctrl.AssessmentMonitoringDetail("BATCH Y", "OJT", sched, null);
@@ -154,7 +159,7 @@ public class ParticipantRemovalExcludeTests
     [Fact]
     public async Task UserAssessmentHistory_StillShows_RemovedSession()
     {
-        var (ctrl, ctx) = MakeController();
+        var (ctrl, ctx) = MakeController("UserAssessmentHistory");
         ctx.Users.Add(MakeUser("w-1", "Pekerja Satu"));
         // Sesi Completed + bersertifikat yang di-soft-remove → riwayat pekerja HARUS tetap menampilkannya.
         ctx.AssessmentSessions.Add(MakeSession(21, "w-1", "SERTIFIKAT BATCH", "OJT",

@@ -26,8 +26,9 @@ namespace HcPortal.Hubs
             // Verify user has an active (InProgress) session before joining batch group
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            // v32.5 Phase 409 (PRMV-03 / D-04): soft-remove TIDAK ubah Status → guard WAJIB eksplisit cek RemovedAt.
             var hasSession = await db.AssessmentSessions
-                .AnyAsync(s => s.UserId == userId && s.Status == "InProgress");
+                .AnyAsync(s => s.UserId == userId && s.Status == "InProgress" && s.RemovedAt == null);
             if (!hasSession) return;
 
             await Groups.AddToGroupAsync(Context.ConnectionId, $"batch-{batchKey}");
@@ -140,8 +141,9 @@ namespace HcPortal.Hubs
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             // T-298-07: Validasi session milik user ini dan masih InProgress
+            // v32.5 Phase 409 (PRMV-03 / A1): sesi soft-removed (RemovedAt != null) tak boleh tulis jawaban via Hub (defense-in-depth).
             var session = await db.AssessmentSessions
-                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.Status == "InProgress");
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.Status == "InProgress" && s.RemovedAt == null);
             if (session == null)
             {
                 _logger.LogWarning("SaveTextAnswer: unauthorized or invalid session {SessionId} for user {UserId}", sessionId, userId);
@@ -206,8 +208,9 @@ namespace HcPortal.Hubs
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             // T-298-07 + T-298-08: Validasi session milik user ini, masih InProgress
+            // v32.5 Phase 409 (PRMV-03 / A1): sesi soft-removed (RemovedAt != null) tak boleh tulis jawaban via Hub (defense-in-depth).
             var session = await db.AssessmentSessions
-                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.Status == "InProgress");
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.Status == "InProgress" && s.RemovedAt == null);
             if (session == null)
             {
                 _logger.LogWarning("SaveMultipleAnswer: unauthorized or invalid session {SessionId} for user {UserId}", sessionId, userId);
