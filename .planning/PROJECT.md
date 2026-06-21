@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Last Shipped Milestone: v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21 (next: v32.4, activate via /gsd-new-milestone)
+## Last Shipped Milestone: v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21 (v32.4 Ujian Ulang now ACTIVE — see Current Milestone below)
 
 **Goal:** Pekerja boleh jadi anggota >1 Unit dalam 1 Bagian (Section tetap scalar); coach bisa pegang coachee lintas-unit selama 1 Bagian; PROTON jalan sekuensial lintas-unit (Tahun1@X → Tahun2@Y). migration=TRUE (junction `UserUnits`). Cert/analytics atribusi primary (D1=b). Design: `docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md`.
 
@@ -71,23 +71,21 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** v32.3 Akun Multi-Unit CLOSED 2026-06-21 (branch ITHandoff, tag lokal v32.3, NOT pushed). v32.1 juga closed (bundle). **Next: v32.4 Ujian Ulang (Attempt/Retake)** — planned + spec committed, aktifkan via `/gsd-new-milestone v32.4`. Deploy v32.1+v32.3 = 1 push origin/ITHandoff + notify IT **migration=TRUE (Fase 399 UserUnits)**. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify. v32.0 close masih deferred (non-destruktif).
+**Current focus:** v32.4 Ujian Ulang (Attempt/Retake Assessment) — 🚧 STARTED 2026-06-21 (branch ITHandoff). v32.1 + v32.3 CLOSED (tag lokal, NOT pushed — deploy bundle). Deploy v32.1+v32.3 = 1 push origin/ITHandoff + notify IT **migration=TRUE (Fase 399 UserUnits)**. v32.4 migration=TRUE (Fase 405) ikut bundle saat siap. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify. v32.0 close masih deferred (non-destruktif).
 
-## Current Milestone: v32.1 Perbaikan Teks & Desain — 🚧 STARTED 2026-06-17
+## Current Milestone: v32.4 Ujian Ulang (Attempt/Retake Assessment) — 🚧 STARTED 2026-06-21
 
-**Goal:** Rapikan teks & tampilan 3 surface (hasil assessment + 2 halaman Admin coach) — murni UI/teks, tanpa ubah backend/perilaku/migration. (main pegang v32.0 di branch terpisah; branch ITHandoff ini = v32.1)
+**Goal:** Pekerja boleh **ujian ulang** assessment yang gagal (skor < `PassPercentage`), self-service dari halaman Hasil, dengan kontrol penuh Admin/HC (toggle on/off + MaxAttempts + cooldown per-assessment). Produktisasi mesin `ResetAssessment` HC jadi alur worker ber-guard + tutup lubang data-loss jawaban per-soal. **migration=TRUE** (Fase 405). Spec: `docs/superpowers/specs/2026-06-19-attempt-retake-assessment-design.md`.
 
-**Target features:**
-- **LBL-03** — Label hasil assessment "Nilai Kelulusan" → "Batas Nilai Kelulusan" (`Views/CMP/Results.cshtml:60`).
-- **DSN-01** — `Views/Admin/CoachCoacheeMapping.cshtml` redesign jadi accordion card per coach (header: avatar inisial + nama + section + badge beban warna-ikut-threshold).
-- **DSN-02** — Klik card coach buka/tutup daftar coachee (tabel mini di dalam card).
-- **DSN-03** — Rapikan toolbar header CoachCoacheeMapping (gaya tombol konsisten) + hapus dead-code `onclick` sampah.
-- **DSN-04** — `Views/Admin/CoachWorkload.cshtml` polish: filter bar + heading "Saran Penyeimbangan" dibungkus card konsisten.
-- **DSN-05** — CoachWorkload bersihkan inline magic-number font-size + selaraskan spacing.
+**Target features (14 REQ RTK-01..14, fase 405-408):**
+- **405 Backend Core** (migration=TRUE): 3 kolom `AssessmentSession` (AllowRetake/MaxAttempts/RetakeCooldownHours) + tabel `AssessmentAttemptResponseArchive` snapshot per-soal + `RetakeRules` (pure eligibility) + `RetakeService.ExecuteAsync` (claim atomik→snapshot→archive→reset→clear-token→audit) + refactor `ResetAssessment`→service (HC override) + endpoint `UpdateRetakeSettings` + sibling propagation. Plan READY.
+- **406 Admin Config UI + Riwayat HC**: card "Ujian Ulang" ManagePackages (mirror shuffle) + binding Create/Edit + riwayat percobaan HC di AssessmentMonitoringDetail.
+- **407 Worker Self-Service**: endpoint `CMP/RetakeExam` (CSRF+ownership+eligibility) + Results UI (tombol/counter/cooldown/lock) + gating tier-feedback baru `showWrongFlagsOnly` (skor+tanda-salah, kunci ditahan) + riwayat pekerja.
+- **408 Test & UAT**: xUnit + integration (retake-then-pass 1 cert, counting `(UserId,Title,Category)`) + Playwright lifecycle @5270 + security.
 
-**Konteks kunci:** Arah desain di-brainstorm + visual-companion (accordion card "B" dipilih untuk CoachCoacheeMapping; CoachWorkload polish-only). **Behavior parity** wajib (semua aksi existing: edit/nonaktif/graduated/hapus/reactivate/assign/import/export + threshold/saran tetap jalan). **0 migration, 0 backend.** Pendekatan: edit view + JS in-place (skip domain-research).
+**Konteks kunci:** 10 keputusan terkunci (D1 self-service · D2 attempt terakhir = record · D3 cooldown default 24 jam · D4 per-assessment · D5 feedback skor+tanda-salah · D6 graded-only · D7 cap habis→lock+HC · D8 default 2 (1–5) · D9 riwayat pekerja+HC · D10 full snapshot). 7 must-fix dari verifikasi adversarial sudah masuk spec. Wave eksekusi `405 → (406 ∥ 407) → 408`. Cert tetap 1 (guard anti-double existing), retake ≠ renewal.
 
-**Scope note:** OUT milestone ini — perubahan backend/controller, struktur data, migration, redesign penuh master-detail (arah "C" ditolak), serta halaman admin lain di luar 3 surface ini.
+**Scope note (OUT/YAGNI):** grading method selain "attempt terakhir" (highest/avg), cooldown escalating, default MaxAttempts per-kategori, pre-retake remediation gate, rotasi AccessToken per-attempt, cap attempt per-tahun.
 
 ## Previous Milestone: v31.0 Hotfix Pra-Ujian Lisensor — ✅ SHIPPED + CLOSED + MERGED→main 2026-06-16
 

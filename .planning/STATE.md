@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v22.0
-milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
-status: complete
-stopped_at: v32.3 milestone CLOSED 2026-06-21 (archived + tag lokal, NOT pushed)
-last_updated: "2026-06-21T05:23:54.254Z"
+milestone: v32.4
+milestone_name: Ujian Ulang (Attempt/Retake Assessment)
+status: in_progress
+stopped_at: v32.4 milestone STARTED 2026-06-21 (requirements promoted, roadmap active; Phase 405 plan ready)
+last_updated: "2026-06-21T06:00:00.000Z"
 last_activity: 2026-06-21
 progress:
-  total_phases: 32
-  completed_phases: 6
-  total_plans: 21
-  completed_plans: 21
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -21,19 +21,28 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.3 CLOSED 2026-06-21 → next: deploy bundle (v32.1+v32.3) + `/gsd-new-milestone v32.4`
+**Current focus:** v32.4 Ujian Ulang (Attempt/Retake) STARTED 2026-06-21 — requirements promoted + roadmap active (405-408). Phase 405 plan READY. Next: `/gsd-plan-phase 406` lalu execute.
 
 ## Current Position
 
-**v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21.** All 6 phases (399-404) + INT-01 fix (404.1) shipped local, audited PASSED (24/24 REQ; adversarial re-verify 33/33, 0 refuted), archived `milestones/v32.3-*` + `milestones/v32.3-phases/`, tag lokal `v32.3` (HEAD `dcd7972a`). REQUIREMENTS.md removed (fresh for next milestone). migration=TRUE (Fase 399 `AddUserUnitsTable` only). **NOT pushed.**
-Last activity: 2026-06-21
+Milestone: **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — 🚧 STARTED 2026-06-21 (branch ITHandoff)
+Phase: Not started (roadmap active, Phase 405 plan ready)
+Plan: —
+Status: Requirements promoted + roadmap active; ready to plan/execute Phase 405
+Last activity: 2026-06-21 — Milestone v32.4 started (requirements + roadmap activated)
+
+**v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21** (predecessor; archived `milestones/v32.3-*` + tag lokal `v32.3` HEAD `dcd7972a`; migration=TRUE Fase 399 `AddUserUnitsTable`; NOT pushed). **v32.1 — ✅ CLOSED** (archive-only, NOT pushed). Deploy v32.1+v32.3 bundle = user-owned (lihat Push IT).
 
 ## Next Action
 
-v32.3 closed. Remaining (user-owned, when ready):
-1. **Deploy bundle (v32.1 + v32.3):** isi `[COMMIT_HASH]` di `docs/milestone-v32.3/index.html` → **1 push `origin/ITHandoff`** → **notify IT migration=TRUE** (`AddUserUnitsTable` Fase 399 `fc015f4d` + backfill; v32.1 = migration=FALSE). Carry migration lama (360 `PendingProtonBypass`, 372 `ShuffleToggles`) juga notify.
-2. **Next milestone:** `/clear` → **`/gsd-new-milestone v32.4`** (Ujian Ulang/Attempt-Retake — planned + spec committed; promosikan `v32.4-PLANNED-REQUIREMENTS.md` → `REQUIREMENTS.md`).
-3. **v32.0** sudah CLOSED manual 2026-06-19 di branch `main` (tag `v32.0` @`423a2e76` + archive `milestones/v32.0-*` di main) — BUKAN pending close; sisa cuma ikut push deploy. (Histori kenapa manual non-destruktif: MEMORY `project_v32_0_close_deferred`.)
+**v32.4 active.** Plan + execute fase (wave `405 → (406 ∥ 407) → 408`):
+1. **Phase 405 Backend Core** — plan SUDAH ada (`docs/superpowers/plans/2026-06-19-v32.4-phase-405-backend-core.md`, 9-task TDD). migration=TRUE. → `/gsd-execute-phase 405` (atau `/gsd-discuss-phase 405` bila mau revisit). Solo, Wave 0.
+2. **Phase 406 + 407** — belum ditulis. Setelah 405: `/gsd-plan-phase 406` + `/gsd-plan-phase 407` (paralel, depends 405, cluster file disjoint: 406=Views admin+Monitoring, 407=CMPController+Views/CMP/Results).
+3. **Phase 408** — Test & UAT terakhir (depends 406+407).
+
+**Deploy bundle (user-owned, terpisah dari v32.4 dev):** v32.1 + v32.3 (+v32.4 saat siap) = isi `[COMMIT_HASH]` `docs/milestone-v32.3/index.html` → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` `fc015f4d` + backfill; Fase 405 retake cols saat shipped; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`).
+
+**v32.0** sudah CLOSED manual 2026-06-19 di branch `main` — BUKAN pending close (lihat MEMORY `project_v32_0_close_deferred`).
 
 Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted saat close v32.3).
 
@@ -111,8 +120,8 @@ Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted 
 
 ## Session Continuity
 
-Last activity: 2026-06-18
+Last activity: 2026-06-21
 
-Stopped at: Phase 404 context gathered
+Stopped at: Milestone v32.4 STARTED — requirements promoted (`v32.4-PLANNED-REQUIREMENTS.md` → `REQUIREMENTS.md`) + roadmap activated (405-408) + PROJECT/STATE reset. Phase 405 plan already written.
 
-Next action: **`/gsd-verify-work 400`** (Phase 400 = 1/1 plan complete). Lalu lanjut Wave-1 paralel {401 (sudah PLANNED, 6 plan), 403 (TBD)} (depends 399 done; cluster file disjoint, git worktree). Wave 2 = 402 (setelah 401), Wave 3 = 404. `/clear` dulu (fresh context). **migration=FALSE Phase 400** — notify IT saat milestone push (satu-satunya migration v32.3 = 399 `AddUserUnitsTable` `fc015f4d`).
+Next action: `/clear` lalu **`/gsd-execute-phase 405`** (plan READY, 9-task TDD, migration=TRUE) — atau `/gsd-discuss-phase 405` bila mau revisit pendekatan. Wave eksekusi `405 → (406 ∥ 407) → 408`. App port 5270 (branch ITHandoff). NOT pushed.

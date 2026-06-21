@@ -1,9 +1,9 @@
-# v32.4 Requirements — Ujian Ulang (Attempt/Retake Assessment) — PLANNED
+# v32.4 Requirements — Ujian Ulang (Attempt/Retake Assessment)
 
-> ⚠️ **PLANNED / NOT ACTIVE.** v32.3 masih executing. Dokumen ini disiapkan terpisah supaya tidak meng-clobber `REQUIREMENTS.md` live (v32.3). **Aktivasi:** setelah v32.3 close, jalankan `/gsd-new-milestone v32.4` (atau promosikan file ini → `REQUIREMENTS.md`). Jangan jalankan sebelum v32.3 close.
->
+> **Status:** ACTIVE (milestone v32.4 started 2026-06-21).
 > **Authoritative spec:** `docs/superpowers/specs/2026-06-19-attempt-retake-assessment-design.md`
-> **Plan fase 405:** `docs/superpowers/plans/2026-06-19-v32.4-phase-405-backend-core.md`
+> **Plan fase 405:** `docs/superpowers/plans/2026-06-19-v32.4-phase-405-backend-core.md` (PLAN READY)
+> **Roadmap:** `.planning/ROADMAP.md` (Phases 405-408, wave `405 → (406 ∥ 407) → 408`)
 
 ## Ringkasan
 
@@ -32,6 +32,17 @@ Pekerja boleh **ujian ulang** assessment yang gagal (skor < `PassPercentage`), s
 
 **Total: 14 REQ, 0 orphan.** Fase→REQ: 405 {01,02,03,04,06,07,13} · 406 {05,08} · 407 {09,10,11,12,13} · 408 {14}.
 
+## Traceability
+
+| Fase | Requirements | Status |
+|------|--------------|--------|
+| 405 Backend Core | RTK-01, RTK-02, RTK-03, RTK-04, RTK-06, RTK-07, RTK-13 | PLANNED (plan ready) |
+| 406 Admin Config UI + Riwayat HC | RTK-05, RTK-08 | not started |
+| 407 Worker Self-Service | RTK-09, RTK-10, RTK-11, RTK-12, RTK-13 | not started |
+| 408 Test & UAT | RTK-14 | not started |
+
+100% coverage (14/14 REQ mapped, 0 orphan).
+
 ## Invariant / Risk (dijaga selama implementasi)
 
 - **Cert tetap 1** — guard anti-double-cert existing (unique index + `WHERE NomorSertifikat==null` + retry 3×) menangani retake-lalu-lulus. Retake ≠ renewal (no `RenewsSessionId`).
@@ -39,3 +50,7 @@ Pekerja boleh **ujian ulang** assessment yang gagal (skor < `PassPercentage`), s
 - **Cooldown** `DateTime.UtcNow` konsisten; sumber = `session.CompletedAt` sesi gagal (sebelum reset).
 - **Token** wajib di-clear (`TempData[TokenVerified_{id}]`) saat retake — `StartExam` pakai `TempData.Peek` non-consume.
 - **Atomic** claim-transisi-dulu di `RetakeService` — anti double-archive dari double-click.
+
+## Out of Scope (YAGNI)
+
+Grading method selain "attempt terakhir" (highest/average — D2 latest), cooldown escalating (ISC2-style), default MaxAttempts per-kategori (D4 per-assessment saja), pre-retake remediation/reflection gate, rotasi AccessToken per-attempt, cap attempt per-tahun.
