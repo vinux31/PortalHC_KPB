@@ -33,7 +33,7 @@ Last activity: 2026-06-21
 v32.3 closed. Remaining (user-owned, when ready):
 1. **Deploy bundle (v32.1 + v32.3):** isi `[COMMIT_HASH]` di `docs/milestone-v32.3/index.html` → **1 push `origin/ITHandoff`** → **notify IT migration=TRUE** (`AddUserUnitsTable` Fase 399 `fc015f4d` + backfill; v32.1 = migration=FALSE). Carry migration lama (360 `PendingProtonBypass`, 372 `ShuffleToggles`) juga notify.
 2. **Next milestone:** `/clear` → **`/gsd-new-milestone v32.4`** (Ujian Ulang/Attempt-Retake — planned + spec committed; promosikan `v32.4-PLANNED-REQUIREMENTS.md` → `REQUIREMENTS.md`).
-3. **v32.0 close** masih DEFERRED (non-destruktif, manual — lihat MEMORY `project_v32_0_close_deferred`).
+3. **v32.0** sudah CLOSED manual 2026-06-19 di branch `main` (tag `v32.0` @`423a2e76` + archive `milestones/v32.0-*` di main) — BUKAN pending close; sisa cuma ikut push deploy. (Histori kenapa manual non-destruktif: MEMORY `project_v32_0_close_deferred`.)
 
 Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted saat close v32.3).
 
