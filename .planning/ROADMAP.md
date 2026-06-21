@@ -55,6 +55,75 @@
 - [ ] **Phase 407: Worker Self-Service (RTK-09..12, RTK-13)** — endpoint `CMP/RetakeExam` (CSRF+ownership+eligibility re-cek server-side+clear-token) + `Results.cshtml` tombol "Ujian Ulang" + "Percobaan X/N" + cooldown countdown + lock message + gating tier-feedback baru (skor+tanda-salah, kunci ditahan selama gagal+attempt-sisa) + view riwayat percobaan pekerja. 0 migration. Wave 1 (paralel 406, depends 405).
 - [ ] **Phase 408: Test & UAT (RTK-14)** — xUnit (`RetakeRules`+`RetakeArchiveBuilder`+`RetakeService`) + integration (retake-then-pass 1 cert, counting `(UserId,Title,Category)` no-conflate Pre/Post) + Playwright lifecycle penuh @5270 (gagal→skor+tanda-salah→Ujian Ulang→cooldown→ulang→lulus→cert; cap habis→lock; riwayat pekerja+HC) + security audit. 0 migration. Wave 2 (depends 406+407).
 
+### Phase Details
+
+### Phase 405: Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint
+**Goal:** Bangun fondasi backend ujian ulang tanpa UI — model data (3 kolom config + tabel snapshot per-soal), aturan kelayakan murni (`RetakeRules`), mesin retake bersama (`RetakeService.ExecuteAsync`: claim atomik → snapshot → archive → reset → clear-token → audit), refactor `ResetAssessment` HC agar delegasi ke service (override bypass), dan endpoint config `UpdateRetakeSettings` dengan sibling propagation.
+**Depends on:** Tidak ada (Wave 0 — milestone start; data + RetakeRules + RetakeService dipakai semua fase berikutnya, WAJIB solo).
+**Migration:** **TRUE** — 3 kolom `AssessmentSession` (`AllowRetake` bool default false / `MaxAttempts` int default 2 range 1–5 / `RetakeCooldownHours` int default 24 range 0–168) + tabel baru `AssessmentAttemptResponseArchive` (FK→`AssessmentAttemptHistory` ON DELETE CASCADE, index `AttemptHistoryId`; snapshot per-soal sebelum delete). EF default menutup semua jalur create; eksplisit copy di `EditAssessment` bulk-add.
+**Requirements:** RTK-01, RTK-02, RTK-03, RTK-04, RTK-06, RTK-07, RTK-13
+**Success Criteria** (what must be TRUE):
+  1. 3 kolom config (`AllowRetake`/`MaxAttempts`/`RetakeCooldownHours`) ada di `AssessmentSession` + migration applied DB lokal; EF default ter-set di semua jalur create (standard/Pre-Post/bulk-add/`ProtonBypassService`), eksplisit di-copy di `EditAssessment` bulk-add. *(RTK-01)*
+  2. Tabel `AssessmentAttemptResponseArchive` ada + builder **pure** `RetakeArchiveBuilder.Build(attemptHistoryId, questions, responses)` membekukan verdict via `AssessmentScoreAggregator.IsQuestionCorrect` + jawaban via `BuildAnswerCell` **sebelum** `PackageUserResponses` di-`RemoveRange` (no re-grade inline, kill-drift). *(RTK-02)*
+  3. `RetakeRules.CanRetake` (= AllowRetake && AssessmentType!=PreTest && !IsManualEntry && Status=="Completed" && IsPassed==false && attemptsUsed<MaxAttempts && cooldownElapsed) + `ShouldHideRetakeToggle` (PreTest || IsManualEntry) **pure + unit-tested semua cabang**; `attemptsUsed` di-count `(UserId,Title,Category)` (anti-konflasi Pre/Post); cooldown pakai `DateTime.UtcNow` vs `CompletedAt.AddHours`. *(RTK-03, RTK-13)*
+  4. `RetakeService.ExecuteAsync(sessionId, initiatedBy, bypassGuards)` — **claim transisi atomik DULU** (`ExecuteUpdateAsync WHERE Status=="Completed"→"Open"`, cek rowsAffected, abort bila 0 = anti double-archive) → snapshot per-soal → archive `AttemptNumber+1` → delete `PackageUserResponses`/`UserPackageAssignment`/`SessionElemenTeknisScores` → reset field sesi → **clear `TempData[TokenVerified_{id}]`** → audit (`RetakeAssessment` worker / `ResetAssessment` HC) → SignalR `sessionReset { reason }` parameterized. *(RTK-07)*
+  5. `ResetAssessment` HC di-refactor → panggil `ExecuteAsync(..., bypassGuards:true, reason:"hc_reset")` (bypass cap/cooldown, tetap snapshot+archive); guard HC (IsResettable/Pre-Post block/status) **tetap di controller**; `ResetGuardTests` regresi hijau. *(RTK-06)*
+  6. Endpoint `UpdateRetakeSettings(assessmentId, allowRetake, maxAttempts, retakeCooldownHours)` — `[Authorize(Admin,HC)]` + `[ValidateAntiForgeryToken]` + sibling propagation key `(Title, Category, Schedule.Date)` + audit `UpdateRetakeSettings` + clamp range (1–5 / 0–168). *(RTK-04)*
+  7. `dotnet build` 0 error + `dotnet ef database update` (kolom + tabel hadir, verifikasi `sqlcmd -C -I`) + `dotnet test` hijau (`RetakeRulesTests` semua cabang + `RetakeArchiveBuilderTests` + `RetakeServiceTests` claim-atomik/clear-token/bypass/cooldown-boundary + `ResetGuardTests` regresi). *(semua REQ)*
+**Plans:** TBD — plan superpowers tersedia `docs/superpowers/plans/2026-06-19-v32.4-phase-405-backend-core.md` (9-task TDD); `gsd-plan-phase 405` materialize ke `.planning/phases/405-*/PLAN.md`.
+**UI hint:** no
+
+### Phase 406: Admin Config UI + Riwayat HC
+**Goal:** Admin/HC mengatur kebijakan ujian ulang per-assessment lewat card "Ujian Ulang" (mirror card shuffle) di ManagePackages + binding Create/Edit, dan HC melihat riwayat percobaan per-pekerja (semua attempt archived + current, drill-down per-soal) di Monitoring Detail.
+**Depends on:** Phase 405 (butuh kolom config + `AssessmentAttemptResponseArchive` + `ShouldHideRetakeToggle`). Wave 1 — **PARALEL dengan Phase 407** (cluster file disjoint: 406 = `Views/Admin/ManagePackages.cshtml`/`CreateAssessment.cshtml`/`EditAssessment.cshtml`/`AssessmentMonitoringDetail.cshtml`).
+**Migration:** false (UI + read-path; tidak ada schema/write DB baru).
+**Requirements:** RTK-05, RTK-08
+**Success Criteria** (what must be TRUE):
+  1. Card **"Ujian Ulang"** di `ManagePackages.cshtml` (mirror card shuffle): toggle `AllowRetake` + input `MaxAttempts` (1–5) + `RetakeCooldownHours` (0–168); **disembunyikan** via `ShouldHideRetakeToggle` untuk Pre-Test / Manual Entry. *(RTK-05)*
+  2. Binding config di `CreateAssessment.cshtml` (Step 3) + `EditAssessment.cshtml`; **warning non-blocking** bila `MaxAttempts` di-set < `attemptsUsed` peserta aktif mana pun (tidak hard-lock). *(RTK-05)*
+  3. View riwayat HC di `AssessmentMonitoringDetail.cshtml` — drill-down **semua attempt per-pekerja** (archived + current) dengan skor, pass/fail, tanggal, dan detail per-soal benar/salah dari `AssessmentAttemptResponseArchive`. *(RTK-08)*
+  4. `dotnet build` 0 error + `dotnet run` (localhost:5270) + Playwright/UAT: admin simpan config → tersimpan + **propagasi ke sibling** (Title/Category/Schedule.Date sama); HC buka Monitoring Detail → lihat semua attempt per-pekerja. *(semua REQ)*
+**Plans:** TBD — `gsd-plan-phase 406`.
+**UI hint:** yes
+
+### Phase 407: Worker Self-Service + Gating Tier Feedback + Riwayat Pekerja
+**Goal:** Pekerja memicu ujian ulang sendiri dari halaman Hasil (endpoint `CMP/RetakeExam` ber-guard server-side) dengan UI lengkap (tombol, counter, cooldown countdown, lock message), melihat feedback bertingkat (skor + tanda benar/salah tanpa kunci selama masih bisa ulang), dan melihat riwayat percobaannya sendiri.
+**Depends on:** Phase 405 (butuh `RetakeRules`/`RetakeService.ExecuteAsync`/`CanRetakeAsync` + archive). Wave 1 — **PARALEL dengan Phase 406** (cluster file disjoint: 407 = `Controllers/CMPController.cs`/`Views/CMP/Results.cshtml`/`Records.cshtml`).
+**Migration:** false (endpoint + UI + gating read-path; tidak ada schema/write DB baru).
+**Requirements:** RTK-09, RTK-10, RTK-11, RTK-12, RTK-13
+**Success Criteria** (what must be TRUE):
+  1. Endpoint `CMP/RetakeExam(id)` — `[ValidateAntiForgeryToken]` + ownership (`session.UserId == effectiveUser.Id`) + **re-cek `CanRetakeAsync` server-side** (tidak percaya client) → `ExecuteAsync` → clear `TempData[TokenVerified_{id}]` → redirect `StartExam(id)` (re-entry bersih, token minta ulang). *(RTK-09, RTK-13)*
+  2. `Results.cshtml`: tombol **"Ujian Ulang"** saat eligible + "Percobaan ke-X dari N" + **cooldown countdown** (tombol disabled bila belum lewat) + "Batas percobaan tercapai, hubungi HC" saat cap habis. *(RTK-10)*
+  3. **Gating tier baru `showWrongFlagsOnly`**: gagal + attempt-sisa → tampil skor + tanda soal benar/salah (✓/✗) **TANPA kunci/pembahasan**; lulus ATAU attempt habis → `AllowAnswerReview` normal (`showFullReview`). *(RTK-11)*
+  4. View riwayat percobaan pekerja di `Results.cshtml`/`Records.cshtml` (daftar attempt + drill-down per-soal dari archive, **tunduk gating** §7) + flag `IsCurrentAttempt` di `AllWorkersHistoryRow`. *(RTK-12)*
+  5. `dotnet build` 0 error + Playwright lifecycle @5270: gagal → skor+tanda-salah (kunci tersembunyi) → tombol Ujian Ulang → cooldown gate → ulang → lulus → 1 cert; cap habis → lock message; riwayat tampil. *(semua REQ)*
+**Plans:** TBD — `gsd-plan-phase 407`.
+**UI hint:** yes
+
+### Phase 408: Test & UAT
+**Goal:** Membuktikan seluruh kemampuan ujian ulang benar end-to-end — unit (RetakeRules/RetakeArchiveBuilder/RetakeService), integration (retake-then-pass 1 cert, counting tak konflasi Pre/Post), Playwright lifecycle penuh, dan security (RBAC/antiforgery/server-side revalidation/no answer-key leak).
+**Depends on:** Phase 406 + Phase 407 (Wave 2 — penutup milestone; UI admin + worker harus selesai).
+**Migration:** false (test/UAT/security; tidak ada schema/write produksi).
+**Requirements:** RTK-14
+**Success Criteria** (what must be TRUE):
+  1. **xUnit:** `RetakeRulesTests` (semua cabang CanRetake + ShouldHideRetakeToggle) + `RetakeArchiveBuilderTests` (snapshot lengkap, verdict via IsQuestionCorrect) + `RetakeServiceTests` (claim atomik anti double-archive, clear token, bypass HC, cooldown boundary). *(RTK-14)*
+  2. **Integration:** retake-then-pass → **1 cert** (guard anti-double-cert existing); counting `(UserId, Title, Category)` **tidak konflasi** Pre/Post ber-Title sama; sibling propagation config. *(RTK-14)*
+  3. **Playwright (port 5270)** lifecycle penuh — gagal → skor+tanda-salah (kunci tersembunyi) → Ujian Ulang → cooldown gate → ulang → lulus → cert; attempt habis → lock; riwayat pekerja + HC — plus **security**: RBAC (worker hanya sesi sendiri), antiforgery, server-side cooldown/cap revalidation, no answer-key leak saat retake-eligible. *(RTK-14)*
+  4. `dotnet build` 0 error + `dotnet test` hijau (suite retake + existing tak regresi) + UAT browser sign-off (SEED_WORKFLOW: snapshot→seed→restore). *(RTK-14)*
+**Plans:** TBD — `gsd-plan-phase 408`.
+**UI hint:** yes
+
+**Active mapped: 14/14 ✓ (RTK-01/02/03/04/06/07/13 → 405 · RTK-05/08 → 406 · RTK-09/10/11/12/13 → 407 · RTK-14 → 408) — Orphans: 0 — Duplicates: 0 — migration=TRUE Phase 405 only. Critical path 405 → (406 ∥ 407) → 408; Wave 1 {406, 407} paralel setelah 405.**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 0/0 | Not started | — |
+| 406. Admin Config UI + Riwayat HC (RTK-05/08) | 0/0 | Not started | — |
+| 407. Worker Self-Service + Gating + Riwayat Pekerja (RTK-09/10/11/12/13) | 0/0 | Not started | — |
+| 408. Test & UAT (RTK-14) | 0/0 | Not started | — |
+
 </details>
 
 <details open>
