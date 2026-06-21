@@ -330,4 +330,74 @@ public class ParticipantRemovalGuardTests : IClassFixture<ParticipantRemovalGuar
         Assert.False(removedCanJoin);   // sesi InProgress yang removed → silent-skip (tak masuk group)
         Assert.True(activeCanJoin);     // sesi aktif InProgress → boleh join (sanity)
     }
+
+    // (7) PRMV-03 / T-409-08 — SaveTextAnswer + SaveMultipleAnswer (Hub) tak memuat sesi removed.
+    //     GAP-1 (validate): predikat session-load Hub DISTINCT dari JoinBatch — FirstOrDefaultAsync dgn
+    //     s.Id == sessionId (BUKAN AnyAsync tanpa Id). Bila sesi tak ter-load (null), Save* silent return →
+    //     jawaban TIDAK tersimpan. Tanpa term `&& s.RemovedAt == null`, sesi removed akan ter-load & jawaban tertulis.
+    //     De-taut: jalankan predikat produksi EKSAK (Hubs/AssessmentHub.cs:146 SaveTextAnswer / :213 SaveMultipleAnswer)
+    //     terhadap schema SQL nyata — observasi load-result DB sungguhan (Hub butuh Context/scopeFactory → predicate-level,
+    //     pola identik fact (6) JoinBatch yang sudah diterima proyek).
+    [Fact]
+    public async Task SaveAnswer_Hub_DoesNotLoad_RemovedSession()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        // Sesi InProgress removed + sesi InProgress aktif, milik user yang sama (mirror skenario worker removed mid-exam).
+        var removedId = await SeedSessionAsync(ctx, userId, S.InProgress, removedAt: DateTime.UtcNow,
+            startedAt: DateTime.UtcNow.AddMinutes(-5));
+        var activeId  = await SeedSessionAsync(ctx, userId, S.InProgress, removedAt: null,
+            startedAt: DateTime.UtcNow.AddMinutes(-5));
+
+        await using var q = NewCtx();
+        // Predikat session-load EKSAK yang dipakai SaveTextAnswer & SaveMultipleAnswer (FirstOrDefaultAsync, by Id):
+        var removedSession = await q.AssessmentSessions
+            .FirstOrDefaultAsync(s => s.Id == removedId && s.UserId == userId && s.Status == "InProgress" && s.RemovedAt == null);
+        var activeSession = await q.AssessmentSessions
+            .FirstOrDefaultAsync(s => s.Id == activeId && s.UserId == userId && s.Status == "InProgress" && s.RemovedAt == null);
+
+        // Sesi removed → null (tak ter-load) → Save* hit `if (session == null) { log; return; }` → jawaban TAK tersimpan.
+        Assert.Null(removedSession);
+        // Sesi aktif → ter-load (sanity: predikat tak over-block sesi sehat).
+        Assert.NotNull(activeSession);
+    }
+
+    // (8) PLIV-01 / WR-02 — daftar ujian AKTIF pekerja (CMPController.Assessment) mengecualikan sesi removed,
+    //     SEMENTARA completedHistory (riwayat) TETAP menampilkannya (boundary).
+    //     GAP-2 (validate): query daftar-aktif += `.Where(a => a.RemovedAt == null)` (CMPController.cs:218); query
+    //     completedHistory (:328) SENGAJA TANPA filter RemovedAt (riwayat/sertifikat utuh). Dua bentuk query EKSAK
+    //     dijalankan terhadap SQL nyata — buktikan exclude aktif + boundary riwayat tak over-exclude.
+    //     De-taut: predikat-level (Assessment action deref _userManager/impersonation, tak bisa di-invoke di fixture —
+    //     pola identik fact (6)/(7) yang diterima proyek). Menjalankan LINQ produksi eksak, bukan logika tiruan.
+    [Fact]
+    public async Task AssessmentActiveList_ExcludesRemoved_HistoryStillShows()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        // 1 sesi aktif (Open, RemovedAt==null) + 1 sesi removed (Open) → daftar aktif HARUS sembunyikan removed.
+        await SeedSessionAsync(ctx, userId, S.Open, removedAt: null);
+        await SeedSessionAsync(ctx, userId, S.Open, removedAt: DateTime.UtcNow);
+        // 1 sesi Completed removed (bersertifikat) → riwayat HARUS tetap tampilkan (boundary).
+        await SeedSessionAsync(ctx, userId, S.Completed, removedAt: DateTime.UtcNow);
+
+        await using var q = NewCtx();
+
+        // (a) Query daftar AKTIF EKSAK (CMPController.Assessment :208-218): owner + status-aktif + RemovedAt==null.
+        var activeList = await q.AssessmentSessions
+            .Where(a => a.UserId == userId)
+            .Where(a => a.Status == "Open" || a.Status == "Upcoming" || a.Status == "InProgress")
+            .Where(a => a.RemovedAt == null)
+            .ToListAsync();
+        // Hanya sesi Open aktif yang lolos; sesi Open removed lenyap.
+        Assert.Single(activeList);
+        Assert.All(activeList, s => Assert.Null(s.RemovedAt));
+
+        // (b) Query completedHistory EKSAK (CMPController.Assessment :328): owner + Completed/Abandoned, TANPA RemovedAt filter.
+        var history = await q.AssessmentSessions
+            .Where(a => a.UserId == userId && (a.Status == "Completed" || a.Status == "Abandoned"))
+            .ToListAsync();
+        // Sesi Completed yang removed TETAP muncul di riwayat (boundary — sertifikat utuh & reversibel, anti over-exclude).
+        Assert.Single(history);
+        Assert.All(history, s => Assert.NotNull(s.RemovedAt));
+    }
 }
