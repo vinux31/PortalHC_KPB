@@ -1286,8 +1286,10 @@
     var IS_PROTON = (hCategory === 'Assessment Proton');
 
     // Ekspos helper IIFE ke window agar handler SignalR (@@section Scripts, blok terpisah) bisa pakai.
+    // CATATAN: flashRow didefinisikan di blok @@section Scripts (terpisah) → JANGAN ekspos di sini
+    // (function declaration TIDAK ter-hoist lintas <script> block → ReferenceError yang membatalkan
+    // seluruh blok ini termasuk handler picker/hapus/restore). monFlashRow diekspos di blok itu.
     window.monBuildActionsHtml   = buildActionsHtml;
-    window.monFlashRow           = flashRow;
     window.monStatusBadgeClass   = statusBadgeClass;
     window.monStatusDisplayLabel = statusDisplayLabel;
     window.monIsPackageMode      = isPackageMode;
@@ -1790,6 +1792,9 @@ function eventLabel(eventType, detail) {
         tr.classList.add(cssClass);
         setTimeout(function() { tr.classList.remove(cssClass); }, 1300);
     }
+    // Ekspos monFlashRow di blok ini (tempat flashRow terdefinisi) — blok @@section Scripts.
+    // Mengekspos di blok atas (1290) menyebabkan ReferenceError lintas <script> block.
+    window.monFlashRow = flashRow;
 
     // ---- Update summary counts from DOM (used by push events) ----
     function updateSummaryFromDOM() {
