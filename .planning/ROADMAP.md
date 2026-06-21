@@ -127,7 +127,10 @@
   3. Sesi soft-removed **dikecualikan dari semua daftar & perhitungan aktif** di Monitoring (jumlah peserta, status count) dan ditampilkan terpisah di panel collapsible **"Peserta Dikeluarkan"** (nama, waktu, oleh siapa, alasan) dengan tombol **Restore**. *(PLIV-01)*
   4. Penambahan & penghapusan peserta **tersiar live** ke semua Admin/HC yang memantau batch via SignalR (`participantAdded` = baris ter-inject + count update; `participantRemoved` = baris pindah ke panel + count update) tanpa reload; broadcast HANYA dikirim setelah commit transaksi sukses. *(PLIV-02)*
   5. `dotnet build` 0 error + `dotnet run` (localhost:5277) + Playwright e2e live: (a) tambah peserta dari Monitoring → baris muncul live tanpa reload; (b) hapus peserta (modal konfirmasi keras) → baris pindah ke section "Peserta Dikeluarkan" + Restore mengembalikan ke daftar aktif; (c) worker yang sedang ujian → kena layar kick (`examRemoved`) saat dihapus. *(PART-05, PRMV-02, PLIV-01, PLIV-02 — Razor + JS + SignalR runtime → Playwright wajib, pelajaran Phase 354)*
-**Plans:** TBD
+**Plans:** 3 plans (wave 1 → wave 2∥2)
+- [ ] 412-01-PLAN.md — Broadcast post-commit (participantAdded/participantRemoved/examRemoved) ke 3 endpoint 410/411 + query removedSessions + RemovedParticipantViewModel (PLIV-01/02 + PRMV-02 server)
+- [ ] 412-02-PLAN.md — Monitoring Detail UI: picker Tambah + modal hapus keras/ringan + panel "Peserta Dikeluarkan" + Restore + handler SignalR DOM (PART-05 + PRMV-02 UI + PLIV-01/02 UI)
+- [ ] 412-03-PLAN.md — StartExam force-kick: handler examRemoved + modal #examRemovedModal (mirror examClosed) → lock UI + redirect daftar Assessment (PRMV-02 worker)
 **UI hint:** yes
 
 ### Phase 413: Test + UAT
@@ -171,7 +174,7 @@
 | 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 2/2 | Complete    | 2026-06-21 |
 | 410. Add-Participant Backend Live (PART-06 + PART-07) | 2/2 | Complete   | 2026-06-21 |
 | 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 2/2 | Complete   | 2026-06-21 |
-| 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 0/? | Not started | - |
+| 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 0/3 | Planned | - |
 | 413. Test + UAT | 0/? | Not started | - |
 | 414. Fix Visibilitas History Jawaban Admin/HC (AllowAnswerReview OFF, off-theme) | 0/? | Not started | - |
 
