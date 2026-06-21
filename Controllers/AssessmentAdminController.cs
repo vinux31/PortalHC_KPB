@@ -5554,6 +5554,58 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManagePackages", new { assessmentId });
         }
 
+        // v32.4 RTK-04: explicit-save retake config (PRG + sibling propagation + audit), mirror UpdateShuffleSettings.
+        // Beda dari shuffle: TIDAK ada lock-saat-mulai (retake config bisa diubah kapan saja); hanya guard
+        // ShouldHideRetakeToggle (PreTest/Manual tak retakeable). Sibling key identik (Title/Category/Schedule.Date).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRetakeSettings(int assessmentId, bool allowRetake, int maxAttempts, int retakeCooldownHours)
+        {
+            var assessment = await _context.AssessmentSessions.FirstOrDefaultAsync(a => a.Id == assessmentId);
+            if (assessment == null) return NotFound();
+
+            // Guard: retake hanya untuk graded (bukan Pre-Test) & bukan manual entry.
+            if (HcPortal.Helpers.RetakeRules.ShouldHideRetakeToggle(assessment.AssessmentType, assessment.IsManualEntry))
+            {
+                TempData["Error"] = "Ujian ulang tidak berlaku untuk Pre-Test atau assessment manual.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
+
+            // Clamp ke range model (defense-in-depth; [Range] hanya client/model-validation, bypass form → clamp server).
+            maxAttempts = Math.Clamp(maxAttempts, 1, 5);
+            retakeCooldownHours = Math.Clamp(retakeCooldownHours, 0, 168);
+
+            // Sibling group key identik shuffle (Title/Category/Schedule.Date).
+            var siblingSessionIds = await _context.AssessmentSessions
+                .Where(s => s.Title == assessment.Title && s.Category == assessment.Category && s.Schedule.Date == assessment.Schedule.Date)
+                .Select(s => s.Id).ToListAsync();
+            var siblings = await _context.AssessmentSessions.Where(s => siblingSessionIds.Contains(s.Id)).ToListAsync();
+            var now = DateTime.UtcNow;
+            foreach (var sibling in siblings)
+            {
+                // MaxAttempts < attempt terpakai = warning non-blocking (tetap simpan — tak hard-lock; D-02 retroaktif).
+                sibling.AllowRetake = allowRetake;
+                sibling.MaxAttempts = maxAttempts;
+                sibling.RetakeCooldownHours = retakeCooldownHours;
+                sibling.UpdatedAt = now;
+            }
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorNameStr = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+                await _auditLog.LogAsync(hcUser?.Id ?? "", actorNameStr, "UpdateRetakeSettings",
+                    $"Set AllowRetake={allowRetake}, MaxAttempts={maxAttempts}, Cooldown={retakeCooldownHours}h for '{assessment.Title}' [grup {siblingSessionIds.Count} sesi]",
+                    assessmentId, "AssessmentSession");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for UpdateRetakeSettings (assessmentId={Id})", assessmentId); }
+
+            TempData["Success"] = "Pengaturan ujian ulang berhasil disimpan.";
+            return RedirectToAction("ManagePackages", new { assessmentId });
+        }
+
         // Phase 373: the local Shuffle + cross-package distribution helpers moved to
         // Helpers/ShuffleEngine.cs (single source of truth — the canonical CMPController algorithm).
         // Both reshuffle endpoints now delegate to the shared ShuffleEngine core.
@@ -5642,6 +5694,17 @@ namespace HcPortal.Controllers
             ViewBag.IsShuffleLocked = ShuffleToggleRules.IsShuffleLocked(shufAnyStarted, shufAnyAssignment);
             ViewBag.HideShuffleToggle = ShuffleToggleRules.ShouldHideShuffleToggle(
                 assessment.Category, assessment.TahunKe, assessment.IsManualEntry);
+
+            // === v32.4: Retake config state (RTK-05 — card di-render fase 406) ===
+            ViewBag.AllowRetake = assessment.AllowRetake;
+            ViewBag.MaxAttempts = assessment.MaxAttempts;
+            ViewBag.RetakeCooldownHours = assessment.RetakeCooldownHours;
+            ViewBag.HideRetakeToggle = HcPortal.Helpers.RetakeRules.ShouldHideRetakeToggle(assessment.AssessmentType, assessment.IsManualEntry);
+            // Warning non-blocking: MaxAttempts < attempt terpakai peserta mana pun di grup (Title/Category).
+            int retakeMaxArchivedForGroup = await _context.AssessmentAttemptHistory
+                .Where(h => h.Title == assessment.Title && h.Category == assessment.Category)
+                .GroupBy(h => h.UserId).Select(g => g.Count()).OrderByDescending(c => c).FirstOrDefaultAsync();
+            ViewBag.RetakeMaxAttemptsUsedInGroup = retakeMaxArchivedForGroup + 1;
 
             // Warning §9 precondition: jumlah paket-ber-soal + mismatch ukuran (mirror view L70-81).
             var pkgWithQuestions = packages.Where(p => p.Questions.Any()).ToList();
