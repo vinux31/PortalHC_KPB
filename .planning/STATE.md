@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
-status: verifying
-stopped_at: Completed 409-02-PLAN.md (guard re-entry + exclude-removed query; Phase 409 SELESAI, migration=FALSE)
-last_updated: "2026-06-21T01:45:06.576Z"
+status: Phase 409 TUNTAS — Plan 01 (fondasi skema migration=TRUE) + Plan 02 (guard re-entry + exclude-removed query, migration=FALSE). Full suite 569/569 GREEN, build 0 error, run @5277 OK.
+stopped_at: Completed 409-02-PLAN.md (guard re-entry + exclude-removed query; Phase 409 SELESAI 2/2 plan, Plan 02 migration=FALSE)
+last_updated: "2026-06-21T02:08:58.038Z"
 last_activity: 2026-06-21
 progress:
   total_phases: 16
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 409 (data-foundation-re-entry-guards-exclude-removed-query) — SELESAI (siap verify)
-Plan: 2 of 2 SELESAI
+Phase: 410
+Plan: Not started
 Status: Phase 409 TUNTAS — Plan 01 (fondasi skema migration=TRUE) + Plan 02 (guard re-entry + exclude-removed query, migration=FALSE). Full suite 569/569 GREEN, build 0 error, run @5277 OK.
-Last activity: 2026-06-21 -- Plan 409-02 selesai (3 commits cf7838b5 test + a0afd785 guard + 2baf7402 exclude; 6 test ParticipantRemoval GREEN)
+Last activity: 2026-06-21
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 

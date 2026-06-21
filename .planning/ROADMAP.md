@@ -54,7 +54,7 @@
 
 ### Phases
 
-- [ ] **Phase 409: Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03)** — Migration `AddParticipantRemovalColumns` (3 kolom nullable `RemovedAt`/`RemovedBy`/`RemovalReason` di `AssessmentSession`) + definisi sumber-kebenaran soft-removed (`RemovedAt != null`) + guard re-entry anti-resubmit di `CMPController.StartExam`/`SubmitExam` + `AssessmentHub.JoinBatch` (peserta dihapus tak bisa lanjut/submit) + filter semua list/count peserta exclude `RemovedAt != null` (Monitoring, grouping, hasil, cert count, pass-rate). Fondasi yang dikonsumsi Phase 410-412. **migration=TRUE.**
+- [x] **Phase 409: Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03)** — Migration `AddParticipantRemovalColumns` (3 kolom nullable `RemovedAt`/`RemovedBy`/`RemovalReason` di `AssessmentSession`) + definisi sumber-kebenaran soft-removed (`RemovedAt != null`) + guard re-entry anti-resubmit di `CMPController.StartExam`/`SubmitExam` + `AssessmentHub.JoinBatch` (peserta dihapus tak bisa lanjut/submit) + filter semua list/count peserta exclude `RemovedAt != null` (Monitoring, grouping, hasil, cert count, pass-rate). Fondasi yang dikonsumsi Phase 410-412. **migration=TRUE.** (completed 2026-06-21)
 - [ ] **Phase 410: Add-Participant Backend Live (PART-06, PART-07)** — Endpoint `AddParticipantsLive` (POST, RBAC Admin+HC + antiforgery): resolve batch dari sesi representatif, guard window (`ExamWindowCloseDate` lewat → tolak 400), idempoten (skip user yang sudah punya sesi aktif), buat `AssessmentSession` + `UserPackageAssignment` otomatis ber-status siap-mulai (`DeriveReadyStatus` Open/Upcoming, BUKAN InProgress) dalam satu transaksi, pasangan Pre+Post untuk batch Pre/Post; helper bersama dari jalur create batch existing; tolak sesi Proton; return JSON baris baru + endpoint `GetEligibleParticipantsToAdd` untuk picker. migration=FALSE.
 - [ ] **Phase 411: Remove + Restore Backend Live (PRMV-01, PRMV-04, PRMV-05, PLIV-03)** — Endpoint `RemoveParticipantLive` (POST): hybrid by-state (belum-mulai + 0-response → hard-delete via `RecordCascadeDeleteService`; sudah-mulai/Completed/ada-data → soft-remove `RemovedAt`/`RemovedBy`/`RemovalReason`, JANGAN sentuh Score/IsPassed/NomorSertifikat/file/response), idempoten (sudah removed → no-op sukses), Pre/Post pasangan-sebagai-satu-unit; `RestoreParticipantLive` (set `RemovedAt=null`, hanya untuk soft-removed); perbaiki stub mati `DeleteAssessmentPeserta`; audit `AddParticipantLive`/`RemoveParticipantLive`/`RestoreParticipantLive` (siapa/kapan/alasan) + RBAC Admin+HC + antiforgery di SEMUA endpoint add/remove/restore; tolak sesi Proton. migration=FALSE.
 - [ ] **Phase 412: Live Monitoring UI + SignalR (PART-05, PRMV-02, PLIV-01, PLIV-02)** — Kontrol Tambah/Hapus peserta di Monitoring Detail (AJAX, baris muncul/pindah live tanpa reload) + modal konfirmasi keras saat hapus peserta aktif + force-kick: SignalR `participantAdded`/`participantRemoved` (broadcast `monitor-{batchKey}` setelah commit) + `examRemoved` ke worker (kunci UI ujian + redirect "Anda dikeluarkan") + handler DOM (inject/pindah baris + update summary count) + panel collapsible **"Peserta Dikeluarkan"** (soft-removed: nama/waktu/oleh/alasan + tombol Restore). Konsumsi backend 410+411 + guard/exclude-query 409. migration=FALSE.
@@ -74,7 +74,7 @@
   3. `AssessmentHub.JoinBatch` menolak join koneksi SignalR bila sesi `RemovedAt != null` (peserta dihapus tak bisa re-join grup monitoring/ujian). *(PRMV-03)*
   4. Semua daftar & perhitungan peserta **aktif** (Monitoring `:2815`/Detail `:3273` + `InProgressCount`, grouping `ManageAssessmentTab_Assessment` `:179`, hasil/grading list, cert count, pass-rate) **mengecualikan** sesi `RemovedAt != null` — sesi soft-removed lenyap dari hitungan aktif. *(fondasi PLIV-01)*
   5. `dotnet build` 0 error + `dotnet test` hijau (unit/integration: guard `StartExam`/`SubmitExam`/`JoinBatch` block sesi removed; query exclude `RemovedAt != null` di count/list) + `dotnet run` (localhost:5277). migration apply + DB lokal verified. *(PRMV-03)*
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 - [x] 409-01-PLAN.md — Migration AddParticipantRemovalColumns (3 kolom nullable) + Fluent config + apply DB lokal (migration=TRUE, BLOCKING)
 - [x] 409-02-PLAN.md — Guard re-entry (StartExam/SubmitExam/JoinBatch + A1 Save*) + exclude-removed 3 query monitoring + test de-tautologis
 **UI hint:** yes
@@ -144,7 +144,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 2/2 | Complete   | 2026-06-21 |
+| 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 2/2 | Complete    | 2026-06-21 |
 | 410. Add-Participant Backend Live (PART-06 + PART-07) | 0/? | Not started | - |
 | 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 0/? | Not started | - |
 | 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 0/? | Not started | - |
