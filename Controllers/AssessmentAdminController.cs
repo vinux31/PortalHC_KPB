@@ -29,6 +29,7 @@ namespace HcPortal.Controllers
         private readonly GradingService _gradingService;
         private readonly ProtonCompletionService _protonCompletionService;
         private readonly ProtonBypassService _protonBypassService;
+        private readonly HcPortal.Services.RetakeService _retakeService;
 
         public AssessmentAdminController(
             ApplicationDbContext context,
@@ -42,7 +43,8 @@ namespace HcPortal.Controllers
             IWorkerDataService workerDataService,
             GradingService gradingService,
             ProtonCompletionService protonCompletionService,
-            ProtonBypassService protonBypassService)
+            ProtonBypassService protonBypassService,
+            HcPortal.Services.RetakeService retakeService)
             : base(context, userManager, auditLog, env)
         {
             _cache = cache;
@@ -53,6 +55,7 @@ namespace HcPortal.Controllers
             _gradingService = gradingService;
             _protonCompletionService = protonCompletionService;
             _protonBypassService = protonBypassService;
+            _retakeService = retakeService;
         }
 
         // Override View resolution to use Views/Admin/ folder (controller name is AssessmentAdmin, but views stay in Admin/)
@@ -4235,73 +4238,22 @@ namespace HcPortal.Controllers
                 });
             }
 
-            // Phase 46: Archive attempt data if session was Completed
-            if (assessment.Status == "Completed")
+            // v32.4 RTK-06: delegasi ke RetakeService bersama (claim-atomik DULU → snapshot per-soal
+            // SEBELUM delete → archive → reset → audit → SignalR reason). Guard HC (IsResettable/Pre-Post/
+            // status) TETAP di controller (di atas). Logika inline archive→delete→reset dipindah ke service.
+            var rsUser = await _userManager.GetUserAsync(User);
+            var rsActorName = string.IsNullOrWhiteSpace(rsUser?.NIP) ? (rsUser?.FullName ?? "Unknown") : $"{rsUser.NIP} - {rsUser.FullName}";
+
+            var rsResult = await _retakeService.ExecuteAsync(
+                sessionId: id,
+                actorUserId: rsUser?.Id ?? "",
+                actorName: rsActorName,
+                actionType: "ResetAssessment",
+                reason: "hc_reset");
+
+            if (!rsResult.Success)
             {
-                int existingAttempts = await _context.AssessmentAttemptHistory
-                    .Where(h => h.UserId == assessment.UserId && h.Title == assessment.Title)
-                    .CountAsync();
-
-                var attemptHistory = new AssessmentAttemptHistory
-                {
-                    SessionId    = assessment.Id,
-                    UserId       = assessment.UserId,
-                    Title        = assessment.Title ?? "",
-                    Category     = assessment.Category ?? "",
-                    Score        = assessment.Score,
-                    IsPassed     = assessment.IsPassed,
-                    StartedAt    = assessment.StartedAt,
-                    CompletedAt  = assessment.CompletedAt,
-                    AttemptNumber = existingAttempts + 1,
-                    ArchivedAt   = DateTime.UtcNow
-                };
-                _context.AssessmentAttemptHistory.Add(attemptHistory);
-            }
-
-            // Delete PackageUserResponse records for this session (package path answers)
-            var packageResponses = await _context.PackageUserResponses
-                .Where(r => r.AssessmentSessionId == id)
-                .ToListAsync();
-            if (packageResponses.Any())
-                _context.PackageUserResponses.RemoveRange(packageResponses);
-
-            // 2. Delete UserPackageAssignment for this session (package path)
-            //    Deleting ensures the next StartExam assigns a fresh random package.
-            var assignment = await _context.UserPackageAssignments
-                .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
-            if (assignment != null)
-                _context.UserPackageAssignments.Remove(assignment);
-
-            // #22 D-07: bersihkan ET scores stale agar retake regenerasi ET BARU
-            // (cegah unique-index violation di GradingService yang ditelan catch → analitik stale).
-            // SEBELUM SaveChangesAsync di bawah → ter-flush dalam batch yang sama. TANPA transaksi baru.
-            var etScores = await _context.SessionElemenTeknisScores
-                .Where(e => e.AssessmentSessionId == id)
-                .ToListAsync();
-            if (etScores.Any())
-                _context.SessionElemenTeknisScores.RemoveRange(etScores);
-
-            // 3. Reset session state to Open via status-guarded ExecuteUpdateAsync
-            // (Cancelled is the only status that is NOT resettable — guard prevents double-reset race)
-            await _context.SaveChangesAsync(); // flush archive + delete operations first
-
-            var rsRowsAffected = await _context.AssessmentSessions
-                .Where(s => s.Id == id && s.Status != "Cancelled")
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(r => r.Status, "Open")
-                    .SetProperty(r => r.Score, (int?)null)
-                    .SetProperty(r => r.IsPassed, (bool?)null)
-                    .SetProperty(r => r.Progress, 0)
-                    .SetProperty(r => r.StartedAt, (DateTime?)null)
-                    .SetProperty(r => r.CompletedAt, (DateTime?)null)
-                    .SetProperty(r => r.ElapsedSeconds, (int)0)
-                    .SetProperty(r => r.LastActivePage, (int?)null)
-                    .SetProperty(r => r.UpdatedAt, DateTime.UtcNow)
-                );
-
-            if (rsRowsAffected == 0)
-            {
-                TempData["Error"] = "Sesi tidak dapat direset (mungkin sudah dibatalkan).";
+                TempData["Error"] = rsResult.Error ?? "Sesi tidak dapat direset.";
                 return RedirectToAction("AssessmentMonitoringDetail", new {
                     title = assessment.Title,
                     category = assessment.Category,
@@ -4309,18 +4261,9 @@ namespace HcPortal.Controllers
                 });
             }
 
-            // Audit log
-            var rsUser = await _userManager.GetUserAsync(User);
-            var rsActorName = string.IsNullOrWhiteSpace(rsUser?.NIP) ? (rsUser?.FullName ?? "Unknown") : $"{rsUser.NIP} - {rsUser.FullName}";
-            await _auditLog.LogAsync(
-                rsUser?.Id ?? "",
-                rsActorName,
-                "ResetAssessment",
-                $"Reset assessment '{assessment.Title}' for user {assessment.UserId} [ID={id}]",
-                id,
-                "AssessmentSession");
-
-            await _hubContext.Clients.User(assessment.UserId).SendAsync("sessionReset", new { reason = "hc_reset" });
+            // HC reset re-arms token verification on next entry (parity dgn worker retake) — must-fix #1.
+            // StartExam pakai TempData.Peek (non-consume), jadi token stale WAJIB di-clear oleh caller.
+            TempData.Remove($"TokenVerified_{id}");
 
             TempData["Success"] = "Sesi ujian telah direset. Peserta dapat mengikuti ujian kembali.";
             return RedirectToAction("AssessmentMonitoringDetail", new {

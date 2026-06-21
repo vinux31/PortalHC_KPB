@@ -57,7 +57,8 @@ public class AssessmentWindowRemovalTests
             workerDataService:       null!,
             gradingService:          null!,
             protonCompletionService: null!,
-            protonBypassService:     null!);
+            protonBypassService:     null!,
+            retakeService:           null!);
         #pragma warning restore CS8625
 
         ctrl.ControllerContext = new ControllerContext
