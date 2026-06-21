@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
-status: executing
-stopped_at: Completed 411-02-PLAN.md
-last_updated: "2026-06-21T06:24:29Z"
+status: verifying
+stopped_at: Phase 412 context gathered
+last_updated: "2026-06-21T07:04:31.519Z"
 last_activity: 2026-06-21 -- Phase 411 Plan 02 executed (integration tests remove+restore, 15/15)
 progress:
   total_phases: 17
@@ -187,6 +187,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 411-02-PLAN.md
+Stopped at: Phase 412 context gathered
 
 Next action: **Phase 411 COMPLETE (2/2 plan).** Plan 01 backend = core + 3 endpoint + un-hide form (`764516d0`+`220382ec`); Plan 02 test = 15 test de-tautologis (`cafd641d` read+soft + `3ec00420` hard-delete mini-DI; full suite **596/596**, 15/15 hijau filter `~FlexibleParticipantRemove`). migration=FALSE; NOT pushed. **NEXT: `/gsd-verify-work 411`** (verify gate — build 0 error + suite 596/596 + 15 test FlexibleParticipantRemove de-tautologis; SQLEXPRESS write-path BENAR run, DB test auto-disposed) → lalu **412 (UI+SignalR**, depends 410+411; konsumsi JSON outcome `{sessionId, mode, linkedSessionId}` + escape `RemovalReason` carry T-409-10) → 413 (test+UAT). **Mini-DI pattern 411-02 (`BuildCascadeServiceProvider`/`StubWebHostEnvironment`/`MakeLiveControllerWithCascade`) reusable** untuk fase yang drive cascade lewat `HttpContext.RequestServices`. Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0`; 410+411 + 412-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.
