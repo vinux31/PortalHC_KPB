@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v32.4
 milestone_name: Ujian Ulang (Attempt/Retake Assessment)
 status: verifying
-stopped_at: "Phase 405 COMPLETE (all gates) — next Wave 1: 406 ∥ 407 (need discuss + UI-SPEC)"
-last_updated: "2026-06-21T08:44:44.608Z"
+stopped_at: "Phase 406 context gathered (next: ui-phase)"
+last_updated: "2026-06-21T10:55:22.389Z"
 last_activity: 2026-06-21
 progress:
   total_phases: 37
@@ -125,6 +125,6 @@ Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted 
 
 Last activity: 2026-06-21
 
-Stopped at: Phase 405 COMPLETE (all gates) — next Wave 1: 406 ∥ 407 (need discuss + UI-SPEC)
+Stopped at: Phase 406 context gathered (next: ui-phase)
 
 Next action: `/clear` lalu **`/gsd-verify-work`** (verifier Phase 405 — semua 4 plan done; build 0 error, ResetGuardTests 2/2, unit 436/438, RetakeService integration 5/5). Setelah verify: `/gsd-plan-phase 406` + `/gsd-plan-phase 407` (paralel, depends 405). Wave eksekusi `405 → (406 ∥ 407) → 408`. App port 5270 (branch ITHandoff). NOT pushed. migration=TRUE carry 405-01 `AddRetakeColumnsAndArchive` `69db727a` (notify IT saat deploy bundle v32.4).
