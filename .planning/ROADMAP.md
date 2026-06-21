@@ -32,19 +32,19 @@
 - ✅ **v31.0 Hotfix Pra-Ujian Lisensor** — Phases 385-387 (shipped local + audited PASSED 2026-06-16, 14/14 REQ PXF-01..14; **0 migration**; 385-386 = bundle urgent pra-acara [deploy IT #1], 387 = polish pasca-acara [deploy IT #2]; NOT PUSHED) — [archive](milestones/v31.0-ROADMAP.md) — [audit](milestones/v31.0-MILESTONE-AUDIT.md)
 - ✅ **v32.0 Manajemen Peserta** — Phases 391-392 (shipped local + audited PASSED 2026-06-17, closed manual 2026-06-19, 7/7 REQ PART-01..04 + WRKR-01..03; **0 migration**; 391 = penambahan peserta fleksibel saat ujian berjalan, 392 = perbaikan CreateWorker view + audit field; branch main, NOT PUSHED) — [archive](milestones/v32.0-ROADMAP.md) — [requirements](milestones/v32.0-REQUIREMENTS.md) — [audit](milestones/v32.0-MILESTONE-AUDIT.md)
 - ✅ **v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — Phases 393-398 + 398.1 (shipped local + audited PASSED 2026-06-19, 13/13 REQ INJ-01..13; 7 phase, 26 plan; **0 migration**; page baru `/Admin/InjectAssessment` Section C [Admin+HC] meng-inject hasil assessment identik online via reuse GradingService/authoring/CertNumberHelper; 398.1 = tech-debt cleanup 8 FIX/2 DROP; branch main, NOT PUSHED) — [archive](milestones/v32.2-ROADMAP.md) — [audit](milestones/v32.2-MILESTONE-AUDIT.md)
-- 🚧 **v32.5 Flexible Add/Remove Participant** — Phases 409-413 (STARTED 2026-06-19, ACTIVE; 11/11 REQ PART-05/06/07 + PRMV-01..05 + PLIV-01/02/03; **migration=TRUE** [Phase 409 `AddParticipantRemovalColumns`, 3 kolom nullable; Phase 410-413 = migration=FALSE]; add & remove peserta live di Monitoring Detail [AJAX+SignalR], hapus hybrid by-state belum-mulai→hard-delete / ada-data→soft-remove+restore; branch main, NOT PUSHED; fase mulai 409 untuk hindari tabrak v32.3 [399-404] + v32.4 [405-408] di ITHandoff)
+- 🚧 **v32.5 Flexible Add/Remove Participant** — Phases 409-414 (STARTED 2026-06-19, ACTIVE; 11/11 REQ PART-05/06/07 + PRMV-01..05 + PLIV-01/02/03 [Phase 414 = bugfix off-theme visibilitas review jawaban admin, no REQ baru]; **migration=TRUE** [Phase 409 `AddParticipantRemovalColumns`, 3 kolom nullable; Phase 410-413 = migration=FALSE]; add & remove peserta live di Monitoring Detail [AJAX+SignalR], hapus hybrid by-state belum-mulai→hard-delete / ada-data→soft-remove+restore; branch main, NOT PUSHED; fase mulai 409 untuk hindari tabrak v32.3 [399-404] + v32.4 [405-408] di ITHandoff)
 
 ## Phases
 
 > Detail fase milestone yang sudah ship diarsip per-milestone (lihat link **[archive]** di daftar Milestones di atas). Hanya milestone aktif / belum-arsip yang dirinci di sini.
 
 <details open>
-<summary>🚧 v32.5 Flexible Add/Remove Participant (Phases 409-413) — STARTED 2026-06-19 — ACTIVE</summary>
+<summary>🚧 v32.5 Flexible Add/Remove Participant (Phases 409-414) — STARTED 2026-06-19 — ACTIVE</summary>
 
 **Status:** Roadmap created 2026-06-19 (spec-driven, skip domain-research — audit kode 4-agen sudah memetakan root cause + file:line). NOT YET PLANNED.
 **Spec:** `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md` (committed `ccdc78ef`; 6 keputusan LOCKED; arsitektur A-H code-verified file:line). Detail REQ → `.planning/REQUIREMENTS.md`.
 **Goal:** Admin/HC dapat menambah & menghapus peserta pada assessment **kapan saja** — batch belum-progres maupun yang sedang berjalan (`InProgress`) — langsung dari layar **Monitoring Detail** (live, AJAX+SignalR). Hapus **hybrid by-state**: belum-mulai → hard-delete bersih; sudah-ada-data/Completed → soft-remove + arsip (reversibel via Restore, sertifikat aman).
-**Granularity:** standard (5 fase — pengelompokan by arsitektur spec: 1 fondasi data+guard [migration], 2 backend feature [add ∥ remove/restore, file-overlap dikelola sequential], 1 UI+SignalR [depends backend], 1 test+UAT [depends semua]).
+**Granularity:** standard (5 fase tema — pengelompokan by arsitektur spec: 1 fondasi data+guard [migration], 2 backend feature [add ∥ remove/restore, file-overlap dikelola sequential], 1 UI+SignalR [depends backend], 1 test+UAT [depends semua]) **+ Phase 414 off-theme** (bugfix visibilitas review jawaban admin saat `AllowAnswerReview` OFF, ditambah 2026-06-21, independen, no REQ, migration=FALSE).
 **Migration:** **TRUE — hanya Phase 409** (`AddParticipantRemovalColumns`: 3 kolom nullable additif `RemovedAt`/`RemovedBy`/`RemovalReason` di `AssessmentSession`, tanpa default destruktif). **Phase 410-413 = migration=FALSE.** → notify IT dengan commit hash + flag migration saat Phase 409 ter-merge.
 **Penomoran phase:** mulai **Phase 409** (BUKAN lanjut 398 main). Pilihan eksplisit user: v32.3 pakai 399-404 + v32.4 pakai 405-408 (keduanya di branch ITHandoff) → v32.5 mulai 409 agar tak tabrak nomor saat merge antar-branch.
 **Konteks kunci:** `AssessmentSession` = per-peserta (FK `UserId`); "batch" = sesi share `Title+Category+Schedule.Date`; `InProgress` = turunan (`StartedAt!=null && CompletedAt==null`, `DeriveUserStatus :2715`). Sumber-kebenaran "removed" = `RemovedAt != null`. ADD sudah parsial via `EditAssessment` (Phase 391); DELETE 1-peserta **belum ada backend** (stub mati `DeleteAssessmentPeserta` `EditAssessment.cshtml:666`).
@@ -54,11 +54,13 @@
 
 ### Phases
 
-- [x] **Phase 409: Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03)** — Migration `AddParticipantRemovalColumns` (3 kolom nullable `RemovedAt`/`RemovedBy`/`RemovalReason` di `AssessmentSession`) + definisi sumber-kebenaran soft-removed (`RemovedAt != null`) + guard re-entry anti-resubmit di `CMPController.StartExam`/`SubmitExam` + `AssessmentHub.JoinBatch` (peserta dihapus tak bisa lanjut/submit) + filter semua list/count peserta exclude `RemovedAt != null` (Monitoring, grouping, hasil, cert count, pass-rate). Fondasi yang dikonsumsi Phase 410-412. **migration=TRUE.** (completed 2026-06-21)
+- [x] **Phase 409: Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03)** — Migration `AddParticipantRemovalColumns` (3 kolom nullable `RemovedAt`/`RemovedBy`/`RemovalReason` di `AssessmentSession`) + definisi sumber-kebenaran soft-removed (`RemovedAt != null`) + guard re-entry anti-resubmit di `CMPController.StartExam`/`SubmitExam` + `AssessmentHub.JoinBatch` (peserta dihapus tak bisa lanjut/submit) + filter semua list/count peserta exclude `RemovedAt != null` (Monitoring, grouping, hasil, cert count, pass-rate). Fondasi yang dikonsumsi Phase 410-412. **migration=TRUE.**
+ (completed 2026-06-21)
 - [ ] **Phase 410: Add-Participant Backend Live (PART-06, PART-07)** — Endpoint `AddParticipantsLive` (POST, RBAC Admin+HC + antiforgery): resolve batch dari sesi representatif, guard window (`ExamWindowCloseDate` lewat → tolak 400), idempoten (skip user yang sudah punya sesi aktif), buat `AssessmentSession` + `UserPackageAssignment` otomatis ber-status siap-mulai (`DeriveReadyStatus` Open/Upcoming, BUKAN InProgress) dalam satu transaksi, pasangan Pre+Post untuk batch Pre/Post; helper bersama dari jalur create batch existing; tolak sesi Proton; return JSON baris baru + endpoint `GetEligibleParticipantsToAdd` untuk picker. migration=FALSE.
 - [ ] **Phase 411: Remove + Restore Backend Live (PRMV-01, PRMV-04, PRMV-05, PLIV-03)** — Endpoint `RemoveParticipantLive` (POST): hybrid by-state (belum-mulai + 0-response → hard-delete via `RecordCascadeDeleteService`; sudah-mulai/Completed/ada-data → soft-remove `RemovedAt`/`RemovedBy`/`RemovalReason`, JANGAN sentuh Score/IsPassed/NomorSertifikat/file/response), idempoten (sudah removed → no-op sukses), Pre/Post pasangan-sebagai-satu-unit; `RestoreParticipantLive` (set `RemovedAt=null`, hanya untuk soft-removed); perbaiki stub mati `DeleteAssessmentPeserta`; audit `AddParticipantLive`/`RemoveParticipantLive`/`RestoreParticipantLive` (siapa/kapan/alasan) + RBAC Admin+HC + antiforgery di SEMUA endpoint add/remove/restore; tolak sesi Proton. migration=FALSE.
 - [ ] **Phase 412: Live Monitoring UI + SignalR (PART-05, PRMV-02, PLIV-01, PLIV-02)** — Kontrol Tambah/Hapus peserta di Monitoring Detail (AJAX, baris muncul/pindah live tanpa reload) + modal konfirmasi keras saat hapus peserta aktif + force-kick: SignalR `participantAdded`/`participantRemoved` (broadcast `monitor-{batchKey}` setelah commit) + `examRemoved` ke worker (kunci UI ujian + redirect "Anda dikeluarkan") + handler DOM (inject/pindah baris + update summary count) + panel collapsible **"Peserta Dikeluarkan"** (soft-removed: nama/waktu/oleh/alasan + tombol Restore). Konsumsi backend 410+411 + guard/exclude-query 409. migration=FALSE.
 - [ ] **Phase 413: Test + UAT** — xUnit Integration (pola `FlexibleParticipantAddTests`, DB disposable `HcPortalDB_Test_{guid}`): add-live ready-status + idempotent + window-tutup tolak + remove not-started hard-delete + remove in-progress/completed-certified soft-remove (Score/cert preserved + excluded dari list aktif) + removed-worker StartExam/SubmitExam blocked + Restore + Pre/Post pair add/remove + Proton tolak. Playwright e2e live (Monitoring Detail): tambah peserta baris muncul live + hapus peserta (modal keras) baris pindah ke panel + worker sedang-ujian kena layar kick. Regression full-suite + verifikasi tak ada regresi guard Phase 391/398.1. migration=FALSE.
+- [ ] **Phase 414: Fix Visibilitas History Jawaban Admin/HC saat AllowAnswerReview OFF (off-theme)** — `CMP/Results` gate per-soal "Tinjauan Jawaban" pakai `AllowAnswerReview` tanpa cek role → admin/HC ikut buta saat toggle OFF, padahal action di-share worker & admin/HC (auth `IsResultsAuthorized`). Fix: decouple gate dari role (`showReview = AllowAnswerReview || viewer ≠ owner`) — peserta (owner) tetap diblok, admin/HC selalu boleh lihat history jawaban peserta. Scope `CMPController.Results` + `AssessmentResultsViewModel` + `Views/CMP/Results.cshtml` + test admin-bypass/worker-gated. Bugfix terpisah, TIDAK menambah REQ ke 11/11. migration=FALSE. (ditambah 2026-06-21)
 
 ### Phase Details
 
@@ -108,7 +110,9 @@
   3. Menghapus peserta pada assessment **Pre/Post** memperlakukan pasangan Pre+Post **sebagai satu unit** — keduanya hard-delete bila sama-sama belum-mulai+tanpa data, atau keduanya soft-remove bila salah satu sudah berdata (tak ada setengah pasangan tertinggal). *(PRMV-05)*
   4. SEMUA aksi tambah/hapus/restore **tercatat di audit** (siapa via `RemovedBy`, kapan, alasan via `RemovalReason`) dan setiap endpoint hanya dapat diakses **Admin atau HC** (`[Authorize(Roles="Admin, HC")]` + `[ValidateAntiForgeryToken]`); `EnsureCanDeleteAsync` dilonggarkan untuk HC hapus Completed/bersertifikat dengan mitigasi soft-remove + audit; sesi **Proton** ditolak; stub `DeleteAssessmentPeserta` tak lagi broken. *(PLIV-03)*
   5. `dotnet build` 0 error + `dotnet test` hijau (integration: hard-delete not-started baris hilang + soft-remove in-progress `RemovedAt` set & response/Score utuh + soft-remove completed-certified `NomorSertifikat`/file preserved & excluded dari list aktif + idempotent no-op + restore muncul lagi + Pre/Post pair konsisten + audit row tertulis + Proton tolak) + `dotnet run` (localhost:5277). migration=FALSE. *(PRMV-01, PRMV-04, PRMV-05, PLIV-03)*
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 411-01-PLAN.md — RemoveParticipantCoreAsync (hybrid hard/soft + Pre/Post pair via LinkedSessionId + audit) + RemoveParticipantLive/RestoreParticipantLive (JSON) + DeleteAssessmentPeserta (redirect, fix stub) + RBAC/antiforgery/Proton-reject + un-hide form view
+- [ ] 411-02-PLAN.md — FlexibleParticipantRemoveTests de-tautologis (read-path InMemory: Proton/idempotency/restore-guard; write-path SQLEXPRESS: soft preserve cert/score, reason-wajib, Pre/Post pair, audit; hard-delete via mini-DI service-provider stub: row+UPA gone D-01)
 **UI hint:** yes
 
 ### Phase 412: Live Monitoring UI + SignalR
@@ -142,15 +146,34 @@
 
 **Active mapped: 11/11 ✓ (PRMV-03 → 409; PART-06 + PART-07 → 410; PRMV-01 + PRMV-04 + PRMV-05 + PLIV-03 → 411; PART-05 + PRMV-02 + PLIV-01 + PLIV-02 → 412; 413 = test+UAT, no new REQ) — Orphans: 0 — Duplicates: 0 — migration=TRUE hanya Phase 409 (`AddParticipantRemovalColumns`), Phase 410-413 = migration=FALSE — depends chain: 409 → (410 ∥ 411, file-overlap `AssessmentAdminController.cs` → sequential) → 412 → 413.**
 
+### Phase 414: Fix Visibilitas History Jawaban Admin/HC saat AllowAnswerReview OFF
+
+**Goal:** Admin/HC selalu bisa melihat history jawaban per-soal peserta dari Assessment Monitoring (tombol "View Results" → `CMP/Results`), TANPA terpengaruh toggle `AllowAnswerReview`. Toggle tetap worker-facing: peserta (owner) yang melihat hasilnya sendiri tetap diblok saat OFF — hanya admin/HC yang dibebaskan.
+**Root cause:** `CMPController.Results` (`:2207`, di-share worker & admin/HC via auth `IsResultsAuthorized` `:2218`) membangun `QuestionReviews` hanya `if (assessment.AllowAnswerReview)` (`:2266`); `Views/CMP/Results.cshtml:316/413` gate flag sama — tanpa cek role → admin/HC ikut buta saat OFF. Path admin `EditPesertaAnswers` bukan pengganti (terbatas sesi editable + tujuan mutasi).
+**Depends on:** — (independen; off-theme dari Flexible Add/Remove, dibundel ke v32.5 atas keputusan user)
+**Migration:** false (pure logic + view; tanpa schema baru)
+**Requirements:** TBD — run `/gsd-discuss-phase 414` atau `/gsd-plan-phase 414`. Acuan fix: decouple gate dari role → `showReview = assessment.AllowAnswerReview || user.Id != assessment.UserId` (non-owner sudah lolos `IsResultsAuthorized` = Admin/HC/section-head); expose field efektif di VM, view gate pakai flag baru.
+**Files:** `Controllers/CMPController.cs` (action `Results`, gate `:2266` + else branch `:2329`) · `Models/AssessmentResultsViewModel.cs` (tambah field efektif mis. `ShowAnswerReview`) · `Views/CMP/Results.cshtml` (`:316` + `:413` gate pakai flag baru) · test admin-bypass + worker-gated. Pertimbangkan jalur sejenis: `UserAssessmentHistory` + export (cek apakah pola gate sama).
+**Success Criteria** (what must be TRUE):
+  1. Admin/HC buka "View Results" peserta dgn `AllowAnswerReview=false` → section "Tinjauan Jawaban" per-soal TAMPIL (benar/salah + opsi dipilih + jawaban benar), BUKAN alert "tidak tersedia".
+  2. Peserta (owner) buka hasil sendiri dgn `AllowAnswerReview=false` → tetap diblok (perilaku lama, alert "Tinjauan jawaban tidak tersedia untuk assessment ini").
+  3. `AllowAnswerReview=true` → perilaku worker & admin tidak berubah (regresi nol).
+  4. Test mengunci kedua jalur (admin-bypass + worker-gated) + `dotnet build` 0 error + `dotnet test` hijau + `dotnet run` (localhost:5277) verify (CLAUDE.md Develop Workflow). 0 migration.
+**Plans:** TBD
+**UI hint:** yes (view-only, sentuhan kecil `Results.cshtml`)
+
+**Off-theme note:** Phase 414 BUKAN bagian tema Flexible Add/Remove Participant (PART/PRMV/PLIV). Tidak menambah REQ ke akuntansi 11/11 v32.5 — bugfix terpisah dibundel atas permintaan user. migration=FALSE.
+
 ### Progress Table
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 2/2 | Complete    | 2026-06-21 |
 | 410. Add-Participant Backend Live (PART-06 + PART-07) | 2/2 | Complete   | 2026-06-21 |
-| 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 0/? | Not started | - |
+| 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 0/2 | Planned | - |
 | 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 0/? | Not started | - |
 | 413. Test + UAT | 0/? | Not started | - |
+| 414. Fix Visibilitas History Jawaban Admin/HC (AllowAnswerReview OFF, off-theme) | 0/? | Not started | - |
 
 ### Coverage Validation
 
@@ -382,7 +405,9 @@ Plans:
 
 ---
 
-*Roadmap updated: 2026-06-19 (v32.5 Flexible Add/Remove Participant added — Phases 409-413, 11 REQ PART-05/06/07 + PRMV-01..05 + PLIV-01/02/03, derived dari spec 2026-06-19-flexible-add-remove-participant-design.md [arsitektur A-H code-verified]. 5 fase: 409 fondasi data+guard+exclude-query [migration=TRUE `AddParticipantRemovalColumns` 3 kolom nullable] → 410 add backend ∥ 411 remove/restore backend [file-overlap `AssessmentAdminController.cs` → sequential] → 412 UI+SignalR live → 413 test+UAT. Penomoran mulai 409 [BUKAN lanjut 398] untuk hindari tabrak v32.3 [399-404] + v32.4 [405-408] di branch ITHandoff. Branch main. RBAC Admin+HC. Scope OUT Proton/self-service/bulk-import-live. v32.2 collapsed to archive. v32.0 sudah closed manual.)*
+*Roadmap updated: 2026-06-21 (Phase 414 added — Fix Visibilitas History Jawaban Admin/HC saat AllowAnswerReview OFF. Off-theme dari Flexible Add/Remove, dibundel ke v32.5 atas keputusan user. Bug: `CMP/Results` gate per-soal "Tinjauan Jawaban" pakai `AllowAnswerReview` tanpa cek role → admin/HC ikut buta saat OFF, padahal action di-share worker & admin/HC. Fix arah: decouple gate dari role [`showReview = AllowAnswerReview || viewer ≠ owner`]. Scope: `CMPController.Results` + `AssessmentResultsViewModel` + `Views/CMP/Results.cshtml`. 0 migration. Belum di-plan → `/gsd-plan-phase 414`.)*
+
+*Prev: 2026-06-19 (v32.5 Flexible Add/Remove Participant added — Phases 409-413, 11 REQ PART-05/06/07 + PRMV-01..05 + PLIV-01/02/03, derived dari spec 2026-06-19-flexible-add-remove-participant-design.md [arsitektur A-H code-verified]. 5 fase: 409 fondasi data+guard+exclude-query [migration=TRUE `AddParticipantRemovalColumns` 3 kolom nullable] → 410 add backend ∥ 411 remove/restore backend [file-overlap `AssessmentAdminController.cs` → sequential] → 412 UI+SignalR live → 413 test+UAT. Penomoran mulai 409 [BUKAN lanjut 398] untuk hindari tabrak v32.3 [399-404] + v32.4 [405-408] di branch ITHandoff. Branch main. RBAC Admin+HC. Scope OUT Proton/self-service/bulk-import-live. v32.2 collapsed to archive. v32.0 sudah closed manual.)*
 
 *Prev: 2026-06-19 (v32.2 Inject Assessment CLOSED + archived — 393-398 + 398.1 shipped local + audited PASSED 13/13 REQ INJ-01..13 + integration 7/7 WIRED, 0 migration; collapsed to archive. v32.0 391+392 closed manual [tag `423a2e76`]. NOT PUSHED branch main.)*
 
