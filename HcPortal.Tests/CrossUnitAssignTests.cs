@@ -75,19 +75,21 @@ public class CrossUnitAssignTests
     public void Eligible_set_aware_is_unit_agnostic_and_excludes_inactive_and_already_mapped()
     {
         // Candidates within one Bagian spanning two different units + one inactive + one already-mapped.
+        // INSERTION order is deliberately NOT FullName order (c1="Zeta" first, c2="Alpha" second) so the
+        // assertion below actually guards the OrderBy(u.FullName) contract — drop the OrderBy and this fails.
         var candidates = new[]
         {
-            new ApplicationUser { Id = "c1", FullName = "Aaa", Section = "SectionA", Unit = "UnitX", IsActive = true },
-            new ApplicationUser { Id = "c2", FullName = "Bbb", Section = "SectionA", Unit = "UnitY", IsActive = true },
-            new ApplicationUser { Id = "c4", FullName = "Ddd", Section = "SectionA", Unit = "UnitX", IsActive = false },  // inactive
-            new ApplicationUser { Id = "c5", FullName = "Eee", Section = "SectionA", Unit = "UnitY", IsActive = true },   // already mapped
+            new ApplicationUser { Id = "c1", FullName = "Zeta",  Section = "SectionA", Unit = "UnitX", IsActive = true },
+            new ApplicationUser { Id = "c2", FullName = "Alpha", Section = "SectionA", Unit = "UnitY", IsActive = true },
+            new ApplicationUser { Id = "c4", FullName = "Mid",   Section = "SectionA", Unit = "UnitX", IsActive = false },  // inactive
+            new ApplicationUser { Id = "c5", FullName = "Beta",  Section = "SectionA", Unit = "UnitY", IsActive = true },   // already mapped
         };
         var activeCoacheeIds = new[] { "c5" };
 
         var eligible = CoachMappingController.FilterEligibleCoachees(candidates, activeCoacheeIds)
             .Select(u => u.Id).ToList();
 
-        Assert.Equal(new[] { "c1", "c2" }, eligible);   // ordered by FullName; both units survive
+        Assert.Equal(new[] { "c2", "c1" }, eligible);   // sorted by FullName (Alpha < Zeta), NOT insertion order
         Assert.Contains("c1", eligible);                 // UnitX
         Assert.Contains("c2", eligible);                 // UnitY — multi-unit within Bagian still eligible (NOT unit-scoped)
         Assert.DoesNotContain("c4", eligible);           // inactive excluded

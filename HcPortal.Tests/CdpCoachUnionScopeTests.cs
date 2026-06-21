@@ -1,9 +1,11 @@
 // Phase 402 Plan 01 — CXU-05 coach multi-unit self-scope union/narrow (Nyquist). InMemory dict-projection.
-// Coercion is exercised against PRODUCTION CDPController.CoerceCoachUnitScope (no reimplemented ternary — closes the
-// false-confidence flagged by code-review IN-06 + secure audit). Endpoint wiring is Plan 03 (CDPController :305/:339);
-// the AssignmentUnit post-filter (union/narrow) lives in BuildProtonProgressSubModelAsync and is covered by FilterAxisTests.
-// CXU-05: coach with >1 active unit sees UNION of all their mapped coachees by default (unit=null); per-unit narrows;
-// foreign unit coerced to null (no cross-coach leak).
+// BOTH halves of the scope decision are exercised against PRODUCTION code, no reimplemented comparison:
+//   - CDPController.CoerceCoachUnitScope  : operator unit -> coach-owned-or-null (foreign -> null = union, no leak).
+//   - CDPController.CoacheeMatchesUnitScope : per-coachee AssignmentUnit vs scope (null => union; else OrdinalIgnoreCase+Trim).
+// These are the two pure seams the endpoint (CDPController FilterCoachingProton :329 / ExportDashboardProgress :362 /
+// post-filter :541-544) routes through. Endpoint wiring + SQL-real round-trip = live UAT (402-04) + Phase 404 QA-03/04.
+// CXU-05: coach with >1 active unit sees UNION of all their mapped coachees by default (unit=null); an OWNED unit narrows;
+// a FOREIGN unit is coerced to null (no cross-coach leak).
 // Pitfall 1: ApplicationUser has NO UserUnits nav — query junction UserUnits.
 using System;
 using System.Linq;
@@ -33,7 +35,7 @@ public class CdpCoachUnionScopeTests
         await ctx.SaveChangesAsync();
     }
 
-    // ---- CXU-05: PRODUCTION coercion seam (CDPController.CoerceCoachUnitScope) ----
+    // ---- CXU-05a: PRODUCTION coercion seam (CDPController.CoerceCoachUnitScope) ----
 
     [Theory]
     [InlineData(null)]
@@ -68,7 +70,30 @@ public class CdpCoachUnionScopeTests
         Assert.Null(CDPController.CoerceCoachUnitScope(Array.Empty<string>(), "UnitX"));
     }
 
-    // ---- CXU-05: union/narrow scope end-to-end (production coercion + mapping projection) ----
+    // ---- CXU-05b: PRODUCTION post-filter seam (CDPController.CoacheeMatchesUnitScope) ----
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Match_null_scope_is_union_always_in_scope(string? scope)
+    {
+        Assert.True(CDPController.CoacheeMatchesUnitScope("UnitX", scope));
+        Assert.True(CDPController.CoacheeMatchesUnitScope("", scope));
+        Assert.True(CDPController.CoacheeMatchesUnitScope(null, scope));
+    }
+
+    [Fact]
+    public void Match_narrow_is_case_insensitive_and_trim_tolerant()
+    {
+        Assert.True(CDPController.CoacheeMatchesUnitScope("UnitY", "UnitY"));
+        Assert.True(CDPController.CoacheeMatchesUnitScope("unity", "UnitY"));     // case-fold (the gap code-review flagged)
+        Assert.True(CDPController.CoacheeMatchesUnitScope(" UnitY ", "UnitY"));   // trim-tolerant
+        Assert.False(CDPController.CoacheeMatchesUnitScope("UnitX", "UnitY"));    // genuine mismatch narrows out
+        Assert.False(CDPController.CoacheeMatchesUnitScope("", "UnitY"));         // blank AssignmentUnit not in a narrow scope
+    }
+
+    // ---- CXU-05c: union / narrow / foreign end-to-end (BOTH production seams composed) ----
 
     [Fact]
     public async Task Coach_union_when_unit_null_returns_all_mapped_coachees()
@@ -76,11 +101,18 @@ public class CdpCoachUnionScopeTests
         await using var ctx = InMemoryContext();
         await SeedCoachUnionAsync(ctx);
 
-        // unit=null => base-scope union of all active-mapping coachees for coach1
-        var scoped = (await ctx.CoachCoacheeMappings
-            .Where(m => m.CoachId == "coach1" && m.IsActive)
-            .Select(m => m.CoacheeId).ToListAsync())
-            .OrderBy(x => x).ToList();
+        var coachUnits = await ctx.UserUnits
+            .Where(uu => uu.UserId == "coach1" && uu.IsActive).Select(uu => uu.Unit).ToListAsync();
+        var mappings = await ctx.CoachCoacheeMappings
+            .Where(m => m.CoachId == "coach1" && m.IsActive).ToListAsync();
+
+        // operator supplies no unit => coercion yields null => post-filter is union (all in scope)
+        var effectiveUnit = CDPController.CoerceCoachUnitScope(coachUnits, null);
+        Assert.Null(effectiveUnit);
+
+        var scoped = mappings
+            .Where(m => CDPController.CoacheeMatchesUnitScope(m.AssignmentUnit, effectiveUnit))
+            .Select(m => m.CoacheeId).OrderBy(x => x).ToList();
 
         Assert.Equal(new[] { "c1", "c2" }, scoped);   // union, not primary-only
     }
@@ -92,18 +124,17 @@ public class CdpCoachUnionScopeTests
         await SeedCoachUnionAsync(ctx);
 
         var coachUnits = await ctx.UserUnits
-            .Where(uu => uu.UserId == "coach1" && uu.IsActive)
-            .Select(uu => uu.Unit).ToListAsync();
+            .Where(uu => uu.UserId == "coach1" && uu.IsActive).Select(uu => uu.Unit).ToListAsync();
+        var mappings = await ctx.CoachCoacheeMappings
+            .Where(m => m.CoachId == "coach1" && m.IsActive).ToListAsync();
 
-        // operator picks owned "UnitY" — production coercion keeps it => AssignmentUnit narrow to c2
+        // operator picks owned "UnitY" — production coercion keeps it => post-filter narrows to c2
         var effectiveUnit = CDPController.CoerceCoachUnitScope(coachUnits, "UnitY");
         Assert.Equal("UnitY", effectiveUnit);
 
-        var scoped = (await ctx.CoachCoacheeMappings
-            .Where(m => m.CoachId == "coach1" && m.IsActive
-                && (effectiveUnit == null || m.AssignmentUnit == effectiveUnit))
-            .Select(m => m.CoacheeId).ToListAsync())
-            .ToList();
+        var scoped = mappings
+            .Where(m => CDPController.CoacheeMatchesUnitScope(m.AssignmentUnit, effectiveUnit))
+            .Select(m => m.CoacheeId).ToList();
 
         Assert.Equal(new[] { "c2" }, scoped);
     }
@@ -115,18 +146,17 @@ public class CdpCoachUnionScopeTests
         await SeedCoachUnionAsync(ctx);
 
         var coachUnits = await ctx.UserUnits
-            .Where(uu => uu.UserId == "coach1" && uu.IsActive)
-            .Select(uu => uu.Unit).ToListAsync();
+            .Where(uu => uu.UserId == "coach1" && uu.IsActive).Select(uu => uu.Unit).ToListAsync();
+        var mappings = await ctx.CoachCoacheeMappings
+            .Where(m => m.CoachId == "coach1" && m.IsActive).ToListAsync();
 
-        // operator supplies unit="UnitZ" (∉ coach.UserUnits) — PRODUCTION coercion must return null => union (no leak)
+        // operator supplies unit="UnitZ" (∉ coach.UserUnits) — PRODUCTION coercion returns null => union (no leak)
         var effectiveUnit = CDPController.CoerceCoachUnitScope(coachUnits, "UnitZ");
         Assert.Null(effectiveUnit);
 
-        var scoped = (await ctx.CoachCoacheeMappings
-            .Where(m => m.CoachId == "coach1" && m.IsActive
-                && (effectiveUnit == null || m.AssignmentUnit == effectiveUnit))
-            .Select(m => m.CoacheeId).ToListAsync())
-            .OrderBy(x => x).ToList();
+        var scoped = mappings
+            .Where(m => CDPController.CoacheeMatchesUnitScope(m.AssignmentUnit, effectiveUnit))
+            .Select(m => m.CoacheeId).OrderBy(x => x).ToList();
 
         Assert.Equal(new[] { "c1", "c2" }, scoped);   // coerced to union, not empty/leak
     }

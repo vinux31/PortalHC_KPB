@@ -304,6 +304,18 @@ namespace HcPortal.Controllers
         }
 
         // ============================================================
+        // Phase 402 (CXU-05) seam: does a coachee (by resolved AssignmentUnit) fall within the requested unit scope?
+        // scopeUnit null/blank => union (always in scope). Else OrdinalIgnoreCase + Trim match (mirrors Phase 401 PSU-02
+        // axis: AssignmentUnit, not scalar User.Unit). Pure (no DB) so the union/narrow post-filter is unit-testable.
+        // ============================================================
+        public static bool CoacheeMatchesUnitScope(string? coacheeAssignmentUnit, string? scopeUnit)
+        {
+            if (string.IsNullOrWhiteSpace(scopeUnit)) return true;   // union — no narrowing requested
+            return string.Equals((coacheeAssignmentUnit ?? "").Trim(), scopeUnit.Trim(),
+                                  StringComparison.OrdinalIgnoreCase);
+        }
+
+        // ============================================================
         // Phase 121: AJAX endpoint — filter Coaching Proton content
         // ============================================================
         [HttpGet]
@@ -539,8 +551,7 @@ namespace HcPortal.Controllers
                     .GroupBy(m => m.CoacheeId)
                     .ToDictionary(g => g.Key, g => g.Select(x => x.AssignmentUnit).FirstOrDefault()?.Trim() ?? "");
                 coacheeUsers = coacheeUsers
-                    .Where(u => string.Equals(unitByCoachee.GetValueOrDefault(u.Id, ""), unit.Trim(),
-                                              StringComparison.OrdinalIgnoreCase))
+                    .Where(u => CoacheeMatchesUnitScope(unitByCoachee.GetValueOrDefault(u.Id, ""), unit))
                     .ToList();
             }
 
