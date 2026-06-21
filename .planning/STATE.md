@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v32.4
 milestone_name: Ujian Ulang (Attempt/Retake Assessment)
-status: in_progress
-stopped_at: v32.4 milestone STARTED 2026-06-21 (requirements promoted, roadmap active; Phase 405 plan ready)
-last_updated: "2026-06-21T06:00:00.000Z"
-last_activity: 2026-06-21
+status: planning
+stopped_at: Phase 405 context gathered
+last_updated: "2026-06-21T06:17:39.686Z"
+last_activity: 2026-06-21 — Milestone v32.4 started (requirements + roadmap activated)
 progress:
-  total_phases: 4
+  total_phases: 37
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -36,6 +35,7 @@ Last activity: 2026-06-21 — Milestone v32.4 started (requirements + roadmap ac
 ## Next Action
 
 **v32.4 active.** Plan + execute fase (wave `405 → (406 ∥ 407) → 408`):
+
 1. **Phase 405 Backend Core** — plan SUDAH ada (`docs/superpowers/plans/2026-06-19-v32.4-phase-405-backend-core.md`, 9-task TDD). migration=TRUE. → `/gsd-execute-phase 405` (atau `/gsd-discuss-phase 405` bila mau revisit). Solo, Wave 0.
 2. **Phase 406 + 407** — belum ditulis. Setelah 405: `/gsd-plan-phase 406` + `/gsd-plan-phase 407` (paralel, depends 405, cluster file disjoint: 406=Views admin+Monitoring, 407=CMPController+Views/CMP/Results).
 3. **Phase 408** — Test & UAT terakhir (depends 406+407).
@@ -122,6 +122,6 @@ Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted 
 
 Last activity: 2026-06-21
 
-Stopped at: Milestone v32.4 STARTED — requirements promoted (`v32.4-PLANNED-REQUIREMENTS.md` → `REQUIREMENTS.md`) + roadmap activated (405-408) + PROJECT/STATE reset. Phase 405 plan already written.
+Stopped at: Phase 405 context gathered
 
 Next action: `/clear` lalu **`/gsd-execute-phase 405`** (plan READY, 9-task TDD, migration=TRUE) — atau `/gsd-discuss-phase 405` bila mau revisit pendekatan. Wave eksekusi `405 → (406 ∥ 407) → 408`. App port 5270 (branch ITHandoff). NOT pushed.
