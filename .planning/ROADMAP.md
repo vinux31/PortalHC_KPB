@@ -73,7 +73,7 @@
 **Plans:** 4 plans (wave 1: 01 · wave 2: 02 · wave 3: 03 · wave 4: 04) — chain sekuensial 01→02→03→04 (file-disjoint tapi dependency-coupled: tipe entitas + migration → helper → service → controller)
 - [x] 405-01-PLAN.md — Wave 1 [BLOCKING]: entitas AssessmentAttemptResponseArchive + 3 kolom config AssessmentSession + DbSet/FK cascade/index + migration AddRetakeColumnsAndArchive (RTK-01/02) [migration=TRUE]
 - [x] 405-02-PLAN.md — Wave 2 [TDD]: RetakeRules pure (CanRetake semua cabang + ShouldHideRetakeToggle) + RetakeArchiveBuilder pure (verdict beku via IsQuestionCorrect, essay full-text Pitfall 2) + unit tests (RTK-03/02/13)
-- [ ] 405-03-PLAN.md — Wave 3: RetakeService (claim-atomik DULU → snapshot → archive → delete → audit → SignalR reason) + CanRetakeAsync (D-01 snapshot-presence + counting Title/Category) + DI scoped + integration test SQL-real (claim-atomic, D-01 legacy-no-count, counting, snapshot-before-delete) (RTK-07/13)
+- [x] 405-03-PLAN.md — Wave 3: RetakeService (claim-atomik DULU → snapshot → archive → delete → audit → SignalR reason) + CanRetakeAsync (D-01 snapshot-presence + counting Title/Category) + DI scoped + integration test SQL-real (claim-atomic, D-01 legacy-no-count, counting, snapshot-before-delete) (RTK-07/13)
 - [ ] 405-04-PLAN.md — Wave 4: refactor ResetAssessment→delegasi service + clear token + UpdateRetakeSettings endpoint (RBAC+AntiForgery+sibling propagation+clamp+audit+PRG) + bulk-add carry savedAssessment + ManagePackages ViewBag (RTK-06/04/01)
 **UI hint:** no
 
@@ -123,7 +123,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 2/4 | In Progress|  |
+| 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 3/4 | In Progress|  |
 | 406. Admin Config UI + Riwayat HC (RTK-05/08) | 0/0 | Not started | — |
 | 407. Worker Self-Service + Gating + Riwayat Pekerja (RTK-09/10/11/12/13) | 0/0 | Not started | — |
 | 408. Test & UAT (RTK-14) | 0/0 | Not started | — |

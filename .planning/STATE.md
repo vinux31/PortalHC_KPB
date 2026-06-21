@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.4
 milestone_name: Ujian Ulang (Attempt/Retake Assessment)
 status: executing
-stopped_at: Completed 405-02-PLAN.md
-last_updated: "2026-06-21T07:18:40.881Z"
+stopped_at: Completed 405-03-PLAN.md
+last_updated: "2026-06-21T07:31:26.619Z"
 last_activity: 2026-06-21
 progress:
   total_phases: 37
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State: Portal HC KPB
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md
 
 Milestone: **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — 🚧 STARTED 2026-06-21 (branch ITHandoff)
 Phase: 405 (Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-21
 
@@ -124,6 +124,6 @@ Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted 
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 405-02-PLAN.md
+Stopped at: Completed 405-03-PLAN.md
 
 Next action: `/clear` lalu **`/gsd-execute-phase 405`** (plan READY, 9-task TDD, migration=TRUE) — atau `/gsd-discuss-phase 405` bila mau revisit pendekatan. Wave eksekusi `405 → (406 ∥ 407) → 408`. App port 5270 (branch ITHandoff). NOT pushed.
