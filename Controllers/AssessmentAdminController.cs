@@ -2282,6 +2282,69 @@ namespace HcPortal.Controllers
             return AssessmentConstants.AssessmentStatus.Upcoming;
         }
 
+        // ==========================================================================================
+        // ===== v32.5 Phase 410: Add-Participant Backend Live (AJAX) — PART-06 + PART-07 =====
+        // ==========================================================================================
+
+        // GET /Admin/GetEligibleParticipantsToAdd?sessionId={repId}
+        // Picker pekerja yang bisa ditambah ke batch. D-01: exclude user dengan sesi APAPUN di batch
+        // (aktif maupun removed — user removed hanya balik via Restore 411). D-02: TANPA filter unit/section.
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetEligibleParticipantsToAdd(int sessionId)
+        {
+            // Server-authoritative: resolve rep dari sessionId (anti-tampering — JANGAN terima batchKey mentah).
+            var rep = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+            if (rep == null) return NotFound(new { error = "Sesi tidak ditemukan." });
+
+            // Batch-key = Title + Category + Schedule.Date (sama persis BULK ASSIGN :2161-2168).
+            // D-01: TANPA filter RemovedAt — user soft-removed TETAP excluded (hanya balik via Restore 411).
+            var alreadyInBatch = await _context.AssessmentSessions
+                .Where(a => a.Title == rep.Title && a.Category == rep.Category && a.Schedule.Date == rep.Schedule.Date)
+                .Select(a => a.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            // D-02 (OVERRIDE spec §B4): semua pekerja IsActive, tanpa filter unit/section — admin bebas tambah siapa saja.
+            var eligible = await _context.Users
+                .Where(u => u.IsActive && !alreadyInBatch.Contains(u.Id))
+                .OrderBy(u => u.FullName)
+                .Select(u => new { id = u.Id, fullName = u.FullName, nip = u.NIP })
+                .ToListAsync();
+
+            return Json(eligible);
+        }
+
+        // Phase 410: pabrik AssessmentSession siap-mulai (inherit rep, status ready, kolom removal null).
+        // Cermin BULK ASSIGN :2195-2217. AssessmentType ?? "Standard" (Pitfall 2 — NOT NULL Dev/Prod).
+        // JANGAN set Status hardcoded — selalu via DeriveReadyStatus (NEVER InProgress, PART-06).
+        // JANGAN set LinkedGroupId/LinkedSessionId di sini — khusus Pre/Post (di-set inline oleh caller).
+        private AssessmentSession BuildReadyParticipantSession(AssessmentSession rep, string userId, string? actorId)
+        {
+            return new AssessmentSession
+            {
+                Title = rep.Title,
+                Category = rep.Category,
+                AssessmentType = rep.AssessmentType ?? "Standard",
+                Schedule = rep.Schedule,
+                DurationMinutes = rep.DurationMinutes,
+                Status = DeriveReadyStatus(rep.Schedule, rep.ExamWindowCloseDate),
+                PassPercentage = rep.PassPercentage,
+                AllowAnswerReview = rep.AllowAnswerReview,
+                ShuffleQuestions = rep.ShuffleQuestions,
+                ShuffleOptions = rep.ShuffleOptions,
+                GenerateCertificate = rep.GenerateCertificate,
+                ExamWindowCloseDate = rep.ExamWindowCloseDate,
+                IsTokenRequired = rep.IsTokenRequired,
+                AccessToken = rep.AccessToken ?? "",
+                BannerColor = rep.BannerColor,
+                Progress = 0,
+                UserId = userId,
+                CreatedBy = actorId
+                // StartedAt/CompletedAt/RemovedAt/RemovedBy/RemovalReason = null (default) — WAJIB null (PART-06)
+            };
+        }
+
         // --- DELETE ASSESSMENT ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
