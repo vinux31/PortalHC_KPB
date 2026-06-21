@@ -91,7 +91,9 @@
   3. Penambahan ke assessment **Pre/Post** membuat **pasangan** sesi Pre+Post untuk user tersebut (reuse cabang `:1926`); penambahan ke sesi **Proton** ditolak dengan pesan jelas. *(PART-07)*
   4. Pembuatan bersifat **atomic per request** (gagal buat assignment → rollback transaksi, tak ada sesi setengah-jadi); endpoint mengembalikan JSON baris baru (`id/fullName/nip/status`) untuk DOM inject, dan `GetEligibleParticipantsToAdd` mengembalikan user yang belum punya sesi aktif di batch. *(PART-06)*
   5. `dotnet build` 0 error + `dotnet test` hijau (integration: ready-status + PackageAssignment tercipta + idempotent skip + window tolak + Pre/Post pair + Proton tolak; reuse helper bersama tak meng-overwrite sesi existing) + `dotnet run` (localhost:5277). migration=FALSE. *(PART-06, PART-07)*
-**Plans:** TBD
+**Plans:** 2 plans
+- [ ] 410-01-PLAN.md — AddParticipantsLive + GetEligibleParticipantsToAdd + BuildReadyParticipantSession/CreateEagerAssignmentsAsync (eager UPA A1, atomic, window/Proton guard, idempotent, Pre/Post pair, JSON added[]/skipped[]; NO SignalR D-04)
+- [ ] 410-02-PLAN.md — FlexibleParticipantAddLiveTests de-tautologis (read-path eligible/idempotency via InMemory real-controller; write-path ready-status/eager-UPA/window/Proton/Pre-Post via SQLEXPRESS disposable)
 **UI hint:** yes
 
 ### Phase 411: Remove + Restore Backend Live
@@ -145,7 +147,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 2/2 | Complete    | 2026-06-21 |
-| 410. Add-Participant Backend Live (PART-06 + PART-07) | 0/? | Not started | - |
+| 410. Add-Participant Backend Live (PART-06 + PART-07) | 0/2 | Not started | - |
 | 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 0/? | Not started | - |
 | 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 0/? | Not started | - |
 | 413. Test + UAT | 0/? | Not started | - |
