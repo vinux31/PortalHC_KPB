@@ -23,6 +23,9 @@ DECLARE @rinoId NVARCHAR(450) = (SELECT TOP 1 Id FROM Users WHERE Email = 'rino.
 IF @rinoId IS NULL
     THROW 51413, 'Seed 413: user rino.prasetyo@pertamina.com tidak ditemukan.', 1;
 
+-- Exclude sesi matrix global-setup (Title '[MATRIX_TEST_%') — global.setup.ts seed 18 sesi
+-- ber-Id tinggi (9001-9018) sebagian milik rino → ORDER BY Id DESC bisa salah-pilih + picker
+-- eligible-list batch matrix kosong/hang. Pilih batch produksi nyata (mis. UAT Mobile 172).
 DECLARE @sid INT = (
     SELECT TOP 1 s.Id
     FROM AssessmentSessions s
@@ -31,6 +34,11 @@ DECLARE @sid INT = (
       AND s.Category <> 'Assessment Proton'
       AND s.LinkedGroupId IS NULL            -- BUKAN Pre/Post pair (hindari pair-as-unit removal)
       AND s.UserId = @rinoId                 -- dimiliki account login worker (Resume authorize)
+      AND s.Title NOT LIKE '[[]MATRIX[_]TEST%'  -- bukan sesi sentinel global-setup matrix
+      AND EXISTS (                           -- batch punya >=1 user eligible-to-add (picker tak kosong)
+          SELECT 1 FROM Users u WHERE u.IsActive = 1 AND u.Id NOT IN (
+              SELECT a.UserId FROM AssessmentSessions a
+              WHERE a.Title = s.Title AND a.Category = s.Category AND CAST(a.Schedule AS DATE) = CAST(s.Schedule AS DATE)))
     ORDER BY s.Id DESC
 );
 IF @sid IS NULL

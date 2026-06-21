@@ -54,6 +54,16 @@ async function waitHubConnected(page: Page, timeout = 15_000): Promise<void> {
   );
 }
 
+// Buka dropdown ⋮ baris lalu klik item "Hapus Peserta" (.btn-hapus-peserta di dalam dropdown-menu
+// Bootstrap → tak visible sampai toggle diklik).
+async function openRowHapusModal(page: Page, sessionId: number): Promise<void> {
+  const row = page.locator(`tr[data-session-id="${sessionId}"]`);
+  await row.locator('.dropdown button[data-bs-toggle="dropdown"]').first().click();
+  const hapusItem = row.locator('.btn-hapus-peserta').first();
+  await hapusItem.waitFor({ state: 'visible', timeout: 8_000 });
+  await hapusItem.click();
+}
+
 test.describe.configure({ mode: 'serial' });
 
 test.describe('Phase 413 — 7 sinyal live add/remove/restore/force-kick/broadcast (multi-context SignalR)', () => {
@@ -73,10 +83,13 @@ test.describe('Phase 413 — 7 sinyal live add/remove/restore/force-kick/broadca
     await db.execScript(path.resolve(__dirname, '../sql/flexible-participant-413-seed.sql'));
 
     // 4. Resolve sesi InProgress + batch key (server-side truth, hindari tz drift).
+    //    Exclude sesi matrix global-setup (Title '[MATRIX_TEST_%') agar batch yang dimonitor =
+    //    batch produksi nyata (picker eligible-list tak kosong/hang).
     inProgressSessionId = await db.queryScalar(`
       SELECT TOP 1 s.Id FROM AssessmentSessions s
       WHERE s.Status = 'InProgress' AND s.RemovedAt IS NULL
         AND s.LinkedGroupId IS NULL AND s.Category <> 'Assessment Proton'
+        AND s.Title NOT LIKE '[[]MATRIX[_]TEST%'
         AND EXISTS (SELECT 1 FROM AssessmentPackages p WHERE p.AssessmentSessionId = s.Id)
         AND s.UserId = (SELECT Id FROM Users WHERE Email = 'rino.prasetyo@pertamina.com')
       ORDER BY s.Id DESC`);
@@ -195,7 +208,7 @@ test.describe('Phase 413 — 7 sinyal live add/remove/restore/force-kick/broadca
       const activeBefore = await pageHc.locator('tbody:not(#tbodyRemoved) tr[data-session-id]').count();
 
       // (b) modal KERAS — peserta InProgress → #hapusPesertaHardModal (BUKAN ringan).
-      await pageHc.locator(`tr[data-session-id="${inProgressSessionId}"] .btn-hapus-peserta`).first().click();
+      await openRowHapusModal(pageHc, inProgressSessionId);
       await expect(pageHc.locator('#hapusPesertaHardModal')).toBeVisible({ timeout: 8_000 });
       await expect(pageHc.locator('#hapusPesertaLightModal')).toBeHidden();
 
@@ -210,9 +223,10 @@ test.describe('Phase 413 — 7 sinyal live add/remove/restore/force-kick/broadca
       await pageWorker.waitForURL('**/CMP/Assessment**', { timeout: 15_000 });
 
       // (d) ASSERT admin: baris pindah ke #tbodyRemoved live (soft-remove → panel).
+      // Panel collapse default tertutup → baris attached (bukan visible). Panel card visible.
       await pageHc.waitForSelector(
         `#tbodyRemoved tr[data-session-id="${inProgressSessionId}"][data-removed="true"]`,
-        { timeout: 10_000 }
+        { state: 'attached', timeout: 10_000 }
       );
       await expect(pageHc.locator('#panelPesertaDikeluarkan')).toBeVisible();
       // baris hilang dari tabel aktif
@@ -244,12 +258,17 @@ test.describe('Phase 413 — 7 sinyal live add/remove/restore/force-kick/broadca
     await page.goto(monitoringUrl);
     await waitHubConnected(page);
 
-    // Baris removed (dari force-kick) ada di panel — buka collapse bila perlu.
+    // Baris removed (dari force-kick) ada di panel — buka collapse dulu (Bootstrap collapse default tertutup).
     const removedRow = page.locator(`#tbodyRemoved tr[data-session-id="${inProgressSessionId}"]`);
     await removedRow.waitFor({ state: 'attached', timeout: 8_000 });
-    // Klik Restore (1-klik, tanpa konfirmasi — D-04). force:true karena panel bisa collapsed.
-    await page.locator(`#tbodyRemoved tr[data-session-id="${inProgressSessionId}"] .btn-restore-peserta`)
-      .click({ force: true });
+    const restoreBtn = page.locator(`#tbodyRemoved tr[data-session-id="${inProgressSessionId}"] .btn-restore-peserta`);
+    if (!(await restoreBtn.isVisible().catch(() => false))) {
+      // Expand panel collapse agar tombol Restore visible (klik header toggle).
+      await page.locator('#panelPesertaDikeluarkanHeader').click();
+      await restoreBtn.waitFor({ state: 'visible', timeout: 8_000 });
+    }
+    // Klik Restore (1-klik, tanpa konfirmasi — D-04).
+    await restoreBtn.click();
 
     // Baris balik ke tabel aktif live (participantAdded restore-from-panel).
     await page.waitForSelector(
@@ -290,12 +309,14 @@ test.describe('Phase 413 — 7 sinyal live add/remove/restore/force-kick/broadca
       await pageA.waitForSelector(`tbody:not(#tbodyRemoved) tr[data-session-id="${addedSessionId}"]`, { timeout: 8_000 });
       await pageB.waitForSelector(`tbody:not(#tbodyRemoved) tr[data-session-id="${addedSessionId}"]`, { timeout: 8_000 });
 
-      // A fire remove (Not started → modal ringan, tanpa alasan wajib).
-      await pageA.locator(`tr[data-session-id="${addedSessionId}"] .btn-hapus-peserta`).first().click();
-      // Not started + no cert → modal RINGAN.
+      // A fire remove. Peserta added = Not started + no cert → modal RINGAN.
+      await openRowHapusModal(pageA, addedSessionId);
       const lightModal = pageA.locator('#hapusPesertaLightModal');
       const hardModal = pageA.locator('#hapusPesertaHardModal');
-      if (await lightModal.isVisible({ timeout: 4_000 }).catch(() => false)) {
+      // Tunggu salah satu modal visible (real wait, bukan isVisible-instan).
+      const lightShown = await lightModal.waitFor({ state: 'visible', timeout: 8_000 })
+        .then(() => true).catch(() => false);
+      if (lightShown) {
         await pageA.locator('#btnHapusLightKonfirmasi').click();
       } else {
         // fallback bila tier keras (mis. punya cert) — isi alasan.
