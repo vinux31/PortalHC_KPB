@@ -2180,6 +2180,10 @@ namespace HcPortal.Controllers
                                 AllowAnswerReview = savedAssessment.AllowAnswerReview,
                                 ShuffleQuestions = savedAssessment.ShuffleQuestions,
                                 ShuffleOptions = savedAssessment.ShuffleOptions,
+                                // v32.4 RTK-01: pekerja baru mewarisi policy retake dari sibling existing (bukan EF-default diam-diam).
+                                AllowRetake = savedAssessment.AllowRetake,
+                                MaxAttempts = savedAssessment.MaxAttempts,
+                                RetakeCooldownHours = savedAssessment.RetakeCooldownHours,
                                 GenerateCertificate = savedAssessment.GenerateCertificate,
                                 ExamWindowCloseDate = savedAssessment.ExamWindowCloseDate,
                                 Progress = 0,
