@@ -380,6 +380,37 @@ else
     </div>
 </div>
 
+<!-- Phase 412 PRMV-02: force-kick modal (worker dikeluarkan dari ujian, non-dismissable, 5-detik countdown) -->
+<div class="modal fade" id="examRemovedModal" tabindex="-1"
+     data-bs-backdrop="static" data-bs-keyboard="false"
+     aria-hidden="true"
+     style="z-index: 9999;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-person-x me-2"></i>Dikeluarkan dari Ujian
+                </h5>
+            </div>
+            <div class="modal-body text-center py-3">
+                <p class="mb-2 fw-semibold">Anda telah dikeluarkan dari ujian ini.</p>
+                <p class="text-muted small mb-0" id="examRemovedReasonText" style="display:none;">
+                    Alasan: <em id="examRemovedReasonValue"></em>
+                </p>
+                <p class="text-muted small mt-2 mb-0">
+                    Anda akan diarahkan ke daftar ujian dalam
+                    <strong id="removedCountdown">5</strong> detik...
+                </p>
+            </div>
+            <div class="modal-footer justify-content-center border-top-0">
+                <button type="button" class="btn btn-danger fw-semibold" id="btnExamRemovedKembali">
+                    <i class="bi bi-arrow-left me-1"></i>Kembali ke Daftar Ujian
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Phase 313 C-03: modal info-only (tetap muncul untuk awareness, button OK diganti spinner indicator). -->
 <div class="modal fade" id="timeUpWarningModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true"
      style="z-index: 9999;">
@@ -1276,6 +1307,41 @@ else
         var countdownInterval = setInterval(function() {
             countdown--;
             countdownEl.textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = redirectTarget;
+            }
+        }, 1000);
+    });
+
+    // Phase 412 PRMV-02: examRemoved — Admin/HC menghapus peserta yang sedang InProgress (force-kick).
+    // Mirror examClosed: kunci UI ujian + modal non-dismissable + redirect ke DAFTAR Assessment (bukan Results).
+    window.assessmentHub.on('examRemoved', function(payload) {
+        if (examClosed) return; // dual-trigger guard (reuse var existing :1249)
+        examClosed = true;
+        clearInterval(timerInterval);
+        clearInterval(saveInterval);
+        window.onbeforeunload = null;
+
+        // Tampilkan alasan bila ada (XSS-safe via textContent, BUKAN innerHTML)
+        if (payload && payload.reason) {
+            document.getElementById('examRemovedReasonValue').textContent = payload.reason;
+            document.getElementById('examRemovedReasonText').style.display = '';
+        }
+
+        var redirectTarget = '@Url.Action("Assessment", "CMP")';
+        var modal = new bootstrap.Modal(document.getElementById('examRemovedModal'));
+        modal.show();
+
+        document.getElementById('btnExamRemovedKembali').onclick = function() {
+            window.location.href = redirectTarget;
+        };
+
+        var countdown = 5;
+        var countdownEl = document.getElementById('removedCountdown');
+        var countdownInterval = setInterval(function() {
+            countdown--;
+            if (countdownEl) countdownEl.textContent = countdown;
             if (countdown <= 0) {
                 clearInterval(countdownInterval);
                 window.location.href = redirectTarget;
