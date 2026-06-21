@@ -262,6 +262,49 @@ public class FlexibleParticipantRemoveWriteTests : IClassFixture<FlexiblePartici
         return ctrl;
     }
 
+    // ===== Task 2: mini-DI service-provider stub untuk hard-delete (GAP TERBESAR 411) =====
+    // Jalur hard-delete RemoveParticipantCoreAsync panggil HttpContext.RequestServices
+    //   .GetRequiredService<RecordCascadeDeleteService>(). DefaultHttpContext().RequestServices KOSONG → throw.
+    // Bangun ServiceProvider minimal yang share ctx SQLEXPRESS yang SAMA dengan controller (agar cascade
+    // hapus baris yang sama dilihat assert).
+
+    // Stub IWebHostEnvironment: cascade hapus file cert post-commit pakai _env.WebRootPath → harus non-null
+    // (not-started tak punya cert → file tak ada, tapi Path.Combine butuh WebRootPath valid).
+    private sealed class StubWebHostEnvironment : IWebHostEnvironment
+    {
+        public string WebRootPath { get; set; } = System.IO.Path.GetTempPath();
+        public Microsoft.Extensions.FileProviders.IFileProvider WebRootFileProvider { get; set; } = new Microsoft.Extensions.FileProviders.NullFileProvider();
+        public string ApplicationName { get; set; } = "HcPortal.Tests";
+        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = new Microsoft.Extensions.FileProviders.NullFileProvider();
+        public string ContentRootPath { get; set; } = System.IO.Path.GetTempPath();
+        public string EnvironmentName { get; set; } = "Test";
+    }
+
+    // Dependency chain VERIFIED (411-PATTERNS):
+    //   RecordCascadeDeleteService(ctx, ILogger<RecordCascadeDeleteService>, ProtonCompletionService, AuditLogService, IWebHostEnvironment)
+    //   ProtonCompletionService(ctx, ILogger<ProtonCompletionService>, INotificationService, AuditLogService)
+    private static IServiceProvider BuildCascadeServiceProvider(ApplicationDbContext ctx)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(ctx);                                                       // ctx SQLEXPRESS yang SAMA
+        services.AddSingleton(new AuditLogService(ctx));
+        services.AddSingleton<INotificationService>(new NoopNotificationService());
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ProtonCompletionService>>(NullLogger<ProtonCompletionService>.Instance);
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<RecordCascadeDeleteService>>(NullLogger<RecordCascadeDeleteService>.Instance);
+        services.AddSingleton<IWebHostEnvironment>(new StubWebHostEnvironment());
+        services.AddScoped<ProtonCompletionService>();
+        services.AddScoped<RecordCascadeDeleteService>();
+        return services.BuildServiceProvider();
+    }
+
+    // MakeLiveController + set RequestServices = mini-DI ber-RecordCascadeDeleteService (untuk SEMUA test hard-delete).
+    private AssessmentAdminController MakeLiveControllerWithCascade(ApplicationDbContext ctx, ApplicationUser actor)
+    {
+        var ctrl = MakeLiveController(ctx, actor);
+        ctrl.ControllerContext.HttpContext.RequestServices = BuildCascadeServiceProvider(ctx);
+        return ctrl;
+    }
+
     // ---- Seed helpers (pola FlexibleParticipantAddLiveTests) ----
     private static async Task<string> SeedUserAsync(ApplicationDbContext ctx, string? fullName = null, string? nip = null)
     {
@@ -638,5 +681,132 @@ public class FlexibleParticipantRemoveWriteTests : IClassFixture<FlexiblePartici
         await using var verify = NewCtx();
         Assert.True(await verify.AuditLogs.AnyAsync(a =>
             a.ActionType == "RemoveParticipantLive" && a.TargetId == sessionId));
+    }
+
+    // ===== Task 2: HARD-DELETE write-path (mini-DI service-provider, drive RemoveParticipantLive ASLI) =====
+    // De-tautology: assert AnyAsync == false atas DB SQLEXPRESS NYATA (bukan mock cascade). JANGAN panggil
+    // RecordCascadeDeleteService.ExecuteAsync langsung — drive lewat RemoveParticipantLive agar core teruji integral.
+
+    // C1 (PRMV-01 + D-02 hard-no-reason): sesi bersih (StartedAt null, 0 response), reason=null →
+    //     RemoveParticipantLive ASLI via WithCascade → mode="hard"; baris AssessmentSession HILANG (AnyAsync==false).
+    [Fact]
+    public async Task RemoveNotStarted_HardDeletes_RowGone()
+    {
+        var title = "Rm-Hard-" + Guid.NewGuid().ToString("N")[..8];
+        const string cat = "OJT";
+        var schedule = DateTime.UtcNow.AddHours(7).AddHours(-1);
+        string repUser, actorId;
+        int sessionId;
+
+        await using (var seed = NewCtx())
+        {
+            repUser = await SeedUserAsync(seed, "Peserta Bersih");
+            actorId = await SeedUserAsync(seed, "Admin Actor", "00021");
+            // bersih: StartedAt null, 0 response, Status=Open → SessionHasDataAsync==false → jalur HARD.
+            sessionId = await SeedRepSessionAsync(seed, repUser, title, cat, schedule, S.Open);
+        }
+
+        await using (var act = NewCtx())
+        {
+            var actor = await act.Users.FindAsync(actorId);
+            var ctrl = MakeLiveControllerWithCascade(act, actor!);
+
+            var result = await ctrl.RemoveParticipantLive(sessionId, reason: null);   // reason opsional di hard (D-02)
+            var json = Assert.IsType<JsonResult>(result);
+            Assert.Equal("hard", ModeOf(json));
+        }
+
+        // Baris HILANG NYATA dari DB SQLEXPRESS.
+        await using var verify = NewCtx();
+        Assert.False(await verify.AssessmentSessions.AnyAsync(s => s.Id == sessionId));
+    }
+
+    // C2 (D-01 + PRMV-01 hard with eager-UPA): sesi bersih + 1 UPA eager (StartedAt null, 0 response).
+    //     RemoveParticipantLive ASLI → mode="hard"; baris session HILANG DAN UPA HILANG (cascade bersihkan UPA).
+    [Fact]
+    public async Task RemoveWithEagerUPA_StillHardDeletes_UpaGone()
+    {
+        var title = "Rm-Hard-UPA-" + Guid.NewGuid().ToString("N")[..8];
+        const string cat = "OJT";
+        var schedule = DateTime.UtcNow.AddHours(7).AddHours(-1);
+        string repUser, actorId;
+        int sessionId;
+
+        await using (var seed = NewCtx())
+        {
+            repUser = await SeedUserAsync(seed, "Peserta UPA");
+            actorId = await SeedUserAsync(seed, "Admin Actor", "00022");
+            sessionId = await SeedRepSessionAsync(seed, repUser, title, cat, schedule, S.Open);
+            await SeedUpaAsync(seed, sessionId, repUser);   // eager-UPA (D-01: bukan "data" → tetap HARD)
+        }
+
+        // Sanity: UPA memang ada SEBELUM remove (membuktikan assert AnyAsync==false bukan tautologi).
+        await using (var pre = NewCtx())
+            Assert.True(await pre.UserPackageAssignments.AnyAsync(a => a.AssessmentSessionId == sessionId));
+
+        await using (var act = NewCtx())
+        {
+            var actor = await act.Users.FindAsync(actorId);
+            var ctrl = MakeLiveControllerWithCascade(act, actor!);
+
+            var result = await ctrl.RemoveParticipantLive(sessionId, reason: null);
+            var json = Assert.IsType<JsonResult>(result);
+            Assert.Equal("hard", ModeOf(json));   // UPA tak hitung sebagai data (D-01) → tetap HARD
+        }
+
+        // Baris session HILANG + UPA HILANG (cascade RemoveRange UserPackageAssignments :221-222).
+        await using var verify = NewCtx();
+        Assert.False(await verify.AssessmentSessions.AnyAsync(s => s.Id == sessionId));
+        Assert.False(await verify.UserPackageAssignments.AnyAsync(a => a.AssessmentSessionId == sessionId));
+    }
+
+    // C3 (PRMV-05 Pre/Post both-clean → hard-both + batch-isolation): pasangan Pre+Post bersih, LinkedSessionId cross-set.
+    //     RemoveParticipantLive(preId) ASLI → mode="hard"; KEDUA baris HILANG; peserta LAIN bersih MASIH ada (Pitfall 1).
+    [Fact]
+    public async Task RemovePrePost_BothClean_HardBoth()
+    {
+        var title = "Rm-Hard-PrePost-" + Guid.NewGuid().ToString("N")[..8];
+        const string cat = "OJT";
+        var preSched = DateTime.UtcNow.AddHours(7).AddHours(-3);
+        var postSched = DateTime.UtcNow.AddHours(7).AddHours(-1);
+        const int linkedGroupId = 6611;
+        string targetUser, otherUser, actorId;
+        int preId, postId, otherPreId;
+
+        await using (var seed = NewCtx())
+        {
+            targetUser = await SeedUserAsync(seed, "Peserta Target");
+            otherUser = await SeedUserAsync(seed, "Peserta Lain");
+            actorId = await SeedUserAsync(seed, "Admin Actor", "00023");
+
+            // Pasangan target BERSIH (StartedAt null, 0 response) → both-clean → HARD keduanya.
+            preId = await SeedRepSessionAsync(seed, targetUser, title, cat, preSched, S.Open,
+                assessmentType: "PreTest", linkedGroupId: linkedGroupId);
+            postId = await SeedRepSessionAsync(seed, targetUser, title, cat, postSched, S.Open,
+                assessmentType: "PostTest", linkedGroupId: linkedGroupId, linkedSessionId: preId);
+            var pre = await seed.AssessmentSessions.FindAsync(preId);
+            pre!.LinkedSessionId = postId;   // cross-link Pre → Post
+            await seed.SaveChangesAsync();
+
+            // Peserta LAIN bersih di batch sama (Pitfall 1: tak boleh ikut ter-hard-delete).
+            otherPreId = await SeedRepSessionAsync(seed, otherUser, title, cat, preSched, S.Open,
+                assessmentType: "PreTest", linkedGroupId: linkedGroupId);
+        }
+
+        await using (var act = NewCtx())
+        {
+            var actor = await act.Users.FindAsync(actorId);
+            var ctrl = MakeLiveControllerWithCascade(act, actor!);
+
+            var result = await ctrl.RemoveParticipantLive(preId, reason: null);
+            var json = Assert.IsType<JsonResult>(result);
+            Assert.Equal("hard", ModeOf(json));
+        }
+
+        // KEDUA baris target HILANG; peserta LAIN MASIH ada (bukan seluruh batch).
+        await using var verify = NewCtx();
+        Assert.False(await verify.AssessmentSessions.AnyAsync(s => s.Id == preId));
+        Assert.False(await verify.AssessmentSessions.AnyAsync(s => s.Id == postId));
+        Assert.True(await verify.AssessmentSessions.AnyAsync(s => s.Id == otherPreId));   // peserta LAIN utuh (Pitfall 1)
     }
 }
