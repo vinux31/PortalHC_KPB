@@ -76,7 +76,7 @@
   5. `dotnet build` 0 error + `dotnet test` hijau (unit/integration: guard `StartExam`/`SubmitExam`/`JoinBatch` block sesi removed; query exclude `RemovedAt != null` di count/list) + `dotnet run` (localhost:5277). migration apply + DB lokal verified. *(PRMV-03)*
 **Plans:** 2 plans
 - [x] 409-01-PLAN.md — Migration AddParticipantRemovalColumns (3 kolom nullable) + Fluent config + apply DB lokal (migration=TRUE, BLOCKING)
-- [ ] 409-02-PLAN.md — Guard re-entry (StartExam/SubmitExam/JoinBatch + A1 Save*) + exclude-removed 3 query monitoring + test de-tautologis
+- [x] 409-02-PLAN.md — Guard re-entry (StartExam/SubmitExam/JoinBatch + A1 Save*) + exclude-removed 3 query monitoring + test de-tautologis
 **UI hint:** yes
 
 ### Phase 410: Add-Participant Backend Live
@@ -144,7 +144,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 1/2 | In Progress|  |
+| 409. Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) | 2/2 | Complete   | 2026-06-21 |
 | 410. Add-Participant Backend Live (PART-06 + PART-07) | 0/? | Not started | - |
 | 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 0/? | Not started | - |
 | 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 0/? | Not started | - |

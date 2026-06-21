@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
-status: executing
-stopped_at: Completed 409-01-PLAN.md (fondasi skema soft-remove migration=TRUE applied lokal)
-last_updated: "2026-06-21T01:15:04.573Z"
+status: verifying
+stopped_at: Completed 409-02-PLAN.md (guard re-entry + exclude-removed query; Phase 409 SELESAI, migration=FALSE)
+last_updated: "2026-06-21T01:45:06.576Z"
 last_activity: 2026-06-21
 progress:
   total_phases: 16
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 409 (data-foundation-re-entry-guards-exclude-removed-query) — EXECUTING
-Plan: 2 of 2
-Status: Plan 01 SELESAI (fondasi skema soft-remove, migration=TRUE applied lokal) → Plan 02 NEXT (guard re-entry + exclude-removed query)
-Last activity: 2026-06-21 -- Plan 409-01 selesai (2 commits 3806e7b9 + 01cd7dd0; migration AddParticipantRemovalColumns applied HcPortalDB_Dev)
+Phase: 409 (data-foundation-re-entry-guards-exclude-removed-query) — SELESAI (siap verify)
+Plan: 2 of 2 SELESAI
+Status: Phase 409 TUNTAS — Plan 01 (fondasi skema migration=TRUE) + Plan 02 (guard re-entry + exclude-removed query, migration=FALSE). Full suite 569/569 GREEN, build 0 error, run @5277 OK.
+Last activity: 2026-06-21 -- Plan 409-02 selesai (3 commits cf7838b5 test + a0afd785 guard + 2baf7402 exclude; 6 test ParticipantRemoval GREEN)
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
@@ -42,7 +42,9 @@ Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta ass
 
 ## Next Action
 
-**Eksekusi Plan 409-02** (guard re-entry `StartExam`/`SubmitExam`/`Hub.JoinBatch` + guard Save* answer-write A1 + exclude `RemovedAt!=null` di 3 query monitoring admin + xUnit minimal). Plan 01 (fondasi skema soft-remove) TUNTAS — kolom `RemovedAt` sudah landing di `HcPortalDB_Dev` jadi integration test Plan 02 tak false-positive (BLOCKING gate lewat). Setelah Phase 409: `/gsd-plan-phase 410` ∥ `/gsd-plan-phase 411` (koordinasi file-overlap `AssessmentAdminController.cs` → sequential) → 412 (UI+SignalR, depends 410+411) → 413 (test+UAT, depends semua). Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 = migration=TRUE hash `01cd7dd0` flag `AddParticipantRemovalColumns`; 410-413 = FALSE).
+**Phase 409 SELESAI (2/2 plan).** NEXT: **`/gsd-verify-work 409`** (verify gate: build 0 error + suite 569/569 + 6 test ParticipantRemoval de-tautologis + run @5277 — semua sudah PASS lokal) → lalu `/gsd-plan-phase 410` ∥ `/gsd-plan-phase 411` (koordinasi file-overlap `AssessmentAdminController.cs` → sequential) → 412 (UI+SignalR, depends 410+411) → 413 (test+UAT, depends semua). Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 = migration=TRUE hash `01cd7dd0` flag `AddParticipantRemovalColumns`; Plan 02 + 410-413 = migration=FALSE).
+
+**Carry Phase 412/413:** (a) escape/encode `RemovalReason` saat render panel "Peserta Dikeluarkan" (T-409-10 XSS-at-render, di-defer dari 409). (b) A2 export/impact (`ExportAssessmentResults`/`BulkExportPdf`/`GetDeleteImpact`) belum di-exclude removed (defer — revisit bila perlu). (c) reuse `CMPController.IsParticipantRemoved` seam + invarian `RemovedAt==null` di 410/411. (d) jangan regresi 6 test ParticipantRemoval.
 
 ## Accumulated Context (carry)
 
@@ -154,6 +156,7 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 ### Decisions (persist across milestones)
 
+- [v32.5 / 409-02 guard re-entry + exclude-removed]: **PRMV-03 delivered + PLIV-01 foundation, migration=FALSE.** 3 commits — `cf7838b5` (test scaffold de-tautologis Wave-0) + `a0afd785` (guard) + `2baf7402` (exclude). **Seam tunggal** `CMPController.IsParticipantRemoved(session) => session.RemovedAt != null` (cermin `IsResultsAuthorized`; deteksi removed via `RemovedAt`, BUKAN Status — akar D-04). **Guard:** `StartExam` (SEBELUM auto-transition Upcoming→Open & mark-InProgress) + `SubmitExam` (SEBELUM `ShouldGateMissingStart`/grading) → redirect "Assessment" + `TempData["Error"]="Anda telah dikeluarkan dari ujian ini."` (locked verbatim, tepat 2x). **Hub (silent-skip dipertahankan):** `JoinBatch` AnyAsync + `SaveTextAnswer`/`SaveMultipleAnswer` FirstOrDefaultAsync += `&& s.RemovedAt == null` (A1 IN scope = defense-in-depth; 3 occurrence). **Exclude (PLIV-01):** per-surface `.Where(a => a.RemovedAt == null)` di `managementQuery`+`AssessmentMonitoring.query`+`AssessmentMonitoringDetail.query` (3x; count/grouping inherit). **NO EF global `HasQueryFilter`** (FORBIDDEN). **Boundary (D-01a):** `UserAssessmentHistory`+export/impact+`WorkerDataService` UNTOUCHED — riwayat pekerja TETAP tampil removed (sertifikat utuh & reversibel). **6 test de-tautologis** (999.12): exclude/boundary via InMemory real-`AssessmentAdminController`; guard via SQLEXPRESS disposable (helper produksi `IsParticipantRemoved` atas entitas SQL nyata) + EF `AnyAsync` nyata (JoinBatch). Full suite **569/569 GREEN**, build 0 error, run @5277 OK. **Deviasi:** seam `IsParticipantRemoved` (Rule 2 — agar guard testable de-tautologis; proyek tak punya WebApplicationFactory; behavior+pesan locked identik) + test-infra ActionDescriptor/StubUrlHelper/seed-order (Rule 3). **Defer 412:** T-409-10 (XSS-at-render RemovalReason) + A2 (export/impact exclude). SUMMARY `.planning/phases/409-data-foundation-re-entry-guards-exclude-removed-query/409-02-SUMMARY.md`. **Plan 02 migration=FALSE** (no Migrations/Data diff).
 - [v32.5 / 409-01 fondasi skema soft-remove]: **migration=TRUE applied lokal.** 2 commits — `3806e7b9` (model 3 props `RemovedAt DateTime?`/`RemovedBy string?`/`RemovalReason string?` nullable, NO `[MaxLength]` annotation, cermin `CreatedBy`/`CompletedAt`; Fluent `RemovalReason.HasMaxLength(500).IsRequired(false)` di block `Entity<AssessmentSession>` D-03; `RemovedBy` plain `string?`→nvarchar(max)) + `01cd7dd0` (migration `AddParticipantRemovalColumns` scaffold via **dotnet-ef 8.0.0** + apply `HcPortalDB_Dev`). **Invarian tunggal:** soft-removed ⇔ `RemovedAt != null`; aktif ⇔ `RemovedAt == null` (BUKAN via Status — soft-remove tak mutasi Status). Migration: 3 `AddColumn` nullable:true tanpa defaultValue (additif non-destruktif), `Down()` simetris 3 `DropColumn`, snapshot ProductVersion 8.0.0. sqlcmd confirm: RemovalReason nvarchar(500) YES, RemovedAt datetime2 YES, RemovedBy nvarchar(max) YES; 60 baris existing `RemovedAt` NULL (NOL backfill). **Tool pinning:** global `dotnet ef` 10.0.3 menolak downgrade ke 8.0.0 → solusi local tool manifest `.config/dotnet-tools.json` (install dotnet-ef 8.0.0, rollForward:false) — mitigasi permanen Pitfall 5/T-409-05 (snapshot stamp 10.x) untuk migrasi future repo (Plan deviation Rule 3, committed bersama migration). Build 0 error. SUMMARY `.planning/phases/409-data-foundation-re-entry-guards-exclude-removed-query/409-01-SUMMARY.md`. **notify IT: hash `01cd7dd0` flag `AddParticipantRemovalColumns`.**
 - [v32.5 / phasing + locked]: 6 keputusan spec LOCKED (1 surface live Monitoring Detail; 2 hybrid by-state hapus; 3 konfirmasi-keras+force-kick; 4 add longgar+guard wajar; 5 RBAC Admin+HC penuh + longgarkan `EnsureCanDeleteAsync` HC dgn mitigasi soft-remove+audit+modal; 6 model 3 kolom removal migration=TRUE). Sumber-kebenaran soft-removed = `RemovedAt != null`. `AssessmentSession` per-peserta; batch = `Title+Category+Schedule.Date`; InProgress turunan. DELETE 1-peserta belum ada backend (stub mati `DeleteAssessmentPeserta` `EditAssessment.cshtml:666`). Pre/Post diperlakukan pasangan-sebagai-satu-unit (add buat pair, remove keduanya konsisten hard/soft). SignalR broadcast HANYA setelah `CommitAsync` sukses. Proton (`Category=="Assessment Proton"`) ditolak semua endpoint. Reuse: `DeriveReadyStatus` (391), `RecordCascadeDeleteService` (hard-delete single-root), pola atomic `InjectAssessmentService`, partner-handling `DeletePrePostGroup`, pola `examClosed`/`AkhiriUjian` (force-kick).
 - [v32.2 / 397-03 INJ-12 Wave 2 controller/preview wiring]: `Controllers/InjectAssessmentController.cs` (+147) + `HcPortal.Tests/InjectViewModelMapTests.cs` (+1 unit) — expose seam service Wave 1 ke HTTP surface, scope-lock controller-only. `SearchLinkTargets` GET picker JSON room tipe-LAWAN (TIDAK filter IsManualEntry D-10); `MapToRequest` set HANYA `req.LinkTargetRepId`; `PreviewPairing` POST companion; `UnlinkInjectGroup` POST. Kasus B key picker standalone WAJIB == `ResolveLinkContextAsync` write-to-all key (Title+Category+Schedule.Date). 0 migration.
@@ -175,8 +178,8 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 ## Session Continuity
 
-Last activity: 2026-06-19
+Last activity: 2026-06-21
 
-Stopped at: Completed 409-01-PLAN.md (fondasi skema soft-remove migration=TRUE applied lokal)
+Stopped at: Completed 409-02-PLAN.md (guard re-entry + exclude-removed query; Phase 409 SELESAI 2/2 plan, Plan 02 migration=FALSE)
 
-Next action: **`/gsd-plan-phase 409`** (Data Foundation + Re-entry Guards + Exclude-Removed Query — migration=TRUE `AddParticipantRemovalColumns` 3 kolom nullable + guard `StartExam`/`SubmitExam`/`Hub.JoinBatch` + exclude `RemovedAt!=null` di semua list/count). Setelah 409: `/gsd-plan-phase 410` ∥ `/gsd-plan-phase 411` (file-overlap `AssessmentAdminController.cs` → sequential) → 412 (UI+SignalR, depends 410+411) → 413 (test+UAT, depends semua). Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 = migration=TRUE; 410-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.
+Next action: **`/gsd-verify-work 409`** (Phase 409 SELESAI — build 0 error + suite 569/569 GREEN + 6 test ParticipantRemoval de-tautologis + run @5277, semua sudah PASS lokal). Setelah verify: `/gsd-plan-phase 410` ∥ `/gsd-plan-phase 411` (file-overlap `AssessmentAdminController.cs` → sequential) → 412 (UI+SignalR, depends 410+411) → 413 (test+UAT, depends semua). Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0` flag `AddParticipantRemovalColumns`; Plan 02 + 410-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.

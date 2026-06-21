@@ -21,7 +21,7 @@
 
 - [ ] **PRMV-01**: Admin/HC dapat menghapus peserta dari assessment via kontrol di Monitoring Detail — peserta yang **belum mulai & tanpa data** dihapus bersih (hard-delete cascade), sedangkan peserta yang **sudah mulai/selesai/punya jawaban** di-**soft-remove** (baris + jawaban + skor + sertifikat dipertahankan/diarsip, ditandai `RemovedAt/RemovedBy/RemovalReason`).
 - [ ] **PRMV-02**: Menghapus peserta yang **sedang aktif** mengerjakan ujian mewajibkan **konfirmasi keras** lebih dulu, lalu peserta langsung **dikeluarkan dari layar ujian (force-kick)** via SignalR dengan pesan jelas.
-- [ ] **PRMV-03**: Peserta yang telah dihapus **tidak dapat melanjutkan atau mensubmit** ujian (guard di `StartExam`/`SubmitExam`/`Hub.JoinBatch`) — jawaban setelah penghapusan tidak terhitung.
+- [x] **PRMV-03**: Peserta yang telah dihapus **tidak dapat melanjutkan atau mensubmit** ujian (guard di `StartExam`/`SubmitExam`/`Hub.JoinBatch`) — jawaban setelah penghapusan tidak terhitung.
 - [ ] **PRMV-04**: Admin/HC dapat **memulihkan (restore)** peserta yang di-soft-remove sehingga peserta kembali aktif di batch dan muncul lagi di daftar aktif.
 - [ ] **PRMV-05**: Menghapus peserta pada assessment **Pre/Post** memperlakukan pasangan Pre+Post **sebagai satu unit** (kedua sesi konsisten — sama-sama hard-delete bila keduanya belum-mulai, atau sama-sama soft-remove bila salah satu sudah berdata).
 
@@ -62,7 +62,7 @@
 | PART-07 | 410 | pending |
 | PRMV-01 | 411 | pending |
 | PRMV-02 | 412 | pending |
-| PRMV-03 | 409 | pending |
+| PRMV-03 | 409 | Complete |
 | PRMV-04 | 411 | pending |
 | PRMV-05 | 411 | pending |
 | PLIV-01 | 412 | pending |
