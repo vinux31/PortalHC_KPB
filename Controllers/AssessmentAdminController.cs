@@ -2548,6 +2548,100 @@ namespace HcPortal.Controllers
         // D-03: TIDAK sentuh _hubContext (broadcast = Phase 412). migration=FALSE (set/clear kolom 409).
         // ===================================================================================
 
+        // POST /Admin/RemoveParticipantLive — wrapper JSON (untuk UI Monitoring Detail 412).
+        // Load → Proton-reject → idempotency (RemovedAt!=null no-op) → actor → core hybrid → JSON outcome.
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveParticipantLive(int sessionId, string? reason)
+        {
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+            if (session == null) return NotFound(new { error = "Sesi tidak ditemukan." });
+
+            // Proton reject (guard dini, sebelum write) — mirror AddParticipantsLive.
+            if (session.Category == "Assessment Proton")
+                return BadRequest(new { error = "Penghapusan peserta tidak didukung untuk Assessment Proton." });
+
+            // Idempotency (paling awal sesudah Proton, Pitfall 3): RemovedAt!=null → no-op sukses.
+            if (session.RemovedAt != null)
+                return Json(new { sessionId, mode = "noop" });
+
+            var hcUser = await _userManager.GetUserAsync(User);
+            var actorId = hcUser?.Id ?? "";
+            var actorName = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+
+            var outcome = await RemoveParticipantCoreAsync(session, reason, actorId, actorName);
+            if (!outcome.Ok) return BadRequest(new { error = outcome.Message });   // reason-wajib-soft → 400 di sini
+
+            // D-03: JANGAN broadcast participantRemoved — Phase 412.
+            return Json(new { sessionId, mode = outcome.Mode, linkedSessionId = outcome.PartnerId });
+        }
+
+        // POST /Admin/RestoreParticipantLive — wrapper JSON (PRMV-04, simetri Pre/Post A2).
+        // Clear 3 kolom removal untuk session + partner; hanya untuk soft-removed (hard-deleted = baris hilang = 404).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RestoreParticipantLive(int sessionId)
+        {
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+            if (session == null) return NotFound(new { error = "Sesi tidak ditemukan." });
+            if (session.RemovedAt == null)
+                return BadRequest(new { error = "Sesi ini tidak dalam keadaan dihapus." });
+
+            var hcUser = await _userManager.GetUserAsync(User);
+            var actorId = hcUser?.Id ?? "";
+            var actorName = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+
+            // Pre/Post simetri: restore partner via LinkedSessionId juga (konsisten pair-as-unit dgn remove).
+            var partner = (IsPrePostSession(session) && session.LinkedSessionId.HasValue)
+                ? await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value)
+                : null;
+            foreach (var s in new[] { session, partner }.Where(x => x != null && x.RemovedAt != null))
+            {
+                s!.RemovedAt = null;
+                s.RemovedBy = null;
+                s.RemovalReason = null;
+            }
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(actorId, actorName, "RestoreParticipantLive",
+                $"Restored participant session [ID={sessionId}] '{session.Title}'", sessionId, "AssessmentSession");
+
+            // D-03: JANGAN broadcast — Phase 412.
+            return Json(new { sessionId, restored = true });
+        }
+
+        // POST /Admin/DeleteAssessmentPeserta — wrapper redirect (D-04 fix stub mati EditAssessment.cshtml:666).
+        // Form lama TANPA field reason → efektif jalur HARD (not-started, reason opsional). Bila core butuh reason
+        // (peserta berdata) → arahkan ke kontrol Hapus di Monitoring Detail (412) yang punya modal+reason.
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAssessmentPeserta(int sessionId, int returnToId)
+        {
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+            if (session == null) { TempData["Error"] = "Sesi tidak ditemukan."; return RedirectToAction("EditAssessment", new { id = returnToId }); }
+            if (session.Category == "Assessment Proton") { TempData["Error"] = "Tidak didukung untuk Assessment Proton."; return RedirectToAction("EditAssessment", new { id = returnToId }); }
+            if (session.RemovedAt != null) { TempData["Success"] = "Peserta sudah dikeluarkan."; return RedirectToAction("EditAssessment", new { id = returnToId }); }
+
+            var hcUser = await _userManager.GetUserAsync(User);
+            var actorId = hcUser?.Id ?? "";
+            var actorName = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+
+            var outcome = await RemoveParticipantCoreAsync(session, reason: null, actorId, actorName);
+            if (outcome.Ok)
+            {
+                TempData["Success"] = outcome.Message;
+            }
+            else
+            {
+                // Peserta berdata → core minta reason. Arahkan ke kontrol Monitoring Detail (412) yang punya modal+reason.
+                TempData["Error"] = outcome.Message + " Gunakan kontrol Hapus di Monitoring Detail (butuh alasan).";
+            }
+            return RedirectToAction("EditAssessment", new { id = returnToId });
+        }
+
         // Hasil RemoveParticipantCoreAsync — dikonsumsi wrapper JSON + redirect.
         private readonly struct RemoveOutcome
         {

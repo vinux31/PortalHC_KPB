@@ -663,7 +663,7 @@
             </form>
 
             <!-- Delete Peserta form (outside main form to avoid nesting) -->
-            <form id="deletePesertaForm" method="post" asp-action="DeleteAssessmentPeserta" style="display:none;">
+            <form id="deletePesertaForm" method="post" asp-action="DeleteAssessmentPeserta">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="sessionId" id="deletePesertaSessionId" />
                 <input type="hidden" name="returnToId" value="@Model.Id" />
