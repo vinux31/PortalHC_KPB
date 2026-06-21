@@ -2345,6 +2345,184 @@ namespace HcPortal.Controllers
             };
         }
 
+        // POST /Admin/AddParticipantsLive
+        // Tambah ≥1 peserta baru ke batch live (AJAX). Resolve rep server-side → reject Proton → window guard
+        // → idempotency skip (sesi APAPUN, D-01) → buat AssessmentSession + UPA EAGER (A1) ber-status siap-mulai
+        // dalam 1 transaksi atomic → cabang Pre/Post pair → notif + audit → JSON added[]/skipped[].
+        // D-04: TIDAK sentuh _hubContext (broadcast participantAdded di-defer ke Phase 412).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddParticipantsLive(int sessionId, List<string> userIds)
+        {
+            // === Langkah 1 — validasi input + resolve rep (server-authoritative, anti-tampering) ===
+            if (userIds == null || userIds.Count == 0)
+                return BadRequest(new { error = "Tidak ada peserta yang dipilih." });
+            if (userIds.Count > 50)   // rate-limit cermin BULK ASSIGN (anti mass-add DoS)
+                return BadRequest(new { error = "Maksimal 50 peserta per permintaan." });
+
+            var rep = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+            if (rep == null) return NotFound(new { error = "Sesi tidak ditemukan." });
+
+            // === Langkah 2 — Proton reject (guard dini, sebelum write) ===
+            if (rep.Category == "Assessment Proton")
+                return BadRequest(new { error = "Penambahan peserta tidak didukung untuk Assessment Proton." });
+
+            // === Langkah 3 — window guard (mirror CMPController.StartExam :968-969, WIB = UTC+7) ===
+            if (rep.ExamWindowCloseDate.HasValue && DateTime.UtcNow.AddHours(7) > rep.ExamWindowCloseDate.Value)
+                return BadRequest(new { error = "Window ujian sudah tutup, tidak bisa tambah peserta." });
+            // window null (.HasValue == false) = bebas
+
+            // === Langkah 4 — idempotency by existence (D-01: skip sesi APAPUN, TANPA filter RemovedAt) ===
+            // D-01: skip user dengan sesi APAPUN (tanpa pandang RemovedAt) — user removed hanya balik via Restore (411), bukan Add.
+            var alreadyInBatch = await _context.AssessmentSessions
+                .Where(a => a.Title == rep.Title && a.Category == rep.Category && a.Schedule.Date == rep.Schedule.Date)
+                .Select(a => a.UserId)
+                .Distinct()
+                .ToListAsync();
+            var toAdd = userIds.Where(uid => !alreadyInBatch.Contains(uid)).Distinct().ToList();
+            var skippedIds = userIds.Where(uid => alreadyInBatch.Contains(uid)).Distinct().ToList();
+
+            // === Langkah 5 — validate user IDs exist (cermin BULK ASSIGN :2178-2189) ===
+            var userDictionary = await _context.Users
+                .Where(u => toAdd.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+            var missingUsers = toAdd.Except(userDictionary.Keys).ToList();
+            if (missingUsers.Any())
+                return BadRequest(new { error = $"User tidak valid: {string.Join(", ", missingUsers)}" });
+
+            // === Langkah 6 — resolve actor (VERIFIED :5582-5583) ===
+            var hcUser = await _userManager.GetUserAsync(User);
+            var actorId = hcUser?.Id ?? "";
+            var actorName = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+
+            // === Langkah 7 — atomic create dalam transaksi (cermin BULK ASSIGN :2219-2258) ===
+            var createdSessions = new List<AssessmentSession>();   // semua sesi yang dibuat (untuk JSON + eager-UPA)
+            bool isPrePost = IsPrePostSession(rep);
+
+            if (toAdd.Count > 0)
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    foreach (var uid in toAdd)
+                    {
+                        if (isPrePost)
+                        {
+                            // === Pre/Post pair (PART-07) — cermin :1942-1998, ganti hardcoded "Upcoming" → DeriveReadyStatus ===
+                            var linkedGroupId = rep.LinkedGroupId!.Value;     // gabung grup existing
+                            var newPre = BuildReadyParticipantSession(rep, uid, actorId);
+                            newPre.AssessmentType = "PreTest"; newPre.LinkedGroupId = linkedGroupId;
+                            var newPost = BuildReadyParticipantSession(rep, uid, actorId);
+                            newPost.AssessmentType = "PostTest"; newPost.LinkedGroupId = linkedGroupId;
+                            _context.AssessmentSessions.AddRange(newPre, newPost);
+                            await _context.SaveChangesAsync();                 // dapat Id
+                            newPre.LinkedSessionId = newPost.Id;               // cross-link
+                            newPost.LinkedSessionId = newPre.Id;
+                            await _context.SaveChangesAsync();
+                            createdSessions.Add(newPre); createdSessions.Add(newPost);
+                        }
+                        else
+                        {
+                            var session = BuildReadyParticipantSession(rep, uid, actorId);
+                            _context.AssessmentSessions.Add(session);
+                            await _context.SaveChangesAsync();                 // dapat Id
+                            createdSessions.Add(session);
+                        }
+                    }
+
+                    // === EAGER UPA (A1 LOCKED) — cermin CMPController.StartExam :1038-1117, per sesi baru ===
+                    await CreateEagerAssignmentsAsync(createdSessions, rep);
+
+                    // audit DALAM tx (sebelum commit)
+                    await _auditLog.LogAsync(actorId, actorName, "AddParticipantLive",
+                        $"Added {createdSessions.Count} participant session(s) to '{rep.Title}' ({rep.Category})", rep.Id, "AssessmentSession");
+
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "AddParticipantsLive failed for session {SessionId}", sessionId);
+                    return StatusCode(500, new { error = "Gagal menambahkan peserta. Silakan coba lagi." });
+                }
+            }
+
+            // === Langkah 8 — notif post-commit (HANYA setelah commit, Pitfall 4) ===
+            foreach (var ns in createdSessions)
+            {
+                try
+                {
+                    await _notificationService.SendAsync(ns.UserId, "ASMT_ASSIGNED", "Assessment Baru",
+                        $"Anda telah di-assign assessment \"{ns.Title}\"", $"/CMP/StartExam/{ns.Id}");
+                }
+                catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed for session {Id}", ns.Id); }
+            }
+
+            // === Langkah 9 — JSON response (D-03). added[] = sesi baru (Pre/Post → kedua sesi muncul). ===
+            // D-04: JANGAN sentuh _hubContext (broadcast participantAdded = Phase 412).
+            var addedJson = createdSessions.Select(s => new
+            {
+                id = s.Id,
+                fullName = userDictionary.TryGetValue(s.UserId, out var u) ? u.FullName : "",
+                nip = userDictionary.TryGetValue(s.UserId, out var u2) ? u2.NIP : null,
+                status = s.Status
+            }).ToList();
+            var skippedUsers = await _context.Users
+                .Where(u => skippedIds.Contains(u.Id))
+                .Select(u => new { fullName = u.FullName, nip = u.NIP })
+                .ToListAsync();
+
+            return Json(new
+            {
+                added = addedJson,
+                skipped = skippedUsers,
+                addedCount = createdSessions.Count,
+                skippedCount = skippedUsers.Count
+            });
+        }
+
+        // Phase 410 (A1 EAGER): cermin CMPController.StartExam :1038-1117. Buat UserPackageAssignment untuk
+        // tiap sesi baru yang batch-nya punya AssessmentPackages. Tanpa packages → skip (StartExam guard
+        // if(packages.Any())). Dipanggil DALAM transaksi AddParticipantsLive → atomic dengan sesi.
+        private async Task CreateEagerAssignmentsAsync(List<AssessmentSession> newSessions, AssessmentSession rep)
+        {
+            var rng = Random.Shared;
+            foreach (var s in newSessions)
+            {
+                // Sibling set type-aware (Pre/Post terisolasi) — workerIndex konsisten dgn StartExam/Reshuffle.
+                var siblingSessionIds = await _context.AssessmentSessions
+                    .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(s.Title, s.Category, s.Schedule.Date, s.AssessmentType))
+                    .Select(x => x.Id)
+                    .ToListAsync();
+                int workerIndex = siblingSessionIds.OrderBy(x => x).ToList().IndexOf(s.Id);
+
+                var packages = await _context.AssessmentPackages
+                    .Include(p => p.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
+                    .OrderBy(p => p.PackageNumber)
+                    .ToListAsync();
+                if (!packages.Any()) continue;   // tanpa paket → UPA lazy nanti (mode non-paket), tak error
+
+                var shuffledIds = ShuffleEngine.BuildQuestionAssignment(packages, s.ShuffleQuestions, workerIndex, rng);
+                var assignedQuestions = packages.SelectMany(p => p.Questions).Where(q => shuffledIds.Contains(q.Id));
+                var optionShuffleDict = ShuffleEngine.BuildOptionShuffle(assignedQuestions, s.ShuffleOptions, rng);
+                var sentinelPackage = packages.First();   // sentinel per discretion (FK AssessmentPackageId tetap wajib)
+
+                _context.UserPackageAssignments.Add(new UserPackageAssignment
+                {
+                    AssessmentSessionId = s.Id,
+                    AssessmentPackageId = sentinelPackage.Id,
+                    UserId = s.UserId,
+                    ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(shuffledIds),
+                    ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(optionShuffleDict),
+                    SavedQuestionCount = shuffledIds.Count
+                });
+            }
+            await _context.SaveChangesAsync();
+        }
+
         // --- DELETE ASSESSMENT ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
