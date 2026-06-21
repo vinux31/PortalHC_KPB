@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: executing
-stopped_at: Completed 410-02-PLAN.md
-last_updated: "2026-06-21T04:05:00.000Z"
+stopped_at: Phase 411 context gathered
+last_updated: "2026-06-21T05:29:39.034Z"
 last_activity: 2026-06-21 -- Phase 410 Plan 02 executed (10 integration test de-tautologis, suite 581/581)
 progress:
-  total_phases: 16
+  total_phases: 17
   completed_phases: 2
   total_plans: 4
   completed_plans: 4
@@ -182,6 +182,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 410-02-PLAN.md (Fase 410 COMPLETE 2/2)
+Stopped at: Phase 411 context gathered
 
 Next action: **Phase 410 COMPLETE (2/2 plan).** Plan 01 = 2 endpoint AJAX + 2 helper (`01e6251f`+`422b4359`); Plan 02 = 10 test de-tautologis (`2ff434c5`, suite 581/581, 10/10 hijau filter `~FlexibleParticipantAddLive`). migration=FALSE; NOT pushed. **NEXT: `/gsd-verify-work 410`** (verify gate — build 0 error + suite 581/581 + 10 test FlexibleParticipantAddLive de-tautologis + run @5277 sudah PASS lokal) → lalu **`/gsd-plan-phase 411`** (file-overlap `AssessmentAdminController.cs` → sequential, `BuildReadyParticipantSession` reusable) → 412 (UI+SignalR, broadcast `participantAdded` konsumsi JSON 410, depends 410+411) → 413 (test+UAT). Pola test 410-02 (read InMemory real-controller + write SQLEXPRESS Opsi-2a stub UserManager) siap reuse untuk 411 Remove/Restore. Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0`; 410 Plan 01+02 + 411-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.
