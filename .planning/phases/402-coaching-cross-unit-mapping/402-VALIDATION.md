@@ -50,11 +50,12 @@ finalized: 2026-06-21
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
-**Seams extracted (2026-06-21, Option 2):**
-- `CDPController.CoerceCoachUnitScope(IEnumerable<string> coachActiveUnits, string? requestedUnit)` — pure coercion (foreign/blank → null, owned → unchanged). Both call sites refactored to it (`FilterCoachingProton` + `ExportDashboardProgress`), removing a duplicated block.
+**Seams extracted (2026-06-21, Option 2 + code-review hardening):**
+- `CDPController.CoerceCoachUnitScope(IEnumerable<string> coachActiveUnits, string? requestedUnit)` — pure coercion (foreign/blank → null, owned → unchanged). Both call sites refactored to it (`FilterCoachingProton` + `ExportDashboardProgress`).
+- `CDPController.CoacheeMatchesUnitScope(string? coacheeAssignmentUnit, string? scopeUnit)` — pure union/narrow post-filter match (null scope → union; else OrdinalIgnoreCase+Trim). Wired into `BuildProtonProgressSubModelAsync` post-filter (was an inline `string.Equals`). Added after `/code-review` CONFIRMED-1 found the narrow path's case-fold was test-covered nowhere.
 - `CoachMappingController.FilterEligibleCoachees(IEnumerable<ApplicationUser>, IEnumerable<string>)` — pure eligible-set filter (active && not-already-mapped, **no unit scoping**). `CoachCoacheeMapping` builder refactored to it.
 
-Both seams are pure (no DB) — DB queries + authz remain in the controllers (unchanged), so the new security surface is two pure functions.
+All three seams are pure (no DB) — DB queries + authz remain in the controllers (unchanged), so the new security surface is three pure functions. `CdpCoachUnionScopeTests` now composes BOTH CDP seams end-to-end (coerce → match) for union/narrow/foreign; no reimplemented comparison remains.
 
 ---
 
@@ -88,7 +89,23 @@ Both seams are pure (no DB) — DB queries + authz remain in the controllers (un
 
 **Test counts:** filtered 15 passed / 1 skipped · full suite **547 passed / 0 failed / 6 skipped** (was 540 → +7 cases, no regression). Build 0 error / 28 warn (baseline).
 
-**⚠️ Re-trigger required (impl changed):** Option 2 extracted two seams from production controllers (`CDPController`, `CoachMappingController`). Per milestone policy, re-run **`/gsd-code-review 402`** and **`/gsd-secure-phase 402`** to re-cover the changed surface (specifically: code-review IN-06 false-confidence is now resolved; secure T-402-08/09 coercion path is now a named pure seam). The seams are pure + behavior-identical, so re-coverage is expected to be a fast confirm.
+## Code-Review Re-trigger 2026-06-21 (`/code-review 402`, xhigh, 6 finders + verify + sweep)
+
+Re-reviewed the seam-extraction delta (`748da832`). 14 candidates → 9 deduped → **2 CONFIRMED + 5 PLAUSIBLE**.
+
+| # | Verdict | Location | Disposition |
+|---|---------|----------|-------------|
+| 1 | CONFIRMED | `CdpCoachUnionScopeTests.cs:4` — header falsely claimed the post-filter is "covered by FilterAxisTests" (it isn't; FilterAxisTests also reimplements inline). False-confidence relocated, not closed. | **FIXED** — extracted `CDPController.CoacheeMatchesUnitScope` seam, wired the post-filter to it, rewrote tests to compose both CDP seams (incl. the case-fold the review flagged). Comment corrected. |
+| 2 | CONFIRMED | `CrossUnitAssignTests.cs:90` — CXU-01 ordering assertion too weak (seeds pre-sorted → `OrderBy` drop undetectable). | **FIXED** — seeds now inserted in non-sorted order (Zeta, Alpha, …); assertion `[c2, c1]` fails if `OrderBy(FullName)` is dropped. |
+| 3 | PLAUSIBLE | `CDPController.cs:303` scopeLabel shows operator casing not canonical. | No action — pre-existing + cosmetic, byte-identical to OLD (already noted as cosmetic in 402 notes). |
+| 4 | PLAUSIBLE | dup of #1 (post-filter fidelity). | Resolved by #1 fix. |
+| 5 | PLAUSIBLE | `CoachMappingController.cs:85` HashSet ordinal vs OrderBy CurrentCulture mix. | No action — pre-existing, not a regression; id-match byte-identical to OLD. |
+| 6 | PLAUSIBLE | `CDPController.cs:324` query+guard still duplicated at 2 CDP sites (only inner line deduped). | Deferred — optional impure `ResolveCoachUnitScopeAsync` wrapper; pure-seam altitude is correct, low value. → backlog/404. |
+| 7 | PLAUSIBLE | `CrossUnitAssignTests.cs:75` CXU-01 rewrite dropped the old SectionB-exclusion assertion. | No action — verifier REFUTED the load-bearing part: cross-Bagian assign is blocked server-side at `CoachCoacheeMappingAssign:577-583` via `CoacheeSectionMatchesCoach`, which IS tested; eligible-list section scope is client-side UX (e2e 402-04). The OLD assertion tested a reimplementation production never had. |
+
+**Post-fix:** build 0 err / 28 warn; filtered (CrossUnitAssign + CdpCoachUnionScope + FilterAxis) **20 pass / 1 skip**; full suite **551 passed / 0 failed / 6 skipped** (+4 cases). Fix committed under `test(phase-402): resolve code-review CONFIRMED-1/2` (2026-06-21).
+
+**⚠️ Re-run `/gsd-secure-phase 402`** — three pure seams now in production controllers (`CoerceCoachUnitScope`, `CoacheeMatchesUnitScope`, `FilterEligibleCoachees`); T-402-08/09 coercion + the union/narrow match path are now named pure seams. Behavior-identical → fast confirm.
 
 ---
 
