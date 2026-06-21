@@ -4,8 +4,8 @@ milestone: v22.0
 milestone_name: CMP-06 Residual Fix + CMP/Records + ManageAssessment/Monitoring Audit
 status: executing
 stopped_at: Phase 404 context gathered
-last_updated: "2026-06-21T01:20:29.702Z"
-last_activity: 2026-06-21 -- Phase 404 planning complete
+last_updated: "2026-06-21T01:39:58.150Z"
+last_activity: 2026-06-21 -- Phase 404 execution started
 progress:
   total_phases: 31
   completed_phases: 5
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 402 — Coaching Cross-Unit Mapping
+**Current focus:** Phase 404 — test-sql-riil-uat-docs-invariants
 
 ## Current Position
 
-Phase: 403
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-21 -- Phase 404 planning complete
+Phase: 404 (test-sql-riil-uat-docs-invariants) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 404
+Last activity: 2026-06-21 -- Phase 404 execution started
 
 > ⏸ RESUME: see `.planning/phases/401-proton-unit-resolution-hardening/.continue-here.md`
 > Next = satisfy BLOCKING human-verify D-01 render checkpoint (Razor; Playwright or user "approved"), then Plan 03 Task 4 (turn-green tests) → 401-03-SUMMARY → verify phase. migration=FALSE. Run gsd-tools from ITHandoff toplevel ONLY.

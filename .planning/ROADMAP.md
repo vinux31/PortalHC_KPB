@@ -183,7 +183,7 @@
   4. UAT lokal lulus (`dotnet build` + `dotnet run` localhost:5270 + cek DB lokal, Playwright bila ada) + docs mencatat batasan **D1=b** (cert/analytics atribusi primary unit). *(QA-02)*
   5. `dotnet build` 0 error + `dotnet test` hijau (suite multi-unit SQL riil + suite existing tak regresi) + UAT browser sign-off; milestone siap 1 push → notify IT re-deploy Dev (**migration=TRUE** Phase 399, commit hash). *(semua REQ)*
 **Plans:** 4 plans (wave 1: 01 · wave 2: 02 ∥ 03 · wave 3: 04 [checkpoint UAT])
-- [ ] 404-01-PLAN.md — Wave 1: MultiUnitSqlFixture (MigrateAsync incl 399 + canonical {X,Y}/coach/PROTON seed) + implement CrossUnitAssignTests:105 single-active stub (QA-01/QA-03) [migration=FALSE]
+- [x] 404-01-PLAN.md — Wave 1: MultiUnitSqlFixture (MigrateAsync incl 399 + canonical {X,Y}/coach/PROTON seed) + implement CrossUnitAssignTests:105 single-active stub (QA-01/QA-03) [migration=FALSE]
 - [ ] 404-02-PLAN.md — Wave 2: single-active SQL-real — CoachCoacheeMapping via DbUpdateException (filtered-unique) + ProtonTrackAssignment via Count==1 after bypass T1@X→T2@Y (Pitfall #1 split-assert) + reactivate path (QA-03) [migration=FALSE]
 - [ ] 404-03-PLAN.md — Wave 2 (∥ 02): AssignmentUnit∈UserUnits helper + B-06 anti-dobel cross-unit + ProtonKompetensi 1:1 + one-primary + 3 backfill stubs (QA-01/QA-04) [migration=FALSE]
 - [ ] 404-04-PLAN.md — Wave 3: UAT browser PROTON sekuensial cross-unit @5270 (snapshot→seed→restore) + IT handoff HTML (migration=TRUE Phase 399) + D1=b markdown (QA-02) [checkpoint, migration=FALSE]
@@ -199,7 +199,7 @@
 | 401. PROTON Unit-Resolution Hardening (PSU-01/02/03/04/05/07) | 6/6 | Complete    | 2026-06-19 |
 | 402. Coaching Cross-Unit Mapping (CXU-01..05) | 4/4 | Complete    | 2026-06-19 |
 | 403. OrganizationController Cascade/Guard UserUnits-Aware (ORG-01/02) | 2/2 | Complete    | 2026-06-19 |
-| 404. Test (SQL Riil) + UAT + Docs + Invariants (QA-01..04) | 0/0 | Not started | - |
+| 404. Test (SQL Riil) + UAT + Docs + Invariants (QA-01..04) | 1/4 | In Progress|  |
 
 ### Coverage Validation
 
