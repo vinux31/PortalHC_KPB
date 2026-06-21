@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: executing
-stopped_at: Phase 410 context gathered
-last_updated: "2026-06-21T03:28:59.069Z"
+stopped_at: Completed 410-01-PLAN.md
+last_updated: "2026-06-21T03:37:36.445Z"
 last_activity: 2026-06-21 -- Phase 410 planning complete
 progress:
   total_phases: 16
   completed_phases: 1
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 409 — data-foundation-re-entry-guards-exclude-removed-query
+**Current focus:** Phase 410 — add-participant-backend-live (Plan 01 SELESAI)
 
 ## Current Position
 
 Phase: 410
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-21 -- Phase 410 planning complete
+Plan: 01 SELESAI (backend endpoint); Plan 02 = test write-path (NEXT)
+Status: Executing
+Last activity: 2026-06-21 -- Phase 410 Plan 01 executed (2 endpoint + 2 helper, build 0 error)
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
@@ -156,6 +156,7 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 ### Decisions (persist across milestones)
 
+- [v32.5 / 410-01 add-participant backend live]: **PART-06 + PART-07 delivered, migration=FALSE.** 2 commits — `01e6251f` (Task 1: `GetEligibleParticipantsToAdd` GET + `BuildReadyParticipantSession` helper) + `422b4359` (Task 2: `AddParticipantsLive` POST + `CreateEagerAssignmentsAsync` helper). 4 method baru di `AssessmentAdminController.cs` (+241 baris, 0 dihapus). **A1 EAGER UPA (LOCKED orchestrator, OVERRIDE RESEARCH opsi-A lazy):** `UserPackageAssignment` dibuat DALAM transaksi add via `CreateEagerAssignmentsAsync` (cermin `CMPController.StartExam :1038-1117` — siblingSessionIds via `SiblingSessionQuery.SiblingPrePostAwarePredicate` + workerIndex + `ShuffleEngine.BuildQuestionAssignment`/`BuildOptionShuffle` + sentinel package); tanpa packages → skip (mode non-paket). **`AddParticipantsLive`** (`[HttpPost][Authorize(Admin,HC)][ValidateAntiForgeryToken]`, param `int sessionId, List<string> userIds`): 9 langkah — cap-50 + resolve rep server-side → Proton reject (`Category=="Assessment Proton"`→400) → window guard (`UtcNow.AddHours(7)>ExamWindowCloseDate`→400 "Window ujian sudah tutup, tidak bisa tambah peserta.") → idempotency D-01 skip sesi APAPUN (skippedIds, TANPA filter RemovedAt) → validate users exist → resolve actor → transaksi atomic (Standard via `BuildReadyParticipantSession` / Pre/Post pair cross-link `LinkedSessionId` + `DeriveReadyStatus` bukan hardcoded "Upcoming" + EAGER UPA + audit `"AddParticipantLive"` in-tx, rollback→500) → notif `ASMT_ASSIGNED` post-commit (Pitfall 4) → JSON `added[]/skipped[]` + counts (D-03). **`BuildReadyParticipantSession`**: factory sesi ready-status (`AssessmentType ?? "Standard"`, `Status=DeriveReadyStatus` NEVER InProgress, kolom removal null, `AccessToken ?? ""`). **D-02:** eligible = semua `IsActive` minus sesi di batch, TANPA filter unit/section. **D-04:** NO `_hubContext` (broadcast participantAdded defer 412 — verified grep, hanya komentar). Build 0 error; fast-suite 394/394; app boot @5277 OK; kedua route 302 (registered, NOT 404); migration=FALSE (no Migrations/ diff). **NOT pushed.** SUMMARY `.planning/phases/410-add-participant-backend-live/410-01-SUMMARY.md`. **Plan 02 NEXT** = test write-path de-tautologis (assert UPA EAGER ada setelah Add + ready-status/idempotent/window/Pre-Post/Proton).
 - [v32.5 / 409-02 guard re-entry + exclude-removed]: **PRMV-03 delivered + PLIV-01 foundation, migration=FALSE.** 3 commits — `cf7838b5` (test scaffold de-tautologis Wave-0) + `a0afd785` (guard) + `2baf7402` (exclude). **Seam tunggal** `CMPController.IsParticipantRemoved(session) => session.RemovedAt != null` (cermin `IsResultsAuthorized`; deteksi removed via `RemovedAt`, BUKAN Status — akar D-04). **Guard:** `StartExam` (SEBELUM auto-transition Upcoming→Open & mark-InProgress) + `SubmitExam` (SEBELUM `ShouldGateMissingStart`/grading) → redirect "Assessment" + `TempData["Error"]="Anda telah dikeluarkan dari ujian ini."` (locked verbatim, tepat 2x). **Hub (silent-skip dipertahankan):** `JoinBatch` AnyAsync + `SaveTextAnswer`/`SaveMultipleAnswer` FirstOrDefaultAsync += `&& s.RemovedAt == null` (A1 IN scope = defense-in-depth; 3 occurrence). **Exclude (PLIV-01):** per-surface `.Where(a => a.RemovedAt == null)` di `managementQuery`+`AssessmentMonitoring.query`+`AssessmentMonitoringDetail.query` (3x; count/grouping inherit). **NO EF global `HasQueryFilter`** (FORBIDDEN). **Boundary (D-01a):** `UserAssessmentHistory`+export/impact+`WorkerDataService` UNTOUCHED — riwayat pekerja TETAP tampil removed (sertifikat utuh & reversibel). **6 test de-tautologis** (999.12): exclude/boundary via InMemory real-`AssessmentAdminController`; guard via SQLEXPRESS disposable (helper produksi `IsParticipantRemoved` atas entitas SQL nyata) + EF `AnyAsync` nyata (JoinBatch). Full suite **569/569 GREEN**, build 0 error, run @5277 OK. **Deviasi:** seam `IsParticipantRemoved` (Rule 2 — agar guard testable de-tautologis; proyek tak punya WebApplicationFactory; behavior+pesan locked identik) + test-infra ActionDescriptor/StubUrlHelper/seed-order (Rule 3). **Defer 412:** T-409-10 (XSS-at-render RemovalReason) + A2 (export/impact exclude). SUMMARY `.planning/phases/409-data-foundation-re-entry-guards-exclude-removed-query/409-02-SUMMARY.md`. **Plan 02 migration=FALSE** (no Migrations/Data diff).
 - [v32.5 / 409-01 fondasi skema soft-remove]: **migration=TRUE applied lokal.** 2 commits — `3806e7b9` (model 3 props `RemovedAt DateTime?`/`RemovedBy string?`/`RemovalReason string?` nullable, NO `[MaxLength]` annotation, cermin `CreatedBy`/`CompletedAt`; Fluent `RemovalReason.HasMaxLength(500).IsRequired(false)` di block `Entity<AssessmentSession>` D-03; `RemovedBy` plain `string?`→nvarchar(max)) + `01cd7dd0` (migration `AddParticipantRemovalColumns` scaffold via **dotnet-ef 8.0.0** + apply `HcPortalDB_Dev`). **Invarian tunggal:** soft-removed ⇔ `RemovedAt != null`; aktif ⇔ `RemovedAt == null` (BUKAN via Status — soft-remove tak mutasi Status). Migration: 3 `AddColumn` nullable:true tanpa defaultValue (additif non-destruktif), `Down()` simetris 3 `DropColumn`, snapshot ProductVersion 8.0.0. sqlcmd confirm: RemovalReason nvarchar(500) YES, RemovedAt datetime2 YES, RemovedBy nvarchar(max) YES; 60 baris existing `RemovedAt` NULL (NOL backfill). **Tool pinning:** global `dotnet ef` 10.0.3 menolak downgrade ke 8.0.0 → solusi local tool manifest `.config/dotnet-tools.json` (install dotnet-ef 8.0.0, rollForward:false) — mitigasi permanen Pitfall 5/T-409-05 (snapshot stamp 10.x) untuk migrasi future repo (Plan deviation Rule 3, committed bersama migration). Build 0 error. SUMMARY `.planning/phases/409-data-foundation-re-entry-guards-exclude-removed-query/409-01-SUMMARY.md`. **notify IT: hash `01cd7dd0` flag `AddParticipantRemovalColumns`.**
 - [v32.5 / phasing + locked]: 6 keputusan spec LOCKED (1 surface live Monitoring Detail; 2 hybrid by-state hapus; 3 konfirmasi-keras+force-kick; 4 add longgar+guard wajar; 5 RBAC Admin+HC penuh + longgarkan `EnsureCanDeleteAsync` HC dgn mitigasi soft-remove+audit+modal; 6 model 3 kolom removal migration=TRUE). Sumber-kebenaran soft-removed = `RemovedAt != null`. `AssessmentSession` per-peserta; batch = `Title+Category+Schedule.Date`; InProgress turunan. DELETE 1-peserta belum ada backend (stub mati `DeleteAssessmentPeserta` `EditAssessment.cshtml:666`). Pre/Post diperlakukan pasangan-sebagai-satu-unit (add buat pair, remove keduanya konsisten hard/soft). SignalR broadcast HANYA setelah `CommitAsync` sukses. Proton (`Category=="Assessment Proton"`) ditolak semua endpoint. Reuse: `DeriveReadyStatus` (391), `RecordCascadeDeleteService` (hard-delete single-root), pola atomic `InjectAssessmentService`, partner-handling `DeletePrePostGroup`, pola `examClosed`/`AkhiriUjian` (force-kick).
@@ -180,6 +181,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-21
 
-Stopped at: Phase 410 context gathered
+Stopped at: Completed 410-01-PLAN.md
 
-Next action: **`/gsd-verify-work 409`** (Phase 409 SELESAI — build 0 error + suite 569/569 GREEN + 6 test ParticipantRemoval de-tautologis + run @5277, semua sudah PASS lokal). Setelah verify: `/gsd-plan-phase 410` ∥ `/gsd-plan-phase 411` (file-overlap `AssessmentAdminController.cs` → sequential) → 412 (UI+SignalR, depends 410+411) → 413 (test+UAT, depends semua). Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0` flag `AddParticipantRemovalColumns`; Plan 02 + 410-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.
+Next action: **Phase 410 Plan 01 SELESAI** (2 endpoint AJAX + 2 helper di `AssessmentAdminController.cs`, build 0 error, fast-suite 394/394, route 302, migration=FALSE — `01e6251f` + `422b4359`, NOT pushed). **NEXT: `/gsd-execute-phase 410` Plan 02** (test write-path de-tautologis — assert UPA EAGER tercipta setelah `AddParticipantsLive` + ready-status/idempotent/window-reject/Pre-Post-pair/Proton-reject; eligible/idempotency via InMemory real-controller pola `ParticipantRemovalExcludeTests`, write-path via SQLEXPRESS disposable `FlexibleParticipantAddFixture`). Setelah 410 selesai: `/gsd-plan-phase 411` (file-overlap `AssessmentAdminController.cs` → sequential, `BuildReadyParticipantSession` reusable) → 412 (UI+SignalR, broadcast `participantAdded` konsumsi JSON 410, depends 410+411) → 413 (test+UAT). Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (Phase 409 migration=TRUE hash `01cd7dd0`; 410 + Plan 02 + 411-413 = FALSE). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1.

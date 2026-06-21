@@ -14,8 +14,8 @@
 ### Tambah Peserta (PART) — lanjut dari v32.0
 
 - [ ] **PART-05**: Admin/HC dapat menambah satu atau lebih peserta ke sebuah assessment langsung dari layar **Monitoring Detail** — baik batch yang belum ada progres maupun yang sedang berjalan (ada peserta `InProgress`) — dan baris peserta baru muncul **live tanpa reload**.
-- [ ] **PART-06**: Penambahan peserta membuat `AssessmentSession` + `UserPackageAssignment` otomatis dengan **status siap-mulai** (Open/Upcoming, bukan InProgress), **ditolak** bila window ujian (`ExamWindowCloseDate`) sudah lewat, dan **idempoten** (peserta yang sudah aktif di batch tidak terduplikasi).
-- [ ] **PART-07**: Penambahan peserta ke assessment **Pre/Post** membuat pasangan sesi Pre+Post untuk peserta tersebut.
+- [x] **PART-06**: Penambahan peserta membuat `AssessmentSession` + `UserPackageAssignment` otomatis dengan **status siap-mulai** (Open/Upcoming, bukan InProgress), **ditolak** bila window ujian (`ExamWindowCloseDate`) sudah lewat, dan **idempoten** (peserta yang sudah aktif di batch tidak terduplikasi).
+- [x] **PART-07**: Penambahan peserta ke assessment **Pre/Post** membuat pasangan sesi Pre+Post untuk peserta tersebut.
 
 ### Hapus & Pulihkan Peserta (PRMV)
 
@@ -58,8 +58,8 @@
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
 | PART-05 | 412 | pending |
-| PART-06 | 410 | pending |
-| PART-07 | 410 | pending |
+| PART-06 | 410 | Complete |
+| PART-07 | 410 | Complete |
 | PRMV-01 | 411 | pending |
 | PRMV-02 | 412 | pending |
 | PRMV-03 | 409 | Complete |
