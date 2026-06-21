@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: executing
-stopped_at: Completed 413-01-PLAN.md
-last_updated: "2026-06-21T11:06:55.340Z"
-last_activity: 2026-06-21 -- Phase 413-01 cross-phase lifecycle integration test DONE
+stopped_at: Completed 413-02-PLAN.md
+last_updated: "2026-06-21T11:40:24.438Z"
+last_activity: 2026-06-21 -- Phase 413-02 Playwright e2e 7 sinyal live PASS 5/5 + bug produk monFlashRow FIXED
 progress:
   total_phases: 17
   completed_phases: 4
   total_plans: 12
-  completed_plans: 10
-  percent: 83
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State: Portal HC KPB
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 413
-Plan: 01 SELESAI (xUnit lifecycle lintas-fase `FlexibleParticipantLifecycleTests` — 3 [Fact] de-tautologis: L1 add→start→soft-remove→guard(IsParticipantRemoved produksi)→restore, L2 Pre/Post pair, L3 hard-delete row+UPA gone). Fase 413 = 1/3 plan. Sisa 413-02 (Playwright e2e 7 sinyal multi-context) + 413-03 (full regression gate).
-Status: Ready to execute (413-02)
-Last activity: 2026-06-21 -- Phase 413-01 cross-phase lifecycle integration test DONE
+Plan: 02 SELESAI (Playwright e2e `tests/e2e/flexible-participant-412.spec.ts` — 4 test block cakup 7 sinyal live multi-context: add live PART-05 / force-kick 2-ctx PRMV-02 [+modal keras +panel removed PLIV-01 +count exclude] / restore PRMV-04 / multi-observer PLIV-02. **e2e 5/5 GREEN @5277 AD-off --workers=1.** Seed via SEED_WORKFLOW: flip sesi 172 InProgress (BACKUP/RESTORE), SEED_JOURNAL cleaned, DB baseline verified. **BUG PRODUK FIXED `c13fdd22`:** `flashRow is not defined` ReferenceError lintas `<script>` block yang membatalkan SELURUH handler picker/hapus/restore (UI add/remove/restore live tak berfungsi di browser) — temuan e2e real-browser, 412-02 runtime-smoke tak menangkap (lesson 354). Commits 57c1971d/a4316fe7/c13fdd22/71a09ac9). Fase 413 = 2/3 plan. **Sisa 413-03 (full regression gate).**
+Status: Ready to execute (413-03)
+Last activity: 2026-06-21 -- Phase 413-02 Playwright e2e 7 sinyal live PASS 5/5 + bug produk monFlashRow FIXED
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
@@ -196,6 +196,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 413-01-PLAN.md
+Stopped at: Completed 413-02-PLAN.md
 
 Next action: **Phase 413-01 COMPLETE (1/3 plan).** xUnit lifecycle lintas-fase `FlexibleParticipantLifecycleTests.cs` (553 baris, 3 [Fact], commit `e43025ce`) mengunci integrasi seluruh fitur add/remove/restore peserta dalam SATU alur DB SQLEXPRESS nyata (celah belum ter-cover test per-fase 409/410/411). **L1** add ASLI→ready-status+UPA eager→flip InProgress→`RemoveParticipantLive` ASLI soft→`CMPController.IsParticipantRemoved`(reload) PRODUKSI **true** (guard re-entry PRMV-03 lintas-fase)→`RestoreParticipantLive` ASLI→guard **false** (aktif lagi). **L2** Pre/Post pair add+soft-remove-both+restore-both (LinkedSessionId cross-set) + peserta lain untouched (Pitfall 1, PART-07/PRMV-05). **L3** add not-started→hard-remove mini-DI→baris+UPA HILANG (AnyAsync==false)→restore 404/400 (PRMV-01). De-tautology 999.12: NO replica predikat (drive action ASLI + helper produksi `IsParticipantRemoved` public static `CMPController.cs:2540` + assert kolom DB nyata). Build 0 error; filter `~FlexibleParticipantLifecycle` **3/3 hijau** (SQLEXPRESS write-path BENAR run, 2s); full suite **605/605** (baseline 602+3, NOL regresi). migration=FALSE; NOT pushed. SUMMARY `.planning/phases/413-test-uat/413-01-SUMMARY.md`. REQ verified end-to-end: PART-06/07 + PRMV-01/03/04/05. **NEXT: `/gsd-execute-phase 413` lanjut 413-02** (Playwright e2e 7 sinyal multi-context `tests/e2e/flexible-participant-412.spec.ts` — add-live/modal-keras/force-kick-2context/panel-removed/restore/count-exclude/multi-observer; seed InProgress sqlcmd BACKUP→flip→RESTORE per SEED_WORKFLOW; app @5277 AD-off; `--workers=1`) → 413-03 (full regression gate + 1 push deploy bundle). ❌ JANGAN edit DB/kode Dev/Prod (CLAUDE.md). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1. Carry: notify IT migration=TRUE Phase 409 hash `01cd7dd0` saat bundle deploy v32.5.

@@ -146,7 +146,7 @@
   4. Full `dotnet test` hijau tanpa regresi (termasuk guard penambahan-peserta Phase 391 + tech-debt Phase 398.1) + `dotnet build` 0 error + `dotnet run` (localhost:5277) verify. DB lokal di-restore + SEED_JOURNAL cleaned (CLAUDE.md Seed Workflow). *(semua 11 REQ end-to-end)*
 **Plans:** 3 plans (wave 1 ∥1 → wave 2)
 - [x] 413-01-PLAN.md — FlexibleParticipantLifecycleTests (xUnit lifecycle lintas-fase: add→start→soft-remove→guard IsParticipantRemoved→restore + Pre/Post pair + hard-delete row+UPA gone, SQLEXPRESS disposable, de-tautologis)
-- [ ] 413-02-PLAN.md — Playwright e2e flexible-participant-412.spec.ts (7 sinyal multi-context: add live / modal keras / force-kick 2-ctx / panel removed / restore / count exclude / multi-observer; seed via SEED_WORKFLOW; checkpoint real-browser @5277)
+- [x] 413-02-PLAN.md — Playwright e2e flexible-participant-412.spec.ts (7 sinyal multi-context: add live / modal keras / force-kick 2-ctx / panel removed / restore / count exclude / multi-observer; seed via SEED_WORKFLOW; checkpoint real-browser @5277)
 - [ ] 413-03-PLAN.md — Full regression gate + 413-REGRESSION.md (suite 602+ hijau, no-regresi guard 391/398.1/409 + 410/411/412, mapping 11 REQ end-to-end, push-readiness ships-last)
 **UI hint:** yes
 
@@ -178,7 +178,7 @@
 | 410. Add-Participant Backend Live (PART-06 + PART-07) | 2/2 | Complete   | 2026-06-21 |
 | 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 2/2 | Complete   | 2026-06-21 |
 | 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 3/3 | Complete   | 2026-06-21 |
-| 413. Test + UAT | 1/3 | In Progress|  |
+| 413. Test + UAT | 2/3 | In Progress|  |
 | 414. Fix Visibilitas History Jawaban Admin/HC (AllowAnswerReview OFF, off-theme) | 0/? | Not started | - |
 
 ### Coverage Validation
