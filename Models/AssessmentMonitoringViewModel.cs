@@ -68,6 +68,21 @@ namespace HcPortal.Models
     }
 
     /// <summary>
+    /// ViewModel panel "Peserta Dikeluarkan" (Phase 412 PLIV-01). Soft-removed session (RemovedAt != null)
+    /// dengan nama/NIP/waktu/oleh/alasan untuk render server-side + restore. Typed (hindari anonymous ViewBag),
+    /// konsisten pola MonitoringSessionViewModel. RemovalReason di-encode-at-render (T-409-10 XSS, Razor @).
+    /// </summary>
+    public class RemovedParticipantViewModel
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; } = "";
+        public string Nip { get; set; } = "";
+        public DateTime? RemovedAt { get; set; }
+        public string RemovedByName { get; set; } = "";
+        public string? RemovalReason { get; set; }
+    }
+
+    /// <summary>
     /// ViewModel for a single Essay question in the grading UI (Phase 298-05)
     /// </summary>
     public class EssayGradingItemViewModel

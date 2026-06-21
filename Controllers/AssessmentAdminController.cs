@@ -4024,6 +4024,30 @@ namespace HcPortal.Controllers
 
             ViewBag.AssessmentBatchKey = $"{title}|{category}|{scheduleDate.Date:yyyy-MM-dd}";
 
+            // PLIV-01 (Phase 412): data panel "Peserta Dikeluarkan" — KEBALIKAN exclude-query :3807 (RemovedAt != null).
+            // Read-only tambahan; TIDAK mengubah `model` (query utama tetap exclude removed). Render server-side di view (Plan 02).
+            var removedSessions = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Title == title && a.Category == category
+                         && a.Schedule.Date == scheduleDate.Date
+                         && a.RemovedAt != null)
+                .OrderByDescending(a => a.RemovedAt)
+                .ToListAsync();
+            // Resolve RemovedBy userId → FullName (kolom "Oleh") — pola dictionary :2387.
+            var removerIds = removedSessions.Where(s => s.RemovedBy != null).Select(s => s.RemovedBy!).Distinct().ToList();
+            var removerMap = removerIds.Count > 0
+                ? await _context.Users.Where(u => removerIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.FullName)
+                : new Dictionary<string, string>();
+            ViewBag.RemovedSessions = removedSessions.Select(s => new RemovedParticipantViewModel
+            {
+                Id            = s.Id,
+                FullName      = s.User?.FullName ?? "Unknown",
+                Nip           = s.User?.NIP ?? "",
+                RemovedAt     = s.RemovedAt,
+                RemovedByName = s.RemovedBy != null && removerMap.TryGetValue(s.RemovedBy, out var n) ? n : (s.RemovedBy ?? "—"),
+                RemovalReason = s.RemovalReason
+            }).ToList();
+
             // Essay grading items per session (Phase 298-05)
             // Build map: sessionId -> List<EssayGradingItemViewModel>
             var essayGradingMap = new Dictionary<int, List<EssayGradingItemViewModel>>();
