@@ -289,6 +289,21 @@ namespace HcPortal.Controllers
         }
 
         // ============================================================
+        // Phase 402 (CXU-05) seam: coerce operator-supplied unit to the coach's own scope.
+        // Returns the requested unit UNCHANGED iff it is one of the coach's active units (case-insensitive,
+        // trim-tolerant); otherwise null. null => union scope (no cross-coach foreign-unit leak).
+        // Pure (no DB) so it is unit-testable; caller supplies the coach's active units.
+        // ============================================================
+        public static string? CoerceCoachUnitScope(IEnumerable<string> coachActiveUnits, string? requestedUnit)
+        {
+            if (string.IsNullOrWhiteSpace(requestedUnit)) return null;
+            var trimmed = requestedUnit.Trim();
+            bool owned = coachActiveUnits != null && coachActiveUnits.Any(u =>
+                !string.IsNullOrWhiteSpace(u) && string.Equals(u.Trim(), trimmed, StringComparison.OrdinalIgnoreCase));
+            return owned ? requestedUnit : null;   // owned => keep original (post-filter unchanged); foreign => union
+        }
+
+        // ============================================================
         // Phase 121: AJAX endpoint — filter Coaching Proton content
         // ============================================================
         [HttpGet]
@@ -305,14 +320,13 @@ namespace HcPortal.Controllers
             else if (UserRoles.IsCoachingRole(roleLevel))
             {
                 section = user.Section;                                  // Bagian locked (Invariant #1)
-                // Phase 402 (CXU-05): do NOT force primary. Validate operator-supplied unit in coach.UserUnits; else null = union.
+                // Phase 402 (CXU-05): do NOT force primary. Coerce operator-supplied unit to coach scope via shared seam.
                 if (!string.IsNullOrWhiteSpace(unit))
                 {
                     var coachUnits = await _context.UserUnits
                         .Where(uu => uu.UserId == user.Id && uu.IsActive)
                         .Select(uu => uu.Unit).ToListAsync();
-                    if (!coachUnits.Any(u => string.Equals(u.Trim(), unit.Trim(), StringComparison.OrdinalIgnoreCase)))
-                        unit = null;                                    // foreign unit rejected -> union
+                    unit = CoerceCoachUnitScope(coachUnits, unit);      // foreign unit rejected -> null = union
                 }
                 // unit == null => BuildProtonProgressSubModelAsync post-filter skipped => union (CXU-05 default)
             }
@@ -339,14 +353,13 @@ namespace HcPortal.Controllers
             else if (UserRoles.IsCoachingRole(roleLevel))
             {
                 section = user.Section;                                  // Bagian locked (Invariant #1)
-                // Phase 402 (CXU-05): do NOT force primary. Validate operator-supplied unit in coach.UserUnits; else null = union.
+                // Phase 402 (CXU-05): do NOT force primary. Coerce operator-supplied unit to coach scope via shared seam.
                 if (!string.IsNullOrWhiteSpace(unit))
                 {
                     var coachUnits = await _context.UserUnits
                         .Where(uu => uu.UserId == user.Id && uu.IsActive)
                         .Select(uu => uu.Unit).ToListAsync();
-                    if (!coachUnits.Any(u => string.Equals(u.Trim(), unit.Trim(), StringComparison.OrdinalIgnoreCase)))
-                        unit = null;                                    // foreign unit rejected -> union
+                    unit = CoerceCoachUnitScope(coachUnits, unit);      // foreign unit rejected -> null = union
                 }
                 // unit == null => BuildProtonProgressSubModelAsync post-filter skipped => union (CXU-05 default)
             }

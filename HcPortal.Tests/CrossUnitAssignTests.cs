@@ -68,25 +68,36 @@ public class CrossUnitAssignTests
         Assert.False(await CoachMappingController.ValidateAssignmentUnitInUserUnits(ctx, "c2", "UnitA"));
     }
 
-    // ---- CXU-01: eligible set-aware = whole Bagian (cross-unit), not unit ----
+    // ---- CXU-01: eligible set-aware via PRODUCTION CoachMappingController.FilterEligibleCoachees ----
+    // Set-aware = active AND not-already-mapped, with NO unit scoping (cross-unit within a Bagian survives).
 
     [Fact]
-    public async Task Eligible_set_aware_includes_all_coachees_in_coach_section()
+    public void Eligible_set_aware_is_unit_agnostic_and_excludes_inactive_and_already_mapped()
     {
-        await using var ctx = InMemoryContext();
-        ctx.Users.Add(new ApplicationUser { Id = "c1", Section = "SectionA", Unit = "UnitX" });
-        ctx.Users.Add(new ApplicationUser { Id = "c2", Section = "SectionA", Unit = "UnitY" });
-        ctx.Users.Add(new ApplicationUser { Id = "c3", Section = "SectionB", Unit = "UnitZ" });
-        await ctx.SaveChangesAsync();
+        // Candidates within one Bagian spanning two different units + one inactive + one already-mapped.
+        var candidates = new[]
+        {
+            new ApplicationUser { Id = "c1", FullName = "Aaa", Section = "SectionA", Unit = "UnitX", IsActive = true },
+            new ApplicationUser { Id = "c2", FullName = "Bbb", Section = "SectionA", Unit = "UnitY", IsActive = true },
+            new ApplicationUser { Id = "c4", FullName = "Ddd", Section = "SectionA", Unit = "UnitX", IsActive = false },  // inactive
+            new ApplicationUser { Id = "c5", FullName = "Eee", Section = "SectionA", Unit = "UnitY", IsActive = true },   // already mapped
+        };
+        var activeCoacheeIds = new[] { "c5" };
 
-        var eligible = await ctx.Users
-            .Where(u => u.Section == "SectionA")
-            .Select(u => u.Id)
-            .ToListAsync();
+        var eligible = CoachMappingController.FilterEligibleCoachees(candidates, activeCoacheeIds)
+            .Select(u => u.Id).ToList();
 
-        Assert.Contains("c1", eligible);
-        Assert.Contains("c2", eligible);   // multi-unit within Bagian: c2 in UnitY still eligible (set-aware, not unit-scoped)
-        Assert.DoesNotContain("c3", eligible);
+        Assert.Equal(new[] { "c1", "c2" }, eligible);   // ordered by FullName; both units survive
+        Assert.Contains("c1", eligible);                 // UnitX
+        Assert.Contains("c2", eligible);                 // UnitY — multi-unit within Bagian still eligible (NOT unit-scoped)
+        Assert.DoesNotContain("c4", eligible);           // inactive excluded
+        Assert.DoesNotContain("c5", eligible);           // already actively-mapped excluded
+    }
+
+    [Fact]
+    public void Eligible_set_handles_null_inputs()
+    {
+        Assert.Empty(CoachMappingController.FilterEligibleCoachees(null!, null!));
     }
 
     // Deferred: single-active unique index is SQL-real (filtered-unique index NOT enforced by InMemory) — Phase 404 QA-03.

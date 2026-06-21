@@ -75,6 +75,20 @@ namespace HcPortal.Controllers
             return string.Equals(coacheeSection.Trim(), coachSection.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
+        // Phase 402 (CXU-01) seam: eligible coachees for the assign modal = active AND not already in an active mapping.
+        // SET-AWARE = NO unit scoping (cross-unit within a Bagian: Section-level scope is applied client-side via
+        // applyCoachScope(); the server never filters this list by unit). Pure (no DB) → unit-testable; caller supplies
+        // the role-member candidates + the set of already-actively-mapped coachee ids.
+        public static List<ApplicationUser> FilterEligibleCoachees(
+            IEnumerable<ApplicationUser> coacheeRoleUsers, IEnumerable<string> activeCoacheeIds)
+        {
+            var assigned = new HashSet<string>(activeCoacheeIds ?? Enumerable.Empty<string>());
+            return (coacheeRoleUsers ?? Enumerable.Empty<ApplicationUser>())
+                .Where(u => u.IsActive && !assigned.Contains(u.Id))
+                .OrderBy(u => u.FullName)
+                .ToList();
+        }
+
         public async Task<IActionResult> CoachCoacheeMapping(
             string? search, string? section, bool showAll = false, int page = 1)
         {
@@ -184,9 +198,8 @@ namespace HcPortal.Controllers
                 .Where(u => u.IsActive)
                 .OrderBy(u => u.FullName).ToList();
             var coacheeRoleUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coachee);
-            ViewBag.EligibleCoachees = coacheeRoleUsers
-                .Where(u => u.IsActive && !activeCoacheeIds.Contains(u.Id))
-                .OrderBy(u => u.FullName).ToList();
+            // Phase 402 (CXU-01): set-aware eligible list via shared seam (active, not-already-mapped, NO unit scoping).
+            ViewBag.EligibleCoachees = FilterEligibleCoachees(coacheeRoleUsers, activeCoacheeIds);
 
             // Phase 402 (CXU-03 / D-02): expose active units per eligible coachee (primary-first) for per-row unit picker.
             // ApplicationUser has NO UserUnits nav (Pitfall 1) — query junction table directly + batch dict.
