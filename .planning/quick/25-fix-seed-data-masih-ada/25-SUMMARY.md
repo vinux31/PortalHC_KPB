@@ -1,4 +1,5 @@
 ---
+status: complete
 quick_task: 25
 name: fix-seed-data-masih-ada
 type: security-hardening

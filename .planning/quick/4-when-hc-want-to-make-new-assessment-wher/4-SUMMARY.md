@@ -1,4 +1,5 @@
 ---
+status: complete
 phase: quick-004
 plan: 01
 subsystem: ui

@@ -1,3 +1,7 @@
+---
+status: complete
+---
+
 # Quick Task 19: Move Search & Filter Bar inside My Records tab
 
 ## What Changed

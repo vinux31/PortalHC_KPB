@@ -1,3 +1,7 @@
+---
+status: complete
+---
+
 # Quick Task 007: Fix KKJ Matriks Table Header Misalignment
 
 **Date:** 2026-02-20

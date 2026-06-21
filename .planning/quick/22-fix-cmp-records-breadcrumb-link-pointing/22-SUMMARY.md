@@ -1,3 +1,7 @@
+---
+status: complete
+---
+
 # Quick Task 22: Fix CMP Records breadcrumb link
 
 ## What Changed

@@ -1,3 +1,7 @@
+---
+status: complete
+---
+
 # Quick Task 260323-ugm: Terjemahkan Label CMP Index
 
 **Status:** Complete

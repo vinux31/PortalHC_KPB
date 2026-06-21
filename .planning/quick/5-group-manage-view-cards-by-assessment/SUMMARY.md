@@ -1,4 +1,5 @@
 ---
+status: complete
 quick: 5
 title: group-manage-view-cards-by-assessment
 phase: quick

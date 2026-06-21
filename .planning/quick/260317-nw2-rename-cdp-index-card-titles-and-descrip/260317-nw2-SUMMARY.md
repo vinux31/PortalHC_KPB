@@ -1,3 +1,7 @@
+---
+status: complete
+---
+
 # Quick Task 260317-nw2: Summary
 
 ## Changes

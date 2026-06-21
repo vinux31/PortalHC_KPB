@@ -1,4 +1,5 @@
 ---
+status: complete
 phase: quick-24
 plan: "01"
 one_liner: "Remove No column from PlanIdp silabus table"

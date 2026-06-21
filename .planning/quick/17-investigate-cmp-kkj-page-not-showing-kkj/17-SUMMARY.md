@@ -1,3 +1,7 @@
+---
+status: complete
+---
+
 # Quick Task 17: CMP/Kkj Page Not Showing KKJ Files - Summary
 
 ## Task Information
