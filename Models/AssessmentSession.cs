@@ -94,6 +94,14 @@ namespace HcPortal.Models
         public DateTime? UpdatedAt { get; set; }
         public string? CreatedBy { get; set; }
 
+        // ===== v32.5 Phase 409: Soft-remove participant fields =====
+        /// <summary>UTC. null = aktif; non-null = soft-removed (SUMBER KEBENARAN "removed"). Ditulis di Phase 411.</summary>
+        public DateTime? RemovedAt { get; set; }
+        /// <summary>userId Admin/HC pelaku (cermin CreatedBy :95).</summary>
+        public string? RemovedBy { get; set; }
+        /// <summary>Alasan opsional dari modal (max 500, Fluent HasMaxLength).</summary>
+        public string? RemovalReason { get; set; }
+
         // ===== Phase 53: Proton Assessment Exam =====
         /// <summary>
         /// FK to ProtonTrack (nullable). Only set when Category == "Assessment Proton".

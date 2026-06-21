@@ -222,6 +222,9 @@ namespace HcPortal.Data
                 entity.Property(a => a.TahunKe).HasMaxLength(20).IsRequired(false);
                 entity.Property(a => a.InterviewResultsJson).HasColumnType("NVARCHAR(MAX)").IsRequired(false);
 
+                // v32.5 Phase 409: RemovalReason nvarchar(500) (D-03). RemovedBy/RemovedAt = no extra config (mirror CreatedBy/CompletedAt).
+                entity.Property(a => a.RemovalReason).HasMaxLength(500).IsRequired(false);
+
                 // Phase 192: Unique filtered index on NomorSertifikat (excludes nulls)
                 entity.HasIndex(a => a.NomorSertifikat)
                     .IsUnique()
