@@ -2688,29 +2688,62 @@ namespace HcPortal.Controllers
             {
                 // 4. Jalur SOFT — set 3 kolom removal untuk session + partner. JANGAN sentuh Score/IsPassed/
                 //    NomorSertifikat/ManualSertifikatUrl/Status/response (Pitfall 2). Cert utuh + reversibel.
-                foreach (var s in new[] { session, partner }.Where(x => x != null))
+                //    WR-01 (review): mutasi + audit DALAM satu transaksi eksplisit (cermin AddParticipantsLive
+                //    :2455-2459 + preseden RecordCascadeDeleteService:252-253). LogAsync gagal → seluruh soft-remove
+                //    rollback (tak ada committed-state tanpa audit row; non-repudiation T-411-06).
+                using var tx = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    s!.RemovedAt = DateTime.UtcNow;   // SUMBER KEBENARAN "removed"
-                    s.RemovedBy = actorId;            // userId Admin/HC
-                    s.RemovalReason = reason;         // WAJIB pada jalur soft (D-02)
-                }
-                await _context.SaveChangesAsync();
+                    // WR-02 (review): guard `x.RemovedAt == null` — JANGAN timpa metadata removal partner yang
+                    //    SUDAH soft-removed (asimetri vs restore loop :2600). State-drift: partner removed duluan,
+                    //    session aktif → tanpa guard, RemovedAt/RemovedBy/RemovalReason asli partner tertimpa.
+                    foreach (var s in new[] { session, partner }.Where(x => x != null && x.RemovedAt == null))
+                    {
+                        s!.RemovedAt = DateTime.UtcNow;   // SUMBER KEBENARAN "removed"
+                        s.RemovedBy = actorId;            // userId Admin/HC
+                        s.RemovalReason = reason;         // WAJIB pada jalur soft (D-02)
+                    }
+                    await _context.SaveChangesAsync();
 
-                await _auditLog.LogAsync(actorId, actorName, "RemoveParticipantLive",
-                    $"Removed participant session [ID={sessionId}] '{title}' mode=soft reason='{reason}'",
-                    sessionId, "AssessmentSession");
+                    await _auditLog.LogAsync(actorId, actorName, "RemoveParticipantLive",
+                        $"Removed participant session [ID={sessionId}] '{title}' mode=soft reason='{reason}'",
+                        sessionId, "AssessmentSession");
+
+                    await tx.CommitAsync();
+                }
+                catch
+                {
+                    await tx.RollbackAsync();
+                    throw;   // bubble → endpoint 500; soft-remove TIDAK ter-commit tanpa audit.
+                }
 
                 return RemoveOutcome.Success("soft", "Peserta dikeluarkan (data diarsip, dapat dipulihkan).", partnerId);
             }
 
             // 5. Jalur HARD — bersih (belum-mulai + 0 response). Cascade hapus 9 artefak + UPA (D-01) dalam 1-tx.
             //    Keputusan #5: TIDAK panggil EnsureCanDeleteAsync (hard hanya not-started → guard no-op natural).
+            //    WR-03 (review) — RISIKO RESIDUAL: pair Pre/Post di-loop sebagai DUA cascade individual. Tiap
+            //    cascade atomik 1-tx sendiri (desain RecordCascadeDeleteService; nested-tx pada ctx berbagi akan
+            //    konflik → tak bisa dibungkus satu tx tanpa refactor besar). Bila cascade sesi-pertama sukses+commit
+            //    lalu cascade partner gagal, sesi-pertama SUDAH terhapus permanen (separuh-pair, partner yatim).
+            //    Mitigasi: pra-validasi both-clean (anyHasData==false di atas) bikin kegagalan langka; saat tetap
+            //    terjadi, LOG eksplisit untuk reconciliation manual ops (separuh-pair terdeteksi, bukan silent).
             var cascade = HttpContext.RequestServices.GetRequiredService<RecordCascadeDeleteService>();
+            var deletedIds = new List<int>();
             foreach (var s in new[] { session, partner }.Where(x => x != null))
             {
                 var result = await cascade.ExecuteAsync("session", s!.Id, Enumerable.Empty<int>(), actorId, actorName);
                 if (!result.Success)
+                {
+                    // WR-03: bila ada sesi yang SUDAH terhapus sebelum kegagalan ini → pair tertinggal separuh.
+                    if (deletedIds.Count > 0)
+                        _logger.LogError(
+                            "PAIR-HALF-DELETED — pasangan Pre/Post terhapus separuh, butuh rekonsiliasi manual: " +
+                            "sessionId(s) sudah-terhapus={DeletedIds}, partnerId gagal cascade={FailedId} (title='{Title}', alasan='{Error}')",
+                            string.Join(",", deletedIds), s.Id, title, result.ErrorMessage);
                     return RemoveOutcome.Fail(result.ErrorMessage ?? "Gagal menghapus peserta.");
+                }
+                deletedIds.Add(s.Id);
             }
 
             // 6. Audit endpoint (cascade tulis "CascadeDelete" internal; tambah konteks user-facing — double-log).
