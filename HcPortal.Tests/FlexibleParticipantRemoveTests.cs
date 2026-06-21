@@ -248,7 +248,7 @@ public class FlexibleParticipantRemoveWriteTests : IClassFixture<FlexiblePartici
             cache:                   cache,
             logger:                  NullLogger<AssessmentAdminController>.Instance,
             notificationService:     new NoopNotificationService(),
-            hubContext:              null!,
+            hubContext:              new NoopHubContext(),   // Phase 412: endpoint broadcast post-commit → hub non-null wajib
             workerDataService:       null!,
             gradingService:          null!,
             protonCompletionService: null!,

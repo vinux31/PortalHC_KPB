@@ -2573,10 +2573,7 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveParticipantLive(int sessionId, string? reason)
         {
-            // Phase 412: Include(User) agar payload broadcast punya FullName/NIP (panel "Peserta Dikeluarkan").
-            var session = await _context.AssessmentSessions
-                .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.Id == sessionId);
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
             if (session == null) return NotFound(new { error = "Sesi tidak ditemukan." });
 
             // Proton reject (guard dini, sebelum write) — mirror AddParticipantsLive.
@@ -2596,16 +2593,20 @@ namespace HcPortal.Controllers
             bool wasInProgress = session.StartedAt != null && session.CompletedAt == null && session.RemovedAt == null;
             string targetUserId = session.UserId;
             string rBatchKey = $"{session.Title}|{session.Category}|{session.Schedule.Date:yyyy-MM-dd}";
-            string sFullName = session.User?.FullName ?? "";
-            string? sNip = session.User?.NIP;
             // Resolve partner Pre/Post (untuk broadcast event KEDUA — kedua baris konsisten lintas-tab, Open-Q2).
             AssessmentSession? rPartner = (IsPrePostSession(session) && session.LinkedSessionId.HasValue)
-                ? await _context.AssessmentSessions.Include(s => s.User)
-                    .FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value)
+                ? await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value)
                 : null;
             int? rPartnerId = rPartner?.Id;
-            string pFullName = rPartner?.User?.FullName ?? "";
-            string? pNip = rPartner?.User?.NIP;
+            // Resolve FullName/NIP via lookup terpisah (BUKAN .Include — InMemory Include nav-null memfilter baris,
+            // pelajaran 412-01 regresi test). TryGetValue aman bila User tak ter-seed (test) → string kosong.
+            var rUserIds = new[] { session.UserId, rPartner?.UserId }.Where(id => id != null).Distinct().ToList();
+            var rUserMap = await _context.Users.Where(u => rUserIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => new { u.FullName, u.NIP });
+            string sFullName = rUserMap.TryGetValue(session.UserId, out var su) ? su.FullName : "";
+            string? sNip = rUserMap.TryGetValue(session.UserId, out var su2) ? su2.NIP : null;
+            string pFullName = rPartner != null && rUserMap.TryGetValue(rPartner.UserId, out var pu) ? pu.FullName : "";
+            string? pNip = rPartner != null && rUserMap.TryGetValue(rPartner.UserId, out var pu2) ? pu2.NIP : null;
 
             var outcome = await RemoveParticipantCoreAsync(session, reason, actorId, actorName);
             if (!outcome.Ok) return BadRequest(new { error = outcome.Message });   // reason-wajib-soft → 400 di sini
@@ -2650,10 +2651,7 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RestoreParticipantLive(int sessionId)
         {
-            // Phase 412: Include(User) agar payload broadcast participantAdded punya FullName/NIP.
-            var session = await _context.AssessmentSessions
-                .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.Id == sessionId);
+            var session = await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
             if (session == null) return NotFound(new { error = "Sesi tidak ditemukan." });
             if (session.RemovedAt == null)
                 return BadRequest(new { error = "Sesi ini tidak dalam keadaan dihapus." });
@@ -2664,8 +2662,7 @@ namespace HcPortal.Controllers
 
             // Pre/Post simetri: restore partner via LinkedSessionId juga (konsisten pair-as-unit dgn remove).
             var partner = (IsPrePostSession(session) && session.LinkedSessionId.HasValue)
-                ? await _context.AssessmentSessions.Include(s => s.User)
-                    .FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value)
+                ? await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value)
                 : null;
             foreach (var s in new[] { session, partner }.Where(x => x != null && x.RemovedAt != null))
             {
@@ -2679,15 +2676,19 @@ namespace HcPortal.Controllers
                 $"Restored participant session [ID={sessionId}] '{session.Title}'", sessionId, "AssessmentSession");
 
             // PLIV-02: baris balik aktif live — broadcast participantAdded utk sesi yg di-restore (post-SaveChanges).
+            // Resolve FullName/NIP via lookup terpisah (BUKAN .Include — hindari InMemory nav-null filter, lihat Remove).
             var sBatchKey = $"{session.Title}|{session.Category}|{session.Schedule.Date:yyyy-MM-dd}";
+            var resUserIds = new[] { session.UserId, partner?.UserId }.Where(id => id != null).Distinct().ToList();
+            var resUserMap = await _context.Users.Where(u => resUserIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => new { u.FullName, u.NIP });
             foreach (var s in new[] { session, partner }.Where(x => x != null))
             {
                 await _hubContext.Clients.Group($"monitor-{sBatchKey}").SendAsync("participantAdded", new
                 {
                     sessionId = s!.Id,
                     userId    = s.UserId,
-                    fullName  = s.User?.FullName ?? "",
-                    nip       = s.User?.NIP,
+                    fullName  = resUserMap.TryGetValue(s.UserId, out var ru) ? ru.FullName : "",
+                    nip       = resUserMap.TryGetValue(s.UserId, out var ru2) ? ru2.NIP : null,
                     status    = s.Status
                 });
             }

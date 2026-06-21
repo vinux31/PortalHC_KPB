@@ -270,7 +270,7 @@ public class FlexibleParticipantAddLiveWriteTests : IClassFixture<FlexiblePartic
             cache:                   cache,
             logger:                  NullLogger<AssessmentAdminController>.Instance,
             notificationService:     new NoopNotificationService(),
-            hubContext:              null!,
+            hubContext:              new NoopHubContext(),   // Phase 412: AddParticipantsLive broadcast post-commit → hub non-null wajib
             workerDataService:       null!,
             gradingService:          null!,
             protonCompletionService: null!,
