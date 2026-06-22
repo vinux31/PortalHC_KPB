@@ -122,7 +122,7 @@
   4. `dotnet build` 0 error + `dotnet test` hijau (suite retake + existing tak regresi) + UAT browser sign-off (SEED_WORKFLOW: snapshot→seed→restore). *(RTK-14)*
 **Plans:** 2 plans (2 waves) — capstone gap-fill (additive only; tidak menulis ulang test hijau)
 - [x] 408-01-PLAN.md — Wave 1: GAP-1 xUnit integration `RetakeThenPassCertTests` (retake→grade-lulus→tepat 1 cert; reuse RetakeServiceFixture real-SQL + GradingService ctor recipe SubmitResurrectionTests) (RTK-14) [migration=FALSE]
-- [ ] 408-02-PLAN.md — Wave 2: GAP-3 Playwright lifecycle `retake-lifecycle-408.spec.ts` + seed (gagal cooldown=0→Ujian Ulang→StartExam→jawab benar→lulus→cert#) + regresi penuh suite/e2e + checkpoint UAT @5270 (RTK-14) [migration=FALSE]; depends 408-01
+- [x] 408-02-PLAN.md — Wave 2: GAP-3 Playwright lifecycle `retake-lifecycle-408.spec.ts` + seed (gagal cooldown=0→Ujian Ulang→StartExam→jawab benar→lulus→cert#) + regresi penuh suite/e2e + checkpoint UAT @5270 (RTK-14) [migration=FALSE]; depends 408-01
 **Catatan:** secure-phase 408 (D-03) = gerbang formal terpisah (`gsd-secure-phase 408`), bukan plan task; kedua plan membawa `<threat_model>` konsolidasi 406+407 + invariant cert-uniqueness untuk auditor.
 **UI hint:** yes
 
@@ -135,7 +135,7 @@
 | 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 4/4 | Complete   | 2026-06-21 |
 | 406. Admin Config UI + Riwayat HC (RTK-05/08) | 3/3 | Complete   | 2026-06-21 |
 | 407. Worker Self-Service + Gating + Riwayat Pekerja (RTK-09/10/11/12/13) | 3/3 | Complete   | 2026-06-22 |
-| 408. Test & UAT (RTK-14) | 1/2 | In Progress|  |
+| 408. Test & UAT (RTK-14) | 2/2 | Complete   | 2026-06-22 |
 
 </details>
 
