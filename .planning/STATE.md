@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
-status: roadmap_created
-stopped_at: "Roadmap v32.7 created — 6 fase 420-425, 42 REQ mapped 100%, ROADMAP.md + STATE.md written; awaiting plan-phase 420"
-last_updated: "2026-06-22T09:00:00.000Z"
-last_activity: 2026-06-22
+status: Roadmap created (awaiting `/gsd-plan-phase 420`)
+stopped_at: Phase 420 context gathered
+last_updated: "2026-06-22T12:44:24.110Z"
+last_activity: 2026-06-22 — ROADMAP.md created (42/42 REQ mapped, 0 orphan/duplikat)
 progress:
-  total_phases: 6
+  total_phases: 39
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -139,6 +138,6 @@ Backlog tracked: 999.6/9/10/11/12.
 
 Last activity: 2026-06-22
 
-Stopped at: ROADMAP.md v32.7 created (6 fase 420-425, 42/42 REQ mapped 100%, 0 orphan/duplikat) + STATE.md updated. Belum di-plan.
+Stopped at: Phase 420 context gathered
 
 Next action: **`/gsd-plan-phase 420`** (FORM Create/Edit persistensi field + UX Pre-Post; FORM-01..11; memuat HIGH E-01 shuffle reset-OFF). Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.
