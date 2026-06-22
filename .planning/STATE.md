@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v32.6
 milestone_name: Section + Scoped Shuffle + Section Pagination + Opsi Dinamis
-status: defining_requirements
+status: ready_to_plan
 stopped_at: —
 last_updated: "2026-06-22"
 last_activity: 2026-06-22
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,50 +21,39 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.6 — mendefinisikan requirements + roadmap (Section + Scoped Shuffle + Section Pagination + Opsi Dinamis)
+**Current focus:** v32.6 — roadmap dibuat (5 fase 415-419, ready_to_plan); next `/gsd-plan-phase 415` (Section foundation, migration=TRUE)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap created — siap plan Phase 415)
 Plan: —
-Status: Defining requirements — milestone v32.6
-Last activity: 2026-06-22 — Milestone v32.6 started (fase mulai 415)
+Status: ready_to_plan — milestone v32.6 (5 fase 415-419, 20/20 REQ mapped)
+Last activity: 2026-06-22 — Roadmap v32.6 dibuat (fase 415-419, lanjut dari 414, tak reset)
 
-Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
+Milestone **v32.6 Section + Scoped Shuffle + Section Pagination + Opsi Dinamis** — HC/Admin dapat mengelompokkan soal ke dalam **Section** per-paket (per area/equipment), mengacak soal & pilihan **hanya di dalam lingkup section** (scoped shuffle, on/off per-section), mengatur **pagination per-section** (section tertentu mulai halaman baru), memakai **opsi jawaban dinamis 2–6** (bukan kunci A–D), dan mengunggah semua via **import Excel diperluas** (dual-format kompatibel-mundur). Section **opsional** → kosong = perilaku global lama (100% kompatibel-mundur). **migration=TRUE** hanya Phase 415 (tabel `AssessmentPackageSection` + `PackageQuestion.SectionId` nullable; 416-419=FALSE). Branch main. Design spec `docs/superpowers/specs/2026-06-22-section-scoped-shuffle-pagination-dynamic-options-design.md` (15 keputusan D-01..D-15 + §15 addendum re-check).
 
-**Roadmap (5 fase, depends chain 409 → (410 ∥ 411 sequential file-overlap) → 412 → 413):**
+**Roadmap (5 fase, DAG: 415 keystone → 416 → 417 ; 415 → 418 ; (415,416,417,418) → 419):**
 
-- **409** Data Foundation + Re-entry Guards + Exclude-Removed Query (PRMV-03) — **migration=TRUE** `AddParticipantRemovalColumns` 3 kolom nullable + guard `StartExam`/`SubmitExam`/`Hub.JoinBatch` + exclude `RemovedAt!=null` di semua list/count.
-- **410** Add-Participant Backend Live (PART-06, PART-07) — `AddParticipantsLive` (window/idempotent/auto UPA/ready-status/Pre-Post pair/Proton reject) + `GetEligibleParticipantsToAdd`. migration=FALSE.
-- **411** Remove + Restore Backend Live (PRMV-01, PRMV-04, PRMV-05, PLIV-03) — `RemoveParticipantLive` hybrid + Pre/Post pair-as-unit + `RestoreParticipantLive` + fix stub `DeleteAssessmentPeserta` + audit/RBAC. migration=FALSE.
-- **412** Live Monitoring UI + SignalR (PART-05, PRMV-02, PLIV-01, PLIV-02) — kontrol Tambah/Hapus + modal keras + `participantAdded`/`participantRemoved`/`examRemoved` + panel "Peserta Dikeluarkan". migration=FALSE.
-- **413** Test + UAT — xUnit integration (`FlexibleParticipant*Tests`) + Playwright e2e live + regression. migration=FALSE.
+- **415** Section Foundation + Import Excel Diperluas (SEC-01..06, IMP-01..03) — **migration=TRUE** `AddAssessmentPackageSection` (tabel + index unik `(AssessmentPackageId, SectionNumber)`) + `PackageQuestion.SectionId` int? nullable + UI kelola/urut/toggle Section + import kolom No.Section/Nama + Opsi A–F dual-format (file lama 9-kolom tetap jalan) + validasi struktur antar-paket hard-block (D-13) + fingerprint +Section+opsi5–6 + sync Pre→Post struktur Section. **Keystone — blok 416 & 417.**
+- **416** Scoped Shuffle (Acak per-Section) (SHF-01..04) — generalisasi `ShuffleEngine.BuildSectionQuestionAssignment` (kunci ET komposit `(SectionNumber, ET)`) + precedence toggle induk/anak (D-14) + pooling antar-paket per-section (D-09) + reshuffle section-aware. migration=FALSE.
+- **417** Section Pagination (PAG-01/02/03) — header Section saat render + `StartNewPage` page-break + tombol cepat "semua section pisah halaman" + auto-pecah per-10 + resume `LastActivePage` (int?, dihitung saat render, fallback aman page 0). migration=FALSE.
+- **418** Opsi Jawaban Dinamis 2–6 (OPT-01..03) — refactor kontrak HTTP CreateQuestion/EditQuestion (param diskret→array) + form authoring + form Inject + render ujian/preview/results huruf A–F + import Opsi A–F + validator min-2/max-6. migration=FALSE. (Workstream agak terpisah — data/grading sudah dinamis — TAPI sequential anti-konflik file dgn 415/417.)
+- **419** Export Label Section + Polish + Test/UAT Milestone (PAG-04) — label/header Section di export per-soal (Excel/PDF) + audit interaksi lintas-milestone (Inject v32.2, LinkPrePost 397, Add/Remove v32.5) + suite test baru + **Playwright real-browser UAT WAJIB** (lesson 354) + audit milestone. migration=FALSE.
+
+**Coverage:** 20/20 REQ mapped (415=9, 416=4, 417=3, 418=3, 419=1), 0 orphan, 0 duplikat. Traceability di `.planning/REQUIREMENTS.md`.
 
 ## Next Action
 
-**Phase 414 PLAN 01 COMPLETE (4/4 task) — off-theme bugfix visibilitas review jawaban admin, migration=FALSE, NOT pushed.** Decouple gate "Tinjauan Jawaban" per-soal di `CMP/Results` dari toggle `AllowAnswerReview` by owner-vs-non-owner. 4 commit: `fe0fc15c` (VM field `CanReviewAnswers`, raw toggle utuh D-01) → `572df8a4` (pure static `CMPController.CanReviewAnswers(allow,isOwner)=>allow||!isOwner` + hitung SEKALI pasca-auth pakai DUA kali gate-build+VM-flag, anti-desync Pitfall 1; legacy path=false OQ-1) → `e5dd9272` (view gate `Model.CanReviewAnswers` + nota admin XSS-safe static-encoded no-`@Html.Raw` D-04) → `b71dc985` (xUnit 4-InlineData pure static no-DB cermin `ResultsAuthorizationTests`). `IsResultsAuthorized`+`Forbid()` utuh (3×, T-414-01). **build 0 error; filter ~CanReviewAnswers 4/4; full suite 609/609 (baseline 605+4, 0 regresi); boot @5277 GET / HTTP 200; migration=FALSE.** SUMMARY @ `.planning/phases/414-fix-admin-hc-answer-history-visibility-when-allowanswerrevie/414-01-SUMMARY.md`.
+**Roadmap v32.6 SELESAI DIBUAT (fase 415-419) — siap `/gsd-plan-phase 415`.** Files: `.planning/ROADMAP.md` (active Phases + Phase Details + Progress table), `.planning/STATE.md` (Current Position + roadmap), `.planning/REQUIREMENTS.md` (traceability 20/20). status=ready_to_plan.
 
-**NEXT:** `/gsd-verify-work 414` (+ **manual UAT dua-persona @5277 lesson 354**: admin non-owner toggle-OFF lihat review+nota SC-1; owner toggle-OFF tetap alert lama SC-2; toggle-ON nol regresi SC-3) → `/gsd-secure-phase 414` (opsional, threat T-414-01/02/03 sudah net-neutral) → `/gsd-validate-phase 414` → kembali ke **`/gsd-audit-milestone v32.5`** (11/11 REQ; 414 off-theme TIDAK menambah REQ). NOT pushed; notify IT 414 = **migration=FALSE**.
+**NEXT:** `/gsd-plan-phase 415` (Section Foundation — keystone, migration=TRUE). Setelah 415: 416 (shuffle) → 417 (pagination) ; 418 (opsi dinamis) bisa setelah 415 TAPI sequential anti-konflik file (`AssessmentAdminController.cs`/`StartExam.cshtml`/import) ; 419 terakhir (export + QA + audit milestone).
 
-_(Histori 413 — arsip)_ **Phase 413 COMPLETE (3/3 plan) — Milestone v32.5 SIAP-SHIP PENDING-PUSH.** Regression gate 413-03 hijau: full suite **605/605 (Failed: 0)**, per-grup guard 391/409/410/411/412/413-01 semua hijau, Integration 197 executed, 11/11 REQ COVERED, build 0 error + boot @5277 200, migration=FALSE. SUMMARY @ `.planning/phases/413-test-uat/413-03-SUMMARY.md`; bukti @ `.planning/phases/413-test-uat/413-REGRESSION.md`.
-
-**NEXT:** `/gsd-audit-milestone v32.5` (verifikasi 11/11 REQ + integration end-to-end) → `/gsd-complete-milestone v32.5` → **1 push `origin/main` (bundle v32.2 + v32.5)** + **notify IT: Phase 409 migration=TRUE `AddParticipantRemovalColumns` hash `01cd7dd0`** (3 kolom nullable additif; 410-413 = migration=FALSE). ❌ JANGAN push tanpa approval/koordinasi IT (CLAUDE.md Develop Workflow step 4-5). ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1. Carry: Phase 414 (off-theme bugfix visibilitas review jawaban admin) belum di-plan — opsional bundle ke v32.5 atau milestone terpisah.
-
-_(Histori 412-02 — arsip)_ **Phase 412-02 COMPLETE (2/3 plan).** UI live `AssessmentMonitoringDetail.cshtml` (+731 baris): picker "Tambah Peserta" → AddParticipantsLive, item Hapus per-baris + modal keras/ringan D-01 → RemoveParticipantLive, panel collapsible "Peserta Dikeluarkan" + Restore 1-klik D-04 → RestoreParticipantLive, handler SignalR participantAdded (dedup+restore-from-panel) / participantRemoved (mode-aware hard remove vs soft→panel). Commits: `f2781740` (markup tombol+modal+panel) + `d6ca5765` (JS picker/hapus/restore + 2 handler SignalR + perluas buildActionsHtml/updateSummaryFromDOM). migration=FALSE, branch main NOT pushed. Build 0 error. **Runtime smoke @5277 PASS** (login admin/123456 → detail 200 103KB; markup+handler render; eligible endpoint 200 JSON; panel display:none saat 0-removed; NOL console/server error). PART-05 marked complete (PRMV-02/PLIV-01/PLIV-02 sudah dari 412-01). SUMMARY @ `.planning/phases/412-live-monitoring-ui-signalr/412-02-SUMMARY.md`.
-
-**412-02 highlights/carry:** (a) **window.mon\* bridge** — helper IIFE-private (`buildActionsHtml`/`flashRow`/`statusBadgeClass`) diekspos ke `window` agar handler SignalR di blok `@section Scripts` (satu-satunya tempat `window.assessmentHub` tersedia) bisa pakai. (b) Tingkat modal hapus **label-aware** (Pitfall 1): `data-status === "InProgress"` ATAU `Completed`+cert → keras; lainnya ringan. (c) **XSS-safe**: panel Razor `@`-encode (0 Html.Raw) + JS `textContent` nama/alasan/oleh (0 innerHTML utk reason). (d) `updateSummaryFromDOM` selector `tbody:not(#tbodyRemoved)` (Pitfall 2). (e) Fallback inject 3 detik + `monClearAddedFallback` cancel saat echo (anti double-inject Pitfall 4). **NEXT: `/gsd-execute-phase 412` lanjut 412-03** (StartExam `examRemoved` force-kick + modal `#examRemovedModal` mirror `examClosed`; reason via textContent; redirect ke CMP/Assessment + TempData banner D-02).
-
-_(Histori 412-01 — arsip)_ **Phase 412-01 COMPLETE (1/3 plan).** Server-side fondasi UI Monitoring live: broadcast SignalR post-commit + query removedSessions. Commits: `da1e62e5` (broadcast 3 endpoint participantAdded×2/participantRemoved+Pre-Post pair/examRemoved) + `6d3f0e26` (query RemovedAt!=null + RemovedParticipantViewModel typed + ViewBag.RemovedSessions) + `8623e68e` (Rule-1 fix: hapus .Include nav-null InMemory + NoopHubContext stub). migration=FALSE, branch main NOT pushed. Build 0 error, full suite **597/597**, FlexibleParticipant+Monitoring 38/38 hijau, app boot @5277 (monitoring 302). PLIV-01/PLIV-02/PRMV-02 marked complete. SUMMARY @ `.planning/phases/412-live-monitoring-ui-signalr/412-01-SUMMARY.md`.
-
-**412-01 highlights/carry:** (a) **.Include(s=>s.User) JANGAN dipakai di endpoint yang dipanggil read-path InMemory test** — provider mem-filter baris ber-FK-nav-null → NotFound (lihat AddLive test :87-88). Pakai dict lookup `_context.Users`. (b) **NoopHubContext** (`HcPortal.Tests/NoopHubContext.cs`) reusable utk write-path test endpoint yang broadcast post-commit. (c) Open-Q1 RESOLVED: `examRemoved` hanya `wasInProgress` (capture pre-core). Open-Q2 RESOLVED: Pre/Post → 2 event participantRemoved via outcome.PartnerId. (d) Kontrak JSON 410/411 TIDAK berubah (broadcast additive). **NEXT: `/gsd-execute-phase 412` lanjut 412-02** (view AssessmentMonitoringDetail.cshtml: picker modal + modal hapus keras D-01 + panel "Peserta Dikeluarkan" dari ViewBag.RemovedSessions + handler participantAdded/Removed; carry T-409-10 encode-at-render RemovalReason via @/textContent; Pitfall 1 label Indonesia, Pitfall 2 exclude #tbodyRemoved, Pitfall 6 mode hard/soft) lalu 412-03 (StartExam examRemoved force-kick mirror examClosed).
-
-_(Histori 411 — arsip)_ **Phase 411 COMPLETE (2/2 plan).** Plan 01 backend: `764516d0` (core) + `220382ec` (3 endpoint + un-hide form). Plan 02 test: `cafd641d` + `3ec00420` (hard-delete via mini-DI). migration=FALSE. Build 0 error, suite 596/596, PRMV-01/04/05 + PLIV-03 complete.
-
-**411-02 highlights:** `FlexibleParticipantRemoveTests.cs` (812 baris, 15 [Fact]) de-tautologis 999.12. Bagian A InMemory (5): Proton-400/idempotent-noop/404×2/restore-guard-400. Bagian B SQLEXPRESS soft (7): soft preserve Score/cert/Status, reason-wajib-soft 400+0-write (D-02), idempotent-write, restore clear-3-kolom, Pre/Post pair soft-both + batch-isolation (Pitfall 1), audit row. **Hard-delete mini-DI (3):** `BuildCascadeServiceProvider`+`StubWebHostEnvironment`+`MakeLiveControllerWithCascade` set `HttpContext.RequestServices` → drive `RemoveParticipantLive` ASLI → row gone + UPA gone (D-01) + Pre/Post both-clean hard. NO replica `SessionHasDataAsync`, NO `ExecuteAsync` langsung (komentar saja). SQLEXPRESS (SQL Server 2025) write-path BENAR run (no skip); DB test auto-disposed; migration=FALSE.
-
-**NEXT: `/gsd-verify-work 411`** → 412 (UI+SignalR, depends 410+411; konsumsi JSON outcome `{sessionId, mode, linkedSessionId}` + escape `RemovalReason` carry T-409-10) → 413 (test+UAT). Mini-DI pattern (`BuildCascadeServiceProvider`/`MakeLiveControllerWithCascade`) reusable utk fase yang drive cascade lewat `HttpContext.RequestServices`. Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/SignalR) → branch main → notify IT (411 = migration=FALSE; carry 409 migration=TRUE hash `01cd7dd0`).
-
-**Carry Phase 412/413:** (a) escape/encode `RemovalReason` saat render panel "Peserta Dikeluarkan" (T-409-10 XSS-at-render, di-defer dari 409). (b) A2 export/impact (`ExportAssessmentResults`/`BulkExportPdf`/`GetDeleteImpact`) belum di-exclude removed (defer — revisit bila perlu). (c) reuse `CMPController.IsParticipantRemoved` seam + invarian `RemovedAt==null` di 410/411. (d) jangan regresi 6 test ParticipantRemoval.
+**Catatan kunci sebelum plan:**
+- **Sequential by file-overlap (mirror v32.5/v32.2):** 416 & 418 sama-sama sentuh authoring/import; 417 & 418 sama-sama edit `StartExam.cshtml` → **JANGAN paralel**. 415 sentuh `AssessmentAdminController.cs`/`ManagePackageQuestions.cshtml`/import yang juga dipakai 418 → 415 dulu.
+- **Saran spec §13:** ekstrak abstraksi urutan-soal (`SectionAwareQuestionProvider`/`IQuestionSequence`) di awal Fase 415 untuk pangkas penyebaran perubahan ~50% (~23 titik).
+- **Test strategi (§12):** JANGAN retrofit ~180 metode shuffle / ~17.5K baris xUnit di tengah jalan. Tulis suite BARU setelah fondasi Section masuk; tes lama harus tetap hijau (kompatibel-mundur = Section kosong).
+- **migration=TRUE hanya 415** (`AddAssessmentPackageSection`); 416-419=FALSE. Verifikasi lokal tiap fase (`dotnet build` + `dotnet test` + `dotnet run` @5277 + Playwright bila UI/JS/SignalR per lesson 354) → branch main → notify IT.
+- **Interaksi lintas-milestone (§15.F):** Inject (v32.2) `InjectQuestionSpec`+Excel baca No.Section/Opsi A–F + validasi D-13 saat commit; LinkPrePost (397) struktur Section harus identik Pre↔Post (blok link bila beda); AddParticipantsLive (v32.5 Phase 410) eager-assignment WAJIB pakai per-section assignment yang sama. v32.3/v32.4 hidup di ITHandoff → rekonsiliasi saat merge.
 
 ## Accumulated Context (carry)
 

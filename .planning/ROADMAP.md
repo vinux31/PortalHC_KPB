@@ -33,8 +33,100 @@
 - ✅ **v32.0 Manajemen Peserta** — Phases 391-392 (shipped local + audited PASSED 2026-06-17, closed manual 2026-06-19, 7/7 REQ PART-01..04 + WRKR-01..03; **0 migration**; 391 = penambahan peserta fleksibel saat ujian berjalan, 392 = perbaikan CreateWorker view + audit field; branch main, NOT PUSHED) — [archive](milestones/v32.0-ROADMAP.md) — [requirements](milestones/v32.0-REQUIREMENTS.md) — [audit](milestones/v32.0-MILESTONE-AUDIT.md)
 - ✅ **v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — Phases 393-398 + 398.1 (shipped local + audited PASSED 2026-06-19, 13/13 REQ INJ-01..13; 7 phase, 26 plan; **0 migration**; page baru `/Admin/InjectAssessment` Section C [Admin+HC] meng-inject hasil assessment identik online via reuse GradingService/authoring/CertNumberHelper; 398.1 = tech-debt cleanup 8 FIX/2 DROP; branch main, NOT PUSHED) — [archive](milestones/v32.2-ROADMAP.md) — [audit](milestones/v32.2-MILESTONE-AUDIT.md)
 - ✅ **v32.5 Flexible Add/Remove Participant** — Phases 409-414 (shipped local + audited PASSED 2026-06-22, 11/11 REQ PART-05/06/07 + PRMV-01..05 + PLIV-01/02/03 [Phase 414 = bugfix off-theme visibilitas review jawaban admin, 0 REQ baru]; **migration=TRUE** [Phase 409 `AddParticipantRemovalColumns` `01cd7dd0`; 410-414 = FALSE]; add & remove peserta live di Monitoring Detail [AJAX+SignalR], hapus hybrid by-state; branch main, NOT PUSHED) — [archive](milestones/v32.5-ROADMAP.md) — [audit](milestones/v32.5-MILESTONE-AUDIT.md) — [requirements](milestones/v32.5-REQUIREMENTS.md)
+- 🚧 **v32.6 Section + Scoped Shuffle + Section Pagination + Opsi Dinamis** — Phases 415-419 (PLANNED 2026-06-22, 20 REQ SEC-01..06 + SHF-01..04 + PAG-01..04 + OPT-01..03 + IMP-01..03; **migration=TRUE** [Phase 415 `AddAssessmentPackageSection` tabel + `PackageQuestion.SectionId` nullable; 416-419 = FALSE]; Section per-paket + scoped shuffle per-section + pagination per-section + opsi jawaban dinamis 2–6 + import Excel diperluas dual-format; kompatibel-mundur 100% [Section opsional = perilaku global lama]; branch main) — [spec](../docs/superpowers/specs/2026-06-22-section-scoped-shuffle-pagination-dynamic-options-design.md)
 
 ## Phases
+
+### 🚧 v32.6 Section + Scoped Shuffle + Section Pagination + Opsi Dinamis (ACTIVE — Phases 415-419)
+
+- [ ] **Phase 415: Section Foundation + Import Excel Diperluas** — Tabel `AssessmentPackageSection` + `SectionId` nullable + UI kelola/urut/toggle section + import kolom Section/Opsi A–F dual-format + validasi struktur antar-paket (D-13). **migration=TRUE**.
+- [ ] **Phase 416: Scoped Shuffle (Acak per-Section)** — Generalisasi `ShuffleEngine` jadi acak per-section (kunci ET komposit `(Section,ET)`) + precedence toggle induk/anak + pooling antar-paket per-section + reshuffle section-aware. migration=FALSE.
+- [ ] **Phase 417: Section Pagination** — Header section saat render + `StartNewPage` page-break + tombol cepat "semua section pisah halaman" + auto-pecah per-10 + resume map (`LastActivePage`). migration=FALSE.
+- [ ] **Phase 418: Opsi Jawaban Dinamis 2–6** — Refactor kontrak HTTP CreateQuestion/EditQuestion + form authoring + form Inject + render ujian/preview/results huruf A–F dinamis + import Opsi A–F + validator min-2/max-6. migration=FALSE.
+- [ ] **Phase 419: Export Label Section + Polish + Test/UAT Milestone** — Label/header Section di export per-soal (Excel/PDF) + sync Pre→Post struktur Section + audit interaksi lintas-milestone + suite test baru + Playwright real-browser UAT + audit milestone. migration=FALSE.
+
+**Coverage:** 20/20 REQ mapped (SEC-01..06+IMP-01..03 → 415; SHF-01..04 → 416; PAG-01/02/03 → 417; OPT-01..03 → 418; PAG-04 → 419). Spec: [design](../docs/superpowers/specs/2026-06-22-section-scoped-shuffle-pagination-dynamic-options-design.md).
+
+#### Progress (v32.6)
+
+| Phase | Plans Complete | Status | Migration | Completed |
+|-------|----------------|--------|-----------|-----------|
+| 415. Section Foundation + Import Excel Diperluas | 0/? | Not started | TRUE | - |
+| 416. Scoped Shuffle (Acak per-Section) | 0/? | Not started | FALSE | - |
+| 417. Section Pagination | 0/? | Not started | FALSE | - |
+| 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
+| 419. Export Label Section + Polish + Test/UAT | 0/? | Not started | FALSE | - |
+
+**Dependency DAG:** 415 (keystone) → 416 → 417 ; 415 → 418 (workstream agak terpisah, sequential anti-konflik file) ; (415,416,417,418) → 419.
+**Catatan sekuensial (file-overlap):** 416 dan 418 sama-sama menyentuh authoring/`StartExam.cshtml`/import → jalankan **berurutan, bukan paralel** (mirror v32.5/v32.2). 417 & 418 sama-sama edit `StartExam.cshtml` → jangan paralel.
+
+### Phase Details (v32.6)
+
+#### Phase 415: Section Foundation + Import Excel Diperluas
+**Goal**: HC dapat menata soal ke dalam Section per-paket (data model + CRUD/urut/toggle + import) sebagai fondasi yang membuka scoped-shuffle & pagination; Section opsional sehingga assessment lama tak berubah perilaku.
+**Depends on**: Nothing (keystone fondasi; blok untuk 416 & 417)
+**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06, IMP-01, IMP-02, IMP-03
+**Success Criteria** (what must be TRUE):
+  1. HC dapat membuat, mengubah, menghapus, dan mengurutkan Section (No. Section + Nama) per-paket lewat UI web, dan mengatur toggle "Mulai Halaman Baru" + "Acak" per-Section (termasuk tombol cepat "semua section mulai halaman baru").
+  2. HC dapat menetapkan Section pada soal lewat No. Section; daftar/preview soal admin menampilkan soal dikelompokkan per Section dengan header, dan soal tanpa Section masuk grup "Lainnya" di urutan terakhir.
+  3. HC dapat meng-import soal dari template Excel baru (kolom No.Section/Nama Section + Opsi A–F), dan file template lama 9-kolom (Opsi A–D, tanpa Section) tetap bisa di-import (dual-format).
+  4. Sistem menolak (hard-block) menyimpan/meng-import bila jumlah soal per-Section antar-paket dalam satu assessment tidak identik, dengan pesan jelas (sebut SectionNumber + jumlah diharapkan vs aktual); fingerprint anti-duplikat menyertakan Section + opsi 5–6.
+  5. Saat sinkronisasi Pre→Post (SamePackage), struktur Section + opsi ikut tersalin ke PostTest (deep-clone semua pemicu sync).
+**Plans**: TBD
+**Migration**: TRUE — `AddAssessmentPackageSection` (tabel `AssessmentPackageSection` + index unik `(AssessmentPackageId, SectionNumber)`) + kolom `PackageQuestion.SectionId` int? nullable. Non-breaking; rollback = drop tabel + kolom.
+**File-overlap (jalankan sebelum 416/418)**: `AssessmentAdminController.cs` (CreateQuestion/EditQuestion authoring + ImportPackageQuestions), `ManagePackageQuestions.cshtml`, view kelola Section (`ManagePackages`/`ManagePackageSections`), `_PreviewQuestion`/`PreviewPackage`, `InjectExcelHelper`/parser import. Saran spec §13: ekstrak abstraksi urutan-soal (`SectionAwareQuestionProvider`) di awal untuk pangkas penyebaran perubahan.
+**UI hint**: yes
+
+#### Phase 416: Scoped Shuffle (Acak per-Section)
+**Goal**: Pengacakan soal & pilihan terjadi hanya di dalam lingkup Section (soal tak melompat antar-Section), dengan assessment tanpa Section berperilaku persis seperti sekarang.
+**Depends on**: Phase 415 (butuh data model Section + `SectionId`)
+**Requirements**: SHF-01, SHF-02, SHF-03, SHF-04
+**Success Criteria** (what must be TRUE):
+  1. Saat ujian, soal hanya diacak di dalam Section-nya (tak melompat antar-Section); assessment tanpa Section menghasilkan urutan yang identik dengan perilaku sekarang (kompatibel-mundur).
+  2. HC dapat menyalakan/mematikan acak per-Section, dan toggle acak level-assessment berfungsi sebagai induk (induk OFF → semua terurut; induk ON → tiap Section ikut toggle-nya).
+  3. Untuk assessment >1 paket, tiap Section diisi dari gabungan Section padanan lintas-paket lalu diacak/di-sampling dalam batas Section, dengan cakupan Elemen Teknis dijamin per-Section.
+  4. Reshuffle per-paket maupun semua peserta menghormati batas Section (soal tetap tak bocor antar-Section).
+**Plans**: TBD
+**Migration**: FALSE.
+**File-overlap (sequential setelah 415; sebelum 417)**: `Helpers/ShuffleEngine.cs` (refactor `BuildSectionQuestionAssignment` + kunci komposit `(SectionNumber, ET)`), `CMPController.StartExam` (wire), reshuffle endpoints `ReshufflePackage`/`ReshuffleAll`. Interaksi lintas-milestone: `AddParticipantsLive` (v32.5 Phase 410) eager-assignment WAJIB pakai per-section assignment yang sama (seed `workerIndex` konsisten).
+
+#### Phase 417: Section Pagination
+**Goal**: Tampilan ujian default 10 soal/halaman mengalir dengan header Section, dan Section ber-"Mulai Halaman Baru" benar-benar mulai di halaman baru — termasuk saat resume.
+**Depends on**: Phase 415 (Section) + Phase 416 (urutan section-aware sudah jadi)
+**Requirements**: PAG-01, PAG-02, PAG-03
+**Success Criteria** (what must be TRUE):
+  1. Tampilan ujian default = 10 soal/halaman mengalir, dengan header Section yang muncul saat berganti Section.
+  2. Section ber-"Mulai Halaman Baru" dimulai di halaman baru; Section panjang otomatis terpecah per 10 soal; tombol cepat "semua section pisah halaman" memaksa page-break di semua Section.
+  3. Resume ujian (`LastActivePage`) tetap mengarah ke halaman yang benar saat pagination Section aktif; identitas soal stabil (by question id) walau struktur berubah pasca-lock, dengan fallback aman ke halaman 0 bila di luar rentang.
+**Plans**: TBD
+**Migration**: FALSE (`LastActivePage` tetap `int?`, page-number dihitung saat render, bukan disimpan per-soal — D-11).
+**File-overlap (sequential setelah 416; hindari paralel dgn 418 di `StartExam.cshtml`)**: `StartExam.cshtml` (header section + page-break render + sidebar nav per-section), `CMPController.StartExam` (hitung PageNumber + `ViewBag.SectionConfig`), autosave SignalR flush antar-halaman (`assessment-hub.js`), mobile 5-soal/halaman ikut aturan section.
+**UI hint**: yes
+
+#### Phase 418: Opsi Jawaban Dinamis 2–6
+**Goal**: HC dapat membuat/mengubah soal dengan 2–6 opsi jawaban (bukan terkunci A–D) di form authoring web & form Inject, dan semua layar (ujian/preview/results) menampilkan huruf A–F dinamis dengan penilaian tetap benar.
+**Depends on**: Phase 415 (berbagi file authoring/import dengan Section — sequential anti-konflik; data model & grading sudah dinamis sehingga workstream agak terpisah)
+**Requirements**: OPT-01, OPT-02, OPT-03
+**Success Criteria** (what must be TRUE):
+  1. HC dapat membuat/mengubah soal dengan 2–6 opsi jawaban lewat form authoring web dan form Inject (tambah/hapus baris opsi, minimal 2, maksimal 6 ditegakkan).
+  2. Layar ujian, preview, dan hasil menampilkan huruf opsi A–F dinamis sesuai jumlah opsi, dan penilaian (skor/Lulus) tetap benar.
+  3. Kolom "Jawaban Benar" pada form & import menerima huruf A–F (multi untuk Multiple, mis. `A,C,E`); minimal 2 dan maksimal 6 opsi ditegakkan di import.
+**Plans**: TBD
+**Migration**: FALSE (`PackageOption` sudah `ICollection`; batas max-6 di layer aplikasi, grading by `PackageOption.Id`).
+**File-overlap (sequential setelah 415; hindari paralel dgn 417 di `StartExam.cshtml`)**: `AssessmentAdminController.cs` (CreateQuestion/EditQuestion param diskret→array), `ManagePackageQuestions.cshtml` + `_InjectQuestionForm.cshtml` (loop opsi dinamis), `StartExam.cshtml`/`_PreviewQuestion`/`Results.cshtml`/`ExamSummary.cshtml` (huruf A–F), `ExtractPackageCorrectLetter` (`'ABCD'`→`'ABCDEF'`), `QuestionOptionValidator` (min-2/max-6), import parser Opsi E–F.
+**UI hint**: yes
+
+#### Phase 419: Export Label Section + Polish + Test/UAT Milestone
+**Goal**: Bukti hasil per-soal (Excel/PDF) menampilkan label/header Section, integrasi lintas-fitur terverifikasi, dan seluruh milestone lulus uji real-browser sebelum ship.
+**Depends on**: Phase 415, 416, 417, 418 (fitur lengkap dulu)
+**Requirements**: PAG-04
+**Success Criteria** (what must be TRUE):
+  1. Export per-soal (Excel/PDF) menampilkan label/header Section ("Section {n}: {Nama}") yang konsisten lintas-peserta, dengan huruf opsi A–F dinamis.
+  2. Suite test baru (unit `BuildSectionQuestionAssignment` isolasi-section + validasi mismatch/dual-format/fingerprint + Playwright pagination/opsi-5–6/resume) hijau dan test lama tetap hijau (kompatibel-mundur = Section kosong).
+  3. Playwright real-browser UAT membuktikan alur Section+shuffle+pagination+opsi-dinamis berfungsi runtime (lesson 354: Razor/JS/SignalR WAJIB UAT browser), dan audit milestone PASSED dengan 20/20 REQ ter-cover + interaksi lintas-milestone (Inject v32.2, LinkPrePost 397, Add/Remove v32.5) koheren.
+**Plans**: TBD
+**Migration**: FALSE.
+**File-overlap (final; sequential setelah semua fitur)**: `ExcelExportHelper`/`AddDetailPerSoalSheet` + `GeneratePerPesertaPdf` (label Section), `SyncPackagesToPost`/`CopyPackagesFromPre` (audit ulang SEMUA pemicu sync salin Section+opsi), monitoring label. Interaksi LinkPrePost (Phase 397): struktur Section harus identik Pre↔Post (blok link bila beda).
 
 <details>
 <summary>✅ v32.5 Flexible Add/Remove Participant (Phases 409-414) — SHIPPED 2026-06-22</summary>

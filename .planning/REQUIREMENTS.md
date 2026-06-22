@@ -69,21 +69,37 @@ Deferred — diketahui tapi di luar roadmap v32.6.
 
 ## Traceability
 
-Diisi oleh roadmapper saat pembuatan roadmap.
+Tiap REQ v1 dipetakan ke tepat satu fase (roadmap v32.6, fase 415-419). Status awal Pending.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01..06 | TBD | Pending |
-| SHF-01..04 | TBD | Pending |
-| PAG-01..04 | TBD | Pending |
-| OPT-01..03 | TBD | Pending |
-| IMP-01..03 | TBD | Pending |
+| SEC-01 | Phase 415 | Pending |
+| SEC-02 | Phase 415 | Pending |
+| SEC-03 | Phase 415 | Pending |
+| SEC-04 | Phase 415 | Pending |
+| SEC-05 | Phase 415 | Pending |
+| SEC-06 | Phase 415 | Pending |
+| IMP-01 | Phase 415 | Pending |
+| IMP-02 | Phase 415 | Pending |
+| IMP-03 | Phase 415 | Pending |
+| SHF-01 | Phase 416 | Pending |
+| SHF-02 | Phase 416 | Pending |
+| SHF-03 | Phase 416 | Pending |
+| SHF-04 | Phase 416 | Pending |
+| PAG-01 | Phase 417 | Pending |
+| PAG-02 | Phase 417 | Pending |
+| PAG-03 | Phase 417 | Pending |
+| OPT-01 | Phase 418 | Pending |
+| OPT-02 | Phase 418 | Pending |
+| OPT-03 | Phase 418 | Pending |
+| PAG-04 | Phase 419 | Pending |
 
 **Coverage:**
 - v1 requirements: 20 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 20 ⚠️ (akan dipetakan roadmapper)
+- Mapped to phases: 20/20 ✅ (setiap REQ → tepat satu fase, 0 duplikat, 0 orphan)
+- Per-fase: 415 = 9 REQ (SEC-01..06 + IMP-01..03) · 416 = 4 (SHF-01..04) · 417 = 3 (PAG-01/02/03) · 418 = 3 (OPT-01..03) · 419 = 1 (PAG-04)
+- **migration=TRUE hanya Phase 415** (`AddAssessmentPackageSection`); 416-419 = FALSE
 
 ---
 *Requirements defined: 2026-06-22*
-*Last updated: 2026-06-22 after initial definition (milestone v32.6)*
+*Last updated: 2026-06-22 — roadmap created (fase 415-419, 20/20 REQ mapped)*
