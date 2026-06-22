@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Last Shipped Milestone: v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21 (v32.4 Ujian Ulang now ACTIVE — see Current Milestone below)
+## Last Shipped Milestone: v32.4 Ujian Ulang (Attempt/Retake) — ✅ CLOSED 2026-06-22 (audit PASSED 14/14 REQ; migration=TRUE Fase 405). v32.1+v32.3+v32.4 closed di ITHandoff, NOT pushed (deploy bundle). Next: `/gsd-new-milestone`.
 
 **Goal:** Pekerja boleh jadi anggota >1 Unit dalam 1 Bagian (Section tetap scalar); coach bisa pegang coachee lintas-unit selama 1 Bagian; PROTON jalan sekuensial lintas-unit (Tahun1@X → Tahun2@Y). migration=TRUE (junction `UserUnits`). Cert/analytics atribusi primary (D1=b). Design: `docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md`.
 
@@ -71,9 +71,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** v32.4 Ujian Ulang (Attempt/Retake Assessment) — 🚧 STARTED 2026-06-21 (branch ITHandoff). v32.1 + v32.3 CLOSED (tag lokal, NOT pushed — deploy bundle). Deploy v32.1+v32.3 = 1 push origin/ITHandoff + notify IT **migration=TRUE (Fase 399 UserUnits)**. v32.4 migration=TRUE (Fase 405) ikut bundle saat siap. Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify. v32.0 close masih deferred (non-destruktif).
+**Current focus:** **v32.4 Ujian Ulang ✅ CLOSED 2026-06-22** (audit PASSED 14/14, tag lokal, NOT pushed). v32.1 + v32.3 + v32.4 semua CLOSED di branch ITHandoff (deploy bundle: 1 push origin/ITHandoff + notify IT **migration=TRUE Fase 399 UserUnits + Fase 405 AddRetakeColumnsAndArchive**). Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify. v32.0 close masih deferred (non-destruktif). **Next: planning milestone baru** (spec Section+ScopedShuffle+Pagination+OpsiDinamis sudah committed → `/gsd-new-milestone`).
 
-## Current Milestone: v32.4 Ujian Ulang (Attempt/Retake Assessment) — 🚧 STARTED 2026-06-21
+## Current Milestone: v32.4 Ujian Ulang (Attempt/Retake Assessment) — ✅ CLOSED 2026-06-22 (audit PASSED 14/14 REQ)
 
 **Goal:** Pekerja boleh **ujian ulang** assessment yang gagal (skor < `PassPercentage`), self-service dari halaman Hasil, dengan kontrol penuh Admin/HC (toggle on/off + MaxAttempts + cooldown per-assessment). Produktisasi mesin `ResetAssessment` HC jadi alur worker ber-guard + tutup lubang data-loss jawaban per-soal. **migration=TRUE** (Fase 405). Spec: `docs/superpowers/specs/2026-06-19-attempt-retake-assessment-design.md`.
 

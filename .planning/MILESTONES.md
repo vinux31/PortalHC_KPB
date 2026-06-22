@@ -1,5 +1,23 @@
 # Milestones
 
+## v32.4 Ujian Ulang (Attempt/Retake Assessment) (Shipped: 2026-06-22)
+
+**Phases completed:** 4 phases (405-408), 12 plans, 29 tasks · **14/14 REQ (RTK-01..14)** · audit PASSED · migration=TRUE (Fase 405 `AddRetakeColumnsAndArchive`); 406/407/408=FALSE · branch ITHandoff, NOT pushed.
+
+**Key accomplishments:**
+
+- **405 Backend Core (RTK-01..04/06/07/13):** model data retake (3 kolom `AssessmentSession` + tabel `AssessmentAttemptResponseArchive`) + `RetakeRules` (pure eligibility) + `RetakeArchiveBuilder` (pure snapshot) + `RetakeService.ExecuteAsync` (claim-atomik→snapshot→archive→reset→clear-token→audit) + refactor `ResetAssessment` HC→delegasi + endpoint `UpdateRetakeSettings` sibling-propagation. verify 7/7, secure 17/17, suite 598/0/2. migration=TRUE.
+- Pure RiwayatUnifier helper (archived + live current attempt unified, newest-first, strict AttemptHistoryId grouping) + lazy-AJAX RiwayatPercobaan GET endpoint (RBAC Admin/HC) + @-encoded _RiwayatPercobaan.cshtml accordion+per-soal partial with tri-state verdict — all backend the HC drill-down modal needs except the trigger/modal-shell (Plan 03).
+- "Ujian Ulang" config card in ManagePackages (mirror shuffle, no-lock, toggle-driven disclosure of MaxAttempts/cooldown, non-blocking warning, hide for Pre-Test/Manual) plus native asp-for binding in CreateAssessment Step 3 and EditAssessment — all runtime-verified by 6 green Playwright scenarios @5270.
+- Per-peserta 'Riwayat Percobaan' dropdown trigger + ONE shared Bootstrap modal-lg-scrollable + appUrl-prefixed lazy-fetch JS that drops the 406-01 _RiwayatPercobaan partial into the modal body (title via .textContent XSS-safe), runtime-verified @5270 by a 5-scenario Playwright spec (open/per-soal/current/pending/xss) — closing RTK-08's interactive path. migration=FALSE.
+- Pure leak-safe `RetakeReviewMode` tier resolver (`ResolveReviewMode`, A1: pending==failed selama attempt-sisa) di RetakeRules + 7 field retake/tier di AssessmentResultsViewModel + IsCurrentAttempt di AllWorkersHistoryRow, dikunci 6 unit test truth-table. 0 migration.
+- Action POST `CMP/RetakeExam(id)` worker self-service (antiforgery + ownership Forbid IDOR + server-authoritative `CanRetakeAsync` re-check + `ExecuteAsync` + token-clear + redirect StartExam, cermin HC `ResetAssessment`) + DI `RetakeService` ke `CMPController` + `Results` mengisi 7 VM field retake/tier (tier via `assessment.IsPassed` bool? — Pitfall 5) + riwayat pekerja via `RiwayatUnifier`, dikunci 3 endpoint test RTK-09. 0 migration.
+- Rakit seluruh UI sisi-pekerja di `Views/CMP/Results.cshtml`: tier feedback 3-state `@switch(Model.RetakeMode)` LEAK-SAFE (`ShowWrongFlagsOnly` menahan kunci jawaban selama retake masih mungkin — tak render `list-group-item-success`/"(Jawaban Benar)"/`CorrectAnswer`), retake control (tombol "Ujian Ulang"/counter/cooldown countdown disabled→enable/lock cap-habis), modal konfirmasi ber-antiforgery POST `RetakeExam`, countdown JS guard-safe (lesson 413); partial baru `_RiwayatPekerja.cshtml` ter-gate (worker delta "Tidak Lulus"/"Jawaban Saya" + `ViewData[HideDetail]` ScoreOnly); + Playwright smoke `retake-worker-407.spec.ts` 6 skenario leak-safety @5270. 0 migration.
+- xUnit real-SQL integration test proving the v32.4 capstone invariant: a failed session that is retaken (reset) then re-graded-lulus issues EXACTLY 1 NomorSertifikat (anti-double-cert guard ter-bukti) in canonical format KPB/{seq:D3}/{RomanMonth}/{year}.
+- Playwright lifecycle real-browser RTK-14 (`retake-lifecycle-408.spec.ts`) + seed `[RETAKE408]` yang membuktikan alur retake penuh dari KEGAGALAN sampai TERBITNYA SERTIFIKAT — leak-safe pra-retake, modal antiforgery, StartExam, jawab benar, LULUS + Nomor Sertifikat — artefak siap; live UAT gate dijalankan orchestrator @5270.
+
+---
+
 ## v32.3 Akun Multi-Unit (1 Bagian) (Shipped: 2026-06-21)
 
 **Phases completed:** 10 phases, 21 plans, 45 tasks

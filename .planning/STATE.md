@@ -4,7 +4,7 @@ milestone: v32.4
 milestone_name: Ujian Ulang (Attempt/Retake Assessment)
 status: verifying
 stopped_at: "Completed 408-02-PLAN.md (RTK-14 GAP-3 e2e lifecycle: gagal->ulang->lulus->cert; artefak siap, Task3 live UAT = orchestrator; seed 5159e7d0 + spec 0497c18b)"
-last_updated: "2026-06-22T04:38:28.057Z"
+last_updated: "2026-06-22T07:42:36.678Z"
 last_activity: 2026-06-22
 progress:
   total_phases: 37
