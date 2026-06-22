@@ -313,12 +313,19 @@
     }
 
     <!-- Answer Review Section -->
-    @if (Model.AllowAnswerReview && Model.QuestionReviews != null)
+    @if (Model.CanReviewAnswers && Model.QuestionReviews != null)
     {
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-light">
                 <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Tinjauan Jawaban</h5>
             </div>
+            @* Phase 414 (D-04): nota admin — review tampil HANYA karena bypass non-owner (toggle peserta OFF). Teks static encoded, no Html.Raw (T-414-02 XSS-safe). *@
+            @if (Model.CanReviewAnswers && !Model.AllowAnswerReview)
+            {
+                <div class="alert alert-info py-2 px-3 mb-0 small border-0 rounded-0">
+                    <i class="bi bi-eye-slash me-1"></i>Peserta tidak dapat melihat tinjauan ini (Tinjauan Jawaban dinonaktifkan). Hanya admin/HC yang melihatnya.
+                </div>
+            }
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
                     @foreach (var question in Model.QuestionReviews)
@@ -410,7 +417,7 @@
             </div>
         </div>
     }
-    else if (!Model.AllowAnswerReview)
+    else if (!Model.CanReviewAnswers)
     {
         <div class="alert alert-info mb-4">
             <i class="bi bi-info-circle me-2"></i>Tinjauan jawaban tidak tersedia untuk assessment ini.
