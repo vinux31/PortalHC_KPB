@@ -6920,7 +6920,9 @@ namespace HcPortal.Controllers
             }).ToHashSet();
             var seenInBatch = new HashSet<string>();
 
-            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct, string? ElemenTeknis, string QuestionType, string? Rubrik)> rows;
+            // Phase 415 IMP-01/02: tuple diperluas membawa Opsi E/F + No.Section + Nama Section (dual-format).
+            // Legacy (≤9 kolom): OptE/OptF="", SectionNumber=null, SectionName=null.
+            List<(string Question, string OptA, string OptB, string OptC, string OptD, string OptE, string OptF, string Correct, int? SectionNumber, string? SectionName, string? ElemenTeknis, string QuestionType, string? Rubrik)> rows;
             var errors = new List<string>();
 
             var validQuestionTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
@@ -6935,7 +6937,7 @@ namespace HcPortal.Controllers
 
             if (excelFile != null && excelFile.Length > 0)
             {
-                rows = new List<(string, string, string, string, string, string, string?, string, string?)>();
+                rows = new List<(string, string, string, string, string, string, string, string, int?, string?, string?, string, string?)>();
                 try
                 {
                     using var stream = excelFile.OpenReadStream();
@@ -6946,22 +6948,63 @@ namespace HcPortal.Controllers
                         return Json(new { success = false, errors });
                     }
                     var ws = workbook.Worksheets.First();
+
+                    // Phase 415 IMP-02 (D-415-03, Pitfall 3/4): deteksi format dari HEADER row (selalu terisi
+                    // penuh; data rows punya sel kosong di akhir untuk Essay → skew). Boundary >9 = format baru.
+                    int colCount = ws.Row(1).LastCellUsed()?.Address.ColumnNumber ?? 0;
+                    bool isNewFormat = colCount > 9;
+
                     int rowNum = 1;
                     foreach (var row in ws.RowsUsed().Skip(1))
                     {
                         rowNum++;
-                        var q   = (row.Cell(1).GetString() ?? "").Trim();
-                        var a   = (row.Cell(2).GetString() ?? "").Trim();
-                        var b   = (row.Cell(3).GetString() ?? "").Trim();
-                        var c   = (row.Cell(4).GetString() ?? "").Trim();
-                        var d   = (row.Cell(5).GetString() ?? "").Trim();
-                        var cor = (row.Cell(6).GetString() ?? "").Trim().ToUpper();
-                        var cell7 = (row.Cell(7).GetString() ?? "").Trim();
-                        string? subComp = string.IsNullOrWhiteSpace(cell7) ? null : cell7;
-                        var questionType = NormalizeQuestionType(row.Cell(8).GetString() ?? "");
-                        var rubrik = row.Cell(9).GetString()?.Trim();
-                        if (string.IsNullOrWhiteSpace(rubrik)) rubrik = null;
-                        rows.Add((q, a, b, c, d, cor, subComp, questionType, rubrik));
+                        string q, a, b, c, d, e, f, cor, rubrik;
+                        string? subComp;
+                        int? sectionNumber;
+                        string? sectionName;
+                        string questionType;
+
+                        if (isNewFormat)
+                        {
+                            // NEW (>9): Q(1) | A-F(2-7) | Correct(8) | No.Section(9) | Nama Section(10) | ET(11) | Type(12) | Rubrik(13)
+                            q   = (row.Cell(1).GetString() ?? "").Trim();
+                            a   = (row.Cell(2).GetString() ?? "").Trim();
+                            b   = (row.Cell(3).GetString() ?? "").Trim();
+                            c   = (row.Cell(4).GetString() ?? "").Trim();
+                            d   = (row.Cell(5).GetString() ?? "").Trim();
+                            e   = (row.Cell(6).GetString() ?? "").Trim();
+                            f   = (row.Cell(7).GetString() ?? "").Trim();
+                            cor = (row.Cell(8).GetString() ?? "").Trim().ToUpper();
+                            var rawSection = (row.Cell(9).GetString() ?? "").Trim();
+                            sectionNumber = int.TryParse(rawSection, out var sn) ? sn : (int?)null; // blank/non-numeric → Lainnya
+                            var rawSectionName = (row.Cell(10).GetString() ?? "").Trim();
+                            sectionName = string.IsNullOrWhiteSpace(rawSectionName) ? null : rawSectionName;
+                            var cellEt = (row.Cell(11).GetString() ?? "").Trim();
+                            subComp = string.IsNullOrWhiteSpace(cellEt) ? null : cellEt;
+                            questionType = NormalizeQuestionType(row.Cell(12).GetString() ?? "");
+                            rubrik = (row.Cell(13).GetString() ?? "").Trim();
+                        }
+                        else
+                        {
+                            // OLD (≤9): Q(1) | A-D(2-5) | Correct(6) | ET(7) | Type(8) | Rubrik(9). E/F + Section kosong.
+                            q   = (row.Cell(1).GetString() ?? "").Trim();
+                            a   = (row.Cell(2).GetString() ?? "").Trim();
+                            b   = (row.Cell(3).GetString() ?? "").Trim();
+                            c   = (row.Cell(4).GetString() ?? "").Trim();
+                            d   = (row.Cell(5).GetString() ?? "").Trim();
+                            e   = "";
+                            f   = "";
+                            cor = (row.Cell(6).GetString() ?? "").Trim().ToUpper();
+                            var cell7 = (row.Cell(7).GetString() ?? "").Trim();
+                            subComp = string.IsNullOrWhiteSpace(cell7) ? null : cell7;
+                            questionType = NormalizeQuestionType(row.Cell(8).GetString() ?? "");
+                            rubrik = (row.Cell(9).GetString() ?? "").Trim();
+                            sectionNumber = null;
+                            sectionName = null;
+                        }
+
+                        string? rubrikN = string.IsNullOrWhiteSpace(rubrik) ? null : rubrik;
+                        rows.Add((q, a, b, c, d, e, f, cor, sectionNumber, sectionName, subComp, questionType, rubrikN));
                     }
                 }
                 catch (Exception ex)
@@ -6973,7 +7016,7 @@ namespace HcPortal.Controllers
             }
             else if (!string.IsNullOrWhiteSpace(pasteText))
             {
-                rows = new List<(string, string, string, string, string, string, string?, string, string?)>();
+                rows = new List<(string, string, string, string, string, string, string, string, int?, string?, string?, string, string?)>();
                 var lines = pasteText.Split('\n')
                     .Select(l => l.TrimEnd('\r'))
                     .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -7000,10 +7043,11 @@ namespace HcPortal.Controllers
                     var questionType = NormalizeQuestionType(cells.Length >= 8 ? cells[7] : "");
                     string? rubrik = cells.Length >= 9 ? cells[8].Trim() : null;
                     if (string.IsNullOrWhiteSpace(rubrik)) rubrik = null;
+                    // Paste branch tetap A–D 9-kolom saja (tanpa format baru di 415): E/F="", SectionNumber=null.
                     rows.Add((
                         cells[0].Trim(), cells[1].Trim(), cells[2].Trim(),
-                        cells[3].Trim(), cells[4].Trim(), cells[5].Trim().ToUpper(),
-                        subComp, questionType, rubrik
+                        cells[3].Trim(), cells[4].Trim(), "", "", cells[5].Trim().ToUpper(),
+                        null, null, subComp, questionType, rubrik
                     ));
                 }
             }
@@ -7013,7 +7057,19 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ImportPackageQuestions", new { packageId });
             }
 
-            // Cross-package count validation
+            // Helper: apakah baris valid (bisa di-import). Dipakai oleh validasi count per-Section di bawah.
+            bool RowIsValid((string Question, string OptA, string OptB, string OptC, string OptD, string OptE, string OptF, string Correct, int? SectionNumber, string? SectionName, string? ElemenTeknis, string QuestionType, string? Rubrik) r)
+            {
+                if (string.IsNullOrWhiteSpace(r.Question)) return false;
+                if (r.QuestionType == "Essay") return true; // Essay: hanya butuh teks soal
+                var normalizedCor = ExtractPackageCorrectLetter(r.Correct);
+                return !string.IsNullOrWhiteSpace(r.OptA) && !string.IsNullOrWhiteSpace(r.OptB) &&
+                       !string.IsNullOrWhiteSpace(r.OptC) && !string.IsNullOrWhiteSpace(r.OptD) &&
+                       (new[] { "A", "B", "C", "D", "E", "F" }.Contains(normalizedCor) || r.Correct.Contains(','));
+            }
+
+            // Phase 415 SEC-04 / IMP-03 (D-13 titik #1): validasi jumlah soal PER-Section antar-paket saudara.
+            // Sibling key Title+Category+Schedule.Date (LOCKED, Phase 397 lesson — JANGAN ganti key).
             var targetSession = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
             if (targetSession != null)
             {
@@ -7026,6 +7082,7 @@ namespace HcPortal.Controllers
 
                 var siblingPackagesWithQuestions = await _context.AssessmentPackages
                     .Include(p => p.Questions)
+                        .ThenInclude(q => q.Section)
                     .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId)
                              && p.Id != packageId
                              && p.Questions.Any())
@@ -7033,23 +7090,56 @@ namespace HcPortal.Controllers
 
                 if (siblingPackagesWithQuestions.Any())
                 {
-                    var validRowCount = rows.Count(r =>
-                    {
-                        var (rq, ra, rb, rc, rd, rcor, _, rqtype, _) = r;
-                        if (string.IsNullOrWhiteSpace(rq)) return false;
-                        if (rqtype == "Essay") return true; // Essay: hanya butuh teks soal
-                        var normalizedCor = ExtractPackageCorrectLetter(rcor);
-                        return !string.IsNullOrWhiteSpace(ra) && !string.IsNullOrWhiteSpace(rb) &&
-                               !string.IsNullOrWhiteSpace(rc) && !string.IsNullOrWhiteSpace(rd) &&
-                               (new[] { "A", "B", "C", "D", "E", "F" }.Contains(normalizedCor) || rcor.Contains(','));
-                    });
+                    // Grup soal INCOMING (yang valid) per SectionNumber (null → grup "Lainnya", §15.A).
+                    var incomingCounts = rows.Where(RowIsValid)
+                        .GroupBy(r => r.SectionNumber)
+                        .ToDictionary(g => g.Key, g => g.Count());
 
-                    var referencePackage = siblingPackagesWithQuestions.First();
-                    int expectedCount = referencePackage.Questions.Count;
+                    // Apakah ada section sama sekali (incoming ATAU sibling)? Bila semua-null kedua sisi → legacy total-count.
+                    bool incomingHasSections = incomingCounts.Keys.Any(k => k != null);
+                    bool siblingHasSections = siblingPackagesWithQuestions
+                        .SelectMany(p => p.Questions).Any(q => q.SectionId != null);
 
-                    if (validRowCount != expectedCount)
+                    var mismatchList = new List<string>();
+
+                    if (!incomingHasSections && !siblingHasSections)
                     {
-                        TempData["Error"] = $"Jumlah soal tidak sama dengan paket lain. {referencePackage.PackageName}: {expectedCount} soal. Harap masukkan {expectedCount} soal.";
+                        // Legacy guard (Pitfall 6): semua-null kedua sisi → perilaku lama (total-count vs paket referensi).
+                        var referencePackage = siblingPackagesWithQuestions.First();
+                        int incomingTotal = incomingCounts.Values.Sum();
+                        int expectedCount = referencePackage.Questions.Count;
+                        if (incomingTotal != expectedCount)
+                            mismatchList.Add($"Section Lainnya: Paket \"{pkg.PackageName}\" punya {incomingTotal} soal, Paket \"{referencePackage.PackageName}\" punya {expectedCount} soal (harus sama).");
+                    }
+                    else
+                    {
+                        // Section-aware: bandingkan count per SectionNumber vs SETIAP paket saudara (daftar LENGKAP, NEVER stop-at-first).
+                        string SectionLabel(int? sn) => sn?.ToString() ?? "Lainnya";
+                        foreach (var sib in siblingPackagesWithQuestions)
+                        {
+                            var sibCounts = sib.Questions
+                                .GroupBy(q => q.Section?.SectionNumber)
+                                .ToDictionary(g => g.Key, g => g.Count());
+
+                            var allSectionKeys = incomingCounts.Keys.Union(sibCounts.Keys)
+                                .OrderBy(k => k == null) // null (Lainnya) terakhir
+                                .ThenBy(k => k)
+                                .ToList();
+
+                            foreach (var sn in allSectionKeys)
+                            {
+                                int x = incomingCounts.TryGetValue(sn, out var xc) ? xc : 0;
+                                int y = sibCounts.TryGetValue(sn, out var yc) ? yc : 0;
+                                if (x != y)
+                                    mismatchList.Add($"Section {SectionLabel(sn)}: Paket \"{pkg.PackageName}\" punya {x} soal, Paket \"{sib.PackageName}\" punya {y} soal (harus sama).");
+                            }
+                        }
+                    }
+
+                    if (mismatchList.Any())
+                    {
+                        // Tolak keras: 0 write, daftar ketidakcocokan LENGKAP via TempData → view alert-danger.
+                        TempData["SectionMismatch"] = System.Text.Json.JsonSerializer.Serialize(mismatchList);
                         return RedirectToAction("ImportPackageQuestions", new { packageId });
                     }
                 }
@@ -7058,11 +7148,45 @@ namespace HcPortal.Controllers
             int order = pkg.Questions.Count + 1;
             int added = 0;
             int skipped = 0;
+
+            // Phase 415 O-2: Section auto-create dari kolom No.Section. Cache existing + yang baru dibuat
+            // selama import; find-or-create per (packageId, sectionNumber). first-non-empty Nama menang
+            // (section yang SUDAH ada keep Nama existing). Toggle default StartNewPage=false/ShuffleEnabled=true
+            // (Excel tak bawa toggle — §15.D). Dibuat sbg entity baru → persist di transaksi yang SAMA.
+            var sectionCache = await _context.AssessmentPackageSections
+                .Where(s => s.AssessmentPackageId == packageId)
+                .ToDictionaryAsync(s => s.SectionNumber, s => s);
+            var newSections = new List<AssessmentPackageSection>();
+
+            AssessmentPackageSection? FindOrCreateSection(int? sectionNumber, string? sectionName)
+            {
+                if (sectionNumber == null) return null; // tanpa Section → Lainnya
+                if (sectionCache.TryGetValue(sectionNumber.Value, out var existing))
+                {
+                    // first-non-empty Nama menang HANYA bila section yang baru-dibuat masih tanpa Nama.
+                    if (string.IsNullOrWhiteSpace(existing.Name) && !string.IsNullOrWhiteSpace(sectionName)
+                        && newSections.Contains(existing))
+                        existing.Name = sectionName.Trim();
+                    return existing;
+                }
+                var created = new AssessmentPackageSection
+                {
+                    AssessmentPackageId = packageId,
+                    SectionNumber = sectionNumber.Value,
+                    Name = string.IsNullOrWhiteSpace(sectionName) ? null : sectionName.Trim(),
+                    StartNewPage = false,
+                    ShuffleEnabled = true
+                };
+                sectionCache[sectionNumber.Value] = created;
+                newSections.Add(created);
+                return created;
+            }
+
             // Collect all new questions (with options embedded) before saving — avoids N+1 SaveChangesAsync
             var newQuestions = new List<PackageQuestion>();
             for (int i = 0; i < rows.Count; i++)
             {
-                var (q, a, b, c, d, cor, rawSubComp, questionType, rubrik) = rows[i];
+                var (q, a, b, c, d, e, f, cor, sectionNumber, sectionName, rawSubComp, questionType, rubrik) = rows[i];
 
                 if (string.IsNullOrWhiteSpace(q))
                 {
@@ -7081,7 +7205,7 @@ namespace HcPortal.Controllers
                     }
                 }
 
-                // Parse correct answers — support multi for MA (T-298-05: hanya huruf A-D)
+                // Parse correct answers — support multi for MA (Phase 415 O-1: huruf A-F diterima)
                 List<string> correctLetters;
                 if (questionType == "MultipleAnswer")
                 {
@@ -7112,7 +7236,7 @@ namespace HcPortal.Controllers
                 }
 
                 // Dedup fingerprint (essay uses empty options). Phase 415 IMP-03: +Opsi E/F +SectionNumber.
-                var fp = MakePackageFingerprint(q, a, b, c, d, "", "", null);
+                var fp = MakePackageFingerprint(q, a, b, c, d, e, f, sectionNumber);
                 if (existingFingerprints.Contains(fp) || seenInBatch.Contains(fp))
                 {
                     skipped++;
@@ -7130,18 +7254,24 @@ namespace HcPortal.Controllers
                     Order = order++,
                     ScoreValue = 10,
                     ElemenTeknis = NormalizeElemenTeknis(rawSubComp),
+                    // O-2: assign ke Section via navigation (EF wire FK saat save, same tx). null = Lainnya.
+                    Section = FindOrCreateSection(sectionNumber, sectionName),
                 };
 
-                // Build options (skip for Essay per D-04)
+                // Build options (skip for Essay per D-04). Phase 415 O-1: terima Opsi A–F; E/F hanya bila non-kosong.
                 if (questionType != "Essay")
                 {
-                    var optionTexts = new[] { a, b, c, d };
-                    var optionLetters = new[] { "A", "B", "C", "D" };
-                    newQ.Options = optionTexts.Select((optText, idx) => new PackageOption
+                    var optionPairs = new[]
                     {
-                        OptionText = optText,
-                        IsCorrect = correctLetters.Contains(optionLetters[idx])
-                    }).ToList();
+                        ("A", a), ("B", b), ("C", c), ("D", d), ("E", e), ("F", f)
+                    };
+                    newQ.Options = optionPairs
+                        .Where(p => !string.IsNullOrWhiteSpace(p.Item2)) // hanya opsi terisi (2–6)
+                        .Select(p => new PackageOption
+                        {
+                            OptionText = p.Item2,
+                            IsCorrect = correctLetters.Contains(p.Item1)
+                        }).ToList();
                 }
                 else
                 {
@@ -7152,9 +7282,11 @@ namespace HcPortal.Controllers
                 added++;
             }
 
-            // Persist all new questions + options in a single transaction (single SaveChangesAsync)
+            // Persist all new questions + options + auto-created sections in a single transaction.
             if (newQuestions.Count > 0)
             {
+                if (newSections.Count > 0)
+                    _context.AssessmentPackageSections.AddRange(newSections);
                 _context.PackageQuestions.AddRange(newQuestions);
                 using var importTx = await _context.Database.BeginTransactionAsync();
                 try
