@@ -10,10 +10,10 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 
 ### FORM — Form Create/Edit: Persistensi Field + UX Pre-Post (Phase 420)
 
-- [ ] **FORM-01**: Saat HC menyimpan ulang assessment via form Edit, setelan "Acak Soal" & "Acak Pilihan" tidak ter-reset OFF (tetap sesuai nilai tersimpan). [E-01, HIGH]
-- [ ] **FORM-02**: Setelan Ujian Ulang (AllowRetake/MaxAttempts/RetakeCooldownHours) yang diisi di form Create tersimpan ke sesi yang dibuat (tidak jatuh ke default). [FLD-5.2-08/RTK-LOGIC-04]
-- [ ] **FORM-03**: Setelan Ujian Ulang yang diubah di form Edit benar-benar tersimpan (bukan no-op). [E-03]
-- [ ] **FORM-04**: Tanggal kadaluarsa sertifikat (ValidUntil) yang diubah di form Edit tersimpan di jalur standard. [E-05]
+- [x] **FORM-01**: Saat HC menyimpan ulang assessment via form Edit, setelan "Acak Soal" & "Acak Pilihan" tidak ter-reset OFF (tetap sesuai nilai tersimpan). [E-01, HIGH]
+- [x] **FORM-02**: Setelan Ujian Ulang (AllowRetake/MaxAttempts/RetakeCooldownHours) yang diisi di form Create tersimpan ke sesi yang dibuat (tidak jatuh ke default). [FLD-5.2-08/RTK-LOGIC-04]
+- [x] **FORM-03**: Setelan Ujian Ulang yang diubah di form Edit benar-benar tersimpan (bukan no-op). [E-03]
+- [x] **FORM-04**: Tanggal kadaluarsa sertifikat (ValidUntil) yang diubah di form Edit tersimpan di jalur standard. [E-05]
 - [ ] **FORM-05**: Assessment Pre/Post yang sudah Completed terkunci dari perubahan metadata via form Edit. [E-04]
 - [ ] **FORM-06**: Membuka Edit untuk sesi entry-manual mengarahkan ke form edit manual (bukan form online). [E-08, E-07]
 - [ ] **FORM-07**: Di form Create mode Pre-Post, opsi "Paket soal sama" (SamePackage) ditempatkan di tingkat pasangan Pre↔Post, bukan terkubur di dalam kartu Post. [FORM-PP-01]
@@ -89,10 +89,10 @@ Diakui tapi ditunda dari v32.7.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FORM-01 | Phase 420 | Pending |
-| FORM-02 | Phase 420 | Pending |
-| FORM-03 | Phase 420 | Pending |
-| FORM-04 | Phase 420 | Pending |
+| FORM-01 | Phase 420 | Complete |
+| FORM-02 | Phase 420 | Complete |
+| FORM-03 | Phase 420 | Complete |
+| FORM-04 | Phase 420 | Complete |
 | FORM-05 | Phase 420 | Pending |
 | FORM-06 | Phase 420 | Pending |
 | FORM-07 | Phase 420 | Pending |

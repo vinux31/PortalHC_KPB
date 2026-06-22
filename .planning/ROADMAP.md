@@ -73,7 +73,7 @@
   4. Membuka Edit untuk sesi entry-manual mengarahkan HC ke form edit manual (bukan form online). *(FORM-06)*
   5. Di form Create mode Pre-Post: opsi "Paket soal sama" (SamePackage) berada di tingkat pasangan Pre↔Post (bukan terkubur di kartu Post); tiap setelan ujian/sertifikat menampilkan penanda scope (Pre/Post/keduanya); tidak ada input jadwal/durasi/batas-waktu standard tersembunyi yang ikut ter-POST; penamaan tipe assessment konsisten dengan kolom DB AssessmentType; baris Status/PassPercentage rapi & token jelas scope-nya. *(FORM-07, FORM-08, FORM-09, FORM-10, FORM-11)*
 **Plans:** 3 plans (3 waves — sekuensial by file-overlap: ketiganya sentuh AssessmentAdminController.cs)
-- [ ] 420-01-PLAN.md — Wave 1: Persistensi data (FORM-01 render shuffle Edit · FORM-02 retake 3 jalur Create · FORM-03 retake Edit std · FORM-04 ValidUntil Edit std) + Wave-0 persistence test real-SQL [migration=FALSE]
+- [x] 420-01-PLAN.md — Wave 1: Persistensi data (FORM-01 render shuffle Edit · FORM-02 retake 3 jalur Create · FORM-03 retake Edit std · FORM-04 ValidUntil Edit std) + Wave-0 persistence test real-SQL [migration=FALSE]
 - [ ] 420-02-PLAN.md — Wave 2: Guard/redirect (FORM-05 lock Completed group-aware diangkat sebelum cabang Pre-Post · FORM-06 redirect IsManualEntry di GET Edit) + test guard/redirect [migration=FALSE]; depends 01
 - [ ] 420-03-PLAN.md — Wave 3: UX Pre-Post + rename (FORM-07 SamePackage header · FORM-08 dua sub-kartu · FORM-09 disable std input · FORM-11 retake hidden · FORM-10 rename CreationMode atomik) + Playwright per-mode + checkpoint UAT @5270 [migration=FALSE, autonomous=false]; depends 01+02
 **UI hint:** yes
@@ -151,7 +151,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 420. Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11) | 0/3 | Planned | - |
+| 420. Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11) | 1/3 | In Progress|  |
 | 421. Retake Lifecycle Hardening (RTH-01..05) | 0/TBD | Not started | - |
 | 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 0/TBD | Not started | - |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 0/TBD | Not started | - |
