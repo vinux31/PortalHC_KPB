@@ -2465,6 +2465,50 @@ namespace HcPortal.Controllers
                 }
             }
 
+            // === v32.4 RTK-09/10/12/13 (Phase 407): flag retake/tier + riwayat pekerja ke VM ===
+            // View (407-03) hanya MERENDER; eligibility/tier dihitung server (leak-safety = keputusan server).
+            // (a) Flag retake/tier — mirror counting RetakeService.CanRetakeAsync :237-242.
+            //     Tier pakai assessment.IsPassed (bool?), BUKAN viewModel.IsPassed (bool) — Pitfall 5.
+            int eraRetakeArchives = await _context.AssessmentAttemptHistory
+                .Where(h => h.UserId == assessment.UserId && h.Title == assessment.Title && h.Category == assessment.Category
+                         && _context.AssessmentAttemptResponseArchives.Any(a => a.AttemptHistoryId == h.Id))
+                .CountAsync();
+            int currentAttempt = eraRetakeArchives + 1;
+            // attemptsRemaining utk TIER = "retake mungkin secara prinsip" (abaikan cooldown timing):
+            // AllowRetake ON, tipe tak dikecualikan (PreTest/Manual via ShouldHideRetakeToggle), attempt belum habis.
+            // WAJIB sertakan AllowRetake + ShouldHideRetakeToggle → assessment non-retake → kunci boleh tampil (ShowFullReview).
+            bool attemptsRemaining = assessment.AllowRetake
+                && !RetakeRules.ShouldHideRetakeToggle(assessment.AssessmentType, assessment.IsManualEntry)
+                && currentAttempt < assessment.MaxAttempts;
+            viewModel.CurrentAttempt = currentAttempt;
+            viewModel.MaxAttempts = assessment.MaxAttempts;
+            viewModel.CanRetake = await _retakeService.CanRetakeAsync(assessment.Id);
+            viewModel.RetakeMode = RetakeRules.ResolveReviewMode(assessment.AllowAnswerReview, assessment.IsPassed, attemptsRemaining);
+            viewModel.CooldownUntilUtc = (assessment.AllowRetake && assessment.RetakeCooldownHours > 0 && assessment.CompletedAt.HasValue)
+                ? assessment.CompletedAt.Value.AddHours(assessment.RetakeCooldownHours) : (DateTime?)null;
+            viewModel.IsCapReached = assessment.IsPassed == false && assessment.AllowRetake && currentAttempt >= assessment.MaxAttempts;
+
+            // (b) Riwayat load — cermin verbatim RiwayatPercobaan :3493-3522 (reuse RetakeArchiveBuilder + RiwayatUnifier).
+            var histories = await _context.AssessmentAttemptHistory
+                .Where(h => h.UserId == assessment.UserId && h.Title == assessment.Title && h.Category == assessment.Category)
+                .OrderByDescending(h => h.AttemptNumber).ToListAsync();
+            var histIds = histories.Select(h => h.Id).ToList();
+            var archiveRows = await _context.AssessmentAttemptResponseArchives
+                .Where(a => histIds.Contains(a.AttemptHistoryId)).ToListAsync();
+            var currentRows = new List<AssessmentAttemptResponseArchive>();
+            if (assessment.Status == "Completed")
+            {
+                var assign = await _context.UserPackageAssignments.FirstOrDefaultAsync(a => a.AssessmentSessionId == assessment.Id);
+                var qids = assign?.GetShuffledQuestionIds() ?? new List<int>();
+                if (qids.Count > 0)
+                {
+                    var qs = await _context.PackageQuestions.Include(q => q.Options).Where(q => qids.Contains(q.Id)).ToListAsync();
+                    var resp = await _context.PackageUserResponses.Where(r => r.AssessmentSessionId == assessment.Id).ToListAsync();
+                    if (qs.Count > 0) currentRows = RetakeArchiveBuilder.Build(0, qs, resp);
+                }
+            }
+            viewModel.RiwayatAttempts = RiwayatUnifier.Build(assessment, histories, archiveRows, currentRows);
+
             return View(viewModel);
         }
 
