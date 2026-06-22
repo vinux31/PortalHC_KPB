@@ -1,5 +1,25 @@
 # Milestones
 
+## v32.5 Flexible Add/Remove Participant (Shipped: 2026-06-22)
+
+**Phases completed:** 6 phases, 13 plans, 27 tasks
+
+**Key accomplishments:**
+
+- 3 kolom soft-remove (RemovedAt/RemovedBy/RemovalReason) additif nullable di AssessmentSession via migration AddParticipantRemovalColumns (EF 8.0.0), ter-apply ke HcPortalDB_Dev lokal — menetapkan invarian tunggal soft-removed ⇔ RemovedAt != null.
+- Invarian soft-remove read-path lengkap: guard server-authoritative anti-resume/resubmit (StartExam/SubmitExam) + silent-skip re-join/answer-write (Hub JoinBatch/SaveTextAnswer/SaveMultipleAnswer A1) + exclude `RemovedAt != null` dari 3 query monitoring batch-aktif, dengan boundary UserAssessmentHistory tetap menampilkan removed (anti over-exclude) — divalidasi 6 test de-tautologis yang menjalankan action/query produksi ASLI.
+- Dua endpoint AJAX (`GetEligibleParticipantsToAdd` GET + `AddParticipantsLive` POST) + 2 helper privat untuk penambahan peserta live: sesi ready-status + UserPackageAssignment EAGER dalam transaksi atomic, idempotent (sesi APAPUN), Pre/Post pair cross-linked, reject Proton/window, JSON added[]/skipped[] — tanpa SignalR (defer 412).
+- 10 test de-tautologis untuk endpoint Phase 410: read-path (4) menjalankan `GetEligibleParticipantsToAdd` ASLI via InMemory real-controller (exclude sesi APAPUN D-01, no unit/section D-02, 404, idempotency), write-path (6) menjalankan `AddParticipantsLive` ASLI atas SQLEXPRESS disposable via stub UserManager (ready-status, EAGER UPA A1, window-reject 400 + 0-write, Proton-reject, Pre/Post pair + LinkedSessionId, idempotent skipped[]). Tanpa replica predikat (999.12); 10/10 hijau; full suite 581/581; migration=FALSE.
+- Backend hapus+pulihkan peserta live — private core `RemoveParticipantCoreAsync` (hybrid hard-delete cascade / soft-remove set-3-kolom + Pre/Post pair via LinkedSessionId + reason-gate D-02 + audit) dibungkus 3 endpoint RBAC (Remove JSON, Restore JSON, DeletePeserta redirect), plus hidupkan tombol hapus per-peserta yang sebelumnya mati.
+- 15 test de-tautologis (lesson 999.12) yang mengunci kontrak Plan 411-01: setiap test MENJALANKAN action `RemoveParticipantLive`/`RestoreParticipantLive` ASLI dan meng-assert kolom DB NYATA — hard-delete (baris+UPA `AnyAsync==false` SQLEXPRESS), soft-remove (RemovedAt set NYATA + Score/cert/Status UNCHANGED), idempotency, reason-wajib-soft, restore, Pre/Post pair-as-unit, audit — termasuk mini-DI service-provider stub yang menutup gap test-infra terbesar 411 untuk jalur hard-delete.
+- Broadcast SignalR post-commit (participantAdded/participantRemoved/examRemoved) di-wire ke 3 endpoint 410/411 + query removedSessions (RemovedAt!=null) typed via ViewBag.RemovedSessions sebagai fondasi server-side UI Monitoring live
+- Seluruh kontrol UI live di `AssessmentMonitoringDetail.cshtml` — picker "Tambah Peserta" → AddParticipantsLive, item Hapus per-baris + modal konfirmasi keras/ringan (D-01) → RemoveParticipantLive, panel collapsible "Peserta Dikeluarkan" + Restore 1-klik (D-04) → RestoreParticipantLive, dan handler SignalR participantAdded/participantRemoved (dedup, mode-aware, XSS-safe) yang sinkron live tanpa reload. Mengonsumsi broadcast + ViewBag.RemovedSessions dari Plan 01. migration=FALSE.
+- Handler client `examRemoved` (mirror `examClosed`) + modal non-dismissable `#examRemovedModal` di `StartExam.cshtml` — worker yang sedang InProgress menerima force-kick dari Admin/HC: UI ujian terkunci (timer/save stop, onbeforeunload clear) + modal "Anda telah dikeluarkan dari ujian ini." + redirect ke daftar Assessment setelah countdown 5 detik (PRMV-02 sisi-worker, D-02)
+- Spec e2e multi-context membuktikan add/force-kick/restore/broadcast live berfungsi runtime (5/5 green) DAN menemukan + memperbaiki bug produk `flashRow is not defined` yang sebelumnya membuat seluruh UI add/remove/restore Monitoring tak berfungsi di browser.
+- Decouple gate "Tinjauan Jawaban" per-soal di CMP/Results dari toggle AllowAnswerReview by owner-vs-non-owner — Admin/HC (non-owner yang sudah lolos IsResultsAuthorized) selalu lihat review; peserta (owner) tetap di-gate toggle, lewat pure static helper CanReviewAnswers + field VM efektif + nota admin XSS-safe.
+
+---
+
 ## v32.2 Inject Hasil Assessment Manual (Seakan Online) (Shipped: 2026-06-19)
 
 **Phases completed:** 7 phases (393-398 + 398.1), 26 plans

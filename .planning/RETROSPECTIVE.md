@@ -4,6 +4,37 @@
 
 ---
 
+## Milestone: v32.5 — Flexible Add/Remove Participant
+
+**Shipped:** 2026-06-22 (local, NOT pushed) | **Phases:** 6 (409-414) | **Plans:** 13 | **Tasks:** 27
+
+### What Was Built
+Add/remove/restore peserta assessment **live** dari Monitoring Detail (AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state**: belum-mulai→hard-delete cascade; ada-data→soft-remove+arsip (reversibel, sertifikat aman) via 3 kolom `RemovedAt/RemovedBy/RemovalReason` (migration Phase 409). Guard re-entry server-authoritative (StartExam/SubmitExam/Hub) + exclude-removed dari count aktif + force-kick worker via SignalR `examRemoved` + panel "Peserta Dikeluarkan" + Restore. **+Phase 414 off-theme**: decouple gate "Tinjauan Jawaban" admin/HC dari `AllowAnswerReview` (pure helper `CanReviewAnswers`).
+
+### What Worked
+- **Pola pure-static-helper testable** (`IsParticipantRemoved`, `CanReviewAnswers`) — keputusan authorize/gate di-unit-test tanpa DB (hindari replica tautologis 999.12). Konsisten + cepat.
+- **Milestone-autopilot** menjalankan 414 end-to-end (discuss→plan→execute→review→secure→validate→Playwright UAT→commit) dalam satu invoke; gate berurutan menangkap masalah lebih awal.
+- **Playwright UAT 2-persona via kepemilikan sesi** (1 login admin menguji owner & non-owner) — efisien, tak perlu kredensial worker.
+
+### What Was Inefficient
+- **Phase 412 `monFlashRow`/`flashRow` bug** lolos runtime-smoke 412 (cek render simbol), baru ketangkap Playwright e2e 413 — handler-attach mati di browser. Re-confirm lesson 354: runtime-smoke ≠ real-browser UAT untuk Razor/JS/SignalR.
+- **Audit doc angka stale** (605→609) + heading dobel — perlu adversarial re-check untuk nangkep.
+
+### Patterns Established
+- **Owner-vs-non-owner gate** via single var computed-once post-auth, used-twice (gate-build + VM-flag) — anti-desync (pelajaran dari monFlashRow milestone yang sama).
+- **Off-theme bugfix bundling**: Phase desimal/lanjutan off-theme (414) di-track terpisah, 0 REQ, audit-milestone re-run konfirmasi disjoint.
+
+### Key Lessons
+- Real-browser Playwright UAT WAJIB untuk Razor/JS/SignalR — runtime-smoke tak nangkep ReferenceError yang abort handler-attach.
+- Gate-build + VM-flag WAJIB pakai variabel efektif yang SAMA; desync → null-data/hide tak konsisten.
+- Adversarial re-check (multi-finder + build/test live) murah & nangkep doc-staleness + sibling-surface miss yang gate biasa lewatkan.
+
+### Cost Observations
+- Model mix: mayoritas opus (executor/planner/researcher/verifier-spawn), sonnet (checker/auditor).
+- Notable: 1 milestone-autopilot run menutup Phase 414 penuh; workflow adversarial re-check (5 agen paralel) konfirmasi clear-to-close.
+
+---
+
 ## Milestone: v32.2 — Inject Hasil Assessment Manual (Seakan Online)
 
 **Shipped:** 2026-06-19 (local, not pushed)

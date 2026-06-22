@@ -4,7 +4,7 @@ milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
 status: verifying
 stopped_at: Completed 414-01-PLAN.md
-last_updated: "2026-06-22T01:38:02.938Z"
+last_updated: "2026-06-22T03:47:36.811Z"
 last_activity: 2026-06-22
 progress:
   total_phases: 17
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md
 Phase: 414 (Fix Visibilitas History Jawaban Admin/HC saat AllowAnswerReview OFF) — PLAN 01 COMPLETE (4/4 task)
 Plan: 1 of 1 (DONE)
 Status: Phase complete — ready for verification (`/gsd-verify-work 414`)
-Last activity: 2026-06-22 -- Phase 414 plan 01 executed (decouple gate review by owner-vs-non-owner)
+Last activity: 2026-06-22
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
