@@ -837,7 +837,7 @@ namespace HcPortal.Controllers
             }
 
             ViewBag.IsRenewalMode = isRenewalMode;
-            ViewBag.AssessmentTypeInput = "";
+            ViewBag.CreationMode = "";
 
             return View(model);
         }
@@ -864,7 +864,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> CreateAssessment(
             AssessmentSession model, List<string> UserIds,
             string? RenewalFkMap = null, string? RenewalFkMapType = null,
-            string? AssessmentTypeInput = null,
+            string? CreationMode = null,
             DateTime? PreSchedule = null, int? PreDurationMinutes = null, DateTime? PreExamWindowCloseDate = null,
             DateTime? PostSchedule = null, int? PostDurationMinutes = null, DateTime? PostExamWindowCloseDate = null,
             bool SamePackage = false,
@@ -875,7 +875,7 @@ namespace HcPortal.Controllers
 
             // Phase 338 REST-06 (336-NAMING-CONVENTION-SPEC): Auto-pair LinkedGroupId via title pattern
             // Hanya untuk standard mode (non PrePost). PrePost mode generate own GroupId di logic existing.
-            if (AssessmentTypeInput != "PrePostTest"
+            if (CreationMode != "PrePostTest"
                 && model.LinkedGroupId == null
                 && !string.IsNullOrEmpty(model.Title))
             {
@@ -922,7 +922,7 @@ namespace HcPortal.Controllers
             }
 
             // Early Pre-Post mode determination (needed before standard field validation)
-            bool isPrePostMode = AssessmentTypeInput == "PrePostTest";
+            bool isPrePostMode = CreationMode == "PrePostTest";
 
             // Phase 308 D-04: Status field hidden in PrePost mode — JS sets default 'Upcoming', server skips [Required] validation
             if (isPrePostMode)
@@ -1037,10 +1037,11 @@ namespace HcPortal.Controllers
             // NomorSertifikat is server-generated — remove from ModelState to prevent validation failure
             ModelState.Remove("NomorSertifikat");
 
-            // T-297-01: Validate AssessmentTypeInput hanya "Standard" atau "PrePostTest"
-            if (!string.IsNullOrEmpty(AssessmentTypeInput) && AssessmentTypeInput != "Standard" && AssessmentTypeInput != "PrePostTest")
+            // T-297-01: Validate CreationMode hanya "Standard" atau "PrePostTest"
+            // FORM-10: penanda mode internal (Standard/PrePostTest) — TIDAK rancu dgn kolom DB AssessmentType (PreTest/PostTest/Standard/Manual).
+            if (!string.IsNullOrEmpty(CreationMode) && CreationMode != "Standard" && CreationMode != "PrePostTest")
             {
-                ModelState.AddModelError("AssessmentTypeInput", "Tipe assessment tidak valid.");
+                ModelState.AddModelError("CreationMode", "Tipe assessment tidak valid.");
             }
 
             // isPrePostMode already determined above (before Schedule/Duration validation)

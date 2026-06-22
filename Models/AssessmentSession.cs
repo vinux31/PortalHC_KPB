@@ -167,8 +167,10 @@ namespace HcPortal.Models
 
         // ===== v14.0 Assessment Enhancement columns =====
         /// <summary>
-        /// Tipe assessment: 'PreTest', 'PostTest', null = tidak ditentukan (backward compat).
+        /// Tipe assessment (kolom DB): 'PreTest', 'PostTest', 'Standard', 'Manual', atau null = tidak ditentukan (backward compat).
         /// Digunakan untuk linking pre-post test pair dan grading logic.
+        /// Catatan (FORM-10): JANGAN rancukan dengan penanda mode form 'CreationMode' (Standard/PrePostTest)
+        /// — yang itu hanya parameter input wizard Create, bukan kolom tersimpan.
         /// </summary>
         public string? AssessmentType { get; set; }
 

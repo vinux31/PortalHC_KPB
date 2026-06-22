@@ -212,7 +212,7 @@
                         <!-- Assessment Type (Standard / Pre-Post Test) -->
                         <div class="col-md-8">
                             <label class="form-label fw-semibold">Tipe Assessment</label>
-                            <select name="AssessmentTypeInput" id="assessmentTypeInput" class="form-select">
+                            <select name="CreationMode" id="creationMode" class="form-select">
                                 <option value="Standard" selected>Standard</option>
                                 <option value="PrePostTest">Pre-Post Test</option>
                             </select>
@@ -1010,7 +1010,7 @@ function generateToken() {
         }
 
         if (n === 3) {
-            var typeSelect = document.getElementById('assessmentTypeInput');
+            var typeSelect = document.getElementById('creationMode');
             var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
 
             if (isPrePost) {
@@ -1137,7 +1137,7 @@ function generateToken() {
         );
 
         // Tipe badge
-        var typeSelect = document.getElementById('assessmentTypeInput');
+        var typeSelect = document.getElementById('creationMode');
         var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
         var summType = document.getElementById('summary-type');
         if (summType) {
@@ -1400,7 +1400,7 @@ function generateToken() {
             applyProtonMode(isProton);
 
             // Poin 11: Proton tidak support Pre-Post Test
-            var typeSelect = document.getElementById('assessmentTypeInput');
+            var typeSelect = document.getElementById('creationMode');
             if (typeSelect) {
                 if (isProton) {
                     typeSelect.value = 'Standard';
@@ -1428,7 +1428,7 @@ function generateToken() {
 
         // Init: disable type select if Proton already selected
         if (categorySelect && categorySelect.value === 'Assessment Proton') {
-            var ts = document.getElementById('assessmentTypeInput');
+            var ts = document.getElementById('creationMode');
             if (ts) { ts.value = 'Standard'; ts.disabled = true; ts.title = 'Assessment Proton hanya mendukung tipe Standard'; }
         }
     }
@@ -1562,7 +1562,7 @@ function generateToken() {
             }
 
             // Validate ExamWindowCloseDate >= Schedule (skip for Pre-Post — has per-phase EWCD)
-            var typeSelect = document.getElementById('assessmentTypeInput');
+            var typeSelect = document.getElementById('creationMode');
             var isPrePost = typeSelect && typeSelect.value === 'PrePostTest';
             if (!isPrePost) {
                 var schedVal = schedHidden ? schedHidden.value : '';
@@ -1931,7 +1931,7 @@ function updateSelectedCount() {
             document.querySelectorAll('#userCheckboxContainer .user-check-item').forEach(function(item) { item.style.display = ''; });
 
             // Poin 10: reset assessment type to Standard
-            var typeSelect = document.getElementById('assessmentTypeInput');
+            var typeSelect = document.getElementById('creationMode');
             if (typeSelect) {
                 typeSelect.value = 'Standard';
                 typeSelect.disabled = false;
@@ -1983,7 +1983,7 @@ function updateSelectedCount() {
 <script>
 // Pre-Post Test mode toggle — Phase 297
 document.addEventListener('DOMContentLoaded', function() {
-    var typeSelect = document.getElementById('assessmentTypeInput');
+    var typeSelect = document.getElementById('creationMode');
     var pptSection = document.getElementById('ppt-jadwal-section');
     var stdSection = document.getElementById('standard-jadwal-section');
     var preScheduleInput = document.getElementById('preSchedule');
@@ -2075,7 +2075,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     var descText = document.getElementById('assessment-type-desc-text');
-    var typeSelect = document.getElementById('assessmentTypeInput');
+    var typeSelect = document.getElementById('creationMode');
     if (typeSelect && descText) {
         typeSelect.addEventListener('change', function () {
             descText.textContent = typeDescriptions[this.value] || '';
