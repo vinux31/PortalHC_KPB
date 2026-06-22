@@ -14,9 +14,40 @@
         </a>
     </div>
 
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
     @if (TempData["Warning"] != null)
     {
         <div class="alert alert-warning alert-dismissible fade show">@TempData["Warning"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    @{
+        // Phase 415 SEC-04 / IMP-03 (D-13 titik #1): daftar ketidakcocokan struktur Section antar-paket.
+        // Dikirim controller sebagai JSON List<string> via TempData (tolak keras, 0 write).
+        List<string>? sectionMismatch = null;
+        if (TempData["SectionMismatch"] is string smJson && !string.IsNullOrWhiteSpace(smJson))
+        {
+            try { sectionMismatch = System.Text.Json.JsonSerializer.Deserialize<List<string>>(smJson); }
+            catch { sectionMismatch = null; }
+        }
+    }
+    @if (sectionMismatch != null && sectionMismatch.Count > 0)
+    {
+        <div class="alert alert-danger">
+            <strong>Struktur Section antar-paket tidak sama. Perbaiki dulu sebelum import:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach (var line in sectionMismatch)
+                {
+                    <li>@line</li>
+                }
+            </ul>
+        </div>
     }
 
     <!-- Format reference card -->
@@ -24,15 +55,17 @@
         <div class="card-body py-2">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                 <div>
-                    <strong class="text-info">Format kolom (9 kolom):</strong>
-                    <code class="ms-2">Pertanyaan | Opsi A | Opsi B | Opsi C | Opsi D | Jawaban Benar | Elemen Teknis | QuestionType | Rubrik</code>
+                    <strong class="text-info">Format kolom (template universal diperluas):</strong>
+                    <code class="ms-2">Pertanyaan | Opsi A–F | Jawaban Benar | No. Section | Nama Section | Elemen Teknis | QuestionType | Rubrik</code>
                 </div>
             </div>
             <ul class="mb-2 small text-muted">
                 <li><strong>QuestionType:</strong> <code>MultipleChoice</code> (default jika kosong), <code>MultipleAnswer</code>, atau <code>Essay</code></li>
-                <li><strong>MA — Jawaban Benar:</strong> huruf dipisah koma, contoh: <code>A,C</code> atau <code>A,B,D</code></li>
-                <li><strong>Essay:</strong> Opsi A-D dan Jawaban Benar dikosongkan. Kolom Rubrik wajib diisi.</li>
-                <li>File lama tanpa kolom QuestionType akan diimpor sebagai MultipleChoice secara otomatis.</li>
+                <li><strong>MA — Jawaban Benar:</strong> huruf A–F dipisah koma, contoh: <code>A,C</code> atau <code>A,C,E</code></li>
+                <li><strong>Opsi E/F:</strong> opsional (2–6 opsi). Kosongkan jika tidak dipakai.</li>
+                <li><strong>No. Section:</strong> angka (1, 2, 3...). Kosongkan = soal tanpa Section (Lainnya). Section dibuat otomatis dari kolom ini.</li>
+                <li><strong>Essay:</strong> Opsi dan Jawaban Benar dikosongkan. Kolom Rubrik wajib diisi.</li>
+                <li>File template lama (9 kolom, tanpa Section, Opsi A–D) tetap bisa di-import otomatis. File dengan kolom No. Section / Nama Section / Opsi E–F terdeteksi sebagai format baru.</li>
             </ul>
             <div class="btn-group flex-wrap gap-1">
                 <a href="@Url.Action("DownloadQuestionTemplate", "AssessmentAdmin", new { type = "MC" })" class="btn btn-outline-success btn-sm">
