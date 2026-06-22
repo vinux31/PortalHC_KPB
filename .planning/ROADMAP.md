@@ -49,7 +49,7 @@
 
 | Phase | Plans Complete | Status | Migration | Completed |
 |-------|----------------|--------|-----------|-----------|
-| 415. Section Foundation + Import Excel Diperluas | 0/4 | 3/4 | In Progress|  |
+| 415. Section Foundation + Import Excel Diperluas | 0/4 | 4/4 | Complete   | 2026-06-22 |
 | 416. Scoped Shuffle (Acak per-Section) | 0/? | Not started | FALSE | - |
 | 417. Section Pagination | 0/? | Not started | FALSE | - |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
@@ -74,7 +74,7 @@
 - [x] 415-01-PLAN.md — Data model + migration `AddAssessmentPackageSection` (tabel + `SectionId` nullable, FK SetNull) + SectionFixture + SEC-01 data-layer test [wave 1, migration=TRUE]
 - [x] 415-02-PLAN.md — Section CRUD endpoints + panel inline UI + dropdown assign soal + daftar dikelompokkan per-Section (SEC-01/02/03/05) [wave 2]
 - [x] 415-03-PLAN.md — Import dual-format (<=9 lama / >9 baru) + template universal 13-kolom + fingerprint +E/F+Section + per-Section count hard-block (IMP-01/02/03 + SEC-04 #1) [wave 3]
-- [ ] 415-04-PLAN.md — Sync Pre->Post clone Section + remap SectionId (SEC-06) + StartExam D-13 re-guard (SEC-04 #2) [wave 4]
+- [x] 415-04-PLAN.md — Sync Pre->Post clone Section + remap SectionId (SEC-06) + StartExam D-13 re-guard (SEC-04 #2) [wave 4]
 **Migration**: TRUE — `AddAssessmentPackageSection` (tabel `AssessmentPackageSection` + index unik `(AssessmentPackageId, SectionNumber)`) + kolom `PackageQuestion.SectionId` int? nullable. Non-breaking; rollback = drop tabel + kolom. (Hanya Plan 01; 02/03/04 = migration=FALSE.)
 **File-overlap (jalankan sebelum 416/418)**: `AssessmentAdminController.cs` (CreateQuestion/EditQuestion authoring + ImportPackageQuestions), `ManagePackageQuestions.cshtml`, view kelola Section (`ManagePackages`/`ManagePackageSections`), `_PreviewQuestion`/`PreviewPackage`, `InjectExcelHelper`/parser import. Saran spec §13: ekstrak abstraksi urutan-soal (`SectionAwareQuestionProvider`) di awal untuk pangkas penyebaran perubahan.
 **UI hint**: yes

@@ -16,7 +16,7 @@ Requirements milestone v32.6. Tiap REQ map ke satu fase roadmap (fase mulai 415)
 - [x] **SEC-03**: HC dapat menetapkan Section pada soal lewat No. Section; soal tanpa Section masuk grup "Lainnya" di urutan terakhir (perilaku global lama, kompatibel-mundur).
 - [x] **SEC-04**: Sistem menolak (hard-block) menyimpan/memulai ujian bila struktur Section antar-paket dalam satu assessment tidak identik (jumlah soal per Section berbeda), dengan pesan jelas.
 - [x] **SEC-05**: Daftar & preview soal admin menampilkan soal dikelompokkan per Section dengan header.
-- [ ] **SEC-06**: Saat sinkronisasi Pre→Post (SamePackage), struktur Section + opsi ikut tersalin ke PostTest.
+- [x] **SEC-06**: Saat sinkronisasi Pre→Post (SamePackage), struktur Section + opsi ikut tersalin ke PostTest.
 
 ### Scoped Shuffle (SHF)
 
@@ -78,7 +78,7 @@ Tiap REQ v1 dipetakan ke tepat satu fase (roadmap v32.6, fase 415-419). Status a
 | SEC-03 | Phase 415 | Complete |
 | SEC-04 | Phase 415 | Complete |
 | SEC-05 | Phase 415 | Complete |
-| SEC-06 | Phase 415 | Pending |
+| SEC-06 | Phase 415 | Complete |
 | IMP-01 | Phase 415 | Complete |
 | IMP-02 | Phase 415 | Complete |
 | IMP-03 | Phase 415 | Complete |
