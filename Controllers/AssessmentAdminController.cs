@@ -6781,8 +6781,13 @@ namespace HcPortal.Controllers
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Question Import");
 
-            // 9-column header (same for all variants)
-            var headers = new[] { "Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Jawaban Benar", "Elemen Teknis", "QuestionType", "Rubrik" };
+            // Phase 415 IMP-01 (D-415-03): "Universal" memakai header diperluas 13-kolom
+            // (Opsi A–F + No. Section + Nama Section). Tipe legacy (MC/MA/Essay) tetap 9-kolom
+            // (kompatibel-mundur — import dual-format mendeteksi ≤9 = lama / >9 = baru dari header).
+            bool universal = type == "Universal";
+            var headers = universal
+                ? new[] { "Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Opsi E", "Opsi F", "Jawaban Benar", "No. Section", "Nama Section", "Elemen Teknis", "QuestionType", "Rubrik" }
+                : new[] { "Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Jawaban Benar", "Elemen Teknis", "QuestionType", "Rubrik" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = headers[i];
@@ -6803,28 +6808,24 @@ namespace HcPortal.Controllers
                 }
             }
 
-            // Example rows per type
-            var mcExample  = new[] { "Contoh soal MC?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "A", "K3 Dasar", "MultipleChoice", "" };
-            var maExample  = new[] { "Contoh soal MA?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "A,C", "K3 Dasar", "MultipleAnswer", "" };
-            var essayExample = new[] { "Contoh soal Essay?", "", "", "", "", "", "K3 Dasar", "Essay", "Rubrik: Jawaban harus mencakup..." };
+            if (universal)
+            {
+                // 13-kolom: Pertanyaan | A-F(2-7) | Jawaban Benar(8) | No.Section(9) | Nama Section(10) | ET(11) | Type(12) | Rubrik(13)
+                // Contoh MC dgn Section 1, contoh MA dgn 6 opsi (A,C,E) Section 1, contoh Essay tanpa Section (Lainnya).
+                AddExampleRow(nextRow++, new[] { "Contoh soal MC bagian Pompa?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "", "", "B", "1", "Pompa & Kompresor", "K3 Dasar", "MultipleChoice", "" });
+                AddExampleRow(nextRow++, new[] { "Contoh soal MA 6 opsi?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Opsi E", "Opsi F", "A,C,E", "1", "Pompa & Kompresor", "K3 Dasar", "MultipleAnswer", "" });
+                AddExampleRow(nextRow++, new[] { "Contoh soal Essay tanpa Section?", "", "", "", "", "", "", "", "", "", "K3 Dasar", "Essay", "Rubrik: Jawaban harus mencakup..." });
+            }
+            else
+            {
+                // 9-kolom legacy: Pertanyaan | A-D(2-5) | Jawaban Benar(6) | ET(7) | Type(8) | Rubrik(9)
+                var mcExample  = new[] { "Contoh soal MC?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "A", "K3 Dasar", "MultipleChoice", "" };
+                var maExample  = new[] { "Contoh soal MA?", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "A,C", "K3 Dasar", "MultipleAnswer", "" };
+                var essayExample = new[] { "Contoh soal Essay?", "", "", "", "", "", "K3 Dasar", "Essay", "Rubrik: Jawaban harus mencakup..." };
 
-            if (type == "MC")
-            {
-                AddExampleRow(nextRow++, mcExample);
-            }
-            else if (type == "MA")
-            {
-                AddExampleRow(nextRow++, maExample);
-            }
-            else if (type == "Essay")
-            {
-                AddExampleRow(nextRow++, essayExample);
-            }
-            else // Universal
-            {
-                AddExampleRow(nextRow++, mcExample);
-                AddExampleRow(nextRow++, maExample);
-                AddExampleRow(nextRow++, essayExample);
+                if (type == "MC") AddExampleRow(nextRow++, mcExample);
+                else if (type == "MA") AddExampleRow(nextRow++, maExample);
+                else AddExampleRow(nextRow++, essayExample); // Essay
             }
 
             // Instruction rows
@@ -6836,8 +6837,18 @@ namespace HcPortal.Controllers
             }
 
             AddInstruction(nextRow++, "QuestionType: MultipleChoice (default jika kosong), MultipleAnswer, atau Essay");
-            AddInstruction(nextRow++, "Jawaban Benar MA: isi huruf dipisah koma, contoh: A,C atau A,B,D");
-            AddInstruction(nextRow++, "Essay: Opsi A-D dan Jawaban Benar dikosongkan. Rubrik wajib diisi");
+            if (universal)
+            {
+                AddInstruction(nextRow++, "Jawaban Benar: huruf A-F. MA dipisah koma, contoh: A,C atau A,C,E");
+                AddInstruction(nextRow++, "Opsi E/F: opsional (2-6 opsi). Kosongkan jika tidak dipakai.");
+                AddInstruction(nextRow++, "No. Section: angka (1, 2, 3...). Kosongkan = soal tanpa Section (Lainnya). Section dibuat otomatis dari kolom ini.");
+                AddInstruction(nextRow++, "Nama Section: opsional, label tampilan Section.");
+            }
+            else
+            {
+                AddInstruction(nextRow++, "Jawaban Benar MA: isi huruf dipisah koma, contoh: A,C atau A,B,D");
+            }
+            AddInstruction(nextRow++, "Essay: Opsi dan Jawaban Benar dikosongkan. Rubrik wajib diisi");
             AddInstruction(nextRow++, "Kolom Elemen Teknis: opsional, isi nama elemen teknis. Kosongkan jika tidak ada.");
 
             var fileName = $"Template_Soal_{type}.xlsx";
@@ -6888,9 +6899,12 @@ namespace HcPortal.Controllers
             var pkg = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Section)
                 .FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
 
+            // Phase 415 IMP-03: fingerprint 8-arg (+Opsi E/F +SectionNumber). Soal existing carry SectionId/Section nav.
             var existingFingerprints = pkg.Questions.Select(q =>
             {
                 var opts = q.Options.OrderBy(o => o.Id).Select(o => o.OptionText).ToList();
@@ -6899,7 +6913,10 @@ namespace HcPortal.Controllers
                     opts.ElementAtOrDefault(0) ?? "",
                     opts.ElementAtOrDefault(1) ?? "",
                     opts.ElementAtOrDefault(2) ?? "",
-                    opts.ElementAtOrDefault(3) ?? "");
+                    opts.ElementAtOrDefault(3) ?? "",
+                    opts.ElementAtOrDefault(4) ?? "",
+                    opts.ElementAtOrDefault(5) ?? "",
+                    q.Section?.SectionNumber);
             }).ToHashSet();
             var seenInBatch = new HashSet<string>();
 
@@ -7024,7 +7041,7 @@ namespace HcPortal.Controllers
                         var normalizedCor = ExtractPackageCorrectLetter(rcor);
                         return !string.IsNullOrWhiteSpace(ra) && !string.IsNullOrWhiteSpace(rb) &&
                                !string.IsNullOrWhiteSpace(rc) && !string.IsNullOrWhiteSpace(rd) &&
-                               (new[] { "A", "B", "C", "D" }.Contains(normalizedCor) || rcor.Contains(','));
+                               (new[] { "A", "B", "C", "D", "E", "F" }.Contains(normalizedCor) || rcor.Contains(','));
                     });
 
                     var referencePackage = siblingPackagesWithQuestions.First();
@@ -7070,12 +7087,12 @@ namespace HcPortal.Controllers
                 {
                     correctLetters = cor.Split(',', StringSplitOptions.RemoveEmptyEntries)
                         .Select(s => s.Trim().ToUpper())
-                        .Where(s => new[] { "A", "B", "C", "D" }.Contains(s))
+                        .Where(s => new[] { "A", "B", "C", "D", "E", "F" }.Contains(s))
                         .Distinct()
                         .ToList();
                     if (correctLetters.Count == 0)
                     {
-                        errors.Add($"Row {i + 1}: MA soal harus memiliki minimal 1 jawaban benar valid (A-D). Skipped.");
+                        errors.Add($"Row {i + 1}: MA soal harus memiliki minimal 1 jawaban benar valid (A-F). Skipped.");
                         continue;
                     }
                 }
@@ -7086,16 +7103,16 @@ namespace HcPortal.Controllers
                 else // MultipleChoice
                 {
                     var normalizedCor = ExtractPackageCorrectLetter(cor);
-                    if (!new[] { "A", "B", "C", "D" }.Contains(normalizedCor))
+                    if (!new[] { "A", "B", "C", "D", "E", "F" }.Contains(normalizedCor))
                     {
-                        errors.Add($"Row {i + 1}: 'Correct' column must be A, B, C, or D. Got '{cor}'. Skipped.");
+                        errors.Add($"Row {i + 1}: 'Correct' column must be A–F. Got '{cor}'. Skipped.");
                         continue;
                     }
                     correctLetters = new List<string> { normalizedCor };
                 }
 
-                // Dedup fingerprint (essay uses empty options)
-                var fp = MakePackageFingerprint(q, a, b, c, d);
+                // Dedup fingerprint (essay uses empty options). Phase 415 IMP-03: +Opsi E/F +SectionNumber.
+                var fp = MakePackageFingerprint(q, a, b, c, d, "", "", null);
                 if (existingFingerprints.Contains(fp) || seenInBatch.Contains(fp))
                 {
                     skipped++;
@@ -7237,9 +7254,10 @@ namespace HcPortal.Controllers
         {
             if (string.IsNullOrWhiteSpace(raw)) return raw;
             if (raw.Length == 1) return raw;
-            if ("ABCD".Contains(raw[0]) && !char.IsLetterOrDigit(raw[1]))
+            // Phase 415 O-1: terima huruf A–F di jalur import (Opsi A–F). Render/grading huruf E/F = Phase 418.
+            if ("ABCDEF".Contains(raw[0]) && !char.IsLetterOrDigit(raw[1]))
                 return raw[0].ToString();
-            if (raw.StartsWith("OPTION ") && raw.Length > 7 && "ABCD".Contains(raw[7]))
+            if (raw.StartsWith("OPTION ") && raw.Length > 7 && "ABCDEF".Contains(raw[7]))
                 return raw[7].ToString();
             return raw;
         }
@@ -7254,8 +7272,12 @@ namespace HcPortal.Controllers
         private static string NormalizePackageText(string s)
             => System.Text.RegularExpressions.Regex.Replace(s.Trim(), @"\s+", " ").ToLowerInvariant();
 
-        private static string MakePackageFingerprint(string q, string a, string b, string c, string d)
-            => string.Join("|||", new[] { q, a, b, c, d }.Select(NormalizePackageText));
+        // Phase 415 IMP-03 (§15.C): fingerprint dedup menyertakan Opsi E/F + SectionNumber sehingga soal
+        // sama beda section / beda jumlah opsi TIDAK ter-dedup keliru. Legacy: e="", f="", sectionNumber=null → "_NOSEC_".
+        private static string MakePackageFingerprint(string q, string a, string b, string c, string d,
+            string e, string f, int? sectionNumber)
+            => string.Join("|||", new[] { q, a, b, c, d, e, f }.Select(NormalizePackageText)
+                .Append(sectionNumber?.ToString() ?? "_NOSEC_"));
 
         #endregion
 
