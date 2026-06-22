@@ -436,6 +436,23 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Pengacakan Soal & Jawaban (Phase 420 FORM-01 / E-01: akar bug = view tak merender shuffle → POST bind false → reset OFF; render asp-for terisi dari Model) -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-shuffle text-primary me-1"></i>Pengacakan Soal &amp; Jawaban
+                                </label>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" asp-for="ShuffleQuestions" id="ShuffleQuestions" />
+                                    <label class="form-check-label" for="ShuffleQuestions">Acak Soal</label>
+                                </div>
+                                <div class="form-text text-muted mb-2">Saat aktif, urutan dan pemilihan soal diacak berbeda untuk setiap peserta — sehingga peserta yang duduk berdekatan kecil kemungkinan mendapat soal yang sama urutannya. Saat nonaktif, semua peserta mendapat soal yang sama dengan urutan yang sama persis (urutan asli sesuai paket soal).</div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" asp-for="ShuffleOptions" id="ShuffleOptions" />
+                                    <label class="form-check-label" for="ShuffleOptions">Acak Pilihan Jawaban</label>
+                                </div>
+                                <div class="form-text text-muted">Saat aktif, urutan pilihan jawaban (A, B, C, D) diacak berbeda di setiap soal untuk tiap peserta — jawaban benar tetap dinilai dengan benar, hanya posisinya yang berpindah. Saat nonaktif, urutan pilihan jawaban tampil sama untuk semua peserta sesuai urutan yang tersimpan di sistem.</div>
+                            </div>
                         </div>
 
                         <!-- Terbitkan Sertifikat & Tanggal Tutup Ujian -->

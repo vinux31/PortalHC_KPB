@@ -2085,6 +2085,10 @@ namespace HcPortal.Controllers
                 sibling.ShuffleOptions = model.ShuffleOptions;
                 sibling.GenerateCertificate = model.GenerateCertificate;
                 sibling.ExamWindowCloseDate = model.ExamWindowCloseDate;
+                sibling.ValidUntil = model.ValidUntil;                                       // FORM-04 (E-05): ValidUntil tersimpan jalur std
+                sibling.AllowRetake = model.AllowRetake;                                     // FORM-03 (E-03): retake bukan no-op
+                sibling.MaxAttempts = Math.Clamp(model.MaxAttempts, 1, 5);                   // FORM-03 + clamp V5
+                sibling.RetakeCooldownHours = Math.Clamp(model.RetakeCooldownHours, 0, 168); // FORM-03 + clamp V5
                 sibling.UpdatedAt = now;
             }
 
