@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v32.5
 milestone_name: Flexible Add/Remove Participant
-status: executing
-stopped_at: Completed 413-03-PLAN.md
-last_updated: "2026-06-21T12:08:00.000Z"
-last_activity: 2026-06-21 -- Phase 413-03 regression gate: full suite 605/605 (Failed 0) + 11/11 REQ COVERED + push-readiness SIAP-SHIP PENDING-PUSH
+status: completed
+stopped_at: Phase 414 context gathered
+last_updated: "2026-06-22T01:07:39.239Z"
+last_activity: "2026-06-21 -- Phase 413-03 regression gate: full suite 605/605 (Failed 0) + 11/11 REQ COVERED + push-readiness SIAP-SHIP PENDING-PUSH"
 progress:
   total_phases: 17
   completed_phases: 5
@@ -201,6 +201,6 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 Last activity: 2026-06-21
 
-Stopped at: Completed 413-03-PLAN.md
+Stopped at: Phase 414 context gathered
 
 Next action: **Phase 413 COMPLETE (3/3 plan) — Milestone v32.5 SIAP-SHIP PENDING-PUSH.** Regression gate 413-03 (commit `2b6f45d1`, `413-REGRESSION.md`): full `dotnet test` **605/605 (Failed: 0)** = baseline 602 + 3 lifecycle (413-01), **0 regresi tak ada test hilang**; per-grup guard SEMUA hijau (391/410 add 14, 409 guard 5 + exclude 3, 411 remove 16, 412 panel 5 + status 7, 413-01 lifecycle 3); Integration trait **197 executed** (SQLEXPRESS write-path BENAR run, BUKAN skip); build 0 error + boot @5277 GET / **HTTP 200**; migration=FALSE; DB clean verified (0 HcPortalDB%Test%/0 removed/0 matrix/sesi172=Open). **11/11 REQ COVERED end-to-end** (PART-05/06/07 + PRMV-01..05 + PLIV-01/02/03; xUnit lintas-fase 413-01 + e2e 5/5 7 sinyal 413-02). SUMMARY `.planning/phases/413-test-uat/413-03-SUMMARY.md`. **NEXT: `/gsd-audit-milestone v32.5`** (verifikasi 11/11 REQ + integration) → `/gsd-complete-milestone v32.5` → **1 push `origin/main` (bundle v32.2 + v32.5)** + **notify IT: Phase 409 migration=TRUE `AddParticipantRemovalColumns` hash `01cd7dd0`** (3 kolom nullable additif; 410-413 = migration=FALSE). ❌ JANGAN push tanpa approval/koordinasi IT (CLAUDE.md step 4-5). ❌ JANGAN edit DB/kode Dev/Prod. ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1. Carry: Phase 414 (off-theme bugfix visibilitas review jawaban admin) belum di-plan — opsional bundle ke v32.5 atau milestone terpisah.
