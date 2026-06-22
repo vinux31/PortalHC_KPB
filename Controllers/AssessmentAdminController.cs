@@ -1252,6 +1252,9 @@ namespace HcPortal.Controllers
                             AllowAnswerReview = model.AllowAnswerReview,
                             ShuffleQuestions = model.ShuffleQuestions,
                             ShuffleOptions = model.ShuffleOptions,
+                            AllowRetake = false,                                            // FORM-02 / D-03: Pre baseline murni — retake OFF eksplisit
+                            MaxAttempts = Math.Clamp(model.MaxAttempts, 1, 5),             // disalin untuk konsistensi grup (perilaku OFF)
+                            RetakeCooldownHours = Math.Clamp(model.RetakeCooldownHours, 0, 168),
                             IsTokenRequired = model.IsTokenRequired,
                             AccessToken = model.AccessToken,
                             GenerateCertificate = false,  // D-20: Pre TIDAK generate sertifikat
@@ -1288,6 +1291,9 @@ namespace HcPortal.Controllers
                                 AllowAnswerReview = model.AllowAnswerReview,
                                 ShuffleQuestions = model.ShuffleQuestions,
                                 ShuffleOptions = model.ShuffleOptions,
+                                AllowRetake = model.AllowRetake,                                // FORM-02 Post: retake relevan → salin penuh dari model
+                                MaxAttempts = Math.Clamp(model.MaxAttempts, 1, 5),             // FORM-02 + clamp V5
+                                RetakeCooldownHours = Math.Clamp(model.RetakeCooldownHours, 0, 168),
                                 IsTokenRequired = model.IsTokenRequired,
                                 AccessToken = model.AccessToken,
                                 GenerateCertificate = model.GenerateCertificate, // D-21: pilihan HC
@@ -1478,6 +1484,9 @@ namespace HcPortal.Controllers
                         AllowAnswerReview = model.AllowAnswerReview,
                         ShuffleQuestions = model.ShuffleQuestions,
                         ShuffleOptions = model.ShuffleOptions,
+                        AllowRetake = model.AllowRetake,                                  // FORM-02 std: retake disalin eksplisit (bukan EF-default)
+                        MaxAttempts = Math.Clamp(model.MaxAttempts, 1, 5),               // FORM-02 + clamp V5
+                        RetakeCooldownHours = Math.Clamp(model.RetakeCooldownHours, 0, 168),
                         GenerateCertificate = model.GenerateCertificate,
                         ExamWindowCloseDate = model.ExamWindowCloseDate,
                         ValidUntil = model.ValidUntil,
