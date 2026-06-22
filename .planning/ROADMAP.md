@@ -53,7 +53,7 @@
 - [x] **Phase 405: Backend Core (RTK-01..07, RTK-13)** — migration (3 kolom + `AssessmentAttemptResponseArchive`) + `RetakeRules` (pure eligibility) + `RetakeArchiveBuilder` (pure snapshot via `IsQuestionCorrect`/`BuildAnswerCell`) + `RetakeService` (shared archive→reset engine, claim atomik anti double-archive, clear token TempData, audit `RetakeAssessment`) + refactor `ResetAssessment`→service (HC override) + endpoint `UpdateRetakeSettings` + sibling propagation + ManagePackages ViewBag + binding EditAssessment bulk-add. **migration=TRUE.** No UI. Wave 0 — solo. **✅ COMPLETE 2026-06-21** (4/4 plan; suite 598/0/2; verify 7/7; review 0C/3W→fix all; secure 17/17; nyquist-compliant)
 - [ ] **Phase 406: Admin Config UI + Riwayat HC (RTK-05, RTK-08)** — card "Ujian Ulang" di `ManagePackages.cshtml` (mirror shuffle, hide Pre-Test/Manual via `ShouldHideRetakeToggle`) + binding form `CreateAssessment`/`EditAssessment` + view riwayat percobaan HC di `AssessmentMonitoringDetail` (drill-down archived+current, per-soal). 0 migration. Wave 1 (paralel 407, depends 405). **3 plans / 2 waves** (W1: 01 riwayat-backend ∥ 02 config-card; W2: 03 modal-trigger depends 01).
 - [ ] **Phase 407: Worker Self-Service (RTK-09..12, RTK-13)** — endpoint `CMP/RetakeExam` (CSRF+ownership+eligibility re-cek server-side+clear-token) + `Results.cshtml` tombol "Ujian Ulang" + "Percobaan X/N" + cooldown countdown + lock message + gating tier-feedback baru (skor+tanda-salah, kunci ditahan selama gagal+attempt-sisa) + view riwayat percobaan pekerja. 0 migration. Wave 1 (paralel 406, depends 405).
-- [ ] **Phase 408: Test & UAT (RTK-14)** — xUnit (`RetakeRules`+`RetakeArchiveBuilder`+`RetakeService`) + integration (retake-then-pass 1 cert, counting `(UserId,Title,Category)` no-conflate Pre/Post) + Playwright lifecycle penuh @5270 (gagal→skor+tanda-salah→Ujian Ulang→cooldown→ulang→lulus→cert; cap habis→lock; riwayat pekerja+HC) + security audit. 0 migration. Wave 2 (depends 406+407).
+- [ ] **Phase 408: Test & UAT (RTK-14)** — xUnit (`RetakeRules`+`RetakeArchiveBuilder`+`RetakeService`) + integration (retake-then-pass 1 cert, counting `(UserId,Title,Category)` no-conflate Pre/Post) + Playwright lifecycle penuh @5270 (gagal→skor+tanda-salah→Ujian Ulang→cooldown→ulang→lulus→cert; cap habis→lock; riwayat pekerja+HC) + security audit. 0 migration. Wave 2 (depends 406+407). **2 plans / 2 waves** (W1: 01 GAP-1 xUnit retake→1cert; W2: 02 GAP-3 e2e lifecycle + regresi/UAT). Capstone = isi gap (JANGAN tulis ulang test hijau); secure-phase 408 = gerbang formal terpisah.
 
 ### Phase Details
 
@@ -120,7 +120,10 @@
   2. **Integration:** retake-then-pass → **1 cert** (guard anti-double-cert existing); counting `(UserId, Title, Category)` **tidak konflasi** Pre/Post ber-Title sama; sibling propagation config. *(RTK-14)*
   3. **Playwright (port 5270)** lifecycle penuh — gagal → skor+tanda-salah (kunci tersembunyi) → Ujian Ulang → cooldown gate → ulang → lulus → cert; attempt habis → lock; riwayat pekerja + HC — plus **security**: RBAC (worker hanya sesi sendiri), antiforgery, server-side cooldown/cap revalidation, no answer-key leak saat retake-eligible. *(RTK-14)*
   4. `dotnet build` 0 error + `dotnet test` hijau (suite retake + existing tak regresi) + UAT browser sign-off (SEED_WORKFLOW: snapshot→seed→restore). *(RTK-14)*
-**Plans:** TBD — `gsd-plan-phase 408`.
+**Plans:** 2 plans (2 waves) — capstone gap-fill (additive only; tidak menulis ulang test hijau)
+- [ ] 408-01-PLAN.md — Wave 1: GAP-1 xUnit integration `RetakeThenPassCertTests` (retake→grade-lulus→tepat 1 cert; reuse RetakeServiceFixture real-SQL + GradingService ctor recipe SubmitResurrectionTests) (RTK-14) [migration=FALSE]
+- [ ] 408-02-PLAN.md — Wave 2: GAP-3 Playwright lifecycle `retake-lifecycle-408.spec.ts` + seed (gagal cooldown=0→Ujian Ulang→StartExam→jawab benar→lulus→cert#) + regresi penuh suite/e2e + checkpoint UAT @5270 (RTK-14) [migration=FALSE]; depends 408-01
+**Catatan:** secure-phase 408 (D-03) = gerbang formal terpisah (`gsd-secure-phase 408`), bukan plan task; kedua plan membawa `<threat_model>` konsolidasi 406+407 + invariant cert-uniqueness untuk auditor.
 **UI hint:** yes
 
 **Active mapped: 14/14 ✓ (RTK-01/02/03/04/06/07/13 → 405 · RTK-05/08 → 406 · RTK-09/10/11/12/13 → 407 · RTK-14 → 408) — Orphans: 0 — Duplicates: 0 — migration=TRUE Phase 405 only. Critical path 405 → (406 ∥ 407) → 408; Wave 1 {406, 407} paralel setelah 405.**
@@ -132,7 +135,7 @@
 | 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 4/4 | Complete   | 2026-06-21 |
 | 406. Admin Config UI + Riwayat HC (RTK-05/08) | 3/3 | Complete   | 2026-06-21 |
 | 407. Worker Self-Service + Gating + Riwayat Pekerja (RTK-09/10/11/12/13) | 3/3 | Complete   | 2026-06-22 |
-| 408. Test & UAT (RTK-14) | 0/0 | Not started | — |
+| 408. Test & UAT (RTK-14) | 0/2 | Planned | — |
 
 </details>
 
