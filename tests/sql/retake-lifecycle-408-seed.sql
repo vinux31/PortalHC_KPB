@@ -112,7 +112,7 @@ DECLARE @pkgidLife INT = (SELECT TOP 1 Id FROM @pkgLife);
 DECLARE @qL1 TABLE (Id INT);
 INSERT INTO PackageQuestions (AssessmentPackageId, QuestionText, [Order], ScoreValue, QuestionType, MaxCharacters)
 OUTPUT inserted.Id INTO @qL1
-VALUES (@pkgidLife, '[RETAKE408] Soal Q1: katalis alkylation yang benar?', 1, 34, 'SingleAnswer', 0);
+VALUES (@pkgidLife, '[RETAKE408] Soal Q1: katalis alkylation yang benar?', 1, 34, 'MultipleChoice', 0);  -- FIX: produk pakai "MultipleChoice" (label UI "Single Answer"); "SingleAnswer" bukan QuestionType valid → grade switch skip → 0%
 DECLARE @qidL1 INT = (SELECT TOP 1 Id FROM @qL1);
 
 DECLARE @optL1 TABLE (Id INT);
@@ -128,7 +128,7 @@ DECLARE @optL1Wrong INT = (SELECT TOP 1 Id FROM @optL1WrongTbl);
 DECLARE @qL2 TABLE (Id INT);
 INSERT INTO PackageQuestions (AssessmentPackageId, QuestionText, [Order], ScoreValue, QuestionType, MaxCharacters)
 OUTPUT inserted.Id INTO @qL2
-VALUES (@pkgidLife, '[RETAKE408] Soal Q2: produk utama proses ini?', 2, 33, 'SingleAnswer', 0);
+VALUES (@pkgidLife, '[RETAKE408] Soal Q2: produk utama proses ini?', 2, 33, 'MultipleChoice', 0);  -- FIX: produk pakai "MultipleChoice" (label UI "Single Answer"); "SingleAnswer" bukan QuestionType valid → grade switch skip → 0%
 DECLARE @qidL2 INT = (SELECT TOP 1 Id FROM @qL2);
 
 DECLARE @optL2 TABLE (Id INT);
@@ -144,7 +144,7 @@ DECLARE @optL2Wrong INT = (SELECT TOP 1 Id FROM @optL2WrongTbl);
 DECLARE @qL3 TABLE (Id INT);
 INSERT INTO PackageQuestions (AssessmentPackageId, QuestionText, [Order], ScoreValue, QuestionType, MaxCharacters)
 OUTPUT inserted.Id INTO @qL3
-VALUES (@pkgidLife, '[RETAKE408] Soal Q3: umpan reaksi yang tepat?', 3, 33, 'SingleAnswer', 0);
+VALUES (@pkgidLife, '[RETAKE408] Soal Q3: umpan reaksi yang tepat?', 3, 33, 'MultipleChoice', 0);  -- FIX: produk pakai "MultipleChoice" (label UI "Single Answer"); "SingleAnswer" bukan QuestionType valid → grade switch skip → 0%
 DECLARE @qidL3 INT = (SELECT TOP 1 Id FROM @qL3);
 
 DECLARE @optL3 TABLE (Id INT);

@@ -150,7 +150,13 @@ test.describe('Phase 408 — Lifecycle Ujian Ulang (UAT e2e gagal → ulang → 
     await page.waitForLoadState('networkidle');
 
     // ── (g) ASSERT FINAL: LULUS + Nomor Sertifikat terbit (RTK-14) ──
-    await expect(page.locator('.badge.text-bg-success', { hasText: 'LULUS' })).toBeVisible();
+    // Status badge LULUS = span.badge.text-bg-success "LULUS" (Results.cshtml:76). Pakai .first() —
+    // badge "Lulus" riwayat juga text-bg-success (hindari strict-mode multi-match).
+    await expect(page.locator('.badge.text-bg-success').filter({ hasText: 'LULUS' }).first()).toBeVisible();
+    // Skor agregat sesi WAJIB 100% (bukan 0% — defect retake-grade yang ditangkap capstone).
+    await expect(page.locator('h2', { hasText: '100%' }).first()).toBeVisible();
+    // Pesan sukses + sertifikat terbit (RTK-14).
+    await expect(page.locator('body')).toContainText('Anda lulus assessment ini');
     await expect(page.locator('body')).toContainText('Nomor Sertifikat');
     await expect(page.locator('body')).toContainText(/KPB\/\d+\/[IVX]+\/\d{4}/);
     expect(errors, `pageerror saat Results lulus: ${errors.join(' | ')}`).toEqual([]);
