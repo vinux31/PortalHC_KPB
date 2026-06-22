@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v32.5
-milestone_name: Flexible Add/Remove Participant
-status: verifying
-stopped_at: Completed 414-01-PLAN.md
-last_updated: "2026-06-22T03:47:36.811Z"
+milestone: v32.6
+milestone_name: Section + Scoped Shuffle + Section Pagination + Opsi Dinamis
+status: defining_requirements
+stopped_at: —
+last_updated: "2026-06-22"
 last_activity: 2026-06-22
 progress:
-  total_phases: 17
-  completed_phases: 6
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 414 — Fix Visibilitas History Jawaban Admin/HC saat AllowAnswerReview OFF
+**Current focus:** v32.6 — mendefinisikan requirements + roadmap (Section + Scoped Shuffle + Section Pagination + Opsi Dinamis)
 
 ## Current Position
 
-Phase: 414 (Fix Visibilitas History Jawaban Admin/HC saat AllowAnswerReview OFF) — PLAN 01 COMPLETE (4/4 task)
-Plan: 1 of 1 (DONE)
-Status: Phase complete — ready for verification (`/gsd-verify-work 414`)
-Last activity: 2026-06-22
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements — milestone v32.6
+Last activity: 2026-06-22 — Milestone v32.6 started (fase mulai 415)
 
 Milestone **v32.5 Flexible Add/Remove Participant** — add & remove peserta assessment live (Monitoring Detail, AJAX+SignalR), kapan saja (batch belum-progres maupun InProgress). Hapus **hybrid by-state** (belum-mulai→hard-delete; ada-data→soft-remove+arsip). Soft-remove via 3 kolom `RemovedAt/RemovedBy/RemovalReason`, **migration=TRUE** (Phase 409 `AddParticipantRemovalColumns`; 410-413 = migration=FALSE). RBAC Admin+HC penuh. Branch main. Design spec `docs/superpowers/specs/2026-06-19-flexible-add-remove-participant-design.md`.
 
