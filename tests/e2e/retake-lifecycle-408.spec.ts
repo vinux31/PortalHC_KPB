@@ -140,6 +140,11 @@ test.describe('Phase 408 — Lifecycle Ujian Ulang (UAT e2e gagal → ulang → 
     await expect(page.locator('#answeredProgress')).toContainText(`${qCount}/${qCount}`);
     expect(errors, `pageerror saat jawab soal: ${errors.join(' | ')}`).toEqual([]);
 
+    // Pastikan auto-save jawaban (AJAX per-klik) sudah commit ke DB SEBELUM submit —
+    // GradingService grade dari DB (bukan form). Tanpa flush, submit bisa balapan dgn auto-save → skor 0.
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1500);
+
     // ── (f) Submit 2-step (ExamSummary → Kumpulkan → Results) ──
     await submitExamTwoStep(page);
     await page.waitForLoadState('networkidle');
