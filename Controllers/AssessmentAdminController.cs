@@ -6253,6 +6253,152 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManagePackages", new { assessmentId });
         }
 
+        #region Section Management per Package (Phase 415 SEC-01/02/03)
+
+        // Audit warn-only helper untuk Section CRUD — pola UpdateShuffleSettings :6238-6250 (kill-drift).
+        private async Task LogSectionAuditAsync(string actionType, string description, int entityId)
+        {
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorNameStr = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+                await _auditLog.LogAsync(hcUser?.Id ?? "", actorNameStr, actionType, description, entityId, "AssessmentPackageSection");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for {ActionType} (entityId={Id})", actionType, entityId); }
+        }
+
+        // SEC-01: buat Section baru per-paket. Pre-check duplikat (packageId, sectionNumber)
+        // sebelum bergantung ke DbUpdateException (Phase 404 lesson — unique index non-filtered).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSection(int packageId, int sectionNumber, string? name, bool startNewPage, bool shuffleEnabled)
+        {
+            var pkg = await _context.AssessmentPackages.FirstOrDefaultAsync(p => p.Id == packageId);
+            if (pkg == null) return NotFound();
+
+            bool dup = await _context.AssessmentPackageSections
+                .AnyAsync(s => s.AssessmentPackageId == packageId && s.SectionNumber == sectionNumber);
+            if (dup)
+            {
+                TempData["Error"] = $"No. Section {sectionNumber} sudah ada di paket ini.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            var section = new AssessmentPackageSection
+            {
+                AssessmentPackageId = packageId,
+                SectionNumber = sectionNumber,
+                Name = string.IsNullOrWhiteSpace(name) ? null : name.Trim(),
+                StartNewPage = startNewPage,
+                ShuffleEnabled = shuffleEnabled
+            };
+            _context.AssessmentPackageSections.Add(section);
+            await _context.SaveChangesAsync();
+
+            await LogSectionAuditAsync("CreateSection",
+                $"Create Section No.{sectionNumber} '{section.Name ?? "(tanpa nama)"}' (StartNewPage={startNewPage}, ShuffleEnabled={shuffleEnabled}) for Package #{packageId}",
+                section.Id);
+
+            TempData["Success"] = "Section berhasil disimpan.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        // SEC-01/02: ubah Section (No.Section + Nama + toggle). IDOR-guard: section harus milik
+        // package yang sama. Pre-check duplikat bila No.Section berubah ke nomor yang dipakai section LAIN.
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSection(int sectionId, int packageId, int sectionNumber, string? name, bool startNewPage, bool shuffleEnabled)
+        {
+            var section = await _context.AssessmentPackageSections.FirstOrDefaultAsync(s => s.Id == sectionId);
+            if (section == null) return NotFound();
+
+            // IDOR guard (T-415-08): section milik package lain → tolak.
+            if (section.AssessmentPackageId != packageId)
+            {
+                TempData["Error"] = "Section tidak ditemukan pada paket ini.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            if (section.SectionNumber != sectionNumber)
+            {
+                bool dup = await _context.AssessmentPackageSections
+                    .AnyAsync(s => s.AssessmentPackageId == packageId && s.SectionNumber == sectionNumber && s.Id != sectionId);
+                if (dup)
+                {
+                    TempData["Error"] = $"No. Section {sectionNumber} sudah ada di paket ini.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
+            }
+
+            section.SectionNumber = sectionNumber;
+            section.Name = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+            section.StartNewPage = startNewPage;
+            section.ShuffleEnabled = shuffleEnabled;
+            await _context.SaveChangesAsync();
+
+            await LogSectionAuditAsync("EditSection",
+                $"Edit Section #{sectionId} → No.{sectionNumber} '{section.Name ?? "(tanpa nama)"}' (StartNewPage={startNewPage}, ShuffleEnabled={shuffleEnabled}) for Package #{packageId}",
+                section.Id);
+
+            TempData["Success"] = "Section berhasil disimpan.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        // SEC-01: hapus Section. FK Question→Section = SetNull (Plan 01) men-set SectionId soal
+        // jadi NULL otomatis (soal jadi "Lainnya", TIDAK terhapus) — NO manual loop.
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteSection(int sectionId, int packageId)
+        {
+            var section = await _context.AssessmentPackageSections.FirstOrDefaultAsync(s => s.Id == sectionId);
+            if (section == null) return NotFound();
+
+            // IDOR guard (T-415-08): section milik package lain → tolak.
+            if (section.AssessmentPackageId != packageId)
+            {
+                TempData["Error"] = "Section tidak ditemukan pada paket ini.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            _context.AssessmentPackageSections.Remove(section);
+            await _context.SaveChangesAsync();   // FK SetNull men-NULL-kan SectionId soal otomatis.
+
+            await LogSectionAuditAsync("DeleteSection",
+                $"Delete Section #{sectionId} No.{section.SectionNumber} from Package #{packageId} (soal di dalamnya jadi Lainnya)",
+                sectionId);
+
+            TempData["Success"] = "Section dihapus. Soal di dalamnya menjadi 'Lainnya'.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        // SEC-02: tombol cepat — set StartNewPage=true untuk SEMUA Section di paket (non-destruktif, no confirm).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetAllSectionsNewPage(int packageId)
+        {
+            var sections = await _context.AssessmentPackageSections
+                .Where(s => s.AssessmentPackageId == packageId)
+                .ToListAsync();
+            foreach (var s in sections)
+            {
+                s.StartNewPage = true;
+            }
+            await _context.SaveChangesAsync();
+
+            await LogSectionAuditAsync("SetAllSectionsNewPage",
+                $"Set StartNewPage=true for ALL {sections.Count} Section(s) in Package #{packageId}",
+                packageId);
+
+            TempData["Success"] = "Semua Section disetel mulai halaman baru.";
+            return RedirectToAction("ManagePackageQuestions", new { packageId });
+        }
+
+        #endregion
+
         // Phase 373: the local Shuffle + cross-package distribution helpers moved to
         // Helpers/ShuffleEngine.cs (single source of truth — the canonical CMPController algorithm).
         // Both reshuffle endpoints now delegate to the shared ShuffleEngine core.
@@ -7128,11 +7274,20 @@ namespace HcPortal.Controllers
             var assessment = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
             if (assessment == null) return NotFound();
 
+            // Phase 415 SEC-01/02/05: Section panel + grouped list source. Order by SectionNumber
+            // (tampilan; grup "Lainnya"/SectionId=null dirender terakhir oleh view). Questions sudah
+            // carry SectionId (kolom skalar) — view mengelompokkan dari SectionId.
+            var sections = await _context.AssessmentPackageSections
+                .Where(s => s.AssessmentPackageId == packageId)
+                .OrderBy(s => s.SectionNumber)
+                .ToListAsync();
+
             ViewBag.PackageId = packageId;
             ViewBag.PackageName = pkg.PackageName;
             ViewBag.AssessmentId = pkg.AssessmentSessionId;
             ViewBag.AssessmentTitle = assessment.Title;
             ViewBag.Questions = pkg.Questions.OrderBy(q => q.Order).ToList();
+            ViewBag.Sections = sections;
             return View();
         }
 
@@ -7155,7 +7310,8 @@ namespace HcPortal.Controllers
             bool correctA, bool correctB, bool correctC, bool correctD,
             IFormFile? questionImage, string? questionImageAlt,
             IFormFile? optionAImage, IFormFile? optionBImage, IFormFile? optionCImage, IFormFile? optionDImage,
-            string? optionAImageAlt, string? optionBImageAlt, string? optionCImageAlt, string? optionDImageAlt)
+            string? optionAImageAlt, string? optionBImageAlt, string? optionCImageAlt, string? optionDImageAlt,
+            int? sectionId = null)
         {
             // Validate QuestionType whitelist (T-298-01)
             var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
@@ -7180,6 +7336,18 @@ namespace HcPortal.Controllers
                 .Include(p => p.Questions)
                 .FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
+
+            // Phase 415 SEC-03: validasi Section milik paket ini (IDOR guard T-415-08). null = "Lainnya".
+            if (sectionId.HasValue)
+            {
+                bool sectionOk = await _context.AssessmentPackageSections
+                    .AnyAsync(s => s.Id == sectionId.Value && s.AssessmentPackageId == packageId);
+                if (!sectionOk)
+                {
+                    TempData["Error"] = "Section yang dipilih tidak valid untuk paket ini.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
+            }
 
             // Range validation 1-100 (D-12, D-13) - replaces force-override removed per D-14 (Phase 306)
             if (scoreValue < 1 || scoreValue > 100)
@@ -7234,7 +7402,8 @@ namespace HcPortal.Controllers
                 Rubrik = questionType == "Essay" ? rubrik?.Trim() : null,
                 MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000,
                 ImagePath = qImgUrl,
-                ImageAlt = TruncateAlt(questionImageAlt, 255)
+                ImageAlt = TruncateAlt(questionImageAlt, 255),
+                SectionId = sectionId   // Phase 415 SEC-03 (null = grup "Lainnya")
             };
 
             if (questionType != "Essay")
@@ -7340,6 +7509,7 @@ namespace HcPortal.Controllers
                     elemenTeknis = q.ElemenTeknis,
                     rubrik = q.Rubrik,
                     maxCharacters = q.MaxCharacters,
+                    sectionId = q.SectionId,   // Phase 415 SEC-03: prefill dropdown Section saat edit
                     imagePath = q.ImagePath,   // D-06 / IMG-07: prefill thumbnail soal
                     imageAlt = q.ImageAlt,
                     options = q.Options.OrderBy(o => o.Id).Select(o => new
@@ -7374,7 +7544,8 @@ namespace HcPortal.Controllers
             IFormFile? questionImage, string? questionImageAlt, bool removeQuestionImage,
             IFormFile? optionAImage, IFormFile? optionBImage, IFormFile? optionCImage, IFormFile? optionDImage,
             string? optionAImageAlt, string? optionBImageAlt, string? optionCImageAlt, string? optionDImageAlt,
-            bool removeOptionAImage, bool removeOptionBImage, bool removeOptionCImage, bool removeOptionDImage)
+            bool removeOptionAImage, bool removeOptionBImage, bool removeOptionCImage, bool removeOptionDImage,
+            int? sectionId = null)
         {
             // Validate QuestionType whitelist (T-298-01)
             var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
@@ -7391,6 +7562,18 @@ namespace HcPortal.Controllers
                 if (!okImg)
                 {
                     TempData["Error"] = errImg ?? "File harus berupa gambar JPG atau PNG.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
+            }
+
+            // Phase 415 SEC-03: validasi Section milik paket ini (IDOR guard T-415-08). null = "Lainnya".
+            if (sectionId.HasValue)
+            {
+                bool sectionOk = await _context.AssessmentPackageSections
+                    .AnyAsync(s => s.Id == sectionId.Value && s.AssessmentPackageId == packageId);
+                if (!sectionOk)
+                {
+                    TempData["Error"] = "Section yang dipilih tidak valid untuk paket ini.";
                     return RedirectToAction("ManagePackageQuestions", new { packageId });
                 }
             }
@@ -7446,6 +7629,7 @@ namespace HcPortal.Controllers
             q.ElemenTeknis = string.IsNullOrWhiteSpace(elemenTeknis) ? null : elemenTeknis.Trim();
             q.Rubrik = questionType == "Essay" ? rubrik?.Trim() : null;
             q.MaxCharacters = questionType == "Essay" ? (maxCharacters > 0 ? maxCharacters : 2000) : 2000;
+            q.SectionId = sectionId;   // Phase 415 SEC-03 (null = grup "Lainnya")
 
             // SYN-02 / D-10: kumpul path gambar lama yang harus dihapus fisik SETELAH auto-sync + ref-count.
             var imagePathsToDelete = new List<string>();
