@@ -1,10 +1,11 @@
 ---
 phase: 408
 slug: test-uat
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-22
+validated: 2026-06-22
 ---
 
 # Phase 408 — Validation Strategy
@@ -77,6 +78,22 @@ created: 2026-06-22
 - [ ] Wave 0 covers GAP-1 (retake→cert) + GAP-3 (lifecycle e2e) + secure gate
 - [ ] Lifecycle e2e verified live @5270 (real-browser, lesson 354/413)
 - [ ] No watch-mode flags
-- [ ] `nyquist_compliant: true` set after execution
+- [x] `nyquist_compliant: true` set after execution
 
-**Approval:** pending
+**Approval:** APPROVED 2026-06-22
+
+---
+
+## Validation Audit 2026-06-22
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 1 (e2e lifecycle fixture-bug) |
+| Resolved | 1 |
+| Escalated | 0 |
+
+Wave-0 gaps semua tertutup + hijau:
+- **GAP-1** `RetakeThenPassCertTests` (retake→1 cert) — green (Integration real-SQL).
+- **GAP-3** `retake-lifecycle-408.spec.ts` — green @5270 (LULUS 100% + cert). Awalnya RED → menyingkap fixture-bug seed (`QuestionType='SingleAnswer'` invalid → grade skip→0%); fixed → `MultipleChoice`. Produk terbukti benar.
+- **GAP-secure** — `gsd-secure-phase 408` SECURED 13/13 threats_open:0.
+- Regresi: full xUnit **614/0/2** + e2e **19/19** (lifecycle + 407×6 + 406×11). NYQUIST-COMPLIANT.
