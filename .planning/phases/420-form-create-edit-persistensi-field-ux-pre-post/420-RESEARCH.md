@@ -394,21 +394,26 @@ foreach (var s in allGroupSessions)
 | A3 | Mode Standard EditAssessment tidak punya field Pre-Post yang perlu di-strip (Edit tak punya pemilih tipe — tipe sudah fixed dari Create). | L-5 scope | LOW — Edit tidak mengubah AssessmentType; D-04 strip-payload terutama relevan di CreateAssessment. Edit Pre-Post pakai tab jadwal yang sudah memisah Pre/Post. |
 | A4 | Bootstrap checkbox `asp-for` di Edit akan mengisi `checked` dari `Model.ShuffleQuestions` (state tersimpan), bukan default true. | FORM-01 | LOW — `asp-for` standar mengikat ke nilai model. Sesi existing punya nilai tersimpan; `View(assessment)` `:1801` mengirim entity. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **FORM-05 presisi: group-aware vs anchor-only?**
+> Ketiga pertanyaan di bawah sudah DIPUTUSKAN saat planning (2026-06-22) dan tercermin di plan 420-01..03. Dipertahankan sebagai jejak keputusan.
+
+1. **FORM-05 presisi: group-aware vs anchor-only?** **(RESOLVED — group-aware penuh)**
    - What we know: CONTEXT D-04 = "group-aware default"; audit E-04 = "idealnya group-wide".
    - What's unclear: Apakah memblokir SELURUH metadata grup bila SATU sesi Completed, atau hanya field tertentu?
    - Recommendation: Default group-aware penuh (blokir bila ada sesi Completed di grup). Planner konfirmasi; aman karena Edit metadata pasca-Completed = data-integrity risk.
+   - **Keputusan final:** GROUP-AWARE PENUH. Plan 420-02 Task 1 memblokir POST Edit bila `AnyAsync(a => a.LinkedGroupId == assessment.LinkedGroupId && a.Status == "Completed")` (blokir seluruh metadata grup bila ADA satu sesi Completed), guard diangkat SEBELUM cabang Pre-Post (`:1821`). Threat T-420-lock.
 
-2. **Apakah PassPercentage perlu disembunyikan untuk Pre, atau cukup direlabel?**
+2. **Apakah PassPercentage perlu disembunyikan untuk Pre, atau cukup direlabel?** **(RESOLVED — relabel + tetap simpan di Pre)**
    - What we know: D-03 = "PassPercentage untuk Post; Pre = baseline murni". UI-SPEC L-3 = label "Nilai Lulus Post-Test".
    - What's unclear: Pre session tetap menyimpan PassPercentage (untuk konsistensi grup) atau di-null?
    - Recommendation: Simpan PassPercentage di Pre (grup konsisten) tapi label jelas "Post-Test"; Pre tak menampilkan ambang. Tidak ubah perilaku grading (itu fase 424).
+   - **Keputusan final:** RELABEL, PRE TETAP SIMPAN. Plan 420-03 Task 2 me-relabel PassPercentage di sub-kartu Post jadi "Nilai Lulus Post-Test (%)"; PassPercentage tetap disimpan di Pre untuk konsistensi grup (perilaku grading TIDAK diubah — itu fase 424).
 
-3. **Rename `id="assessmentTypeInput"` (JS) — ikut rename atau biarkan?**
+3. **Rename `id="assessmentTypeInput"` (JS) — ikut rename atau biarkan?** **(RESOLVED — rename keduanya id+name+param)**
    - What we know: FORM-10 fokus `name=`/param (binding). `id` dipakai 8 JS `getElementById`.
    - Recommendation: Untuk kebersihan, rename `id` + `name` + param konsisten ke `CreationMode`. Tapi minimal-viable = rename `name=` + param saja (binding); `id` boleh tetap bila risiko-averse. Planner pilih.
+   - **Keputusan final:** RENAME KEDUANYA (kebersihan). Plan 420-03 Task 1 me-rename `name=` + param controller + `id` (`assessmentTypeInput` → `creationMode`) + 8 ref JS `getElementById('creationMode')` + key `ModelState.AddModelError("CreationMode")` secara ATOMIK; kolom DB `AssessmentType` TIDAK tersentuh.
 
 ## Environment Availability
 
