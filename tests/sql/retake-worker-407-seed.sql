@@ -119,10 +119,13 @@ OUTPUT inserted.Id INTO @qA2
 VALUES (@pkgidA, '[RETAKE407] Soal A2: produk utama?', 2, 50, 'SingleAnswer', 0);
 DECLARE @qidA2 INT = (SELECT TOP 1 Id FROM @qA2);
 
--- Options — teks opsi-benar UNIK supaya spec bisa assert ABSEN di DOM ShowWrongFlagsOnly (leak-safety).
+-- Options — sentinel "KUNCIBENAR_*" HANYA untuk kunci yang WAJIB DISEMBUNYIKAN (= jawaban benar
+-- dari soal yang DIJAWAB SALAH worker). Soal A1 dijawab BENAR oleh worker, jadi opsi-benarnya = jawaban
+-- worker sendiri yang WAJIB ditampilkan (D-03 "Jawaban Anda") → pakai nama netral "JAWABANKU_*" (BUKAN
+-- KUNCIBENAR), supaya assert leak `not.toContain('KUNCIBENAR')` valid (hanya A2 yang harus absen).
 DECLARE @optA1 TABLE (Id INT);
 INSERT INTO PackageOptions (PackageQuestionId, OptionText, IsCorrect)
-OUTPUT inserted.Id INTO @optA1 VALUES (@qidA1, 'KUNCIBENAR_A1_AsamHF', 1);
+OUTPUT inserted.Id INTO @optA1 VALUES (@qidA1, 'JAWABANKU_A1_AsamHF', 1);
 DECLARE @optidA1 INT = (SELECT TOP 1 Id FROM @optA1);
 INSERT INTO PackageOptions (PackageQuestionId, OptionText, IsCorrect) VALUES (@qidA1, 'PILIHANKU_A1_Air', 0);
 

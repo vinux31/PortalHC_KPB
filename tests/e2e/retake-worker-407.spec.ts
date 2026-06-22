@@ -104,11 +104,13 @@ test.describe('Phase 407 — Worker Self-Service Retake (UAT e2e leak-safety + c
     await expect(page.locator('.badge', { hasText: 'Salah' }).first()).toBeVisible();
     await expect(page.getByText('Jawaban Anda:').first()).toBeVisible();
 
-    // LEAK-SAFE (KRITIS): DOM TIDAK boleh mengandung kunci jawaban.
     const bodyHtml = await page.content();
+    // POSITIF: jawaban worker SENDIRI WAJIB tampil (D-03). Soal A1 dijawab benar → "JAWABANKU_A1" (bukan kunci, jawaban dia).
+    expect(bodyHtml, 'jawaban worker sendiri (A1 benar) tampil').toContain('JAWABANKU_A1_AsamHF');
+    // LEAK-SAFE (KRITIS): kunci jawaban dari soal yang DIJAWAB SALAH (A2) WAJIB DISEMBUNYIKAN.
+    // Sentinel "KUNCIBENAR_*" hanya dipakai untuk kunci-yang-harus-hidden (A2). Tak boleh muncul di DOM.
     expect(bodyHtml, 'tidak ada label "(Jawaban Benar)"').not.toContain('(Jawaban Benar)');
-    expect(bodyHtml, 'tidak ada teks opsi-kunci KUNCIBENAR_A1').not.toContain('KUNCIBENAR_A1');
-    expect(bodyHtml, 'tidak ada teks opsi-kunci KUNCIBENAR_A2').not.toContain('KUNCIBENAR_A2');
+    expect(bodyHtml, 'kunci A2 (soal dijawab salah) TIDAK boleh bocor').not.toContain('KUNCIBENAR');
     await expect(page.locator('.list-group-item-success')).toHaveCount(0);
 
     // No uncaught JS error saat load (lesson 413).
