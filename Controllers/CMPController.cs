@@ -2225,6 +2225,11 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Assessment");
             }
 
+            // Phase 414 (D-02/D-03): hitung sekali, pakai dua kali (gate build + VM flag).
+            // user EFEKTIF dari GetCurrentUserRoleLevelAsync (impersonation-aware) — JANGAN _userManager.GetUserAsync(User) lagi (Pitfall 4).
+            bool isOwner = assessment.UserId == user.Id;
+            bool canReviewAnswers = CanReviewAnswers(assessment.AllowAnswerReview, isOwner);
+
             // Build ViewModel
             var correctCount = 0;
             List<QuestionReviewItem>? questionReviews = null;
@@ -2263,7 +2268,7 @@ namespace HcPortal.Controllers
                     ? shuffledQuestionIds.Where(qid => questionLookup.ContainsKey(qid)).ToList()
                     : packageQuestions.Select(q => q.Id).ToList();
 
-                if (assessment.AllowAnswerReview)
+                if (canReviewAnswers)
                 {
                     questionReviews = new List<QuestionReviewItem>();
                     int questionNum = 0;
@@ -2377,6 +2382,7 @@ namespace HcPortal.Controllers
                     PassPercentage = passPercentage,
                     IsPassed = score >= passPercentage,
                     AllowAnswerReview = assessment.AllowAnswerReview,
+                    CanReviewAnswers = canReviewAnswers,
                     GenerateCertificate = assessment.GenerateCertificate,
                     CompletedAt = assessment.CompletedAt,
                     TotalQuestions = orderedQuestionIds.Count,
@@ -2401,6 +2407,7 @@ namespace HcPortal.Controllers
                     PassPercentage = passPercentage,
                     IsPassed = score >= passPercentage,
                     AllowAnswerReview = false,
+                    CanReviewAnswers = false,
                     GenerateCertificate = assessment.GenerateCertificate,
                     CompletedAt = assessment.CompletedAt,
                     TotalQuestions = 0,
@@ -2538,6 +2545,11 @@ namespace HcPortal.Controllers
         // Soft-remove TIDAK mengubah Status (spec §B2) → deteksi WAJIB eksplisit via RemovedAt, BUKAN Status.
         // Seam testable (pola IsResultsAuthorized): guard inline StartExam/SubmitExam memanggil helper ini.
         public static bool IsParticipantRemoved(AssessmentSession session) => session.RemovedAt != null;
+
+        // Phase 414 (D-02/D-03): keputusan "boleh lihat tinjauan jawaban per-soal".
+        // Non-owner SELALU true (sudah lolos IsResultsAuthorized = Admin/HC/L3/L4-section); owner ikut toggle.
+        // Pure static (pola IsResultsAuthorized/IsParticipantRemoved) → unit-testable tanpa DB/WebApplicationFactory.
+        public static bool CanReviewAnswers(bool allowAnswerReview, bool isOwner) => allowAnswerReview || !isOwner;
 
         /// <summary>
         /// Generate cryptographically secure random token
