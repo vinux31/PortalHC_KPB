@@ -14,8 +14,8 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 - [x] **FORM-02**: Setelan Ujian Ulang (AllowRetake/MaxAttempts/RetakeCooldownHours) yang diisi di form Create tersimpan ke sesi yang dibuat (tidak jatuh ke default). [FLD-5.2-08/RTK-LOGIC-04]
 - [x] **FORM-03**: Setelan Ujian Ulang yang diubah di form Edit benar-benar tersimpan (bukan no-op). [E-03]
 - [x] **FORM-04**: Tanggal kadaluarsa sertifikat (ValidUntil) yang diubah di form Edit tersimpan di jalur standard. [E-05]
-- [ ] **FORM-05**: Assessment Pre/Post yang sudah Completed terkunci dari perubahan metadata via form Edit. [E-04]
-- [ ] **FORM-06**: Membuka Edit untuk sesi entry-manual mengarahkan ke form edit manual (bukan form online). [E-08, E-07]
+- [x] **FORM-05**: Assessment Pre/Post yang sudah Completed terkunci dari perubahan metadata via form Edit. [E-04]
+- [x] **FORM-06**: Membuka Edit untuk sesi entry-manual mengarahkan ke form edit manual (bukan form online). [E-08, E-07]
 - [ ] **FORM-07**: Di form Create mode Pre-Post, opsi "Paket soal sama" (SamePackage) ditempatkan di tingkat pasangan Pre↔Post, bukan terkubur di dalam kartu Post. [FORM-PP-01]
 - [ ] **FORM-08**: Di form Create mode Pre-Post, tiap setelan ujian/sertifikat menampilkan penanda scope (berlaku Pre / Post / keduanya) atau dikelompokkan eksplisit. [FORM-PP-02]
 - [ ] **FORM-09**: Form Create mode Pre-Post tidak mengirim input jadwal/durasi/batas-waktu standard yang tersembunyi (eliminasi field duplikat ter-POST). [FORM-PP-03]
@@ -93,8 +93,8 @@ Diakui tapi ditunda dari v32.7.
 | FORM-02 | Phase 420 | Complete |
 | FORM-03 | Phase 420 | Complete |
 | FORM-04 | Phase 420 | Complete |
-| FORM-05 | Phase 420 | Pending |
-| FORM-06 | Phase 420 | Pending |
+| FORM-05 | Phase 420 | Complete |
+| FORM-06 | Phase 420 | Complete |
 | FORM-07 | Phase 420 | Pending |
 | FORM-08 | Phase 420 | Pending |
 | FORM-09 | Phase 420 | Pending |
