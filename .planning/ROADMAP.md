@@ -33,8 +33,130 @@
 - ✅ **v32.1 Perbaikan Teks & Desain** — Phases 388-390 + 390.1 (shipped local + audited PASSED + closed 2026-06-18, 7/7 REQ LBL-03 + DSN-01..06 + DSN-07 bonus; **0 migration, 0 backend** — pure UI/teks 3 surface; branch ITHandoff, NOT pushed [close bareng v32.3]) — [archive](milestones/v32.1-ROADMAP.md) — [audit](milestones/v32.1-MILESTONE-AUDIT.md)
 - ✅ **v32.3 Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial** — Phases 399-404 (shipped local + audited PASSED + closed 2026-06-21, 24/24 REQ MU-01..07/PSU-01..05,07/CXU-01..05/ORG-01,02/QA-01..04; **migration=TRUE** [UserUnits junction, Fase 399]; +INT-01 fix 404.1; branch ITHandoff, NOT pushed [close bareng v32.1]) — [archive](milestones/v32.3-ROADMAP.md) — [audit](milestones/v32.3-MILESTONE-AUDIT.md) — [spec](../docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md)
 - ✅ **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — Phases 405-408 (shipped local + audited PASSED + closed 2026-06-22, 14/14 REQ RTK-01..14; migration=TRUE [AssessmentSession retake cols + AssessmentAttemptResponseArchive, Fase 405]; branch ITHandoff, NOT pushed) — [archive](milestones/v32.4-ROADMAP.md) — [audit](milestones/v32.4-MILESTONE-AUDIT.md) — [spec](../docs/superpowers/specs/2026-06-19-attempt-retake-assessment-design.md)
+- 🚧 **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — Phases 420-425 (🚧 STARTED 2026-06-22, 42 REQ FORM/RTH/SHFX/CERT/GRDF/CLN; tutup ~60 temuan audit Pre/Post 2026-06-22, 4 HIGH; migration kemungkinan P3 [422 SamePackage toggle] & P6 [425 drop AssessmentPhase] — TBD plan-phase; branch ITHandoff; **ROADMAP active — Phase 420 next**) — [audit](../docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md) — [requirements](REQUIREMENTS.md)
 
 ## Phases
+
+<details open>
+<summary>🚧 v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test (Phases 420-425) — 🚧 STARTED 2026-06-22 (42 REQ FORM/RTH/SHFX/CERT/GRDF/CLN, tutup ~60 temuan audit, 4 HIGH) — ACTIVE</summary>
+
+**Status:** 🚧 ACTIVE 2026-06-22 — requirements defined (`REQUIREMENTS.md`, 42 REQ / 6 kategori, traceability 100%), roadmap created. Belum di-plan (`/gsd-plan-phase 420` berikutnya).
+**Sumber:** Audit `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (§Rekomendasi Milestone — STRUKTUR FINAL 6 Fase disetujui pemilik 2026-06-22). ~60 temuan distinct in-scope, 4 HIGH.
+**Requirements:** `.planning/REQUIREMENTS.md` (FORM-01..11 / RTH-01..05 / SHFX-01..07 / CERT-01..07 / GRDF-01..07 / CLN-01..05 — traceability fase 420-425).
+**Goal:** Tutup ~60 temuan audit Pre/Post-Test — integritas perilaku ujian, persistensi field form, lifecycle retake, integritas SamePackage/shuffle, konsistensi penerbitan sertifikat, dedup grading + gating Pre→Post, cleanup tech-debt. Keputusan bisnis terkonfirmasi: **(a)** Pre WAJIB selesai sebelum Post (→ GRDF-01 gating); **(b)** SamePackage fleksibel bisa diubah pasca-create (→ SHFX-02 toggle); **(c)** fasilitas soal Post=Pre sudah ada (SamePackage).
+**4 HIGH:** **E-01** (shuffle reset-OFF tiap Edit → 420) · **RTK-LOGIC-02** (cooldown lewat ExamWindow = dead-end destruktif → 421) · **SHUF-ISS-03** (sync SamePackage absen di Import → 422) · **FLOW-04** (Pre wajib Completed sebelum Post StartExam → 424).
+**Migration:** **420=FALSE, 421=FALSE, 423=FALSE, 424=FALSE; 422=KEMUNGKINAN TRUE** (toggle/kolom SamePackage editable — TBD plan-phase); **425=KEMUNGKINAN TRUE** (CLN-03 drop kolom `AssessmentPhase` — TBD plan-phase). Notify IT saat promosi (bundle dgn v32.1+v32.3+v32.4 migration=TRUE).
+**Phase numbering (PENTING):** v32.7 mulai **420** (BUKAN 409) — branch `main` sudah pakai 409-419 (v32.5=409-414, v32.6=415-419); branch ITHandoff ini mulai 420 untuk hindari integer collision saat bundle deploy. Gunakan tepat: 420, 421, 422, 423, 424, 425.
+**Urutan eksekusi (sekuensial by file-overlap):** **420 → 421 → 422 → 423 → 424 → 425.** Rasional: 420 (form) & 424 (grading/flow) sama-sama sentuh `CreateAssessment`/grading; 422 (shuffle) & 424 (grading) sentuh `StartExam` — kerjakan sekuensial untuk hindari konflik. 425 terakhir (cleanup).
+**⚠️ Koordinasi lintas-branch:** Fase 422 (SamePackage & Shuffle) OVERLAP dengan v32.6 (branch main, Section + Scoped Shuffle, fase 415-419) — perlu rekonsiliasi saat merge. Fase 420 (form Pre-Post) juga beririsan UX dengan v32.6 — catat untuk merge, JANGAN duplikasi di sini.
+
+### Phases
+
+- [ ] **Phase 420: Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11)** 🔴 — perbaiki pola "field dirender tapi tak tersimpan" + tata-letak form Pre-Post. E-01🔴 shuffle reset-OFF tiap Edit; retake bind-but-drop Create; retake no-op Edit; ValidUntil cabang std Edit; lock Completed Pre-Post; redirect manual entry; SamePackage letak tingkat-pasangan; scope-label per-setelan; eliminasi field standard dobel ter-POST; rename AssessmentTypeInput. Domain: `CreateAssessment.cshtml`/`EditAssessment.cshtml`/`AssessmentAdminController` binding. migration=FALSE.
+- [ ] **Phase 421: Retake Lifecycle Hardening (RTH-01..05)** 🔴 — hardening lifecycle ujian ulang. RTK-LOGIC-02🔴 cooldown lewat ExamWindow = dead-end destruktif (tolak retake, sesi tak dihapus); reset HC hapus NomorSertifikat; counting attempt konsisten cap vs warning; guard hapus peserta Abandoned/ber-riwayat + bersihkan arsip; warning MaxAttempts retroaktif. Domain: `RetakeService`/`RetakeRules`/`CMPController.RetakeExam`. migration=FALSE.
+- [ ] **Phase 422: SamePackage & Shuffle Integrity (SHFX-01..07)** 🔴 — integritas SamePackage + shuffle. SHUF-ISS-03🔴 sync absen di Import; toggle SamePackage editable pasca-create (keputusan bisnis b); lock server-side; peserta baru warisi SamePackage; PackageNumber renumber deterministik; kunci sibling type-aware; peringatan shuffle lengkap (ON+SamePackage, K=min, mismatch satu sumber). Domain: `ManagePackages`/`ShuffleEngine`/sync paket Pre→Post. **migration=KEMUNGKINAN TRUE** (toggle/kolom SamePackage editable — TBD plan-phase). ⚠️ OVERLAP v32.6 (main, Scoped Shuffle) — rekonsiliasi saat merge.
+- [ ] **Phase 423: Certificate Issuance Consistency (CERT-01..07)** — konsolidasi aturan terbit cert ke satu helper `ShouldIssueCertificate` + kelengkapan data. Helper bersama tolak Pre-Test semua jalur; ValidUntil wajib saat issue non-Pre; seq atomik anti-race; namespace manual vs auto dipisah; anti double-cert tak bisa di-bypass; CertificateType×ValidUntil konsisten; PendingGrading tampil umur (tanpa auto-finalize). Domain: `GradingService`/`CertNumberHelper`/`ShouldIssueCertificate`. migration=FALSE.
+- [ ] **Phase 424: Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..07)** 🔴 — hapus duplikasi scoring + integritas linking + gate Pre-wajib-dulu. FLOW-04🔴 Post StartExam butuh Pre Completed (keputusan bisnis a); scoring per-soal satu fungsi murni + dedupe konsisten; pairing satu sumber kebenaran per-peserta; Standard tak dapat link semu; ElapsedSeconds hitung ExtraTime; manajemen peserta simetris Standard/Pre-Post; essay kosong ditolak server-side. Domain: `GradingService`/`AssessmentScoreAggregator`/`SiblingSessionQuery`/`CMPController.StartExam`. migration=FALSE.
+- [ ] **Phase 425: Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05)** — batch low-risk naming/redundancy/dead-field/dokumentasi. Label & doc diselaraskan; entry manual Schedule/CompletedAt + cross-validate IsPassed; drop dead-field AssessmentPhase (atau RESERVED); tech-debt timing (timer satu sumber, token server-authoritative, write-on-GET diamankan); konvensi ModelState. **migration=KEMUNGKINAN TRUE** (CLN-03 drop kolom `AssessmentPhase` — TBD plan-phase).
+
+### Phase Details
+
+### Phase 420: Form Create/Edit — Persistensi Field + UX Pre-Post
+**Goal:** HC dapat membuat & mengedit assessment (Standard maupun Pre-Post) lewat form, dengan SEMUA setelan yang diisi benar-benar tersimpan (shuffle, ujian ulang, ValidUntil), sesi Completed terlindung dari perubahan, entry-manual mengarah ke form yang benar, dan tata-letak Pre-Post jelas scope-nya tanpa field duplikat tersembunyi.
+**Depends on:** Tidak ada (fase pertama milestone; perbaikan persistensi field jadi fondasi yang dipakai/diandalkan fase grading & retake berikutnya).
+**Migration:** false (binding form + view + controller; tidak ada schema/write DB baru).
+**Requirements:** FORM-01, FORM-02, FORM-03, FORM-04, FORM-05, FORM-06, FORM-07, FORM-08, FORM-09, FORM-10, FORM-11
+**Success Criteria** (what must be TRUE):
+  1. HC mengedit assessment lalu menyimpan → membuka ulang → "Acak Soal" & "Acak Pilihan" tetap ON sesuai nilai tersimpan (tidak ter-reset OFF). *(FORM-01, E-01 🔴)*
+  2. Setelan Ujian Ulang (AllowRetake/MaxAttempts/RetakeCooldownHours) yang diisi di Create tersimpan ke sesi yang dibuat, dan yang diubah di Edit benar-benar tersimpan (bukan jatuh ke default / bukan no-op). *(FORM-02, FORM-03)*
+  3. Tanggal kadaluarsa sertifikat (ValidUntil) yang diubah di Edit tersimpan di jalur standard; assessment Pre/Post yang sudah Completed terkunci dari perubahan metadata via Edit. *(FORM-04, FORM-05)*
+  4. Membuka Edit untuk sesi entry-manual mengarahkan HC ke form edit manual (bukan form online). *(FORM-06)*
+  5. Di form Create mode Pre-Post: opsi "Paket soal sama" (SamePackage) berada di tingkat pasangan Pre↔Post (bukan terkubur di kartu Post); tiap setelan ujian/sertifikat menampilkan penanda scope (Pre/Post/keduanya); tidak ada input jadwal/durasi/batas-waktu standard tersembunyi yang ikut ter-POST; penamaan tipe assessment konsisten dengan kolom DB AssessmentType; baris Status/PassPercentage rapi & token jelas scope-nya. *(FORM-07, FORM-08, FORM-09, FORM-10, FORM-11)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 421: Retake Lifecycle Hardening
+**Goal:** Lifecycle ujian ulang konsisten & non-destruktif — retake yang tak mungkin berhasil ditolak tanpa menghancurkan sesi live, reset HC tidak meninggalkan nomor sertifikat menggantung, penghitungan percobaan konsisten antar permukaan, dan penghapusan peserta ber-riwayat percobaan ditangani aman.
+**Depends on:** Phase 420 (form persistensi setelan retake sudah benar; lifecycle retake dibangun di atas konfigurasi yang tersimpan utuh).
+**Migration:** false (logic service/rules + guard; tidak ada schema/write DB baru).
+**Requirements:** RTH-01, RTH-02, RTH-03, RTH-04, RTH-05
+**Success Criteria** (what must be TRUE):
+  1. Ujian ulang ditolak bila `ExamWindowCloseDate` sudah lewat — sesi live TIDAK dihapus (tidak ada dead-end destruktif: worker tidak kehilangan sesi lalu diblok masuk). *(RTH-01, RTK-LOGIC-02 🔴)*
+  2. Reset assessment oleh HC menghapus `NomorSertifikat` sehingga sesi non-lulus tidak menyandang nomor sertifikat menggantung. *(RTH-02)*
+  3. Penghitungan jumlah percobaan konsisten antara batas (cap) dan peringatan di ManagePackages (satu sumber counting). *(RTH-03)*
+  4. Guard hapus peserta menolak/menangani sesi Abandoned atau ber-riwayat percobaan, dan membersihkan arsip respons terkait; mengubah MaxAttempts di bawah jumlah percobaan terpakai memunculkan peringatan non-blocking. *(RTH-04, RTH-05)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 422: SamePackage & Shuffle Integrity
+**Goal:** Integritas paket "soal sama" (SamePackage) terjaga di semua jalur — sinkronisasi Pre→Post terpasang termasuk di Import, HC bisa mengubah setelan SamePackage pasca-create dengan aman, lock ditegakkan di server (bukan hanya tampilan), peserta baru mewarisi setelan, penomoran paket deterministik, dan peringatan shuffle lengkap dari satu sumber.
+**Depends on:** Phase 421 (sekuensial — menghindari konflik file area paket/shuffle dengan fase sebelumnya).
+**Migration:** **KEMUNGKINAN TRUE — TBD plan-phase** (toggle/kolom SamePackage editable bisa butuh schema baru). Pastikan saat `/gsd-plan-phase 422`.
+**Requirements:** SHFX-01, SHFX-02, SHFX-03, SHFX-04, SHFX-05, SHFX-06, SHFX-07
+**Success Criteria** (what must be TRUE):
+  1. Mengimpor soal via Excel ke paket Pre yang ber-SamePackage memicu sinkronisasi otomatis ke Post (parity dengan jalur form). *(SHFX-01, SHUF-ISS-03 🔴)*
+  2. HC dapat mengubah setelan SamePackage setelah grup Pre-Post dibuat — sinkron/unsync paket dengan guard sebelum peserta mulai; peserta baru yang ditambahkan ke grup mewarisi setelan SamePackage. *(SHFX-02, SHFX-04)*
+  3. Endpoint POST kelola paket/soal menolak edit pada Post yang terkunci SamePackage (lock server-side, bukan hanya tampilan). *(SHFX-03)*
+  4. Penomoran paket (PackageNumber) tetap unik & terurut deterministik setelah hapus paket; kunci pasangan Pre/Post untuk lock & simpan setelan shuffle konsisten type-aware (selaras StartExam/Reshuffle). *(SHFX-05, SHFX-06)*
+  5. Peringatan shuffle lengkap & dari satu sumber — SamePackage+Acak ON diperingatkan, pemangkasan K=min diberitahu, hitung mismatch dari satu sumber kebenaran (bukan dua). *(SHFX-07)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 423: Certificate Issuance Consistency
+**Goal:** Penerbitan sertifikat konsisten & aman lewat satu helper bersama — Pre-Test tak pernah terbit cert di jalur grading mana pun, ValidUntil terjamin saat issue, nomor urut atomik tanpa race, penomoran manual vs auto tak bentrok, anti double-cert tak bisa di-bypass, dan sesi pending tampil umurnya.
+**Depends on:** Phase 422 (sekuensial — penerbitan cert mengandalkan integritas paket/grup yang sudah dirapikan).
+**Migration:** false (refactor helper + guard penerbitan; tidak ada schema/write DB baru).
+**Requirements:** CERT-01, CERT-02, CERT-03, CERT-04, CERT-05, CERT-06, CERT-07
+**Success Criteria** (what must be TRUE):
+  1. Penerbitan sertifikat memakai satu helper bersama (`ShouldIssueCertificate`) yang konsisten menolak Pre-Test di SEMUA jalur grading-time. *(CERT-01, CERT-05/FLD-5.2-10)*
+  2. Saat sertifikat diaktifkan untuk sesi non-Pre, ValidUntil wajib diisi/ditangani eksplisit; "Permanent" menolak ValidUntil dan "Annual"/"3-Year" menurunkan ValidUntil. *(CERT-02, CERT-06)*
+  3. Nomor urut sertifikat dihasilkan atomik tanpa race (tidak gagal terbit saat finalize bersamaan/burst); penomoran manual vs auto-generate tak bentrok (kolisi → pesan error ramah, namespace dipisah). *(CERT-03, CERT-04)*
+  4. Guard server-side mencegah dua sertifikat aktif untuk (peserta, judul) yang sama dan tidak bisa di-bypass via ConfirmDuplicateTitle. *(CERT-05)*
+  5. Sesi "Menunggu Penilaian" menampilkan umur/penanda agar tidak menggantung tanpa finalize HC (tanpa auto-finalize). *(CERT-07)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 424: Grading De-dup + Flow/Linking + Gating Pre→Post
+**Goal:** Logika grading bebas duplikasi, alur Pre/Post terhubung dari satu sumber kebenaran, dan keputusan bisnis ditegakkan — peserta WAJIB menyelesaikan Pre-Test sebelum boleh memulai Post-Test, scoring per-soal memakai satu fungsi murni, pairing terfilter per-peserta, dan validasi essay ditegakkan di server.
+**Depends on:** Phase 423 (sekuensial — 424 & 420 sama-sama sentuh form/grading, 424 & 422 sentuh StartExam; dikerjakan setelah area cert rapi untuk hindari konflik).
+**Migration:** false (refactor scoring/pairing + gate StartExam + validasi server; tidak ada schema/write DB baru).
+**Requirements:** GRDF-01, GRDF-02, GRDF-03, GRDF-04, GRDF-05, GRDF-06, GRDF-07
+**Success Criteria** (what must be TRUE):
+  1. Peserta tidak dapat memulai (StartExam) Post-Test sebelum Pre-Test pasangannya berstatus Completed (gate pelaksanaan, bukan hanya validasi jadwal). *(GRDF-01, FLOW-04 🔴, keputusan bisnis a)*
+  2. Logika penilaian per-soal (MC/MA/Essay) memakai satu fungsi murni bersama dengan strategi dedupe konsisten di semua jalur; submit on-time menolak essay kosong di sisi server. *(GRDF-02, GRDF-07)*
+  3. Pemasangan Pre/Post memakai satu sumber kebenaran (tidak tiga jalur divergen; pairing per-peserta terfilter UserId); assessment Standard tidak mendapat link Pre/Post semu dari pola judul. *(GRDF-03, GRDF-04)*
+  4. Perhitungan durasi aktif (ElapsedSeconds) memperhitungkan ExtraTimeMinutes secara konsisten; manajemen peserta simetris (hapus peserta tersedia/konsisten di Standard & Pre-Post, dedup seragam). *(GRDF-05, GRDF-06)*
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 425: Cosmetic / Naming / Tech-Debt Cleanup
+**Goal:** Bersihkan tech-debt non-fungsional yang aman di-batch terakhir — label/dokumentasi diselaraskan, entry manual divalidasi-silang, dead-field di-drop/RESERVED, timing dirapikan ke satu sumber, dan konvensi ModelState distandarkan.
+**Depends on:** Phase 424 (fase terakhir — cleanup setelah semua perbaikan fungsional selesai; minim risiko regresi).
+**Migration:** **KEMUNGKINAN TRUE — TBD plan-phase** (CLN-03 drop kolom `AssessmentPhase`). Pastikan saat `/gsd-plan-phase 425`.
+**Requirements:** CLN-01, CLN-02, CLN-03, CLN-04, CLN-05
+**Success Criteria** (what must be TRUE):
+  1. Label & dokumentasi diselaraskan (label ValidUntil, komentar Status 7-nilai, nama field sentinel AssessmentPackageId, doc FK LinkedSessionId). *(CLN-01)*
+  2. Entry manual — Schedule/CompletedAt diselaraskan + validasi silang IsPassed vs Score/PassPercentage (peringatan, tidak auto-override). *(CLN-02)*
+  3. Kolom dead-field AssessmentPhase di-drop (migration) atau ditandai RESERVED di XML-doc. *(CLN-03)*
+  4. Tech-debt timing — timer satu sumber (helper), token via mekanisme server-authoritative, side-effect write-on-GET StartExam dipindah/diamankan; konvensi validasi ModelState dirapikan. *(CLN-04, CLN-05)*
+**Plans:** TBD
+**UI hint:** no
+
+**Active mapped: 42/42 ✓ (FORM-01..11 → 420 · RTH-01..05 → 421 · SHFX-01..07 → 422 · CERT-01..07 → 423 · GRDF-01..07 → 424 · CLN-01..05 → 425) — Orphans: 0 — Duplicates: 0 — migration=TBD Phase 422 & 425. Urutan eksekusi sekuensial 420 → 421 → 422 → 423 → 424 → 425 (by file-overlap). ⚠️ 422 (+420) overlap v32.6 main — rekonsiliasi saat merge.**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 420. Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11) | 0/TBD | Not started | - |
+| 421. Retake Lifecycle Hardening (RTH-01..05) | 0/TBD | Not started | - |
+| 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 0/TBD | Not started | - |
+| 423. Certificate Issuance Consistency (CERT-01..07) | 0/TBD | Not started | - |
+| 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..07) | 0/TBD | Not started | - |
+| 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 0/TBD | Not started | - |
+
+</details>
+
 
 <details>
 <summary>✅ v32.4 Ujian Ulang (Attempt/Retake Assessment) (Phases 405-408) — SHIPPED local + audited PASSED + closed 2026-06-22 (14/14 REQ RTK-01..14, migration=TRUE Fase 405) — <a href="milestones/v32.4-ROADMAP.md">archive</a> — <a href="milestones/v32.4-MILESTONE-AUDIT.md">audit</a></summary>

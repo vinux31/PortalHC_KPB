@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
-status: defining_requirements
-stopped_at: "Milestone v32.7 started — defining requirements (audit Pre/Post 2026-06-22, 6 fase 420-425)"
-last_updated: "2026-06-22T08:00:00.000Z"
+status: roadmap_created
+stopped_at: "Roadmap v32.7 created — 6 fase 420-425, 42 REQ mapped 100%, ROADMAP.md + STATE.md written; awaiting plan-phase 420"
+last_updated: "2026-06-22T09:00:00.000Z"
 last_activity: 2026-06-22
 progress:
   total_phases: 6
@@ -21,30 +21,32 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.7 — defining requirements (audit Pre/Post, 6 fase 420-425)
+**Current focus:** v32.7 — roadmap created (6 fase 420-425, 42 REQ); next `/gsd-plan-phase 420`
 
 ## Current Position
 
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
-Phase: Not started (defining requirements)
+Phase: Not started — **roadmap created** (6 fase 420-425, ready to plan)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-22 — Milestone v32.7 started
+Status: Roadmap created (awaiting `/gsd-plan-phase 420`)
+Last activity: 2026-06-22 — ROADMAP.md created (42/42 REQ mapped, 0 orphan/duplikat)
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
 ## Next Action
 
-**v32.7 active — milestone init in progress.** Sumber: audit `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (~60 temuan, 4 High). Struktur 6 fase disetujui:
+**v32.7 roadmap created ✅ — next `/gsd-plan-phase 420`.** Sumber: audit `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (~60 temuan, 4 High). 6 fase 420-425 (1:1 dgn kategori REQ), urutan eksekusi **sekuensial by file-overlap** 420 → 421 → 422 → 423 → 424 → 425:
 
-1. **Phase 420 (P1) FORM** — Form Create/Edit persistensi field (E-01 🔴) + UX Pre-Post.
-2. **Phase 421 (P2) RTH** — Retake lifecycle hardening (RTK-LOGIC-02 🔴).
-3. **Phase 422 (P3) SHFX** — SamePackage & Shuffle integrity (SHUF-ISS-03 🔴). ⚠️ overlap v32.6 main.
-4. **Phase 423 (P4) CERT** — Certificate issuance consistency.
-5. **Phase 424 (P5) GRDF** — Grading de-dup + Flow/Linking + Gating Pre→Post (FLOW-04 🔴).
-6. **Phase 425 (P6) CLN** — Cosmetic/Naming/Tech-Debt.
+1. **Phase 420 (P1) FORM** — Form Create/Edit persistensi field (E-01 🔴) + UX Pre-Post. FORM-01..11. migration=FALSE.
+2. **Phase 421 (P2) RTH** — Retake lifecycle hardening (RTK-LOGIC-02 🔴). RTH-01..05. migration=FALSE.
+3. **Phase 422 (P3) SHFX** — SamePackage & Shuffle integrity (SHUF-ISS-03 🔴). SHFX-01..07. **migration=KEMUNGKINAN TRUE** (toggle SamePackage). ⚠️ overlap v32.6 main — rekonsiliasi saat merge.
+4. **Phase 423 (P4) CERT** — Certificate issuance consistency. CERT-01..07. migration=FALSE.
+5. **Phase 424 (P5) GRDF** — Grading de-dup + Flow/Linking + Gating Pre→Post (FLOW-04 🔴). GRDF-01..07. migration=FALSE.
+6. **Phase 425 (P6) CLN** — Cosmetic/Naming/Tech-Debt. CLN-01..05. **migration=KEMUNGKINAN TRUE** (CLN-03 drop `AssessmentPhase`).
 
-**NEXT:** define REQUIREMENTS.md → roadmap (fase 420-425) → `/gsd-plan-phase 420`. Fase mulai 420 (main pakai 409-419: v32.5=409-414, v32.6=415-419).
+**Coverage:** 42/42 v1 REQ mapped, 0 orphan, 0 duplikat. Keputusan bisnis terkonfirmasi: (a) Pre wajib selesai dulu (GRDF-01); (b) SamePackage fleksibel (SHFX-02); (c) soal Post=Pre sudah ada (SamePackage). Inject (VAL-01) & Section/ScopedShuffle (v32.6) OUT-of-scope.
+
+**NEXT:** `/gsd-plan-phase 420`. Fase mulai 420 (main pakai 409-419: v32.5=409-414, v32.6=415-419) — hindari integer collision saat bundle deploy.
 
 **Deploy bundle (user-owned):** v32.1 + v32.3 + v32.4 (+v32.7 saat siap) → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` + Fase 405 retake cols + v32.7 migration P3/P6 TBD; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`).
 
@@ -135,8 +137,8 @@ Backlog tracked: 999.6/9/10/11/12.
 
 ## Session Continuity
 
-Last activity: 2026-06-21
+Last activity: 2026-06-22
 
-Stopped at: Completed 408-02-PLAN.md (RTK-14 GAP-3 e2e lifecycle: gagal->ulang->lulus->cert; artefak siap, Task3 live UAT = orchestrator; seed 5159e7d0 + spec 0497c18b)
+Stopped at: ROADMAP.md v32.7 created (6 fase 420-425, 42/42 REQ mapped 100%, 0 orphan/duplikat) + STATE.md updated. Belum di-plan.
 
-Next action: **Phase 406 LENGKAP 3/3 (RTK-05+RTK-08) → `/gsd-verify-work`** (verifier 406) lalu lanjut. **406-03 ✅ SHIPPED** (riwayat HC modal mount: dropdown trigger `.btn-riwayat-percobaan` Completed-gated + ONE shared `#riwayatPercobaanModal` modal-lg-scrollable + lazy-fetch JS appUrl-aware/`.textContent` title XSS-safe/innerHTML server @-encoded partial 406-01; e2e `riwayat-hc-406` 5/5 GREEN @5270 open/per-soal/current/pending/xss; seed [RIWAYAT406] SEED_WORKFLOW journal cleaned; full xUnit 604/0/2; build 0 err; migration=FALSE; commits `83054ba8`(feat)+`a4cea6b0`(test)). **406-01 ✅** (riwayat backend `RiwayatUnifier`+`RiwayatPercobaan` GET+`_RiwayatPercobaan.cshtml`) + **406-02 ✅** (retake config card+Create/Edit binding RTK-05, e2e 6/6). Sesudah verify 406 → **`/gsd-plan-phase 407`** (worker CMP `RetakeExam`/`CanRetakeAsync`/`ExecuteAsync`, paralel depends 405) → **408** (Test&UAT). App port 5270 (branch ITHandoff). NOT pushed. migration=TRUE carry 405-01 `AddRetakeColumnsAndArchive` `69db727a` (notify IT saat deploy bundle v32.4); Phase 406 migration=FALSE.
+Next action: **`/gsd-plan-phase 420`** (FORM Create/Edit persistensi field + UX Pre-Post; FORM-01..11; memuat HIGH E-01 shuffle reset-OFF). Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.
