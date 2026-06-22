@@ -90,4 +90,32 @@ public class RetakeRulesTests
     [InlineData(null, false, false)]
     public void ShouldHideRetakeToggle_Cases(string? assessmentType, bool isManualEntry, bool expected)
         => Assert.Equal(expected, RetakeRules.ShouldHideRetakeToggle(assessmentType, isManualEntry));
+
+    // ResolveReviewMode = tier feedback PURE 3-state, LEAK-SAFE (A1 orchestrator-locked).
+    // Truth table: !allowReview → ScoreOnly; (belum-lulus: failed ATAU pending null) & attempt-sisa →
+    // WrongFlagsOnly (tahan kunci selama retake MASIH MUNGKIN); passed | (belum-lulus & exhausted) →
+    // FullReview (retake tak mungkin lagi). Pending(null) diperlakukan SAMA dengan failed.
+    [Fact]
+    public void Tier_ScoreOnly_WhenReviewDisabled()
+        => Assert.Equal(RetakeReviewMode.ShowScoreOnly, RetakeRules.ResolveReviewMode(false, false, true));
+
+    [Fact]
+    public void Tier_WrongFlagsOnly_WhenFailedWithAttemptsLeft()
+        => Assert.Equal(RetakeReviewMode.ShowWrongFlagsOnly, RetakeRules.ResolveReviewMode(true, false, true));
+
+    [Fact]
+    public void Tier_WrongFlagsOnly_WhenPendingNullWithAttemptsLeft()    // A1 leak-safe: pending+sisa = sembunyikan kunci
+        => Assert.Equal(RetakeReviewMode.ShowWrongFlagsOnly, RetakeRules.ResolveReviewMode(true, null, true));
+
+    [Fact]
+    public void Tier_FullReview_WhenFailedExhausted()
+        => Assert.Equal(RetakeReviewMode.ShowFullReview, RetakeRules.ResolveReviewMode(true, false, false));
+
+    [Fact]
+    public void Tier_FullReview_WhenPendingNullExhausted()    // pending tapi tak ada sisa → aman full
+        => Assert.Equal(RetakeReviewMode.ShowFullReview, RetakeRules.ResolveReviewMode(true, null, false));
+
+    [Fact]
+    public void Tier_FullReview_WhenPassed()
+        => Assert.Equal(RetakeReviewMode.ShowFullReview, RetakeRules.ResolveReviewMode(true, true, true));
 }
