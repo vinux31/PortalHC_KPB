@@ -1,8 +1,9 @@
 ---
 phase: 412-live-monitoring-ui-signalr
 verified: 2026-06-21T09:30:00Z
-status: human_needed
-score: 4/5
+status: passed
+human_verification_closed: 2026-06-21 (Phase 413 e2e flexible-participant-412.spec.ts 2-context 7 signals 5/5)
+score: 5/5
 overrides_applied: 0
 human_verification:
   - test: "Tambah peserta dari Monitoring Detail — baris muncul live"
@@ -24,7 +25,7 @@ human_verification:
 **Phase Goal:** Layar Monitoring Detail mendapat kontrol live Tambah & Hapus peserta yang menyiarkan perubahan real-time tanpa reload; peserta aktif yang dihapus langsung di-force-kick via SignalR examRemoved; perubahan tersiar ke semua Admin/HC pemantau; sesi soft-removed dikecualikan dari count aktif dan tampil di panel "Peserta Dikeluarkan" dengan tombol Restore.
 
 **Verified:** 2026-06-21T09:30:00Z
-**Status:** human_needed — 4/4 truths verified programatik; 4 item memerlukan konfirmasi Playwright live multi-context (dijadwalkan Phase 413).
+**Status:** PASSED — 4/4 truths verified; 4 live-runtime items RESOLVED by Phase 413 e2e (flexible-participant-412.spec.ts, 2-context, 7 signals, 5/5 green). Human-verification gate closed 2026-06-21 (per milestone audit §2).
 **Re-verification:** No — initial verification.
 
 ---

@@ -1,8 +1,9 @@
 ---
 phase: 414-fix-admin-hc-answer-history-visibility-when-allowanswerrevie
 verified: 2026-06-22T03:05:00Z
-status: human_needed
-score: 5/5 must-haves verified (automated); 3 SC pending live two-persona browser UAT
+status: passed
+human_verification_closed: 2026-06-22 (414-UAT.md live two-persona Playwright 3/3)
+score: 5/5 must-haves verified (automated) + 3 SC verified live (UAT)
 overrides_applied: 0
 human_verification:
   - test: "SC-1 admin-bypass (Razor runtime render)"
@@ -20,7 +21,7 @@ human_verification:
 
 **Phase Goal:** Admin/HC (non-owner, sudah lolos `IsResultsAuthorized`) SELALU melihat section per-soal "Tinjauan Jawaban" terlepas dari toggle `AllowAnswerReview`, sementara owner (peserta lihat hasil sendiri) TETAP di-gate toggle.
 **Verified:** 2026-06-22T03:05:00Z
-**Status:** human_needed (semua cek otomatis PASS; 3 SC butuh live two-persona browser UAT — lesson 354 Razor runtime)
+**Status:** PASSED — automated checks PASS; 3 SC RESOLVED by live two-persona Playwright UAT (414-UAT.md, 3/3 pass 2026-06-22: SC-1 admin-bypass+nota, SC-2 owner-gated, SC-3 toggle-ON no-nota). Human-verification gate closed.
 **Re-verification:** No — initial verification
 
 ## Goal Achievement
