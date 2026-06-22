@@ -5,6 +5,8 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-06-22
+status_checker: approved
+approved: 2026-06-22
 ---
 
 # Phase 407 — UI Design Contract — Worker Self-Service + Gating Tier Feedback + Riwayat Pekerja
@@ -386,11 +388,11 @@ No shadcn, no third-party UI registry, no `npx shadcn view`. Nothing to vet.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS — Bahasa Indonesia konsisten, 4 surface lengkap, aturan XSS eksplisit (no Html.Raw user content)
+- [x] Dimension 2 Visuals: PASS — kontrak markup preskriptif, kelas real + mirror-line dikutip, reuse card/modal/accordion/alert/badge
+- [x] Dimension 3 Color: PASS — 60/30/10, Bootstrap semantic only, accent primary tunggal CTA, aturan leak-safe D-03 (kunci tak render saat retake mungkin)
+- [x] Dimension 4 Typography: PASS — default Bootstrap, 4 ukuran/2 weight, no custom line-height
+- [x] Dimension 5 Spacing: PASS — utility 4px Bootstrap only, no hand-roll, exceptions: none
+- [x] Dimension 6 Registry Safety: PASS — N/A brownfield (no shadcn/third-party)
 
-**Approval:** pending
+**Approval:** APPROVED 2026-06-22 (verifikasi inline oleh orchestrator — gsd-ui-checker subagent gagal 3× API 529 Overloaded; 6/6 dimensi dievaluasi langsung terhadap idiom Bootstrap brownfield + kepatuhan CONTEXT D-01..D-04. 0 blocking. Catatan keamanan: aturan leak-safe D-03 [`list-group-item-success`/"(Jawaban Benar)"/`CorrectAnswer` tak render di `ShowWrongFlagsOnly`] WAJIB divalidasi ulang oleh secure-phase + Playwright Phase 408.)
