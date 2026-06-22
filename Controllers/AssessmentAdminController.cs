@@ -1933,7 +1933,17 @@ namespace HcPortal.Controllers
                                 _context.PackageOptions.RemoveRange(q.Options);
                             _context.PackageQuestions.RemoveRange(pkg.Questions);
                         }
-                        if (packages.Any()) _context.AssessmentPackages.RemoveRange(packages);
+                        // Phase 415 SEC-01: hapus Section records paket-paket ini (FK Section->Package = Restrict).
+                        if (packages.Any())
+                        {
+                            var pkgIdsToRemove = packages.Select(p => p.Id).ToList();
+                            var sectionsToRemove = await _context.AssessmentPackageSections
+                                .Where(s => pkgIdsToRemove.Contains(s.AssessmentPackageId))
+                                .ToListAsync();
+                            if (sectionsToRemove.Any())
+                                _context.AssessmentPackageSections.RemoveRange(sectionsToRemove);
+                            _context.AssessmentPackages.RemoveRange(packages);
+                        }
 
                         _context.AssessmentSessions.RemoveRange(sessionsToRemove);
                     }
@@ -6377,6 +6387,16 @@ namespace HcPortal.Controllers
                     _context.PackageOptions.RemoveRange(q.Options);
                 _context.PackageQuestions.RemoveRange(pkg.Questions);
             }
+            // Phase 415 SEC-01: hapus Section records paket Post lama (FK Section->Package = Restrict).
+            if (existingPostPkgs.Any())
+            {
+                var existingPostPkgIds = existingPostPkgs.Select(p => p.Id).ToList();
+                var existingPostSections = await _context.AssessmentPackageSections
+                    .Where(s => existingPostPkgIds.Contains(s.AssessmentPackageId))
+                    .ToListAsync();
+                if (existingPostSections.Any())
+                    _context.AssessmentPackageSections.RemoveRange(existingPostSections);
+            }
             _context.AssessmentPackages.RemoveRange(existingPostPkgs);
 
             // Deep clone Pre packages ke Post
@@ -6526,6 +6546,16 @@ namespace HcPortal.Controllers
             foreach (var q in pkg.Questions)
                 _context.PackageOptions.RemoveRange(q.Options);
             _context.PackageQuestions.RemoveRange(pkg.Questions);
+
+            // Phase 415 SEC-01: hapus Section records paket secara eksplisit (FK Section->Package = Restrict,
+            // bukan Cascade — menghindari multiple-cascade-path error 1785). Soal sudah di-RemoveRange di atas,
+            // jadi tak ada FK SetNull yang tertinggal. Pola konsisten dgn manual-delete codebase ini.
+            var pkgSections = await _context.AssessmentPackageSections
+                .Where(s => s.AssessmentPackageId == packageId)
+                .ToListAsync();
+            if (pkgSections.Any())
+                _context.AssessmentPackageSections.RemoveRange(pkgSections);
+
             _context.AssessmentPackages.Remove(pkg);
 
             try

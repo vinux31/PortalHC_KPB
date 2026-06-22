@@ -495,13 +495,18 @@ namespace HcPortal.Data
                 entity.HasIndex(q => q.SectionId);
             });
 
-            // Phase 415 SEC-01: AssessmentPackageSection -> AssessmentPackage (Cascade — section dies with its package)
+            // Phase 415 SEC-01: AssessmentPackageSection -> AssessmentPackage (Restrict, NOT Cascade)
+            // Mengapa Restrict (bukan Cascade)? SQL Server menolak multiple-cascade-path: jika FK ini Cascade,
+            // ada DUA jalur dari AssessmentPackages ke PackageQuestions (langsung Cascade + via Section SetNull),
+            // memicu error 1785. Penghapusan Section saat paket dihapus ditangani EKSPLISIT di level aplikasi
+            // (pola codebase: DeletePackage sudah manual RemoveRange(Questions) lalu Remove(package)) — lihat
+            // AssessmentAdminController.DeletePackage yang kini juga RemoveRange Section records sebelum hapus paket.
             builder.Entity<AssessmentPackageSection>(entity =>
             {
                 entity.HasOne(s => s.AssessmentPackage)
                     .WithMany()
                     .HasForeignKey(s => s.AssessmentPackageId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 // Unique index: satu SectionNumber per paket
                 entity.HasIndex(s => new { s.AssessmentPackageId, s.SectionNumber })
