@@ -14,7 +14,7 @@ Requirements milestone v32.6. Tiap REQ map ke satu fase roadmap (fase mulai 415)
 - [x] **SEC-01**: HC dapat membuat, mengubah, menghapus, dan mengurutkan Section (No. Section + Nama) pada tiap paket lewat UI web.
 - [x] **SEC-02**: HC dapat mengatur toggle "Mulai Halaman Baru" dan "Acak" per-Section, termasuk tombol cepat "semua Section mulai halaman baru".
 - [x] **SEC-03**: HC dapat menetapkan Section pada soal lewat No. Section; soal tanpa Section masuk grup "Lainnya" di urutan terakhir (perilaku global lama, kompatibel-mundur).
-- [ ] **SEC-04**: Sistem menolak (hard-block) menyimpan/memulai ujian bila struktur Section antar-paket dalam satu assessment tidak identik (jumlah soal per Section berbeda), dengan pesan jelas.
+- [x] **SEC-04**: Sistem menolak (hard-block) menyimpan/memulai ujian bila struktur Section antar-paket dalam satu assessment tidak identik (jumlah soal per Section berbeda), dengan pesan jelas.
 - [x] **SEC-05**: Daftar & preview soal admin menampilkan soal dikelompokkan per Section dengan header.
 - [ ] **SEC-06**: Saat sinkronisasi Pre→Post (SamePackage), struktur Section + opsi ikut tersalin ke PostTest.
 
@@ -40,9 +40,9 @@ Requirements milestone v32.6. Tiap REQ map ke satu fase roadmap (fase mulai 415)
 
 ### Import Excel (IMP)
 
-- [ ] **IMP-01**: Template & parser import soal mendukung kolom No. Section, Nama Section, dan Opsi A–F.
-- [ ] **IMP-02**: Dual-format kompatibel-mundur — file template lama 9-kolom (Opsi A–D, tanpa Section) tetap bisa di-import.
-- [ ] **IMP-03**: Import memvalidasi jumlah soal per-Section antar-paket (tolak keras) dan fingerprint anti-duplikat menyertakan Section + opsi 5–6.
+- [x] **IMP-01**: Template & parser import soal mendukung kolom No. Section, Nama Section, dan Opsi A–F.
+- [x] **IMP-02**: Dual-format kompatibel-mundur — file template lama 9-kolom (Opsi A–D, tanpa Section) tetap bisa di-import.
+- [x] **IMP-03**: Import memvalidasi jumlah soal per-Section antar-paket (tolak keras) dan fingerprint anti-duplikat menyertakan Section + opsi 5–6.
 
 ## v2 Requirements
 
@@ -76,12 +76,12 @@ Tiap REQ v1 dipetakan ke tepat satu fase (roadmap v32.6, fase 415-419). Status a
 | SEC-01 | Phase 415 | Complete |
 | SEC-02 | Phase 415 | Complete |
 | SEC-03 | Phase 415 | Complete |
-| SEC-04 | Phase 415 | Pending |
+| SEC-04 | Phase 415 | Complete |
 | SEC-05 | Phase 415 | Complete |
 | SEC-06 | Phase 415 | Pending |
-| IMP-01 | Phase 415 | Pending |
-| IMP-02 | Phase 415 | Pending |
-| IMP-03 | Phase 415 | Pending |
+| IMP-01 | Phase 415 | Complete |
+| IMP-02 | Phase 415 | Complete |
+| IMP-03 | Phase 415 | Complete |
 | SHF-01 | Phase 416 | Pending |
 | SHF-02 | Phase 416 | Pending |
 | SHF-03 | Phase 416 | Pending |
