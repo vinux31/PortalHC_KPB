@@ -39,6 +39,7 @@ namespace HcPortal.Controllers
         private readonly IWorkerDataService _workerDataService;
         private readonly GradingService _gradingService;
         private readonly ImpersonationService _impersonationService;
+        private readonly RetakeService _retakeService;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
@@ -54,7 +55,8 @@ namespace HcPortal.Controllers
             IServiceScopeFactory scopeFactory,
             IWorkerDataService workerDataService,
             GradingService gradingService,
-            ImpersonationService impersonationService)
+            ImpersonationService impersonationService,
+            RetakeService retakeService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -70,6 +72,7 @@ namespace HcPortal.Controllers
             _workerDataService = workerDataService;
             _gradingService = gradingService;
             _impersonationService = impersonationService;
+            _retakeService = retakeService;
         }
 
         public IActionResult Index()
@@ -2463,6 +2466,43 @@ namespace HcPortal.Controllers
             }
 
             return View(viewModel);
+        }
+
+        // --- UJIAN ULANG (worker self-service) ---
+        // v32.4 RTK-09 (Phase 407): pekerja men-trigger retake-nya sendiri dari halaman Hasil.
+        // Cermin baris-per-baris HC ResetAssessment (AssessmentAdminController :4244-4327); beda:
+        // actor = worker (effective user, impersonation-aware), guard = ownership Forbid + server-authoritative
+        // CanRetakeAsync re-check (countdown JS BUKAN gate — D-01), redirect = StartExam (HC redirect ke Monitoring).
+        [HttpPost]
+        [ValidateAntiForgeryToken]                 // RTK-09 CSRF (class-level [Authorize] sudah :25)
+        public async Task<IActionResult> RetakeExam(int id)
+        {
+            var assessment = await _context.AssessmentSessions.FirstOrDefaultAsync(a => a.Id == id);
+            if (assessment == null) return NotFound();
+
+            var (user, _) = await GetCurrentUserRoleLevelAsync();   // effective user (impersonation-aware) — idiom :909
+            if (user == null) return Challenge();
+            if (assessment.UserId != user.Id) return Forbid();      // RTK-09 ownership — IDOR guard (worker self-service only)
+
+            // Server-authoritative re-check (D-01): countdown/disable JS hanya UX, server otoritatif atas cooldown/cap.
+            if (!await _retakeService.CanRetakeAsync(id))
+            {
+                TempData["Error"] = "Ujian ulang tidak bisa dijalankan saat ini. Coba muat ulang halaman atau hubungi HC.";
+                return RedirectToAction("Results", new { id });
+            }
+
+            // actorName format mirror ResetAssessment :4298.
+            var actorName = string.IsNullOrWhiteSpace(user.NIP) ? (user.FullName ?? "Unknown") : $"{user.NIP} - {user.FullName}";
+            var rs = await _retakeService.ExecuteAsync(id, user.Id, actorName, "RetakeAssessment", "worker_retake");
+            if (!rs.Success)
+            {
+                TempData["Error"] = rs.Error ?? "Gagal menjalankan ujian ulang.";
+                return RedirectToAction("Results", new { id });
+            }
+
+            // must-fix #1 — re-arm token (StartExam pakai TempData.Peek non-consume :944); clear setelah sukses.
+            TempData.Remove($"TokenVerified_{id}");
+            return RedirectToAction("StartExam", new { id });       // spec re-entry target
         }
 
         #region Helper Methods
