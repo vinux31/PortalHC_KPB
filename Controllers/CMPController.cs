@@ -1066,6 +1066,58 @@ namespace HcPortal.Controllers
 
                 if (assignment == null)
                 {
+                    // Phase 415 SEC-04 (D-13 titik #2): re-guard struktur Section antar-paket SEBELUM
+                    // BuildQuestionAssignment. Tangkap drift edit-manual pasca-import (paket diubah setelah
+                    // lolos validasi import). Server-authoritative. Parity dgn import: sibling key
+                    // Title+Category+Schedule.Date (LOCKED, Phase 397 lesson) + grup per SectionNumber (null → "Lainnya").
+                    // Pitfall 6: HANYA fire bila ≥2 paket saudara DAN ≥1 punya Section → legacy all-null & 1-paket lolos.
+                    var guardSiblingIds = await _context.AssessmentSessions
+                        .Where(s => s.Title == assessment.Title &&
+                                    s.Category == assessment.Category &&
+                                    s.Schedule.Date == assessment.Schedule.Date)
+                        .Select(s => s.Id)
+                        .ToListAsync();
+
+                    var guardPackages = await _context.AssessmentPackages
+                        .Include(p => p.Questions)
+                            .ThenInclude(q => q.Section)
+                        .Where(p => guardSiblingIds.Contains(p.AssessmentSessionId) && p.Questions.Any())
+                        .ToListAsync();
+
+                    // Fire hanya bila ada ≥2 paket berisi soal DAN minimal satu soal punya Section (bukan legacy all-null).
+                    bool guardAnySections = guardPackages.SelectMany(p => p.Questions).Any(q => q.SectionId != null);
+                    if (guardPackages.Count >= 2 && guardAnySections)
+                    {
+                        // Bandingkan count per SectionNumber tiap paket vs paket referensi pertama (null → "Lainnya").
+                        var referencePkg = guardPackages.First();
+                        var refCounts = referencePkg.Questions
+                            .GroupBy(q => q.Section?.SectionNumber)
+                            .ToDictionary(g => g.Key, g => g.Count());
+
+                        bool sectionDrift = false;
+                        foreach (var sib in guardPackages.Skip(1))
+                        {
+                            var sibCounts = sib.Questions
+                                .GroupBy(q => q.Section?.SectionNumber)
+                                .ToDictionary(g => g.Key, g => g.Count());
+                            var allKeys = refCounts.Keys.Union(sibCounts.Keys);
+                            foreach (var sn in allKeys)
+                            {
+                                int x = refCounts.TryGetValue(sn, out var xc) ? xc : 0;
+                                int y = sibCounts.TryGetValue(sn, out var yc) ? yc : 0;
+                                if (x != y) { sectionDrift = true; break; }
+                            }
+                            if (sectionDrift) break;
+                        }
+
+                        if (sectionDrift)
+                        {
+                            // Blok mulai ujian — JANGAN bangun assignment/shuffle. Pesan jelas (UI-SPEC).
+                            TempData["Error"] = "Ujian tidak dapat dimulai: struktur Section antar-paket tidak identik. Hubungi HC untuk memperbaiki paket soal.";
+                            return RedirectToAction("Assessment");
+                        }
+                    }
+
                     var rng = Random.Shared;
 
                     // Phase 373: build ShuffledQuestionIds via the shared ShuffleEngine, gated on the
