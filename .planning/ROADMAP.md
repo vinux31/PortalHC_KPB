@@ -165,7 +165,8 @@
   2. Peserta (owner) buka hasil sendiri dgn `AllowAnswerReview=false` → tetap diblok (perilaku lama, alert "Tinjauan jawaban tidak tersedia untuk assessment ini").
   3. `AllowAnswerReview=true` → perilaku worker & admin tidak berubah (regresi nol).
   4. Test mengunci kedua jalur (admin-bypass + worker-gated) + `dotnet build` 0 error + `dotnet test` hijau + `dotnet run` (localhost:5277) verify (CLAUDE.md Develop Workflow). 0 migration.
-**Plans:** TBD
+**Plans:** 1 plan (wave 1, autonomous)
+- [ ] 414-01-PLAN.md — VM field `CanReviewAnswers` + helper pure static `CMPController.CanReviewAnswers(allow, isOwner)` + wiring action Results (gate build + 2 VM-flag dari satu variabel) + view gate `Model.CanReviewAnswers` + nota admin (XSS-safe) + unit test xUnit 4-case no-DB
 **UI hint:** yes (view-only, sentuhan kecil `Results.cshtml`)
 
 **Off-theme note:** Phase 414 BUKAN bagian tema Flexible Add/Remove Participant (PART/PRMV/PLIV). Tidak menambah REQ ke akuntansi 11/11 v32.5 — bugfix terpisah dibundel atas permintaan user. migration=FALSE.
@@ -179,7 +180,7 @@
 | 411. Remove + Restore Backend Live (PRMV-01/04/05 + PLIV-03) | 2/2 | Complete   | 2026-06-21 |
 | 412. Live Monitoring UI + SignalR (PART-05 + PRMV-02 + PLIV-01/02) | 3/3 | Complete   | 2026-06-21 |
 | 413. Test + UAT | 3/3 | Complete   | 2026-06-21 |
-| 414. Fix Visibilitas History Jawaban Admin/HC (AllowAnswerReview OFF, off-theme) | 0/? | Not started | - |
+| 414. Fix Visibilitas History Jawaban Admin/HC (AllowAnswerReview OFF, off-theme) | 0/1 | Planned | - |
 
 ### Coverage Validation
 
