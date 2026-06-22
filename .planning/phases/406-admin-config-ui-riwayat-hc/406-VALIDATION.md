@@ -1,10 +1,11 @@
 ---
 phase: 406
 slug: admin-config-ui-riwayat-hc
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-21
+validated: 2026-06-22
 ---
 
 # Phase 406 — Validation Strategy
@@ -40,11 +41,11 @@ created: 2026-06-21
 
 | RTK | Requirement | Test Type | Automated Command | Status |
 |-----|-------------|-----------|-------------------|--------|
-| RTK-05 | Card retake ManagePackages (toggle + progressive disclosure + helper) + binding Create/Edit; hide Pre-Test/Manual; POST UpdateRetakeSettings persist+sibling | e2e (Playwright @5270) | `npx playwright test retake-admin-406.spec.ts` | ⬜ pending |
-| RTK-05 | Warning non-blocking saat MaxAttempts < attempt-terpakai (tidak blokir simpan) | e2e | (same spec) | ⬜ pending |
-| RTK-08 | Modal riwayat HC: trigger dropdown → modal accordion attempt (archived+current, badge Lulus/Gagal, tanggal, mark current) | e2e | (same spec) | ⬜ pending |
-| RTK-08 | Per-soal penuh (teks soal + jawaban + ✓/✗ + skor) di modal; XSS-encode; essay-pending = "—/Menunggu" | e2e + unit | `dotnet test --filter ~RiwayatUnifier` + spec | ⬜ pending |
-| RTK-08 | `RiwayatPercobaan(sessionId)` endpoint RBAC [Authorize(Admin,HC)] + current-attempt via RetakeArchiveBuilder.Build(0,...) shape-identik | unit (pure unifier) + e2e | `dotnet test --filter ~RiwayatUnifier` | ⬜ pending |
+| RTK-05 | Card retake ManagePackages (toggle + progressive disclosure + helper) + binding Create/Edit; hide Pre-Test/Manual; POST UpdateRetakeSettings persist+sibling | e2e (Playwright @5270) | `npx playwright test retake-config-406.spec.ts` | ✅ green (retake-config 6/6 @5270, exec-verified) |
+| RTK-05 | Warning non-blocking saat MaxAttempts < attempt-terpakai (tidak blokir simpan) | e2e | (retake-config spec sc-5) | ✅ green |
+| RTK-08 | Modal riwayat HC: trigger dropdown → modal accordion attempt (archived+current, badge Lulus/Gagal, tanggal, mark current) | e2e | `npx playwright test riwayat-hc-406.spec.ts` | ✅ green (riwayat-hc 5/5 @5270) |
+| RTK-08 | Per-soal penuh (teks soal + jawaban + ✓/✗ + skor) di modal; XSS-encode; essay-pending = "—/Menunggu" | e2e + unit | `dotnet test --filter ~RiwayatUnifier` + riwayat-hc spec | ✅ green (unit 6/6 + e2e xss inert) |
+| RTK-08 | `RiwayatPercobaan(sessionId)` endpoint RBAC [Authorize(Admin,HC)] + current-attempt via RetakeArchiveBuilder.Build(0,...) shape-identik | unit (pure unifier) + e2e | `dotnet test --filter ~RiwayatUnifier` | ✅ green (RiwayatUnifierTests 6/6, 235ms) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,8 +53,8 @@ created: 2026-06-21
 
 ## Wave 0 Requirements
 
-- [ ] `HcPortal.Tests/RiwayatUnifierTests.cs` — pure unifier (archived + current via Build(0,...) → unified DTO), mirror `RetakeArchiveBuilderTests` (IF planner extracts a pure unifier helper)
-- [ ] `tests/e2e/retake-admin-406.spec.ts` — card toggle/save/propagation + hide Pre-Test + warning + modal open + per-soal render (seed temp via SEED_WORKFLOW: assessment + failed attempt + archived attempt)
+- [x] `HcPortal.Tests/RiwayatUnifierTests.cs` — pure unifier (archived + current via Build(0,...) → unified DTO), mirror `RetakeArchiveBuilderTests` — **EXTRACTED + 6/6 green** (`Helpers/RiwayatUnifier.cs`)
+- [x] `tests/e2e/retake-config-406.spec.ts` (6 sc) + `tests/e2e/riwayat-hc-406.spec.ts` (5 sc) — card toggle/save/propagation + hide Pre-Test + warning + modal open + per-soal render + XSS inert — **11/11 green @5270 (exec-verified)**
 
 *Framework xUnit + Playwright sudah ada — tidak perlu install.*
 
@@ -71,10 +72,27 @@ created: 2026-06-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or justified manual-only
-- [ ] Razor surfaces verified at runtime (Playwright, not grep+build)
-- [ ] Wave 0 covers MISSING references
-- [ ] No watch-mode flags
-- [ ] `nyquist_compliant: true` set after execution
+- [x] All tasks have automated verify or justified manual-only
+- [x] Razor surfaces verified at runtime (Playwright, not grep+build)
+- [x] Wave 0 covers MISSING references
+- [x] No watch-mode flags
+- [x] `nyquist_compliant: true` set after execution
 
-**Approval:** pending
+**Approval:** APPROVED 2026-06-22
+
+---
+
+## Validation Audit 2026-06-22
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+State A audit. Semua requirement (RTK-05, RTK-08) sudah COVERED oleh test yang ada — tak perlu auto-gen:
+- `RiwayatUnifierTests.cs` 6/6 green (re-run 235ms, build 0 error).
+- `retake-config-406.spec.ts` 6 sc + `riwayat-hc-406.spec.ts` 5 sc = 11/11 green @5270 (exec-verified, VERIFICATION 10/10).
+- Full xUnit suite 604/0/2 (exec-verified).
+
+NYQUIST-COMPLIANT. Tidak ada test baru di-generate (no gap).
