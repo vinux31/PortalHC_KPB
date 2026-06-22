@@ -24,6 +24,38 @@ namespace HcPortal.Models
         public virtual ICollection<PackageQuestion> Questions { get; set; } = new List<PackageQuestion>();
     }
 
+    /// <summary>
+    /// Phase 415 SEC-01: Section per-paket untuk mengelompokkan soal (per area/equipment).
+    /// SectionNumber menentukan urutan tampil; Name opsional (label). StartNewPage + ShuffleEnabled
+    /// adalah toggle per-section yang disimpan di 415 dan dikonsumsi oleh fase 416 (scoped shuffle)
+    /// dan 417 (pagination). Section bersifat opsional: soal tanpa Section (SectionId=null) tetap
+    /// memakai perilaku global lama (grup "Lainnya").
+    /// </summary>
+    public class AssessmentPackageSection
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public int AssessmentPackageId { get; set; }
+        [ForeignKey("AssessmentPackageId")]
+        public virtual AssessmentPackage AssessmentPackage { get; set; } = null!;
+
+        /// <summary>Numeric ordering key for this section within its package (HC ketik 1, 2, 3...). Unik per paket.</summary>
+        public int SectionNumber { get; set; }
+
+        /// <summary>Nama/label tampilan Section. Opsional (boleh kosong) per spec §5.1.</summary>
+        public string? Name { get; set; }
+
+        /// <summary>Toggle "Mulai Halaman Baru" untuk section ini. Disimpan di 415, dikonsumsi 417 (pagination).</summary>
+        public bool StartNewPage { get; set; } = false;
+
+        /// <summary>Toggle "Acak" untuk section ini. Disimpan di 415, dikonsumsi 416 (scoped shuffle).</summary>
+        public bool ShuffleEnabled { get; set; } = true;
+
+        // Navigation
+        public virtual ICollection<PackageQuestion> Questions { get; set; } = new List<PackageQuestion>();
+    }
+
     public class PackageQuestion
     {
         [Key]
@@ -62,6 +94,11 @@ namespace HcPortal.Models
         /// <summary>Phase 352 IMG-04: teks alternatif gambar soal (aksesibilitas), maks 255 char. Nullable.</summary>
         [System.ComponentModel.DataAnnotations.MaxLength(255)]
         public string? ImageAlt { get; set; }
+
+        /// <summary>Phase 415 SEC-03: nullable FK ke AssessmentPackageSection. null = soal tanpa Section (grup "Lainnya", perilaku global lama).</summary>
+        public int? SectionId { get; set; }
+        [ForeignKey("SectionId")]
+        public virtual AssessmentPackageSection? Section { get; set; }
 
         // Navigation
         public virtual ICollection<PackageOption> Options { get; set; } = new List<PackageOption>();

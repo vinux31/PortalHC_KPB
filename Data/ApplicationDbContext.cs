@@ -55,6 +55,7 @@ namespace HcPortal.Data
         public DbSet<AssessmentPackage> AssessmentPackages { get; set; }
         public DbSet<PackageQuestion> PackageQuestions { get; set; }
         public DbSet<PackageOption> PackageOptions { get; set; }
+        public DbSet<AssessmentPackageSection> AssessmentPackageSections { get; set; }
         public DbSet<UserPackageAssignment> UserPackageAssignments { get; set; }
         public DbSet<PackageUserResponse> PackageUserResponses { get; set; }
 
@@ -482,6 +483,29 @@ namespace HcPortal.Data
 
                 entity.HasIndex(q => q.AssessmentPackageId);
                 entity.HasIndex(q => q.Order);
+
+                // Phase 415 SEC-03: PackageQuestion -> AssessmentPackageSection (SetNull, NOT Cascade)
+                // SetNull = hapus Section membuat soal di dalamnya jadi "Lainnya" (SectionId=null), TIDAK ikut terhapus
+                // (UI-SPEC delete-confirm promise). Juga menghindari multiple-cascade-path ke PackageQuestions:
+                // satu-satunya jalur cascade ke PackageQuestions tetap via AssessmentPackageId.
+                entity.HasOne(q => q.Section)
+                    .WithMany(s => s.Questions)
+                    .HasForeignKey(q => q.SectionId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasIndex(q => q.SectionId);
+            });
+
+            // Phase 415 SEC-01: AssessmentPackageSection -> AssessmentPackage (Cascade — section dies with its package)
+            builder.Entity<AssessmentPackageSection>(entity =>
+            {
+                entity.HasOne(s => s.AssessmentPackage)
+                    .WithMany()
+                    .HasForeignKey(s => s.AssessmentPackageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Unique index: satu SectionNumber per paket
+                entity.HasIndex(s => new { s.AssessmentPackageId, s.SectionNumber })
+                    .IsUnique();
             });
 
             // PackageOption -> PackageQuestion (Cascade)
