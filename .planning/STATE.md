@@ -101,6 +101,8 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 ## Deferred Items
 
+> 📌 **Acknowledged @ v32.5 close (2026-06-22):** pre-close audit-open: **14 debug session** ([diagnosed]/[investigating], pre-existing — 276-psrt03, kkj-*, monitoring, dll) + **45 quick-task** ([missing], backlog project-wide lama, file artifact hilang) + 1 UAT "gap" Phase 414 (status passed, 0 pending = false-flag). SEMUA pre-existing / non-v32.5 — v32.5 sendiri bersih (milestone audit PASSED 11/11 REQ, Phase 414 off-theme UAT 3/3 live). 2 verification-gap 412/414 sudah **di-RESOLVE** (412 via Phase 413 e2e 5/5; 414 via Playwright UAT 3/3 — keduanya di-flip `human_needed`→`passed` `4379c017`). Tidak ada blocker v32.5. Buka lagi hanya bila muncul bug/kebutuhan nyata.
+
 > 📌 **Acknowledged @ v32.2 close (2026-06-19):** pre-close audit-open surfaced 60+ open artifact — SEMUA pre-existing / v32.0 / backlog-lama, BUKAN v32.2 (v32.2 sendiri bersih, audit PASSED). Di-acknowledge + deferred:
 > - **391/392 UAT + VERIFICATION gaps** (`391-HUMAN-UAT` resolved, `392-HUMAN-UAT` 1-pending, 391/392 VERIFICATION human_needed) = **v32.0** (milestone deferred, di-close manual terpisah — bukan v32.2).
 > - **14 debug session** (276-psrt03, kkj-*, monitoring, dll, [diagnosed]/[investigating]) = pre-existing, tak terkait v32.2.
