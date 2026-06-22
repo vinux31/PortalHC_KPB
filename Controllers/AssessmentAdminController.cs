@@ -1700,6 +1700,11 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageAssessment");
             }
 
+            // FORM-06 (E-08): sesi entry-manual diarahkan ke form edit manual (bukan form online).
+            // Mirror filter IsManualEntry di TrainingAdminController EditManualAssessment GET.
+            if (assessment.IsManualEntry)
+                return RedirectToAction("EditManualAssessment", "TrainingAdmin", new { id });
+
             // Detect Pre-Post group
             bool isPrePost = assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest";
 
@@ -1823,6 +1828,25 @@ namespace HcPortal.Controllers
             if (assessment == null)
             {
                 TempData["Error"] = "Assessment not found.";
+                return RedirectToAction("ManageAssessment");
+            }
+
+            // FORM-05 (E-04): lock metadata sesi/grup Completed — diangkat ke ATAS cabang Pre-Post.
+            // Bug asal: cabang Pre-Post return ke ManageAssessment SEBELUM guard lama (single-mode) di
+            // bawah cabang ini tercapai → guard tak pernah jalan untuk Pre-Post. Group-aware (Open Q#1):
+            // blokir bila ADA SATU sesi dalam grup (LinkedGroupId sama) berstatus Completed. Standard
+            // (LinkedGroupId null) → cek sesi itu sendiri (identik guard lama). JANGAN pakai
+            // AssessmentEditEligibility.IsEditableAsync (semantik TERBALIK). Guard lama :2006 dibiarkan
+            // (defense-in-depth jalur standard di bawah).
+            bool isCompleted = assessment.Status == "Completed";
+            if (assessment.LinkedGroupId.HasValue)
+            {
+                isCompleted = await _context.AssessmentSessions
+                    .AnyAsync(a => a.LinkedGroupId == assessment.LinkedGroupId && a.Status == "Completed");
+            }
+            if (isCompleted)
+            {
+                TempData["Error"] = "Tidak dapat mengubah assessment yang sudah Completed.";
                 return RedirectToAction("ManageAssessment");
             }
 
