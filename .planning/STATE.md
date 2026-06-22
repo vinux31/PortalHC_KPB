@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.6
 milestone_name: Section + Scoped Shuffle + Section Pagination + Opsi Dinamis
-status: ready_to_plan — milestone v32.6 (5 fase 415-419, 20/20 REQ mapped)
+status: executing
 stopped_at: Phase 415 UI-SPEC approved
-last_updated: "2026-06-22T12:02:24.765Z"
-last_activity: 2026-06-22 — Roadmap v32.6 dibuat (fase 415-419, lanjut dari 414, tak reset)
+last_updated: "2026-06-22T12:31:43.132Z"
+last_activity: 2026-06-22 -- Phase 415 planning complete
 progress:
   total_phases: 16
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -26,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: Not started (roadmap created — siap plan Phase 415)
 Plan: —
-Status: ready_to_plan — milestone v32.6 (5 fase 415-419, 20/20 REQ mapped)
-Last activity: 2026-06-22 — Roadmap v32.6 dibuat (fase 415-419, lanjut dari 414, tak reset)
+Status: Ready to execute
+Last activity: 2026-06-22 -- Phase 415 planning complete
 
 Milestone **v32.6 Section + Scoped Shuffle + Section Pagination + Opsi Dinamis** — HC/Admin dapat mengelompokkan soal ke dalam **Section** per-paket (per area/equipment), mengacak soal & pilihan **hanya di dalam lingkup section** (scoped shuffle, on/off per-section), mengatur **pagination per-section** (section tertentu mulai halaman baru), memakai **opsi jawaban dinamis 2–6** (bukan kunci A–D), dan mengunggah semua via **import Excel diperluas** (dual-format kompatibel-mundur). Section **opsional** → kosong = perilaku global lama (100% kompatibel-mundur). **migration=TRUE** hanya Phase 415 (tabel `AssessmentPackageSection` + `PackageQuestion.SectionId` nullable; 416-419=FALSE). Branch main. Design spec `docs/superpowers/specs/2026-06-22-section-scoped-shuffle-pagination-dynamic-options-design.md` (15 keputusan D-01..D-15 + §15 addendum re-check).
 
