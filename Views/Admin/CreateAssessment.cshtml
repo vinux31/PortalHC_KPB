@@ -222,6 +222,17 @@
                             </div>
                         </div>
 
+                        <!-- FORM-07 / L-4: SamePackage di header section Pre-Post (di bawah pemilih Tipe Assessment, di atas pasangan kartu Pre & Post). Default hidden; hanya tampil mode Pre-Post via JS. -->
+                        <div class="col-12 d-none" id="samePackageHeaderWrapper">
+                            <div class="form-check">
+                                <input type="checkbox" name="SamePackage" value="true" id="samePackageCheck" class="form-check-input" />
+                                <label class="form-check-label" for="samePackageCheck">Gunakan paket soal yang sama untuk Pre dan Post</label>
+                            </div>
+                            <div id="samePackageBadge" class="mt-2 d-none">
+                                <span class="badge bg-info"><i class="bi bi-info-circle"></i> Paket soal Post-Test akan otomatis disinkronkan dari Pre-Test</span>
+                            </div>
+                        </div>
+
                         <!-- Proton Fields (conditional) -->
                         <div class="col-12 d-none" id="protonFieldsSection">
                             <div class="card border-warning">
@@ -470,23 +481,38 @@
                                                 <div class="form-text text-muted">Tanggal &amp; Waktu (WIB)</div>
                                             </div>
                                         </div>
-                                        <div class="mt-3">
-                                            <div class="form-check">
-                                                <input type="checkbox" name="SamePackage" value="true" id="samePackageCheck" class="form-check-input" />
-                                                <label class="form-check-label" for="samePackageCheck">Gunakan paket soal yang sama untuk Pre dan Post</label>
-                                            </div>
-                                            <div id="samePackageBadge" class="mt-2 d-none">
-                                                <span class="badge bg-info"><i class="bi bi-info-circle"></i> Paket soal Post-Test akan otomatis disinkronkan dari Pre-Test</span>
-                                            </div>
-                                        </div>
+                                        <!-- FORM-07 / L-4: blok SamePackage DIPINDAH ke #samePackageHeaderWrapper (header section Pre-Post). -->
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- FORM-08/11 / L-2/L-3: kontainer dua sub-kartu Pre-Post (default hidden). JS me-RELOKASI blok field existing ke dalam slot saat mode Pre-Post (single-source, single-POST), lalu mengembalikannya saat Standard (backward-compat). -->
+                    <div class="card mb-4 d-none" id="prePostSettingsCards">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>Pengaturan Ujian (Pre-Post)</h6>
+                        </div>
+                        <div class="card-body">
+                            <!-- Sub-kartu 1: Setelan Post-Test -->
+                            <div class="card mb-3">
+                                <div class="card-header bg-light fw-semibold"><i class="bi bi-clock-history"></i> Setelan Post-Test</div>
+                                <div class="card-body">
+                                    <div class="row g-3" id="slotPostTest"><!-- JS relokasi: PassPercentage + Sertifikat (retake disembunyikan) --></div>
+                                </div>
+                            </div>
+                            <!-- Sub-kartu 2: Setelan Bersama Pre & Post -->
+                            <div class="card mb-0">
+                                <div class="card-header bg-light fw-semibold"><i class="bi bi-arrow-left-right"></i> Setelan Bersama Pre &amp; Post</div>
+                                <div class="card-body">
+                                    <div class="row g-3" id="slotShared"><!-- JS relokasi: Shuffle + AllowAnswerReview + Token --></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- ========== GROUP B: Pengaturan Ujian ========== -->
-                    <div class="card mb-4">
+                    <div class="card mb-4" id="groupBCard">
                         <div class="card-header bg-light">
                             <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>Pengaturan Ujian</h6>
                         </div>
@@ -504,17 +530,17 @@
                                     <div class="invalid-feedback">Status wajib dipilih.</div>
                                 </div>
 
-                                <!-- Pass Percentage -->
+                                <!-- Pass Percentage (FORM-11: relabel "Nilai Lulus Post-Test" saat Pre-Post via JS) -->
                                 <div class="col-md-6" id="passPercentageWrapper">
                                     <label asp-for="PassPercentage" class="form-label fw-bold">
-                                        Pass Percentage (%) <span class="text-danger">*</span>
+                                        <span id="passPercentageLabelText">Pass Percentage (%)</span> <span class="text-danger">*</span>
                                     </label>
                                     <input asp-for="PassPercentage" type="number" class="form-control" min="0" max="100" id="PassPercentage" />
-                                    <div class="form-text text-muted">Nilai minimum untuk lulus (0–100)</div>
+                                    <div class="form-text text-muted" id="passPercentageHelp">Nilai minimum untuk lulus (0–100)</div>
                                 </div>
 
                                 <!-- Token -->
-                                <div class="col-md-6">
+                                <div class="col-md-6" id="tokenBlockCreate">
                                     <label class="form-label fw-bold">
                                         <i class="bi bi-shield-lock text-primary me-1"></i>Security Token
                                     </label>
@@ -534,7 +560,7 @@
                                     </div>
                                 </div>
                                 <!-- Pengacakan Soal & Jawaban (Phase 372 SHUF) -->
-                                <div class="col-md-6">
+                                <div class="col-md-6" id="shuffleBlockCreate">
                                     <label class="form-label fw-bold">
                                         <i class="bi bi-shuffle text-primary me-1"></i>Pengacakan Soal &amp; Jawaban
                                     </label>
@@ -549,8 +575,8 @@
                                     </div>
                                     <div class="form-text text-muted">Saat aktif, urutan pilihan jawaban (A, B, C, D) diacak berbeda di setiap soal untuk tiap peserta — jawaban benar tetap dinilai dengan benar, hanya posisinya yang berpindah. Saat nonaktif, urutan pilihan jawaban tampil sama untuk semua peserta sesuai urutan yang tersimpan di sistem.</div>
                                 </div>
-                                <!-- Ujian Ulang (v32.4 RTK-05 binding) -->
-                                <div class="col-md-6">
+                                <!-- Ujian Ulang (v32.4 RTK-05 binding) — FORM-11: disembunyikan + disabled saat Pre-Post (Pre baseline; retake hanya relevan Post) -->
+                                <div class="col-md-6" id="retakeBlockCreate">
                                     <label class="form-label fw-bold">
                                         <i class="bi bi-arrow-repeat text-primary me-1"></i>Ujian Ulang
                                     </label>
@@ -579,13 +605,13 @@
                     </div>
 
                     <!-- ========== GROUP C: Sertifikat ========== -->
-                    <div class="card mb-4">
+                    <div class="card mb-4" id="groupCCard">
                         <div class="card-header bg-light">
                             <h6 class="mb-0"><i class="bi bi-award me-2"></i>Sertifikat</h6>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-6" id="certGenerateBlockCreate">
                                     <label class="form-label fw-bold">Terbitkan Sertifikat</label>
                                     <div class="form-check form-switch">
                                         <input asp-for="GenerateCertificate" class="form-check-input" type="checkbox" id="GenerateCertificate" />
@@ -600,7 +626,7 @@
                                         <i class="bi bi-info-circle me-1"></i>Sertifikat hanya diterbitkan untuk peserta yang lulus Post-Test
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6" id="certValidUntilBlockCreate">
                                     @if (ViewBag.RenewalValidUntilWarning != null)
                                     {
                                         <div class="alert alert-warning py-2 mb-2">
@@ -627,12 +653,12 @@
                     </div>
 
                     <!-- ========== GROUP D: Opsi Lainnya ========== -->
-                    <div class="card mb-4">
+                    <div class="card mb-4" id="groupDCard">
                         <div class="card-header bg-light">
                             <h6 class="mb-0"><i class="bi bi-toggles me-2"></i>Opsi Lainnya</h6>
                         </div>
                         <div class="card-body">
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="allowReviewBlockCreate">
                                 <label class="form-label fw-bold">Izinkan Review Jawaban</label>
                                 <div class="form-check form-switch">
                                     <input asp-for="AllowAnswerReview" class="form-check-input" type="checkbox" id="AllowAnswerReview" />
@@ -1993,6 +2019,107 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!typeSelect) return;
 
+    // ===== FORM-08/09/11 (Phase 420) — relokasi field ke sub-kartu Pre-Post (single-source, single-POST) =====
+    // Strategi: blok field existing DIPINDAH (bukan diduplikasi) ke slot sub-kartu saat Pre-Post,
+    // lalu DIKEMBALIKAN ke posisi semula saat Standard. Karena nodes dipindah, hanya ada SATU
+    // set input → payload Standard identik (backward-compat WAJIB, Pitfall #2).
+    var prePostCards = document.getElementById('prePostSettingsCards');
+    var groupBCard = document.getElementById('groupBCard');
+    var groupCCard = document.getElementById('groupCCard');
+    var groupDCard = document.getElementById('groupDCard');
+    var slotPostTest = document.getElementById('slotPostTest');
+    var slotShared = document.getElementById('slotShared');
+    var samePackageHeader = document.getElementById('samePackageHeaderWrapper');
+    var retakeBlock = document.getElementById('retakeBlockCreate');
+    var passLabel = document.getElementById('passPercentageLabelText');
+    var passHelp = document.getElementById('passPercentageHelp');
+
+    // Blok yang direlokasi ke "Setelan Post-Test" (urut) + ke "Setelan Bersama Pre & Post".
+    var postTestBlockIds = ['passPercentageWrapper', 'certGenerateBlockCreate', 'certValidUntilBlockCreate'];
+    var sharedBlockIds = ['shuffleBlockCreate', 'allowReviewBlockCreate', 'tokenBlockCreate'];
+
+    // Rekam "rumah" tiap blok (parent + sibling berikutnya) agar dapat dikembalikan persis (anti-fragile restore).
+    var homeMap = {};
+    function recordHome(id) {
+        var el = document.getElementById(id);
+        if (el) homeMap[id] = { parent: el.parentNode, next: el.nextSibling };
+    }
+    postTestBlockIds.concat(sharedBlockIds).forEach(recordHome);
+
+    // Input jadwal/durasi/EWCD standard + hidden combiner — di-disable saat Pre-Post agar TIDAK ter-POST (FORM-09 / L-5).
+    function setStdInputsDisabled(disabled) {
+        if (stdSection) {
+            stdSection.querySelectorAll('input, select').forEach(function(el) { el.disabled = disabled; });
+        }
+        var sched = document.getElementById('schedHidden');
+        var ewcd = document.getElementById('ewcdHidden');
+        if (sched) sched.disabled = disabled;   // Pitfall #5: hidden combiner Schedule
+        if (ewcd) ewcd.disabled = disabled;     // Pitfall #5: hidden combiner ExamWindowCloseDate
+    }
+
+    // Input retake — di-disable saat Pre-Post agar TIDAK ter-POST (FORM-11). Pre = baseline murni.
+    function setRetakeDisabled(disabled) {
+        if (!retakeBlock) return;
+        retakeBlock.querySelectorAll('input, select').forEach(function(el) { el.disabled = disabled; });
+    }
+
+    function moveBlocksToPrePost() {
+        postTestBlockIds.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && slotPostTest) slotPostTest.appendChild(el);
+        });
+        sharedBlockIds.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && slotShared) slotShared.appendChild(el);
+        });
+    }
+
+    function restoreBlocksToStandard() {
+        postTestBlockIds.concat(sharedBlockIds).forEach(function(id) {
+            var el = document.getElementById(id);
+            var home = homeMap[id];
+            if (el && home && home.parent) {
+                if (home.next && home.next.parentNode === home.parent) {
+                    home.parent.insertBefore(el, home.next);
+                } else {
+                    home.parent.appendChild(el);
+                }
+            }
+        });
+    }
+
+    function applyPrePostLayout() {
+        // Sub-kartu + header SamePackage tampil; layout Group B/C/D tunggal disembunyikan.
+        if (prePostCards) prePostCards.classList.remove('d-none');
+        if (samePackageHeader) samePackageHeader.classList.remove('d-none');
+        if (groupBCard) groupBCard.classList.add('d-none');
+        if (groupCCard) groupCCard.classList.add('d-none');
+        if (groupDCard) groupDCard.classList.add('d-none');
+        moveBlocksToPrePost();
+        // Retake disembunyikan + disabled (tetap di Group B tersembunyi).
+        if (retakeBlock) retakeBlock.classList.add('d-none');
+        setRetakeDisabled(true);
+        setStdInputsDisabled(true);
+        // FORM-11: relabel PassPercentage konteks Post.
+        if (passLabel) passLabel.textContent = 'Nilai Lulus Post-Test (%)';
+        if (passHelp) passHelp.textContent = 'Nilai minimum untuk lulus Post-Test (0–100)';
+    }
+
+    function applyStandardLayout() {
+        // AKSI-BALIK SEMUA (Pitfall #2): kembalikan field ke layout tunggal, retake tampil+enabled, std input enabled.
+        restoreBlocksToStandard();
+        if (prePostCards) prePostCards.classList.add('d-none');
+        if (samePackageHeader) samePackageHeader.classList.add('d-none');
+        if (groupBCard) groupBCard.classList.remove('d-none');
+        if (groupCCard) groupCCard.classList.remove('d-none');
+        if (groupDCard) groupDCard.classList.remove('d-none');
+        if (retakeBlock) retakeBlock.classList.remove('d-none');
+        setRetakeDisabled(false);
+        setStdInputsDisabled(false);
+        if (passLabel) passLabel.textContent = 'Pass Percentage (%)';
+        if (passHelp) passHelp.textContent = 'Nilai minimum untuk lulus (0–100)';
+    }
+
     typeSelect.addEventListener('change', function() {
         var statusWrapper = document.getElementById('statusFieldWrapper');
         var certNote = document.getElementById('prePostCertNote');
@@ -2007,6 +2134,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (certNote) certNote.classList.remove('d-none');
             // Phase 308 D-01: auto-set Status='Upcoming' (matches server hardcoded PrePost session creation paths)
             if (statusEl) statusEl.value = 'Upcoming';
+            applyPrePostLayout();
         } else {
             pptSection.classList.remove('show');
             if (stdSection) stdSection.classList.remove('d-none');
@@ -2014,6 +2142,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (certNote) certNote.classList.add('d-none');
             // Phase 308 D-02: clear Status value — force user re-pick after switch back to Standard
             if (statusEl) statusEl.value = '';
+            applyStandardLayout();
         }
     });
 
