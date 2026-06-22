@@ -2664,13 +2664,20 @@ namespace HcPortal.Controllers
             var partner = (IsPrePostSession(session) && session.LinkedSessionId.HasValue)
                 ? await _context.AssessmentSessions.FirstOrDefaultAsync(s => s.Id == session.LinkedSessionId.Value)
                 : null;
-            foreach (var s in new[] { session, partner }.Where(x => x != null && x.RemovedAt != null))
-            {
-                s!.RemovedAt = null;
-                s.RemovedBy = null;
-                s.RemovalReason = null;
-            }
-            await _context.SaveChangesAsync();
+            // PRMV-04 hardening (UAT lokal 2026-06-22): clear kolom removal via ExecuteUpdateAsync — SATU UPDATE
+            // atomik yang commit langsung, lepas dari tracked-entity SaveChanges + transaksi-internal MARS
+            // (mekanisme tersangka pada satu kejadian non-persist intermiten yang teramati di UAT browser; tak
+            // ter-reproduce, tapi operasi integritas-data tak boleh berisiko silent-no-persist). Guard
+            // `RemovedAt != null` jaga idempotensi + asimetri partner (jangan clear yang belum soft-removed).
+            // Cermin pola atomic-write codebase (AbandonExam/GradingService ExecuteUpdateAsync).
+            var restoreIds = new[] { session.Id, partner?.Id }
+                .Where(id => id.HasValue).Select(id => id!.Value).ToArray();
+            await _context.AssessmentSessions
+                .Where(s => restoreIds.Contains(s.Id) && s.RemovedAt != null)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(s => s.RemovedAt, (DateTime?)null)
+                    .SetProperty(s => s.RemovedBy, (string?)null)
+                    .SetProperty(s => s.RemovalReason, (string?)null));
 
             await _auditLog.LogAsync(actorId, actorName, "RestoreParticipantLive",
                 $"Restored participant session [ID={sessionId}] '{session.Title}'", sessionId, "AssessmentSession");
