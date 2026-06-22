@@ -104,7 +104,10 @@
   3. **Gating tier baru `showWrongFlagsOnly`**: gagal + attempt-sisa → tampil skor + tanda soal benar/salah (✓/✗) **TANPA kunci/pembahasan**; lulus ATAU attempt habis → `AllowAnswerReview` normal (`showFullReview`). *(RTK-11)*
   4. View riwayat percobaan pekerja di `Results.cshtml`/`Records.cshtml` (daftar attempt + drill-down per-soal dari archive, **tunduk gating** §7) + flag `IsCurrentAttempt` di `AllWorkersHistoryRow`. *(RTK-12)*
   5. `dotnet build` 0 error + Playwright lifecycle @5270: gagal → skor+tanda-salah (kunci tersembunyi) → tombol Ujian Ulang → cooldown gate → ulang → lulus → 1 cert; cap habis → lock message; riwayat tampil. *(semua REQ)*
-**Plans:** TBD — `gsd-plan-phase 407`.
+**Plans:** 3 plans (3 waves — chain dependency-coupled: helper/VM → controller → views)
+- [ ] 407-01-PLAN.md — Wave 1: tier helper pure RetakeRules.ResolveReviewMode (enum 3-state leak-safe) + perluas AssessmentResultsViewModel/AllWorkersHistoryRow + 5 unit test cabang truth-table (RTK-11/12) [migration=FALSE]
+- [ ] 407-02-PLAN.md — Wave 2: CMPController inject RetakeService + action RetakeExam (antiforgery+ownership Forbid+CanRetakeAsync re-check+clear-token+redirect StartExam) + Results VM populate (flags+riwayat load) + RetakeExam endpoint test (RTK-09/10/12/13); depends 407-01
+- [ ] 407-03-PLAN.md — Wave 3: Results.cshtml tier 3-state leak-safe + retake control (tombol/counter/cooldown countdown/lock) + modal antiforgery + riwayat card + _RiwayatPekerja partial ter-gate + Records trigger + Playwright smoke leak-safety @5270 [checkpoint UAT]; depends 407-01+407-02 (RTK-10/11/12)
 **UI hint:** yes
 
 ### Phase 408: Test & UAT
@@ -128,7 +131,7 @@
 |-------|----------------|--------|-----------|
 | 405. Backend Core — Data + RetakeRules + RetakeService + Refactor Reset + Config Endpoint (RTK-01/02/03/04/06/07/13) | 4/4 | Complete   | 2026-06-21 |
 | 406. Admin Config UI + Riwayat HC (RTK-05/08) | 3/3 | Complete   | 2026-06-21 |
-| 407. Worker Self-Service + Gating + Riwayat Pekerja (RTK-09/10/11/12/13) | 0/0 | Not started | — |
+| 407. Worker Self-Service + Gating + Riwayat Pekerja (RTK-09/10/11/12/13) | 0/3 | Planned | — |
 | 408. Test & UAT (RTK-14) | 0/0 | Not started | — |
 
 </details>
