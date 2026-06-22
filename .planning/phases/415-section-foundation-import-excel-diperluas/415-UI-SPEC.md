@@ -68,12 +68,12 @@ No custom type scale. Inherit Bootstrap defaults + the existing admin view's cla
 
 | Role | Size | Weight | Line Height | Implementation (existing class) |
 |------|------|--------|-------------|---------------------------------|
-| Page heading | ~24px (Bootstrap `h3` = 1.5rem) | 500 (Bootstrap heading default) | 1.2 | `<h1 class="h3 mb-0">` |
-| Card / section title | ~16px (1rem) | 600 | 1.5 | `<span class="fw-semibold">` in `card-header bg-light` |
+| Page heading | ~24px (Bootstrap `h3` = 1.5rem) | 600 (`fw-semibold`) | 1.2 | `<h1 class="h3 fw-semibold mb-0">` |
+| Card / section title | ~16px (1rem) | 600 (`fw-semibold`) | 1.5 | `<span class="fw-semibold">` in `card-header bg-light` |
 | Body / table cell | 16px (1rem) base; table uses `table-sm` density | 400 | 1.5 | default `table` text; `text-muted` for secondary |
-| Label / helper | ~14px (`.small` = 0.875rem) | 500 (`fw-medium`) for labels / 400 for helper | 1.5 | `form-label fw-medium small` (label) + `form-text text-muted` (helper) |
+| Label / helper | ~14px (`.small` = 0.875rem) | 600 (`fw-semibold`) for labels / 400 for helper | 1.5 | `form-label fw-semibold small` (label) + `form-text text-muted` (helper) |
 
-Weights in use: **400 (regular)** + **600 (semibold via `fw-semibold`)**, with `fw-medium` (500) reserved for form labels — all three are existing Bootstrap utilities already on this screen, not new declarations. Do NOT add bold (700) or any custom weight.
+Weights in use: exactly **2** — **400 (regular)** for body/table/helper text + **600 (`fw-semibold`)** for headings, titles, and labels. Both are existing Bootstrap utilities already on this screen, not new declarations. Do NOT add medium (500/`fw-medium`), bold (700), or any custom weight.
 
 ---
 
