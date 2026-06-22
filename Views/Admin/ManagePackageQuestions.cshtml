@@ -4,6 +4,49 @@
     int packageId = (int)ViewBag.PackageId;
     int assessmentId = (int)ViewBag.AssessmentId;
     var questions = ViewBag.Questions as List<PackageQuestion> ?? new List<PackageQuestion>();
+    // Phase 415 SEC-01/02/05: Section list per-paket (sudah OrderBy SectionNumber dari controller).
+    var sections = ViewBag.Sections as List<AssessmentPackageSection> ?? new List<AssessmentPackageSection>();
+    // Label tampilan Section: "@SectionNumber. @Name" atau "Section @SectionNumber" bila Nama kosong.
+    Func<AssessmentPackageSection, string> sectionLabel = s =>
+        string.IsNullOrWhiteSpace(s.Name) ? $"Section {s.SectionNumber}" : $"{s.SectionNumber}. {s.Name}";
+}
+
+@* Phase 415 SEC-05: template baris soal (reuse markup existing) untuk daftar dikelompokkan per Section. *@
+@{
+    Func<PackageQuestion, Microsoft.AspNetCore.Mvc.Razor.HelperResult> questionRow = @<text>
+        @{ var qtype = item.QuestionType ?? "MultipleChoice"; }
+        <tr>
+            <td class="text-muted">@item.Order</td>
+            <td>
+                <span class="d-inline-block text-truncate" style="max-width:260px" title="@item.QuestionText">
+                    @item.QuestionText
+                </span>
+            </td>
+            <td>
+                <span class="badge @QuestionTypeLabels.BadgeClass(qtype) small">@QuestionTypeLabels.Short(qtype)</span>
+            </td>
+            <td class="text-center">@item.ScoreValue</td>
+            <td>
+                <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1" onclick="loadPreview(@item.Id)" title="Preview">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm py-0 px-1" onclick="loadEditForm(@item.Id)" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <form asp-action="DeleteQuestion" asp-controller="AssessmentAdmin" method="post" class="d-inline"
+                          onsubmit="return confirm('Hapus soal ini?')">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="questionId" value="@item.Id" />
+                        <input type="hidden" name="packageId" value="@ViewBag.PackageId" />
+                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Hapus">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+    </text>;
 }
 
 <div class="container-fluid py-4">
@@ -34,6 +77,159 @@
         <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     }
 
+    <!-- Phase 415 SEC-01/02: Panel Kelola Section (inline, full-width — D-415-01) -->
+    <div class="card shadow-sm mb-4" id="sectionPanelCard">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Kelola Section</span>
+            @if (sections.Any())
+            {
+                <form asp-action="SetAllSectionsNewPage" asp-controller="AssessmentAdmin" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="packageId" value="@packageId" />
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-file-earmark-break me-1"></i>Semua Section mulai halaman baru
+                    </button>
+                </form>
+            }
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">Section mengelompokkan soal per area/equipment. Opsional — paket tanpa Section berperilaku seperti sebelumnya.</p>
+            <div class="row g-3">
+                <!-- Daftar Section -->
+                <div class="col-lg-7">
+                    @if (!sections.Any())
+                    {
+                        <div class="p-4 text-center text-muted">
+                            <i class="bi bi-collection fs-2 d-block mb-2"></i>
+                            <div class="fw-semibold">Belum ada Section.</div>
+                            <div class="small">Tambahkan Section memakai form di samping, atau biarkan kosong — paket akan berperilaku seperti sebelumnya (semua soal tanpa Section).</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:90px">No. Section</th>
+                                        <th>Nama</th>
+                                        <th class="text-center" style="width:120px">Mulai Halaman Baru</th>
+                                        <th class="text-center" style="width:80px">Acak</th>
+                                        <th style="width:120px">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in sections)
+                                    {
+                                        var qCount = questions.Count(q => q.SectionId == s.Id);
+                                        <tr>
+                                            <td class="text-center text-muted">@s.SectionNumber</td>
+                                            <td>@(string.IsNullOrWhiteSpace(s.Name) ? "—" : s.Name)</td>
+                                            <td class="text-center">
+                                                @if (s.StartNewPage)
+                                                {
+                                                    <span class="badge bg-secondary small">Ya</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">Tidak</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (s.ShuffleEnabled)
+                                                {
+                                                    <span class="badge bg-secondary small">Ya</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">Tidak</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="d-flex gap-1">
+                                                    <button type="button"
+                                                            class="btn btn-outline-primary btn-sm py-0 px-1"
+                                                            title="Ubah Section"
+                                                            data-section-id="@s.Id"
+                                                            data-section-number="@s.SectionNumber"
+                                                            data-section-name="@s.Name"
+                                                            data-section-startnewpage="@(s.StartNewPage ? "true" : "false")"
+                                                            data-section-shuffleenabled="@(s.ShuffleEnabled ? "true" : "false")"
+                                                            onclick="loadSectionEdit(this)">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <form asp-action="DeleteSection" asp-controller="AssessmentAdmin" method="post" class="d-inline"
+                                                          onsubmit="return confirm('Hapus Section ini? Soal di dalamnya menjadi &quot;Tanpa Section&quot; (Lainnya), tidak terhapus.')">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="sectionId" value="@s.Id" />
+                                                        <input type="hidden" name="packageId" value="@packageId" />
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Hapus Section">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                                @if (qCount > 0)
+                                                {
+                                                    <div class="form-text mt-0">@qCount soal</div>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+                <!-- Form buat/edit Section -->
+                <div class="col-lg-5">
+                    <form id="sectionForm" asp-action="CreateSection" asp-controller="AssessmentAdmin" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="packageId" value="@packageId" />
+                        <input type="hidden" id="sectionEditId" name="sectionId" value="" />
+
+                        <div class="fw-semibold mb-2" id="sectionFormTitle">Tambah Section</div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">No. Section <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control form-control-sm" name="sectionNumber" id="sectionNumber"
+                                   min="1" step="1" required style="max-width:120px" />
+                            <div class="form-text">Angka urut tampilan (1, 2, 3 …). Harus unik dalam paket ini.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nama Section</label>
+                            <input type="text" class="form-control form-control-sm" name="name" id="sectionName"
+                                   placeholder="mis. Pompa &amp; Kompresor" />
+                            <div class="form-text">Opsional — label tampilan, mis. "Pompa &amp; Kompresor".</div>
+                        </div>
+
+                        <div class="form-check form-switch mb-1">
+                            <input class="form-check-input" type="checkbox" name="startNewPage" value="true" id="sectionStartNewPage" />
+                            <label class="form-check-label small" for="sectionStartNewPage">Mulai Halaman Baru</label>
+                        </div>
+                        <div class="form-text text-muted mb-3">Saat aktif, Section ini mulai di halaman baru saat ujian. (Berlaku penuh di fitur pagination — Fase 417.)</div>
+
+                        <div class="form-check form-switch mb-1">
+                            <input class="form-check-input" type="checkbox" name="shuffleEnabled" value="true" id="sectionShuffleEnabled" checked />
+                            <label class="form-check-label small" for="sectionShuffleEnabled">Acak Soal di Section ini</label>
+                        </div>
+                        <div class="form-text text-muted mb-3">Saat aktif, urutan soal &amp; pilihan diacak hanya di dalam Section ini. (Berlaku penuh di fitur acak per-Section — Fase 416.)</div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-save me-1"></i>Simpan Section
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="sectionCancelBtn"
+                                    style="display:none" onclick="resetSectionForm()">
+                                Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-4">
         <!-- Left: Daftar soal -->
         <div class="col-lg-7">
@@ -63,46 +259,34 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var q in questions)
+                                    @* Phase 415 SEC-05: kelompokkan soal per Section (header neutral bg-light), grup "Lainnya" terakhir. *@
+                                    @foreach (var s in sections)
                                     {
-                                        var qtype = q.QuestionType ?? "MultipleChoice";
-                                        <tr>
-                                            <td class="text-muted">@q.Order</td>
-                                            <td>
-                                                <span class="d-inline-block text-truncate" style="max-width:260px" title="@q.QuestionText">
-                                                    @q.QuestionText
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge @QuestionTypeLabels.BadgeClass(qtype) small">@QuestionTypeLabels.Short(qtype)</span>
-                                            </td>
-                                            <td class="text-center">@q.ScoreValue</td>
-                                            <td>
-                                                <div class="d-flex gap-1">
-                                                    <button type="button"
-                                                            class="btn btn-outline-secondary btn-sm py-0 px-1"
-                                                            onclick="loadPreview(@q.Id)"
-                                                            title="Preview">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button type="button"
-                                                            class="btn btn-outline-primary btn-sm py-0 px-1"
-                                                            onclick="loadEditForm(@q.Id)"
-                                                            title="Edit">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </button>
-                                                    <form asp-action="DeleteQuestion" asp-controller="AssessmentAdmin" method="post" class="d-inline"
-                                                          onsubmit="return confirm('Hapus soal ini?')">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="questionId" value="@q.Id" />
-                                                        <input type="hidden" name="packageId" value="@packageId" />
-                                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Hapus">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                </div>
+                                        var sectionQuestions = questions.Where(q => q.SectionId == s.Id).ToList();
+                                        <tr class="bg-light">
+                                            <td colspan="5" class="fw-semibold">
+                                                @(string.IsNullOrWhiteSpace(s.Name) ? $"Section {s.SectionNumber}" : $"Section {s.SectionNumber} — {s.Name}") <span class="text-muted fw-normal">(@sectionQuestions.Count soal)</span>
                                             </td>
                                         </tr>
+                                        @foreach (var q in sectionQuestions)
+                                        {
+                                            @questionRow(q)
+                                        }
+                                    }
+                                    @{
+                                        var ungrouped = questions.Where(q => q.SectionId == null).ToList();
+                                    }
+                                    @if (ungrouped.Any())
+                                    {
+                                        <tr class="bg-light">
+                                            <td colspan="5" class="fw-semibold">
+                                                Lainnya (tanpa Section) <span class="text-muted fw-normal">(@ungrouped.Count soal)</span>
+                                            </td>
+                                        </tr>
+                                        @foreach (var q in ungrouped)
+                                        {
+                                            @questionRow(q)
+                                        }
                                     }
                                 </tbody>
                             </table>
@@ -132,6 +316,19 @@
                                 <option value="MultipleAnswer">@QuestionTypeLabels.Long("MultipleAnswer")</option>
                                 <option value="Essay">@QuestionTypeLabels.Long("Essay")</option>
                             </select>
+                        </div>
+
+                        <!-- Phase 415 SEC-03: dropdown assign soal → Section -->
+                        <div class="mb-3">
+                            <label class="form-label fw-medium small">Section</label>
+                            <select class="form-select form-select-sm" id="sectionIdSelect" name="sectionId">
+                                <option value="">— Tanpa Section (Lainnya) —</option>
+                                @foreach (var s in sections)
+                                {
+                                    <option value="@s.Id">@sectionLabel(s)</option>
+                                }
+                            </select>
+                            <div class="form-text">Soal tanpa Section masuk grup "Lainnya" di urutan terakhir.</div>
                         </div>
 
                         <!-- Teks soal -->
@@ -468,6 +665,10 @@
         originalType = qtype;
         applyQTypeSwitch(qtype);
 
+        // Phase 415 SEC-03: prefill dropdown Section (null → "Lainnya" / value kosong).
+        var secSel = document.getElementById('sectionIdSelect');
+        if (secSel) secSel.value = (data.sectionId != null) ? String(data.sectionId) : '';
+
         // Populate options
         var optLetters = ['A', 'B', 'C', 'D'];
         var optFields = ['optionA', 'optionB', 'optionC', 'optionD'];
@@ -606,10 +807,41 @@
         document.getElementById('QuestionType').value = 'MultipleChoice';
         document.getElementById('scoreValue').value = 10;
 
+        // Phase 415 SEC-03: reset dropdown Section ke "Lainnya".
+        var secSel = document.getElementById('sectionIdSelect');
+        if (secSel) secSel.value = '';
+
         IMAGE_FIELDS.forEach(resetImageField);
 
         document.getElementById('submitBtn').innerHTML = '<i class="bi bi-plus-circle me-1"></i>Tambah Soal';
         document.getElementById('cancelEditBtn').style.display = 'none';
+    };
+
+    // ---- Phase 415 SEC-01/02: panel Kelola Section (JS minim, D-415-02) ----
+    // Prefill form Section dari data-attribute baris (XSS-safe: pakai .value, bukan innerHTML).
+    window.loadSectionEdit = function (btn) {
+        var form = document.getElementById('sectionForm');
+        form.action = (window.basePath || '') + '/Admin/EditSection';
+
+        document.getElementById('sectionEditId').value = btn.getAttribute('data-section-id') || '';
+        document.getElementById('sectionNumber').value = btn.getAttribute('data-section-number') || '';
+        document.getElementById('sectionName').value = btn.getAttribute('data-section-name') || '';
+        document.getElementById('sectionStartNewPage').checked = (btn.getAttribute('data-section-startnewpage') === 'true');
+        document.getElementById('sectionShuffleEnabled').checked = (btn.getAttribute('data-section-shuffleenabled') === 'true');
+
+        document.getElementById('sectionFormTitle').textContent = 'Ubah Section';
+        document.getElementById('sectionCancelBtn').style.display = '';
+        document.getElementById('sectionPanelCard').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.resetSectionForm = function () {
+        var form = document.getElementById('sectionForm');
+        form.action = (window.basePath || '') + '/Admin/CreateSection';
+        form.reset();
+        document.getElementById('sectionEditId').value = '';
+        document.getElementById('sectionShuffleEnabled').checked = true;   // default ON
+        document.getElementById('sectionFormTitle').textContent = 'Tambah Section';
+        document.getElementById('sectionCancelBtn').style.display = 'none';
     };
 }());
 </script>
