@@ -12,7 +12,21 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Last Shipped Milestone: v32.4 Ujian Ulang (Attempt/Retake) — ✅ CLOSED 2026-06-22 (audit PASSED 14/14 REQ; migration=TRUE Fase 405). v32.1+v32.3+v32.4 closed di ITHandoff, NOT pushed (deploy bundle). Next: `/gsd-new-milestone`.
+## Current Milestone: v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test — 🚧 STARTED 2026-06-22 (branch ITHandoff)
+
+**Goal:** Tutup ~60 temuan audit Pre/Post-Test (2026-06-22) — perbaiki integritas perilaku ujian, persistensi field form, lifecycle retake, integritas SamePackage/shuffle, konsistensi penerbitan sertifikat, dedup grading + gating Pre→Post, cleanup tech-debt. Sumber: `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md`. Keputusan bisnis: (a) Pre WAJIB selesai sebelum Post; (b) SamePackage fleksibel (bisa diubah pasca-create); (c) fasilitas soal Post=Pre sudah ada (SamePackage). migration kemungkinan P3 (SamePackage toggle) & P6 (drop AssessmentPhase) — TBD plan-phase. Inject (VAL-01) OUT (di branch main).
+
+**Struktur 6 fase (420-425), ~37 REQ, semua ~60 temuan in-scope:**
+- **420 (P1) FORM** — Form Create/Edit persistensi field (E-01 shuffle reset 🔴, retake bind-but-drop, ValidUntil, lock Completed, redirect manual) + UX Pre-Post (SamePackage letak, scope-label, dedup input, rename AssessmentTypeInput).
+- **421 (P2) RTH** — Retake hardening: cooldown×ExamWindow dead-end 🔴, reset hapus cert, counting konsisten, guard hapus peserta.
+- **422 (P3) SHFX** — SamePackage sync di Import 🔴 + toggle editable + lock server + warisi peserta-baru + PackageNumber + kunci sibling.
+- **423 (P4) CERT** — Satu helper ShouldIssueCertificate + ValidUntil wajib + seq atomik + anti-double + numbering.
+- **424 (P5) GRDF** — Gating Pre→Post 🔴 + dedup scoring + unify pairing + essay server-side validation.
+- **425 (P6) CLN** — Naming/label/dead-field/tech-debt (no-migration).
+
+**Konteks kunci:** 4 HIGH (E-01 shuffle reset-OFF · RTK-LOGIC-02 cooldown dead-end · SHUF-ISS-03 sync Import · FLOW-04 gating Pre-dulu). Re-check audit: mapping lengkap, ~60 distinct in-scope (synth tally "39" understated), 3 ID FLOW dikanonikkan → FLOW-08/09/10. Branch ITHandoff (sepaket deploy v32.1+v32.3+v32.4+v32.7). Fase mulai **420** (hindari bentrok main: v32.5=409-414, v32.6=415-419). ⚠️ Overlap v32.6 (main) di P1/P3 (form + ScopedShuffle) — catat untuk rekonsiliasi saat merge.
+
+## Last Shipped Milestone: v32.4 Ujian Ulang (Attempt/Retake) — ✅ CLOSED 2026-06-22 (audit PASSED 14/14 REQ; migration=TRUE Fase 405). v32.1+v32.3+v32.4 closed di ITHandoff, NOT pushed (deploy bundle). Next milestone: v32.7 (audit Pre/Post).
 
 **Goal:** Pekerja boleh jadi anggota >1 Unit dalam 1 Bagian (Section tetap scalar); coach bisa pegang coachee lintas-unit selama 1 Bagian; PROTON jalan sekuensial lintas-unit (Tahun1@X → Tahun2@Y). migration=TRUE (junction `UserUnits`). Cert/analytics atribusi primary (D1=b). Design: `docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md`.
 

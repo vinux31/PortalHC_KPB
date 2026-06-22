@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v32.4
-milestone_name: Ujian Ulang (Attempt/Retake Assessment)
-status: verifying
-stopped_at: "Completed 408-02-PLAN.md (RTK-14 GAP-3 e2e lifecycle: gagal->ulang->lulus->cert; artefak siap, Task3 live UAT = orchestrator; seed 5159e7d0 + spec 0497c18b)"
-last_updated: "2026-06-22T07:42:36.678Z"
+milestone: v32.7
+milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
+status: defining_requirements
+stopped_at: "Milestone v32.7 started — defining requirements (audit Pre/Post 2026-06-22, 6 fase 420-425)"
+last_updated: "2026-06-22T08:00:00.000Z"
 last_activity: 2026-06-22
 progress:
-  total_phases: 37
-  completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -21,32 +21,36 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 408 — Test & UAT
+**Current focus:** v32.7 — defining requirements (audit Pre/Post, 6 fase 420-425)
 
 ## Current Position
 
-Milestone: **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — 🚧 STARTED 2026-06-21 (branch ITHandoff)
-Phase: 408 (Test & UAT) — EXECUTING
-Plan: 2 of 2
-Status: Phase complete — ready for verification
-Last activity: 2026-06-22
+Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-22 — Milestone v32.7 started
 
-**v32.3 Akun Multi-Unit — ✅ CLOSED 2026-06-21** (predecessor; archived `milestones/v32.3-*` + tag lokal `v32.3` HEAD `dcd7972a`; migration=TRUE Fase 399 `AddUserUnitsTable`; NOT pushed). **v32.1 — ✅ CLOSED** (archive-only, NOT pushed). Deploy v32.1+v32.3 bundle = user-owned (lihat Push IT).
+**Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
 ## Next Action
 
-**v32.4 active.** Fase (wave `405 → (406 ∥ 407) → 408`):
+**v32.7 active — milestone init in progress.** Sumber: audit `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (~60 temuan, 4 High). Struktur 6 fase disetujui:
 
-1. **Phase 405 Backend Core** — ✅ **ALL 4 PLANS COMPLETE** (405-01 data+migration → 405-02 helper pure → 405-03 service → 405-04 controller wire). RTK-01/02/03/04/06/07/13 done. migration=TRUE (405-01 `AddRetakeColumnsAndArchive` `69db727a`, applied lokal). build 0 error; ResetGuardTests 2/2; unit 436/438; RetakeService integration 5/5. → **`/gsd-verify-work`** (verifier 405) lalu lanjut.
-2. **Phase 406 Admin Config UI + Riwayat HC** — ✅ **ALL 3 PLANS COMPLETE** (406-01 riwayat backend RTK-08 → 406-02 retake config UI RTK-05 e2e 6/6 → 406-03 riwayat HC modal mount RTK-08 e2e 5/5). RTK-05+RTK-08 done. **migration=FALSE** (seluruh fase; 405 bawa satu-satunya migration v32.4). build 0 err; e2e riwayat-hc-406 5/5 + retake-config-406 6/6 @5270; full xUnit 604/0/2. → **`/gsd-verify-work`** (verifier 406) lalu lanjut.
-3. **Phase 407 Worker Self-Service + Tier Feedback + Riwayat Pekerja** — ✅ **ALL 3 PLANS COMPLETE** (RTK-09/10/11/12/13). **407-01 ✅** (RetakeReviewMode enum + ResolveReviewMode leak-safe A1 + 7 VM field + IsCurrentAttempt; RetakeRulesTests 22/22; `c4ad2fe4`+`b45e5123`). **407-02 ✅** (DI RetakeService + POST CMP/RetakeExam antiforgery+ownership+CanRetakeAsync+token-clear+redirect StartExam; Results isi 7 VM field+riwayat; 3 endpoint test; `f77d7710`+`120d6286`+`af19a643`). **407-03 ✅ SHIPPED** (RTK-10/11/12 worker UI: Results.cshtml `@switch(Model.RetakeMode)` 3-state LEAK-SAFE [ShowWrongFlagsOnly verdict-only TANPA list-group-item-success/(Jawaban Benar)/CorrectAnswer] + retake control btnRetake/counter/cooldown-countdown/IsCapReached-lock + modal #retakeConfirmModal antiforgery POST RetakeExam + countdown JS guard-safe lesson 413; partial baru `_RiwayatPekerja.cshtml` ter-gate [Tidak Lulus/Jawaban Saya/ViewData[HideDetail] ScoreOnly]; Records.cshtml tak disentuh D-04; Playwright `retake-worker-407.spec.ts` 6 skenario + seed 3 sesi [RETAKE407]; build 0 err; unit 448/0/2; migration=FALSE; commits `b57fdc6b`+`810ffb60`+`0bd3c1ac`). **SISA: live Playwright UAT @5270 (orchestrator gate) → tandai SEED_JOURNAL cleaned.** → `/gsd-verify-work` (verifier 407).
-4. **Phase 408** — Test & UAT terakhir (depends 406+407). **NEXT setelah verify 407.**
+1. **Phase 420 (P1) FORM** — Form Create/Edit persistensi field (E-01 🔴) + UX Pre-Post.
+2. **Phase 421 (P2) RTH** — Retake lifecycle hardening (RTK-LOGIC-02 🔴).
+3. **Phase 422 (P3) SHFX** — SamePackage & Shuffle integrity (SHUF-ISS-03 🔴). ⚠️ overlap v32.6 main.
+4. **Phase 423 (P4) CERT** — Certificate issuance consistency.
+5. **Phase 424 (P5) GRDF** — Grading de-dup + Flow/Linking + Gating Pre→Post (FLOW-04 🔴).
+6. **Phase 425 (P6) CLN** — Cosmetic/Naming/Tech-Debt.
 
-**Deploy bundle (user-owned, terpisah dari v32.4 dev):** v32.1 + v32.3 (+v32.4 saat siap) = isi `[COMMIT_HASH]` `docs/milestone-v32.3/index.html` → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` `fc015f4d` + backfill; Fase 405 retake cols saat shipped; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`).
+**NEXT:** define REQUIREMENTS.md → roadmap (fase 420-425) → `/gsd-plan-phase 420`. Fase mulai 420 (main pakai 409-419: v32.5=409-414, v32.6=415-419).
 
-**v32.0** sudah CLOSED manual 2026-06-19 di branch `main` — BUKAN pending close (lihat MEMORY `project_v32_0_close_deferred`).
+**Deploy bundle (user-owned):** v32.1 + v32.3 + v32.4 (+v32.7 saat siap) → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` + Fase 405 retake cols + v32.7 migration P3/P6 TBD; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`).
 
-Backlog tracked: 999.6/9/10/11/12 (999.12 = legacy-session DB cleanup, promoted saat close v32.3).
+**v32.0** CLOSED manual 2026-06-19 di branch `main` (lihat MEMORY `project_v32_0_close_deferred`).
+
+Backlog tracked: 999.6/9/10/11/12.
 
 ## Tag Git
 
