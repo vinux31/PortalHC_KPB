@@ -75,7 +75,7 @@
 **Plans:** 3 plans (3 waves — sekuensial by file-overlap: ketiganya sentuh AssessmentAdminController.cs)
 - [x] 420-01-PLAN.md — Wave 1: Persistensi data (FORM-01 render shuffle Edit · FORM-02 retake 3 jalur Create · FORM-03 retake Edit std · FORM-04 ValidUntil Edit std) + Wave-0 persistence test real-SQL [migration=FALSE]
 - [x] 420-02-PLAN.md — Wave 2: Guard/redirect (FORM-05 lock Completed group-aware diangkat sebelum cabang Pre-Post · FORM-06 redirect IsManualEntry di GET Edit) + test guard/redirect [migration=FALSE]; depends 01
-- [ ] 420-03-PLAN.md — Wave 3: UX Pre-Post + rename (FORM-07 SamePackage header · FORM-08 dua sub-kartu · FORM-09 disable std input · FORM-11 retake hidden · FORM-10 rename CreationMode atomik) + Playwright per-mode + checkpoint UAT @5270 [migration=FALSE, autonomous=false]; depends 01+02
+- [x] 420-03-PLAN.md — Wave 3: UX Pre-Post + rename (FORM-07 SamePackage header · FORM-08 dua sub-kartu · FORM-09 disable std input · FORM-11 retake hidden · FORM-10 rename CreationMode atomik) + Playwright per-mode + checkpoint UAT @5270 [migration=FALSE, autonomous=false]; depends 01+02
 **UI hint:** yes
 
 ### Phase 421: Retake Lifecycle Hardening
@@ -151,7 +151,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 420. Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11) | 2/3 | In Progress|  |
+| 420. Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11) | 3/3 | UAT pending (420-03 Task 4 checkpoint) | - |
 | 421. Retake Lifecycle Hardening (RTH-01..05) | 0/TBD | Not started | - |
 | 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 0/TBD | Not started | - |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 0/TBD | Not started | - |
