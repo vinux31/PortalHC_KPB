@@ -10,6 +10,9 @@ namespace HcPortal.Models
         public int PassPercentage { get; set; }
         public bool IsPassed { get; set; }
         public bool AllowAnswerReview { get; set; }
+        // Phase 414 (D-01): nilai EFEKTIF "boleh lihat tinjauan jawaban" = AllowAnswerReview || non-owner.
+        // AllowAnswerReview (di atas) TETAP raw toggle — view butuh membedakan "OFF tapi admin tetap lihat" untuk nota admin.
+        public bool CanReviewAnswers { get; set; }
         public bool GenerateCertificate { get; set; }
         public DateTime? CompletedAt { get; set; }
         public int TotalQuestions { get; set; }
