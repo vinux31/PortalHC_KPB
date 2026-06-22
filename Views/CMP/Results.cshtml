@@ -497,20 +497,21 @@
     else if (Model.CanRetake)
     {
         <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-            @if (Model.CooldownUntilUtc.HasValue && Model.CooldownUntilUtc > DateTime.UtcNow)
-            {
-                <button type="button" class="btn btn-primary" id="btnRetake" disabled
-                        data-cooldown-until="@Model.CooldownUntilUtc.Value.ToString("o")">
-                    <i class="bi bi-hourglass-split me-1"></i>Bisa ulang dalam <span id="retakeCountdown">--:--:--</span>
-                </button>
-            }
-            else
-            {
-                <button type="button" class="btn btn-primary" id="btnRetake"
-                        data-bs-toggle="modal" data-bs-target="#retakeConfirmModal">
-                    <i class="bi bi-arrow-repeat me-1"></i>Ujian Ulang
-                </button>
-            }
+            <button type="button" class="btn btn-primary" id="btnRetake"
+                    data-bs-toggle="modal" data-bs-target="#retakeConfirmModal">
+                <i class="bi bi-arrow-repeat me-1"></i>Ujian Ulang
+            </button>
+            <span class="text-muted small">Percobaan ke-@Model.CurrentAttempt dari @Model.MaxAttempts</span>
+        </div>
+    }
+    else if (Model.IsInCooldown && Model.CooldownUntilUtc.HasValue)
+    {
+        @* WR-01 (RTK-10): masa jeda belum lewat. CanRetake=false selama cooldown, jadi cabang ini WAJIB terpisah dari CanRetake agar countdown tampil. *@
+        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+            <button type="button" class="btn btn-primary" id="btnRetake" disabled
+                    data-cooldown-until="@Model.CooldownUntilUtc.Value.ToString("o")">
+                <i class="bi bi-hourglass-split me-1"></i>Bisa ulang dalam <span id="retakeCountdown">--:--:--</span>
+            </button>
             <span class="text-muted small">Percobaan ke-@Model.CurrentAttempt dari @Model.MaxAttempts</span>
         </div>
     }

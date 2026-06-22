@@ -2487,6 +2487,11 @@ namespace HcPortal.Controllers
             viewModel.CooldownUntilUtc = (assessment.AllowRetake && assessment.RetakeCooldownHours > 0 && assessment.CompletedAt.HasValue)
                 ? assessment.CompletedAt.Value.AddHours(assessment.RetakeCooldownHours) : (DateTime?)null;
             viewModel.IsCapReached = assessment.IsPassed == false && assessment.AllowRetake && currentAttempt >= assessment.MaxAttempts;
+            // WR-01 fix (RTK-10): tombol cooldown-disabled HARUS tampil saat masa jeda belum lewat.
+            // CanRetake (CanRetakeAsync) bernilai FALSE selama cooldown, jadi countdown tak boleh digate olehnya.
+            // IsInCooldown = layak-ulang-abaikan-cooldown (gagal + attempt-sisa) DAN cooldown masih aktif.
+            viewModel.IsInCooldown = attemptsRemaining && assessment.IsPassed == false
+                && viewModel.CooldownUntilUtc.HasValue && viewModel.CooldownUntilUtc > DateTime.UtcNow;
 
             // (b) Riwayat load — cermin verbatim RiwayatPercobaan :3493-3522 (reuse RetakeArchiveBuilder + RiwayatUnifier).
             var histories = await _context.AssessmentAttemptHistory

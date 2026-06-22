@@ -27,6 +27,7 @@ namespace HcPortal.Models
         public int MaxAttempts { get; set; }
         public DateTime? CooldownUntilUtc { get; set; }
         public bool IsCapReached { get; set; }
+        public bool IsInCooldown { get; set; } // WR-01 (RTK-10): true saat gagal+attempt-sisa tapi masa jeda cooldown belum lewat → render tombol disabled + countdown (CanRetake=false selama cooldown, jadi tak bisa pakai itu)
         public List<RiwayatAttemptViewModel>? RiwayatAttempts { get; set; }
     }
 
