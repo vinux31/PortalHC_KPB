@@ -145,7 +145,7 @@ ShuffleEngine sekarang mengumpulkan **semua soal lintas-paket** jadi 1 kolam lal
 ### 7.2 Implementasi render
 - `StartExam` controller: setelah `ShuffledQuestionIds` terbentuk, hitung `PageNumber` per soal saat render: iterasi soal urut; naikkan counter halaman bila (a) `StartNewPage=true` untuk section soal, atau (b) halaman sudah berisi 10 soal.
 - `ViewBag.SectionConfig` dikirim ke view (daftar section + toggle). View kelompokkan & sisipkan header.
-- **`LastActivePage` tetap integer page-index global** (tak ubah skema). Saat reshuffle/resume → hitung ulang dari config section (G-7). Legacy (tanpa section) → integer apa adanya.
+- **`LastActivePage` tetap `int?` (nullable) page-index global** (tak ubah skema). Saat reshuffle/resume → hitung ulang dari config section. Legacy (tanpa section) → nilai apa adanya; `null`/di luar rentang → fallback aman ke halaman 0. Aturan resume saat config berubah: lihat §15.A.
 - Page-number disimpan **bukan** per soal (acak merusaknya, D-11) — selalu dihitung saat render.
 
 ---
@@ -153,7 +153,7 @@ ShuffleEngine sekarang mengumpulkan **semua soal lintas-paket** jadi 1 kolam lal
 ## 8. Opsi Jawaban Dinamis (2–6)
 
 ### 8.1 Yang sudah aman
-Data model, grading (`PackageOption.Id`), validator inti (`QuestionOptionValidator.ValidateQuestionOptions(string?[], bool[])`), dan export sudah dinamis.
+Data model, grading (`PackageOption.Id`), validator inti (`QuestionOptionValidator.ValidateQuestionOptions(string type, string?[] texts, bool[] corrects)`), dan export sudah dinamis.
 
 ### 8.2 Yang harus diubah (semua hardcode A–D)
 | Lokasi | Perubahan |
@@ -198,7 +198,7 @@ Data model, grading (`PackageOption.Id`), validator inti (`QuestionOptionValidat
 
 ### 10.1 Tersentuh (harus disesuaikan)
 - **Inject (v32.2):** tambah `SectionNumber`/`SectionName` di `InjectQuestionSpec`; saat commit buat record section; validasi jumlah per-section. Form inject ikut opsi dinamis (§8.2).
-- **Sync Pre→Post (`SyncPackagesToPost`):** deep-clone harus ikut menyalin Section + opsi 5–6 (4 trigger: CreatePackage/CreateQuestion/EditQuestion/DeleteQuestion saat `SamePackage=true`).
+- **Sync Pre→Post (`SyncPackagesToPost` / `CopyPackagesFromPre`):** deep-clone (sudah salin teks/gambar/opsi) harus ikut menyalin **record Section + `SectionId` + opsi 5–6**. ⚠️ Audit ulang SEMUA pemicu sync (jalur CreateQuestion/EditQuestion/DeleteQuestion/CreatePackage pada PreTest ber-`SamePackage=true`) supaya tiap jalur menyalin section — **jumlah pemicu pasti diverifikasi saat implement, jangan diasumsikan**.
 - **Export per-soal (Excel/PDF):** sudah per-peserta. Tambah **label/header Section** ("Section {n}: {Nama}") + nomor soal relatif/section agar konsisten lintas-peserta (EXPORT-GA-002/003). Huruf A–F.
 - **Monitoring:** label section di tampilan; logika answered/total tetap (tak per-section).
 
@@ -254,5 +254,59 @@ Urut, tak bisa paralel kecuali #4:
 
 ---
 
-## 15. Out-of-Band: Fitur #1 (Hapus Peserta)
+## 15. Penajaman Re-Check (2026-06-22) — Koreksi & Edge-Case
+
+Hasil sweep verifikasi spec (5 agen) terhadap kode live. Koreksi faktual + aturan edge-case + miss yang ditambahkan.
+
+### 15.A Aturan rinci shuffle, "Lainnya", pagination
+- **Definisi K (§6.4):** `K` = jumlah soal section pada SATU paket (mis. Section 2 di Paket A). Oleh D-13, `K` dijamin **identik** di semua paket-saudara, dan `K > 0` (count=0 ditolak D-13).
+- **Skenario semua null:** jika SEMUA soal `SectionId=null` → 1 section implisit "Lainnya" = **perilaku global lama** (1 paket: tampil semua; >1 paket: pooling global ET-aware seperti sekarang). Tak ada perubahan.
+- **Grup "Lainnya" (D-15):** soal `SectionId=null`, **tanpa row** di `AssessmentPackageSection` → **tidak punya toggle `StartNewPage`/`ShuffleEnabled` sendiri**; ikut toggle level-assessment (induk). Selalu di **urutan terakhir**. Tidak memaksa page-break (kecuali halaman penuh). ET-aware pakai kunci komposit `(null, ET)`.
+- **OFF-mode campuran:** induk `ShuffleQuestions=OFF` → semua soal urut **`SectionNumber` asc lalu `Question.Order`**, grup "Lainnya" (null) terakhir.
+- **ET lintas-section:** K-min sampling **independen tiap section**. ET yang ada di >1 section dijamin tercakup di tiap section terpisah.
+- **DisplayNumber GLOBAL** (1..N), **tidak reset** per section. Header section memberi konteks. Mode 1-soal-per-layar **TIDAK** dalam scope.
+- **Resume saat config berubah pasca-lock:** nomor halaman dihitung ulang dari config; jika HC ubah struktur/toggle section setelah `UserPackageAssignment` terkunci → halaman bisa bergeser tapi **identitas soal stabil** (by question id); fallback aman ke halaman 0 bila `LastActivePage` di luar rentang.
+
+### 15.B Timing validasi mismatch (D-13)
+Diberlakukan di **2 titik**: (1) saat **import/simpan** paket-saudara → hard-block bila jumlah per-`SectionNumber` beda; (2) **re-check sebelum mulai ujian** (guard) → blok start bila terdeteksi drift. Pesan error jelas (sebut SectionNumber + jumlah yang diharapkan vs aktual).
+
+### 15.C Fingerprint dedup (penajaman §9.3)
+`MakePackageFingerprint` sekarang 5-param `(Q,A,B,C,D)`. Diubah jadi sertakan **OptE, OptF, dan SectionNumber** (null untuk "Lainnya"). Soal teks sama beda section / beda jumlah opsi → dianggap **berbeda** (tidak ter-dedup keliru).
+
+### 15.D MISS terbesar — UI Admin Kelola Section (BLOCKER, sebelumnya tak ada di spec)
+Spec hanya menjelaskan model + import; **belum** ada surface web tempat HC menata section. Tambahkan:
+- **Kelola Section** (di `ManagePackages` atau view baru `ManagePackageSections`): buat/edit/hapus/**urutkan** Section (No.Section, Nama); toggle **`StartNewPage`** + **`ShuffleEnabled`** per section; tombol **"Semua section mulai halaman baru"**.
+- **`ManagePackageQuestions`**: tampilkan soal **dikelompokkan per Section** (header "Section {n}: {Nama}") + **assign/pindah section per soal** (dropdown) atau bulk.
+- **`PreviewPackage`**: tampil berkelompok per section + tanda page-break + metadata; **perbaiki array huruf yang cap di "E" → A–F**.
+- Section bisa lahir dari **Excel** (otomatis dari kolom No.Section) **atau** dibuat di UI; **toggle hanya diatur di UI** (Excel tak bawa toggle).
+- Penempatan fase: surface ini sebagian masuk **Fase 1** (CRUD section dasar) + **Fase 3** (toggle pagination) + **Fase 4** (opsi dinamis di form).
+
+### 15.E Penajaman exam-render & endpoint lain
+- **Reshuffle endpoints** (`ReshufflePackage` / `ReshuffleAll`) → **section-aware** (lewat ShuffleEngine yang sudah di-refactor).
+- **Mobile (5 soal/halaman)** ikut aturan section yang sama (header + StartNewPage).
+- **Autosave SignalR** (essay/MA, `assessment-hub.js`): saat pindah halaman antar-section, pending autosave **WAJIB di-flush** (pertahankan perilaku flush yang sudah ada lintas-halaman).
+- **Sidebar panel nav**: kelompokkan badge per section + header (saat ini flat).
+- **Auto-submit/timeout**: `UpdateSessionProgress` simpan `currentPage` terakhir sebelum POST; sesi `Abandoned` rekam `ElapsedSeconds` + `LastActivePage` untuk audit.
+
+### 15.F Interaksi LINTAS-MILESTONE (sebelumnya tak dibahas)
+- **Inject (v32.2):** `InjectQuestionSpec` + Excel inject baca `No.Section`/`Nama Section` + opsi A–F; validasi D-13 saat commit.
+- **LinkPrePost (Phase 397) & Sync:** struktur Section **harus identik Pre↔Post** (`SectionNumber`+`Nama`+jumlah). Blok link bila beda; Post legacy tanpa section boleh (diperlakukan sebagai Pre tanpa section).
+- **AddParticipantsLive (v32.5 Phase 410):** eager-assignment untuk peserta baru **WAJIB** pakai per-section `BuildQuestionAssignment` yang sama (seed `workerIndex` konsisten).
+- **RemoveParticipant Pre/Post (v32.5 Phase 411):** pasangan tetap simetris; section identik Pre/Post (dari poin LinkPrePost).
+- **Retake/Attempt (v32.4, branch ITHandoff):** `AssessmentAttemptHistory`/`RetakeArchiveBuilder` — snapshot attempt sebaiknya simpan **info section** bila granularitas per-section diperlukan (per-ET sudah ada). **Rekonsiliasi saat merge** v32.4 ↔ milestone ini.
+- **MultiUnit (v32.3 `UserUnits`, branch ITHandoff):** orthogonal; seed `workerIndex` by `UserId` (bukan unit) → tak ada perubahan.
+- ⚠️ **v32.3/v32.4 hidup di branch ITHandoff** — sebagian asumsi tergantung branch; rekonsiliasi saat merge ke main.
+
+### 15.G Koreksi faktual ke kode (tercatat)
+| Sebelumnya di spec | Koreksi |
+|---|---|
+| `LastActivePage` "integer" | `int?` (nullable) — §7.2 sudah diperbaiki |
+| `ValidateQuestionOptions(string?[], bool[])` | `(string type, string?[] texts, bool[] corrects)` — §8.1 diperbaiki |
+| Sync "4 trigger" pasti | Pemicu **diverifikasi saat implement** — §10.1 diperbaiki |
+| `PreviewPackage` huruf | Saat ini cap di "E" → jadikan **A–F** |
+| `MakePackageFingerprint(Q,A,B,C,D)` | Tambah OptE/OptF + SectionNumber (§15.C) |
+
+---
+
+## 16. Out-of-Band: Fitur #1 (Hapus Peserta)
 Sudah selesai di v32.5 (Phase 411), teruji, **belum deploy**. Akan didemokan lokal (jalankan app + Playwright) sebagai langkah terpisah; bukan bagian milestone ini. Koordinasi deploy ke IT (migration `AddParticipantRemovalColumns` = TRUE).
