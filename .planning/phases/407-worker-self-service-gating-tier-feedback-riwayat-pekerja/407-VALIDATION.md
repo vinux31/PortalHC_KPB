@@ -1,10 +1,11 @@
 ---
 phase: 407
 slug: worker-self-service-gating-tier-feedback-riwayat-pekerja
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-22
+validated: 2026-06-22
 ---
 
 # Phase 407 — Validation Strategy
@@ -81,6 +82,24 @@ created: 2026-06-22
 - [ ] Wave 0 covers all MISSING references (tier helper test + RetakeExam endpoint test)
 - [ ] Razor/JS surfaces verified at runtime (Playwright smoke leak-safety, not grep+build — lesson 354/413)
 - [ ] No watch-mode flags
-- [ ] `nyquist_compliant: true` set after execution
+- [x] `nyquist_compliant: true` set after execution
 
-**Approval:** pending
+**Approval:** APPROVED 2026-06-22
+
+---
+
+## Validation Audit 2026-06-22
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+State A audit. Semua Wave-0 gap tertutup oleh test yang dibangun saat execute:
+- `RetakeRulesTests` 22/22 (incl 6 Fact `ResolveReviewMode` truth-table, pending null dua arah) — green.
+- `RetakeExamEndpointTests` 3/3 (RTK-09: non-owner→Forbid / not-eligible→redirect / sukses→token-cleared) — green (real-SQL).
+- `RiwayatUnifierTests` regresi — green. Full unit suite 448/0/2.
+- **Playwright `retake-worker-407.spec.ts` 7/7 live @5270** (leak-safety DOM, control, modal antiforgery, riwayat, cap-lock, cooldown countdown) — green; DB restored. Bukti: `407-UAT.md`.
+
+NYQUIST-COMPLIANT. Tidak ada test baru di-generate (no gap).

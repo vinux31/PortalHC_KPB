@@ -1,13 +1,15 @@
 ---
 phase: 407-worker-self-service-gating-tier-feedback-riwayat-pekerja
 verified: 2026-06-22T03:30:00Z
-status: human_needed
-score: 9/10
+resolved: 2026-06-22T03:40:00Z
+status: passed
+score: 10/10
 overrides_applied: 0
 human_verification:
   - test: "Jalankan Playwright spec retake-worker-407.spec.ts @5270 (live browser leak-safety UAT)"
     expected: "6 skenario GREEN: leak-safety kunci jawaban TIDAK muncul di ShowWrongFlagsOnly; tombol Ujian Ulang visible + modal antiforgery; riwayat accordion tampil; cap-reached alert; cooldown countdown ticking; NO pageerror"
-    why_human: "Lesson 354/413: grep+build tidak cukup untuk Razor/JS/SignalR. Playwright harus dijalankan di DOM real-browser @5270 dengan seed data aktif (SQLEXPRESS). Spec sudah dibuat (0bd3c1ac) dan seed SQL sudah ada (tests/sql/retake-worker-407-seed.sql) tapi live run memerlukan app aktif + DB restore pasca-test."
+    why_human: "Lesson 354/413: grep+build tidak cukup untuk Razor/JS. Playwright harus dijalankan di DOM real-browser @5270 dengan seed data aktif (SQLEXPRESS)."
+    result: "RESOLVED 2026-06-22 oleh orchestrator (milestone-autopilot UAT gate) — 7/7 GREEN live @5270 (lihat 407-UAT.md). Live UAT menangkap fix WR-01 (cooldown countdown sebelumnya dead code) + memvalidasi leak-safety DOM. Skor naik 9/10 → 10/10."
 ---
 
 # Phase 407: Worker Self-Service + Gating Tier Feedback + Riwayat Pekerja — Laporan Verifikasi
