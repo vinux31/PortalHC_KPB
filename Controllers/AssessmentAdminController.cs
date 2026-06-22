@@ -6552,6 +6552,15 @@ namespace HcPortal.Controllers
                 .OrderBy(p => p.PackageNumber)
                 .ToListAsync();
 
+            // Phase 415 SEC-06: muat Section rows paket Pre untuk ikut di-clone + remap SectionId.
+            // Kelompokkan per AssessmentPackageId agar map old->new dibangun per-paket (SectionNumber unik per paket).
+            var prePkgIds = prePkgs.Select(p => p.Id).ToList();
+            var preSectionsByPkg = (await _context.AssessmentPackageSections
+                    .Where(s => prePkgIds.Contains(s.AssessmentPackageId))
+                    .ToListAsync())
+                .GroupBy(s => s.AssessmentPackageId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             foreach (var prePkg in prePkgs)
             {
                 var newPkg = new AssessmentPackage
@@ -6560,6 +6569,28 @@ namespace HcPortal.Controllers
                     PackageName = prePkg.PackageName,
                     PackageNumber = prePkg.PackageNumber
                 };
+
+                // Phase 415 SEC-06: clone Section rows paket ini + bangun map old SectionId -> new Section (entity).
+                // Remap dilakukan VIA navigation property (newQ.Section) — BUKAN newQ.SectionId = q.SectionId
+                // (copy mentah akan menunjuk ke Section paket Pre = cross-package leak / FK violation, Pitfall 8).
+                var sectionMap = new Dictionary<int, AssessmentPackageSection>();
+                if (preSectionsByPkg.TryGetValue(prePkg.Id, out var preSections))
+                {
+                    foreach (var s in preSections)
+                    {
+                        var newSection = new AssessmentPackageSection
+                        {
+                            AssessmentPackage = newPkg,   // FK ter-wire saat SaveChanges (Section milik paket Post baru)
+                            SectionNumber = s.SectionNumber,
+                            Name = s.Name,
+                            StartNewPage = s.StartNewPage,
+                            ShuffleEnabled = s.ShuffleEnabled
+                        };
+                        _context.AssessmentPackageSections.Add(newSection);
+                        sectionMap[s.Id] = newSection;
+                    }
+                }
+
                 foreach (var q in prePkg.Questions)
                 {
                     var newQ = new PackageQuestion
@@ -6573,6 +6604,8 @@ namespace HcPortal.Controllers
                         MaxCharacters = q.MaxCharacters,
                         ImagePath = q.ImagePath,   // SYN-01: shared-file string copy (Pre→Post), no file op
                         ImageAlt = q.ImageAlt,
+                        // SEC-06: clone iterasi q.Options menyalin SEMUA opsi apa adanya (termasuk opsi E/F bila ada) —
+                        // tidak ada batas A–D, jadi opsi 5–6 ikut tersalin otomatis.
                         Options = q.Options.Select(o => new PackageOption
                         {
                             OptionText = o.OptionText,
@@ -6581,6 +6614,12 @@ namespace HcPortal.Controllers
                             ImageAlt = o.ImageAlt
                         }).ToList()
                     };
+                    // SEC-06: remap SectionId via nav property ke Section paket Post baru (Pitfall 8).
+                    // Soal tanpa Section (SectionId == null) → tetap null ("Lainnya"); soal ber-Section yang
+                    // section-nya tidak ada di map (defensif) → biarkan null daripada cross-link.
+                    if (q.SectionId.HasValue && sectionMap.TryGetValue(q.SectionId.Value, out var mappedSection))
+                        newQ.Section = mappedSection;
+
                     newPkg.Questions.Add(newQ);
                 }
                 _context.AssessmentPackages.Add(newPkg);
