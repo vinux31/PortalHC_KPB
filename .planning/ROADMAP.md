@@ -40,7 +40,8 @@
 - [ ] **Phase 415: Section Foundation + Import Excel Diperluas** — Tabel `AssessmentPackageSection` + `SectionId` nullable + UI kelola/urut/toggle section + import kolom Section/Opsi A–F dual-format + validasi struktur antar-paket (D-13). **migration=TRUE**.
 - [x] **Phase 415.1: Hotfix Guard Penilaian Essay Cross-Package (INSERTED, URGENT)** — Fix guard WR-02 `SubmitEssayScore` (L4210-4215) yang false-positive nolak penilaian essay ("Soal bukan milik sesi ini.") karena ownership per-sesi bentrok dgn pooling paket lintas sesi-sibling. Ganti ke cek `questionId ∈ UserPackageAssignment.GetShuffledQuestionIds()`. **Off-theme dari Section — hotfix prioritas (sebelum 416), boleh ship duluan. migration=FALSE.**
  (completed 2026-06-23)
-- [x] **Phase 416: Scoped Shuffle (Acak per-Section)** — Generalisasi `ShuffleEngine` jadi acak per-section (kunci ET komposit `(Section,ET)`) + precedence toggle induk/anak + pooling antar-paket per-section + reshuffle section-aware. migration=FALSE. (completed 2026-06-23)
+- [x] **Phase 416: Scoped Shuffle (Acak per-Section)** — Generalisasi `ShuffleEngine` jadi acak per-section (kunci ET komposit `(Section,ET)`) + precedence toggle induk/anak + pooling antar-paket per-section + reshuffle section-aware. migration=FALSE.
+ (completed 2026-06-23)
 - [ ] **Phase 417: Section Pagination** — Header section saat render + `StartNewPage` page-break + tombol cepat "semua section pisah halaman" + auto-pecah per-10 + resume map (`LastActivePage`). migration=FALSE.
 - [ ] **Phase 418: Opsi Jawaban Dinamis 2–6** — Refactor kontrak HTTP CreateQuestion/EditQuestion + form authoring + form Inject + render ujian/preview/results huruf A–F dinamis + import Opsi A–F + validator min-2/max-6. migration=FALSE.
 - [ ] **Phase 419: Export Label Section + Polish + Test/UAT Milestone** — Label/header Section di export per-soal (Excel/PDF) + sync Pre→Post struktur Section + audit interaksi lintas-milestone + suite test baru + Playwright real-browser UAT + audit milestone. migration=FALSE.
@@ -54,7 +55,7 @@
 | 415. Section Foundation + Import Excel Diperluas | 0/4 | 4/4 | Complete   | 2026-06-22 |
 | 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | 2/2 | Complete    | 2026-06-23 |
 | 416. Scoped Shuffle (Acak per-Section) | 0/3 | 3/3 | Complete    | 2026-06-23 |
-| 417. Section Pagination | 0/? | Not started | FALSE | - |
+| 417. Section Pagination | 0/3 | Not started | FALSE | - |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
 | 419. Export Label Section + Polish + Test/UAT | 0/? | Not started | FALSE | - |
 
@@ -136,7 +137,10 @@ Plans:
   1. Tampilan ujian default = 10 soal/halaman mengalir, dengan header Section yang muncul saat berganti Section.
   2. Section ber-"Mulai Halaman Baru" dimulai di halaman baru; Section panjang otomatis terpecah per 10 soal; tombol cepat "semua section pisah halaman" memaksa page-break di semua Section.
   3. Resume ujian (`LastActivePage`) tetap mengarah ke halaman yang benar saat pagination Section aktif; identitas soal stabil (by question id) walau struktur berubah pasca-lock, dengan fallback aman ke halaman 0 bila di luar rentang.
-**Plans**: TBD
+**Plans**: 3 plans (wave 1->2->3 sequential; file-overlap `StartExam.cshtml`/`CMPController.cs` Plan 02; e2e+UAT Plan 03)
+- [ ] 417-01-PLAN.md — `Helpers/SectionPaginator.cs` pure `ComputePages`/`ClampResumePage` + field section di `ExamQuestionItem` + Wave-0 xUnit `SectionPaginatorTests` (golden no-Section baseline) (PAG-01/02/03) [wave 1, migration=FALSE]
+- [ ] 417-02-PLAN.md — Wire `CMPController.StartExam` (isi field Section + ComputePages + clamp resume + mobile UA) + `StartExam.cshtml` render section-aware (header/navigator/indikator/resume RESUME_PAGE+toast, single-source page-map, backward-compat) (PAG-01/02/03) [wave 2]
+- [ ] 417-03-PLAN.md — Playwright e2e `section-pagination.spec.ts` (header/lanjutan/break/navigator/resume-toast/no-Section flat) + verify admin quick-button (Phase 415) + checkpoint UAT live @5277 (PAG-01/02/03) [wave 3, autonomous:false]
 **Migration**: FALSE (`LastActivePage` tetap `int?`, page-number dihitung saat render, bukan disimpan per-soal — D-11).
 **File-overlap (sequential setelah 416; hindari paralel dgn 418 di `StartExam.cshtml`)**: `StartExam.cshtml` (header section + page-break render + sidebar nav per-section), `CMPController.StartExam` (hitung PageNumber + `ViewBag.SectionConfig`), autosave SignalR flush antar-halaman (`assessment-hub.js`), mobile 5-soal/halaman ikut aturan section.
 **UI hint**: yes
