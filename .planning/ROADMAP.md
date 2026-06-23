@@ -38,7 +38,7 @@
 ### Phases
 
 - [ ] **Phase 415: Section Foundation + Import Excel Diperluas** — Tabel `AssessmentPackageSection` + `SectionId` nullable + UI kelola/urut/toggle section + import kolom Section/Opsi A–F dual-format + validasi struktur antar-paket (D-13). **migration=TRUE**.
-- [ ] **Phase 415.1: Hotfix Guard Penilaian Essay Cross-Package (INSERTED, URGENT)** — Fix guard WR-02 `SubmitEssayScore` (L4210-4215) yang false-positive nolak penilaian essay ("Soal bukan milik sesi ini.") karena ownership per-sesi bentrok dgn pooling paket lintas sesi-sibling. Ganti ke cek `questionId ∈ UserPackageAssignment.GetShuffledQuestionIds()`. **Off-theme dari Section — hotfix prioritas (sebelum 416), boleh ship duluan. migration=FALSE.**
+- [x] **Phase 415.1: Hotfix Guard Penilaian Essay Cross-Package (INSERTED, URGENT)** — Fix guard WR-02 `SubmitEssayScore` (L4210-4215) yang false-positive nolak penilaian essay ("Soal bukan milik sesi ini.") karena ownership per-sesi bentrok dgn pooling paket lintas sesi-sibling. Ganti ke cek `questionId ∈ UserPackageAssignment.GetShuffledQuestionIds()`. **Off-theme dari Section — hotfix prioritas (sebelum 416), boleh ship duluan. migration=FALSE.** (completed 2026-06-23)
 - [ ] **Phase 416: Scoped Shuffle (Acak per-Section)** — Generalisasi `ShuffleEngine` jadi acak per-section (kunci ET komposit `(Section,ET)`) + precedence toggle induk/anak + pooling antar-paket per-section + reshuffle section-aware. migration=FALSE.
 - [ ] **Phase 417: Section Pagination** — Header section saat render + `StartNewPage` page-break + tombol cepat "semua section pisah halaman" + auto-pecah per-10 + resume map (`LastActivePage`). migration=FALSE.
 - [ ] **Phase 418: Opsi Jawaban Dinamis 2–6** — Refactor kontrak HTTP CreateQuestion/EditQuestion + form authoring + form Inject + render ujian/preview/results huruf A–F dinamis + import Opsi A–F + validator min-2/max-6. migration=FALSE.
@@ -51,7 +51,7 @@
 | Phase | Plans Complete | Status | Migration | Completed |
 |-------|----------------|--------|-----------|-----------|
 | 415. Section Foundation + Import Excel Diperluas | 0/4 | 4/4 | Complete   | 2026-06-22 |
-| 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | 1/2 | In Progress|  |
+| 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | 2/2 | Complete    | 2026-06-23 |
 | 416. Scoped Shuffle (Acak per-Section) | 0/? | Not started | FALSE | - |
 | 417. Section Pagination | 0/? | Not started | FALSE | - |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
@@ -105,11 +105,11 @@ Guard maksa paket-soal dimiliki sesi yg dinilai. Tapi SEMUA jalur bangun assignm
 
 **Migration**: FALSE — murni logika guard; tak ada perubahan skema. Data lama Dev UTUH. Sesi yang sudah finalized (Completed + sertifikat terbit) tetap di-tolak status-guard (by design, anti-ubah-nilai pasca-cert).
 **Scope file:** `Controllers/AssessmentAdminController.cs` (`SubmitEssayScore` L4210-4215) + `HcPortal.Tests/PostLisensorPolishTests.cs` (+ test cross-package baru). Pertimbangkan ekstrak helper `SessionOwnsAssignedQuestion(sessionId, questionId)` untuk reuse.
-**Plans:** 2 plans (wave 1->2 sequential; Plan 02 depends_on Plan 01 + checkpoint UAT/delivery)
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 415.1-01-PLAN.md — Ganti predikat WR-02 SubmitEssayScore (assignment-based: questionId in UPA.GetShuffledQuestionIds; null-allow D-02) + update replica/existing test + 2 test baru cross-package/null [wave 1, migration=FALSE]
-- [ ] 415.1-02-PLAN.md — Seed 2-worker cross-package + Pre/Post + Playwright spec (dialog guard) + repro live @5277 + delivery branch hotfix dari origin/main v31.0 (manual) [wave 2]
+- [x] 415.1-02-PLAN.md — Seed 2-worker cross-package + Pre/Post + Playwright spec (dialog guard) + repro live @5277 + delivery branch hotfix dari origin/main v31.0 (manual) [wave 2]
 
 ### Phase 416: Scoped Shuffle (Acak per-Section)
 **Goal**: Pengacakan soal & pilihan terjadi hanya di dalam lingkup Section (soal tak melompat antar-Section), dengan assessment tanpa Section berperilaku persis seperti sekarang.
