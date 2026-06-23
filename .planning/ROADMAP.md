@@ -38,6 +38,7 @@
 ### Phases
 
 - [ ] **Phase 415: Section Foundation + Import Excel Diperluas** — Tabel `AssessmentPackageSection` + `SectionId` nullable + UI kelola/urut/toggle section + import kolom Section/Opsi A–F dual-format + validasi struktur antar-paket (D-13). **migration=TRUE**.
+- [ ] **Phase 415.1: Hotfix Guard Penilaian Essay Cross-Package (INSERTED, URGENT)** — Fix guard WR-02 `SubmitEssayScore` (L4210-4215) yang false-positive nolak penilaian essay ("Soal bukan milik sesi ini.") karena ownership per-sesi bentrok dgn pooling paket lintas sesi-sibling. Ganti ke cek `questionId ∈ UserPackageAssignment.GetShuffledQuestionIds()`. **Off-theme dari Section — hotfix prioritas (sebelum 416), boleh ship duluan. migration=FALSE.**
 - [ ] **Phase 416: Scoped Shuffle (Acak per-Section)** — Generalisasi `ShuffleEngine` jadi acak per-section (kunci ET komposit `(Section,ET)`) + precedence toggle induk/anak + pooling antar-paket per-section + reshuffle section-aware. migration=FALSE.
 - [ ] **Phase 417: Section Pagination** — Header section saat render + `StartNewPage` page-break + tombol cepat "semua section pisah halaman" + auto-pecah per-10 + resume map (`LastActivePage`). migration=FALSE.
 - [ ] **Phase 418: Opsi Jawaban Dinamis 2–6** — Refactor kontrak HTTP CreateQuestion/EditQuestion + form authoring + form Inject + render ujian/preview/results huruf A–F dinamis + import Opsi A–F + validator min-2/max-6. migration=FALSE.
@@ -50,6 +51,7 @@
 | Phase | Plans Complete | Status | Migration | Completed |
 |-------|----------------|--------|-----------|-----------|
 | 415. Section Foundation + Import Excel Diperluas | 0/4 | 4/4 | Complete   | 2026-06-22 |
+| 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/? | Not started | FALSE | - |
 | 416. Scoped Shuffle (Acak per-Section) | 0/? | Not started | FALSE | - |
 | 417. Section Pagination | 0/? | Not started | FALSE | - |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
@@ -78,6 +80,35 @@
 **Migration**: TRUE — `AddAssessmentPackageSection` (tabel `AssessmentPackageSection` + index unik `(AssessmentPackageId, SectionNumber)`) + kolom `PackageQuestion.SectionId` int? nullable. Non-breaking; rollback = drop tabel + kolom. (Hanya Plan 01; 02/03/04 = migration=FALSE.)
 **File-overlap (jalankan sebelum 416/418)**: `AssessmentAdminController.cs` (CreateQuestion/EditQuestion authoring + ImportPackageQuestions), `ManagePackageQuestions.cshtml`, view kelola Section (`ManagePackages`/`ManagePackageSections`), `_PreviewQuestion`/`PreviewPackage`, `InjectExcelHelper`/parser import. Saran spec §13: ekstrak abstraksi urutan-soal (`SectionAwareQuestionProvider`) di awal untuk pangkas penyebaran perubahan.
 **UI hint**: yes
+
+### Phase 415.1: Hotfix Guard Penilaian Essay Cross-Package (Soal bukan milik sesi ini) (INSERTED)
+
+**Goal:** HC/Admin kembali bisa menyimpan nilai essay (tombol "Simpan Tinjauan") untuk SEMUA peserta. Hilangkan false-positive alert **"Soal bukan milik sesi ini."** yang muncul karena guard ownership (Fase 387 WR-02) bertentangan dengan desain pooling paket lintas sesi-sibling.
+**Depends on:** Phase 415 (penomoran; tidak ada ketergantungan kode — hotfix independen, boleh ship lebih dulu)
+**Requirements**: TBD (bugfix; tak menambah REQ ke akuntansi 20/20 v32.6 — off-theme dari Section)
+**Severity:** HIGH — memblok penilaian essay di Dev (peserta nyata menunggu dinilai).
+
+**Root cause:** `Controllers/AssessmentAdminController.cs:4210-4215` (`SubmitEssayScore`) guard WR-02:
+```csharp
+var ownsQuestion = await _context.PackageQuestions
+    .AnyAsync(q => q.Id == questionId && q.AssessmentPackage.AssessmentSessionId == sessionId);
+if (!ownsQuestion) return Json(new { success = false, message = "Soal bukan milik sesi ini." });
+```
+Guard maksa paket-soal dimiliki sesi yg dinilai. Tapi SEMUA jalur bangun assignment POOL paket lintas sesi-sibling (`siblingSessionIds.Contains(p.AssessmentSessionId)`): `CreateEagerAssignmentsAsync` (L2546-2551), StartExam/Reshuffle-single (L6018-6023), Reshuffle-all (L6145-6148). `ShuffleEngine.BuildQuestionAssignment` membagikan worker N paket via `workerIndex % jumlahPaket` → worker rutin dapat soal dari paket milik sesi sibling LAIN (umumnya paket dibuat di 1 sesi induk, semua worker meminjam). → guard gagal untuk hampir semua worker. GET `EssayGrading` (L4131-4143) load soal via `UserPackageAssignment.GetShuffledQuestionIds()` (longgar) → soal MUNCUL & skor bisa diketik, tapi POST ditolak. Bug ada di **v31.0 Fase 387** (commit `387-01`) yg SUDAH di Dev.
+
+**Fix arah (D):** ganti predikat ownership → cek `questionId ∈ UserPackageAssignment.GetShuffledQuestionIds()` milik `sessionId` (tamper-proof, sumber-kebenaran SAMA dgn GET loader). PERTAHANKAN guard WR-01 tipe-Essay (L4208) + status-guard PendingGrading (L4192) + range-guard 0..ScoreValue (L4199). Tangani `assignment == null` aman (mode non-paket tak relevan untuk essay; tolak/fallback eksplisit, bukan crash).
+
+**Success Criteria** (what must be TRUE):
+  1. HC dapat menyimpan nilai essay untuk peserta yang paket-soalnya dibuat di sesi sibling lain (skenario produksi normal multi-worker 1-paket-bersama) tanpa alert "Soal bukan milik sesi ini."; data lama Dev (status "Menunggu Penilaian") langsung bisa dinilai pasca-deploy.
+  2. Anti-tamper tetap utuh: simpan nilai DITOLAK bila `questionId` BUKAN bagian assignment peserta tsb, ATAU soal bukan tipe Essay, ATAU status sesi bukan PendingGrading, ATAU skor di luar 0..ScoreValue.
+  3. Test regresi `PostLisensorPolishTests` hijau (update assert string bila berubah) + test BARU skenario cross-package multi-worker (paket milik sesi induk, worker lain dinilai → SUKSES) + verifikasi lokal `dotnet build`+`dotnet test`+repro 2-worker @5277 + Playwright.
+
+**Migration**: FALSE — murni logika guard; tak ada perubahan skema. Data lama Dev UTUH. Sesi yang sudah finalized (Completed + sertifikat terbit) tetap di-tolak status-guard (by design, anti-ubah-nilai pasca-cert).
+**Scope file:** `Controllers/AssessmentAdminController.cs` (`SubmitEssayScore` L4210-4215) + `HcPortal.Tests/PostLisensorPolishTests.cs` (+ test cross-package baru). Pertimbangkan ekstrak helper `SessionOwnsAssignedQuestion(sessionId, questionId)` untuk reuse.
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 415.1 to break down)
 
 ### Phase 416: Scoped Shuffle (Acak per-Section)
 **Goal**: Pengacakan soal & pilihan terjadi hanya di dalam lingkup Section (soal tak melompat antar-Section), dengan assessment tanpa Section berperilaku persis seperti sekarang.
