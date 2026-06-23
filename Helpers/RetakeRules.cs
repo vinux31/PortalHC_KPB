@@ -36,7 +36,8 @@ namespace HcPortal.Helpers
             int maxAttempts,
             int retakeCooldownHours,
             DateTime? completedAt,
-            DateTime nowUtc)
+            DateTime nowUtc,
+            DateTime? examWindowCloseDate)
         {
             if (!allowRetake) return false;
             if (assessmentType == "PreTest") return false;          // D6 — diagnostik tak retakeable
@@ -44,6 +45,11 @@ namespace HcPortal.Helpers
             if (status != "Completed") return false;                // exclude InProgress/Abandoned/Cancelled/Open
             if (isPassed != false) return false;                    // null=PendingGrading & true=Lulus → tak eligible
             if (attemptsUsed >= maxAttempts) return false;          // D7 — cap percobaan habis
+
+            // v32.7 RTH-01 (RTK-LOGIC-02 HIGH) — window gate: retake mustahil bila masa ujian tutup.
+            // SEBELUM cooldown (window = hard-close fundamental). +7h WIB byte-identik StartExam (CMPController:956).
+            // EWCD null → tak ada gate (backward-compat sesi tanpa window).
+            if (examWindowCloseDate.HasValue && nowUtc.AddHours(7) > examWindowCloseDate.Value) return false;
 
             // Cooldown
             if (retakeCooldownHours <= 0) return true;              // 0 = no jeda

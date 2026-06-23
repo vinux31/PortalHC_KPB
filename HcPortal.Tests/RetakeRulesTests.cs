@@ -28,11 +28,12 @@ public class RetakeRulesTests
         int maxAttempts = 2,
         int retakeCooldownHours = 24,
         DateTime? completedAt = null,
-        DateTime? nowUtc = null)
+        DateTime? nowUtc = null,
+        DateTime? examWindowCloseDate = null)
         => RetakeRules.CanRetake(
             allowRetake, assessmentType, isManualEntry, status, isPassed,
             attemptsUsed, maxAttempts, retakeCooldownHours,
-            completedAt ?? EligibleCompletedAt, nowUtc ?? Now);
+            completedAt ?? EligibleCompletedAt, nowUtc ?? Now, examWindowCloseDate);
 
     [Fact]
     public void Eligible_WhenAllConditionsMet()
@@ -81,6 +82,23 @@ public class RetakeRulesTests
     [Fact]
     public void Eligible_NullAssessmentType_StandaloneGraded()
         => Assert.True(Can(assessmentType: null));
+
+    // v32.7 RTH-01 (RTK-LOGIC-02) — window gate +7h WIB. now+7h > EWCD → false (retake mustahil).
+    [Fact]
+    public void Eligible_WhenWindowOpen()                        // EWCD jauh di masa depan → tak ada gate
+        => Assert.True(Can(examWindowCloseDate: Now.AddDays(30)));
+
+    [Fact]
+    public void Blocked_WhenWindowClosed()                       // now+7h (19:00) > EWCD (Now-1h) → gate aktif
+        => Assert.False(Can(examWindowCloseDate: Now.AddHours(-1)));
+
+    [Fact]
+    public void Eligible_WhenWindowNull_NoGate()                 // EWCD null → backward-compat, tak ada gate
+        => Assert.True(Can(examWindowCloseDate: null));
+
+    [Fact]
+    public void Blocked_WhenWindowBoundary_NowPlus7h()           // EWCD == Now → now+7h (19:00) > 12:00 → false (sisi +7h)
+        => Assert.False(Can(examWindowCloseDate: Now));
 
     // ShouldHideRetakeToggle = PreTest || ManualEntry (Proton TETAP retakeable — beda dari shuffle).
     [Theory]
