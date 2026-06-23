@@ -20,10 +20,10 @@ Requirements milestone v32.6. Tiap REQ map ke satu fase roadmap (fase mulai 415)
 
 ### Scoped Shuffle (SHF)
 
-- [ ] **SHF-01**: Pengacakan soal hanya terjadi di dalam Section (soal tidak melompat antar-Section); assessment tanpa Section berperilaku sama seperti sekarang.
-- [ ] **SHF-02**: HC dapat menyalakan/mematikan acak per-Section; toggle level-assessment berfungsi sebagai induk, toggle per-Section sebagai anak.
-- [ ] **SHF-03**: Untuk >1 paket, tiap Section diisi dari gabungan Section padanan lintas-paket lalu diacak/di-sampling dalam batas Section; jaminan cakupan Elemen Teknis berlaku per-Section.
-- [ ] **SHF-04**: Reshuffle (per-paket & semua peserta) menghormati batas Section.
+- [x] **SHF-01**: Pengacakan soal hanya terjadi di dalam Section (soal tidak melompat antar-Section); assessment tanpa Section berperilaku sama seperti sekarang.
+- [x] **SHF-02**: HC dapat menyalakan/mematikan acak per-Section; toggle level-assessment berfungsi sebagai induk, toggle per-Section sebagai anak.
+- [x] **SHF-03**: Untuk >1 paket, tiap Section diisi dari gabungan Section padanan lintas-paket lalu diacak/di-sampling dalam batas Section; jaminan cakupan Elemen Teknis berlaku per-Section.
+- [x] **SHF-04**: Reshuffle (per-paket & semua peserta) menghormati batas Section.
 
 ### Section Pagination (PAG)
 
@@ -82,10 +82,10 @@ Tiap REQ v1 dipetakan ke tepat satu fase (roadmap v32.6, fase 415-419). Status a
 | IMP-01 | Phase 415 | Complete |
 | IMP-02 | Phase 415 | Complete |
 | IMP-03 | Phase 415 | Complete |
-| SHF-01 | Phase 416 | Pending |
-| SHF-02 | Phase 416 | Pending |
-| SHF-03 | Phase 416 | Pending |
-| SHF-04 | Phase 416 | Pending |
+| SHF-01 | Phase 416 | Complete |
+| SHF-02 | Phase 416 | Complete |
+| SHF-03 | Phase 416 | Complete |
+| SHF-04 | Phase 416 | Complete |
 | PAG-01 | Phase 417 | Pending |
 | PAG-02 | Phase 417 | Pending |
 | PAG-03 | Phase 417 | Pending |

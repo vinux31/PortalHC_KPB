@@ -53,7 +53,7 @@
 |-------|----------------|--------|-----------|-----------|
 | 415. Section Foundation + Import Excel Diperluas | 0/4 | 4/4 | Complete   | 2026-06-22 |
 | 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | 2/2 | Complete    | 2026-06-23 |
-| 416. Scoped Shuffle (Acak per-Section) | 0/3 | Planned | FALSE | - |
+| 416. Scoped Shuffle (Acak per-Section) | 0/3 | 1/3 | In Progress|  |
 | 417. Section Pagination | 0/? | Not started | FALSE | - |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
 | 419. Export Label Section + Polish + Test/UAT | 0/? | Not started | FALSE | - |
@@ -122,7 +122,7 @@ Plans:
   3. Untuk assessment >1 paket, tiap Section diisi dari gabungan Section padanan lintas-paket lalu diacak/di-sampling dalam batas Section, dengan cakupan Elemen Teknis dijamin per-Section.
   4. Reshuffle per-paket maupun semua peserta menghormati batas Section (soal tetap tak bocor antar-Section).
 **Plans**: 3 plans (wave 1->2->3 sequential; file-overlap `Helpers/ShuffleEngine.cs` -> controllers -> e2e)
-- [ ] 416-01-PLAN.md — Refactor `ShuffleEngine` section-aware (partisi (SectionNumber, ET) + BuildSectionQuestionAssignment + precedence D-14 + option-gate per-Section) + suite test baru `SectionScopedShuffleTests` golden-order/isolasi/precedence/pooling/determinisme (SHF-01..04) [wave 1, migration=FALSE]
+- [x] 416-01-PLAN.md — Refactor `ShuffleEngine` section-aware (partisi (SectionNumber, ET) + BuildSectionQuestionAssignment + precedence D-14 + option-gate per-Section) + suite test baru `SectionScopedShuffleTests` golden-order/isolasi/precedence/pooling/determinisme (SHF-01..04) [wave 1, migration=FALSE]
 - [ ] 416-02-PLAN.md — Wire 3 call-site uniform (StartExam + ReshufflePackage/All + EagerAssign: load Section + BuildSectionAwareOptionShuffle) + peringatan ET-coverage non-blocking (D-416-03) di ManagePackageQuestions GET + view (SHF-01/02/03/04) [wave 2]
 - [ ] 416-03-PLAN.md — Playwright e2e `scoped-shuffle.spec.ts` (isolasi section + backward-compat all-null + ET-warning, DB backup/restore) + checkpoint UAT live @5277 (D-416-05) [wave 3, autonomous:false]
 **Migration**: FALSE.
