@@ -54,7 +54,7 @@
 
 - [x] **Phase 420: Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11)** ✅ COMPLETE 2026-06-23 (UAT 8/8 + secure 13/13 + validate NYQUIST 11/11) — perbaiki pola "field dirender tapi tak tersimpan" + tata-letak form Pre-Post. E-01🔴 shuffle reset-OFF tiap Edit; retake bind-but-drop Create; retake no-op Edit; ValidUntil cabang std Edit; lock Completed Pre-Post; redirect manual entry; SamePackage letak tingkat-pasangan; scope-label per-setelan; eliminasi field standard dobel ter-POST; rename AssessmentTypeInput. Domain: `CreateAssessment.cshtml`/`EditAssessment.cshtml`/`AssessmentAdminController` binding. migration=FALSE.
 - [ ] **Phase 421: Retake Lifecycle Hardening (RTH-01..05)** 🔴 — hardening lifecycle ujian ulang. RTK-LOGIC-02🔴 cooldown lewat ExamWindow = dead-end destruktif (tolak retake, sesi tak dihapus); reset HC hapus NomorSertifikat; counting attempt konsisten cap vs warning; guard hapus peserta Abandoned/ber-riwayat + bersihkan arsip; warning MaxAttempts retroaktif. Domain: `RetakeService`/`RetakeRules`/`CMPController.RetakeExam`. migration=FALSE.
-- [ ] **Phase 422: SamePackage & Shuffle Integrity (SHFX-01..07)** 🔴 — integritas SamePackage + shuffle. SHUF-ISS-03🔴 sync absen di Import; toggle SamePackage editable pasca-create (keputusan bisnis b); lock server-side; peserta baru warisi SamePackage; PackageNumber renumber deterministik; kunci sibling type-aware; peringatan shuffle lengkap (ON+SamePackage, K=min, mismatch satu sumber). Domain: `ManagePackages`/`ShuffleEngine`/sync paket Pre→Post. **migration=KEMUNGKINAN TRUE** (toggle/kolom SamePackage editable — TBD plan-phase). ⚠️ OVERLAP v32.6 (main, Scoped Shuffle) — rekonsiliasi saat merge.
+- [ ] **Phase 422: SamePackage & Shuffle Integrity (SHFX-01..07)** 🔴 — integritas SamePackage + shuffle. SHUF-ISS-03🔴 sync absen di Import; toggle SamePackage editable pasca-create (keputusan bisnis b); lock server-side; peserta baru warisi SamePackage; PackageNumber renumber deterministik; kunci sibling type-aware; peringatan shuffle lengkap (ON+SamePackage, K=min, mismatch satu sumber). Domain: `ManagePackages`/`ShuffleEngine`/sync paket Pre→Post. **Planned 2026-06-23: 3 plans / 3 waves, migration=TRUE (Plan 01 AddPackageNumberUniqueIndex).** ⚠️ OVERLAP v32.6 (main, Scoped Shuffle) — rekonsiliasi saat merge.
 - [ ] **Phase 423: Certificate Issuance Consistency (CERT-01..07)** — konsolidasi aturan terbit cert ke satu helper `ShouldIssueCertificate` + kelengkapan data. Helper bersama tolak Pre-Test semua jalur; ValidUntil wajib saat issue non-Pre; seq atomik anti-race; namespace manual vs auto dipisah; anti double-cert tak bisa di-bypass; CertificateType×ValidUntil konsisten; PendingGrading tampil umur (tanpa auto-finalize). Domain: `GradingService`/`CertNumberHelper`/`ShouldIssueCertificate`. migration=FALSE.
 - [ ] **Phase 424: Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..07)** 🔴 — hapus duplikasi scoring + integritas linking + gate Pre-wajib-dulu. FLOW-04🔴 Post StartExam butuh Pre Completed (keputusan bisnis a); scoring per-soal satu fungsi murni + dedupe konsisten; pairing satu sumber kebenaran per-peserta; Standard tak dapat link semu; ElapsedSeconds hitung ExtraTime; manajemen peserta simetris Standard/Pre-Post; essay kosong ditolak server-side. Domain: `GradingService`/`AssessmentScoreAggregator`/`SiblingSessionQuery`/`CMPController.StartExam`. migration=FALSE.
 - [ ] **Phase 425: Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05)** — batch low-risk naming/redundancy/dead-field/dokumentasi. Label & doc diselaraskan; entry manual Schedule/CompletedAt + cross-validate IsPassed; drop dead-field AssessmentPhase (atau RESERVED); tech-debt timing (timer satu sumber, token server-authoritative, write-on-GET diamankan); konvensi ModelState. **migration=KEMUNGKINAN TRUE** (CLN-03 drop kolom `AssessmentPhase` — TBD plan-phase).
@@ -97,7 +97,7 @@
 ### Phase 422: SamePackage & Shuffle Integrity
 **Goal:** Integritas paket "soal sama" (SamePackage) terjaga di semua jalur — sinkronisasi Pre→Post terpasang termasuk di Import, HC bisa mengubah setelan SamePackage pasca-create dengan aman, lock ditegakkan di server (bukan hanya tampilan), peserta baru mewarisi setelan, penomoran paket deterministik, dan peringatan shuffle lengkap dari satu sumber.
 **Depends on:** Phase 421 (sekuensial — menghindari konflik file area paket/shuffle dengan fase sebelumnya).
-**Migration:** **KEMUNGKINAN TRUE — TBD plan-phase** (toggle/kolom SamePackage editable bisa butuh schema baru). Pastikan saat `/gsd-plan-phase 422`.
+**Migration:** **TRUE** (Phase 422 — Plan 01: `AddPackageNumberUniqueIndex` = unique index `(AssessmentSessionId, PackageNumber)` + dedup ROW_NUMBER renumber data lama SEBELUM CreateIndex. Bukan kolom SamePackage [toggle pakai kolom existing]). Notify IT saat promosi (commit hash + flag).
 **Requirements:** SHFX-01, SHFX-02, SHFX-03, SHFX-04, SHFX-05, SHFX-06, SHFX-07
 **Success Criteria** (what must be TRUE):
   1. Mengimpor soal via Excel ke paket Pre yang ber-SamePackage memicu sinkronisasi otomatis ke Post (parity dengan jalur form). *(SHFX-01, SHUF-ISS-03 🔴)*
@@ -105,7 +105,10 @@
   3. Endpoint POST kelola paket/soal menolak edit pada Post yang terkunci SamePackage (lock server-side, bukan hanya tampilan). *(SHFX-03)*
   4. Penomoran paket (PackageNumber) tetap unik & terurut deterministik setelah hapus paket; kunci pasangan Pre/Post untuk lock & simpan setelan shuffle konsisten type-aware (selaras StartExam/Reshuffle). *(SHFX-05, SHFX-06)*
   5. Peringatan shuffle lengkap & dari satu sumber — SamePackage+Acak ON diperingatkan, pemangkasan K=min diberitahu, hitung mismatch dari satu sumber kebenaran (bukan dua). *(SHFX-07)*
-**Plans:** TBD
+**Plans:** 3 plans (3 waves — sekuensial by file-overlap: ketiganya sentuh AssessmentAdminController.cs)
+- [ ] 422-01-PLAN.md — Wave 1 [KEYSTONE, migration=TRUE]: pure helpers (PackageSizeAnalysis NEW · SessionEditLockRules NEW · ShuffleToggleRules extend K=min ON-path D-04) + migration AddPackageNumberUniqueIndex (dedup→CreateIndex D-02) + CreatePackage MAX+1 + 5× ThenBy(Id) + Wave-0 pure/integration tests (SHFX-05, SHFX-07)
+- [ ] 422-02-PLAN.md — Wave 2 [migration=FALSE]: SyncToLinkedPostIfSamePackageAsync 6-jalur incl Import BOCOR (SHUF-ISS-03 HIGH) + guard IsSessionEditLocked 5 endpoint POST server-side + newPost inherit SamePackage + sibling key type-aware LOCK-ONLY (propagation unchanged) + tests (SHFX-01, SHFX-03, SHFX-04, SHFX-06); depends 01
+- [ ] 422-03-PLAN.md — Wave 3 [migration=FALSE, autonomous=false]: ToggleSamePackage endpoint (ON sync/OFF keep + guard anyStarted D-01) + UI ManagePackages (toggle card + warning D-03/D-04 + mismatch single-source D-05 + lock disable) + ManagePackageQuestions friendly disable + Playwright + checkpoint UAT @5270 (SHFX-02, SHFX-07); depends 01+02
 **UI hint:** yes
 
 ### Phase 423: Certificate Issuance Consistency
@@ -156,7 +159,7 @@
 |-------|----------------|--------|-----------|
 | 420. Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11) | 3/3 | ✅ Complete (UAT 8/8 + secure 13/13 + validate NYQUIST 11/11) | 2026-06-23 |
 | 421. Retake Lifecycle Hardening (RTH-01..05) | 3/3 | Complete   | 2026-06-23 |
-| 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 0/TBD | Not started | - |
+| 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 0/3 | Planned (3 waves, migration=TRUE) | - |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 0/TBD | Not started | - |
 | 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..07) | 0/TBD | Not started | - |
 | 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 0/TBD | Not started | - |
