@@ -51,7 +51,7 @@
 | Phase | Plans Complete | Status | Migration | Completed |
 |-------|----------------|--------|-----------|-----------|
 | 415. Section Foundation + Import Excel Diperluas | 0/4 | 4/4 | Complete   | 2026-06-22 |
-| 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | Planned | FALSE | - |
+| 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | 1/2 | In Progress|  |
 | 416. Scoped Shuffle (Acak per-Section) | 0/? | Not started | FALSE | - |
 | 417. Section Pagination | 0/? | Not started | FALSE | - |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
@@ -108,7 +108,7 @@ Guard maksa paket-soal dimiliki sesi yg dinilai. Tapi SEMUA jalur bangun assignm
 **Plans:** 2 plans (wave 1->2 sequential; Plan 02 depends_on Plan 01 + checkpoint UAT/delivery)
 
 Plans:
-- [ ] 415.1-01-PLAN.md — Ganti predikat WR-02 SubmitEssayScore (assignment-based: questionId in UPA.GetShuffledQuestionIds; null-allow D-02) + update replica/existing test + 2 test baru cross-package/null [wave 1, migration=FALSE]
+- [x] 415.1-01-PLAN.md — Ganti predikat WR-02 SubmitEssayScore (assignment-based: questionId in UPA.GetShuffledQuestionIds; null-allow D-02) + update replica/existing test + 2 test baru cross-package/null [wave 1, migration=FALSE]
 - [ ] 415.1-02-PLAN.md — Seed 2-worker cross-package + Pre/Post + Playwright spec (dialog guard) + repro live @5277 + delivery branch hotfix dari origin/main v31.0 (manual) [wave 2]
 
 ### Phase 416: Scoped Shuffle (Acak per-Section)

@@ -4,8 +4,8 @@ milestone: v32.6
 milestone_name: Section + Scoped Shuffle + Section Pagination + Opsi Dinamis
 status: executing
 stopped_at: Phase 415.1 context gathered
-last_updated: "2026-06-23T02:22:42.879Z"
-last_activity: 2026-06-23 -- Phase 415.1 planning complete
+last_updated: "2026-06-23T02:42:26.143Z"
+last_activity: 2026-06-23 -- Phase 415.1 execution started
 progress:
   total_phases: 17
   completed_phases: 1
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 415 — Section Foundation + Import Excel Diperluas
+**Current focus:** Phase 415.1 — hotfix-guard-penilaian-essay-cross-package-soal-bukan-milik-
 
 ## Current Position
 
-Phase: 415 (Section Foundation + Import Excel Diperluas) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
-Last activity: 2026-06-23 -- Phase 415.1 planning complete
+Phase: 415.1 (hotfix-guard-penilaian-essay-cross-package-soal-bukan-milik-) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 415.1
+Last activity: 2026-06-23 -- Phase 415.1 execution started
 
 Milestone **v32.6 Section + Scoped Shuffle + Section Pagination + Opsi Dinamis** — HC/Admin dapat mengelompokkan soal ke dalam **Section** per-paket (per area/equipment), mengacak soal & pilihan **hanya di dalam lingkup section** (scoped shuffle, on/off per-section), mengatur **pagination per-section** (section tertentu mulai halaman baru), memakai **opsi jawaban dinamis 2–6** (bukan kunci A–D), dan mengunggah semua via **import Excel diperluas** (dual-format kompatibel-mundur). Section **opsional** → kosong = perilaku global lama (100% kompatibel-mundur). **migration=TRUE** hanya Phase 415 (tabel `AssessmentPackageSection` + `PackageQuestion.SectionId` nullable; 416-419=FALSE). Branch main. Design spec `docs/superpowers/specs/2026-06-22-section-scoped-shuffle-pagination-dynamic-options-design.md` (15 keputusan D-01..D-15 + §15 addendum re-check).
 
