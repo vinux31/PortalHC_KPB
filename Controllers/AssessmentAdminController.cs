@@ -3554,11 +3554,15 @@ namespace HcPortal.Controllers
             //     pada soal MC/MA (korupsi skor: aggregator menjumlah EssayScore via case Essay).
             if (question.QuestionType != "Essay")
                 return Json(new { success = false, message = "Soal ini bukan tipe Essay." });
-            // 2c. WR-02 (386-REVIEW) — questionId WAJIB milik sesi ini (cross-session tampering guard). Rantai nav
-            //     terverifikasi: PackageQuestion.AssessmentPackage.AssessmentSessionId == sessionId.
-            var ownsQuestion = await _context.PackageQuestions
-                .AnyAsync(q => q.Id == questionId && q.AssessmentPackage.AssessmentSessionId == sessionId);
-            if (!ownsQuestion)
+            // 2c. WR-02 (FIXED 415.1) — questionId WAJIB bagian assignment peserta INI (bukan ownership paket).
+            //     Paket di-pool lintas sesi-sibling (by design: CreateEagerAssignmentsAsync/StartExam/Reshuffle),
+            //     jadi ownership-by-package (lama) salah → false-positive. Sumber-kebenaran = UserPackageAssignment
+            //     .GetShuffledQuestionIds() — IDENTIK dengan GET EssayGrading loader.
+            //     D-02: assignment null (degenerate/non-paket) → IZINKAN (andalkan guard tipe-Essay + status + range);
+            //     peserta yang benar mengerjakan PASTI punya UPA. HC adalah role tepercaya (Admin/HC).
+            var assignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+            if (assignment != null && !assignment.GetShuffledQuestionIds().Contains(questionId))
                 return Json(new { success = false, message = "Soal bukan milik sesi ini." });
 
             // 3. UPSERT (Phase 386 PXF-04 D-08) — baris essay kosong tak ada → buat baru (TextAnswer null) lalu skor;
