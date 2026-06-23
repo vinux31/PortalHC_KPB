@@ -24,8 +24,8 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 
 ### RTH — Retake Lifecycle Hardening (Phase 421)
 
-- [ ] **RTH-01**: Ujian ulang ditolak bila ExamWindowCloseDate sudah lewat — sesi live tidak dihapus (tidak ada dead-end destruktif). [RTK-LOGIC-02, HIGH]
-- [ ] **RTH-02**: Reset assessment oleh HC menghapus NomorSertifikat sehingga sesi non-lulus tidak menyandang nomor sertifikat menggantung. [RTK-LOGIC-01]
+- [x] **RTH-01**: Ujian ulang ditolak bila ExamWindowCloseDate sudah lewat — sesi live tidak dihapus (tidak ada dead-end destruktif). [RTK-LOGIC-02, HIGH]
+- [x] **RTH-02**: Reset assessment oleh HC menghapus NomorSertifikat sehingga sesi non-lulus tidak menyandang nomor sertifikat menggantung. [RTK-LOGIC-01]
 - [ ] **RTH-03**: Penghitungan jumlah percobaan konsisten antara batas (cap) dan peringatan di ManagePackages. [RTK-LOGIC-03]
 - [ ] **RTH-04**: Guard hapus peserta menolak/menangani sesi Abandoned atau ber-riwayat percobaan, dan membersihkan arsip respons terkait. [PA-06]
 - [ ] **RTH-05**: Mengubah MaxAttempts di bawah jumlah percobaan yang sudah terpakai memunculkan peringatan (non-blocking). [VAL-06]
@@ -100,8 +100,8 @@ Diakui tapi ditunda dari v32.7.
 | FORM-09 | Phase 420 | Pending |
 | FORM-10 | Phase 420 | Pending |
 | FORM-11 | Phase 420 | Pending |
-| RTH-01 | Phase 421 | Pending |
-| RTH-02 | Phase 421 | Pending |
+| RTH-01 | Phase 421 | Complete |
+| RTH-02 | Phase 421 | Complete |
 | RTH-03 | Phase 421 | Pending |
 | RTH-04 | Phase 421 | Pending |
 | RTH-05 | Phase 421 | Pending |

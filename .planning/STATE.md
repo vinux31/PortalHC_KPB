@@ -4,14 +4,14 @@ milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
 status: executing
 stopped_at: Phase 421 UI-SPEC approved
-last_updated: "2026-06-23T06:02:12.934Z"
-last_activity: 2026-06-23 -- Phase 421 planning complete
+last_updated: "2026-06-23T06:20:15.620Z"
+last_activity: 2026-06-23
 progress:
   total_phases: 39
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
-  percent: 50
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State: Portal HC KPB
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 420 ✅ COMPLETE (all gates) — next Phase 421 (Retake Lifecycle Hardening)
+**Current focus:** Phase 421 — Retake Lifecycle Hardening
 
 ## Current Position
 
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
-Phase: 420 (Form Create/Edit — Persistensi Field + UX Pre-Post) — ✅ COMPLETE (all gates)
-Plan: 3 of 3
+Phase: 421 (Retake Lifecycle Hardening) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-23 -- Phase 421 planning complete
+Last activity: 2026-06-23
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
