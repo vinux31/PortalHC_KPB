@@ -6303,7 +6303,8 @@ namespace HcPortal.Controllers
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException dbEx) when (
-                dbEx.InnerException?.Message.Contains("2601") == true
+                dbEx.InnerException?.Message.Contains("IX_AssessmentPackageSections_AssessmentPackageId_SectionNumber") == true
+                || dbEx.InnerException?.Message.Contains("2601") == true
                 || dbEx.InnerException?.Message.Contains("2627") == true)
             {
                 // L2 re-check: HANYA tangkap pelanggaran unique-index (SQL 2601/2627) — TOCTOU dua submit barengan
@@ -6363,7 +6364,8 @@ namespace HcPortal.Controllers
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException dbEx) when (
-                dbEx.InnerException?.Message.Contains("2601") == true
+                dbEx.InnerException?.Message.Contains("IX_AssessmentPackageSections_AssessmentPackageId_SectionNumber") == true
+                || dbEx.InnerException?.Message.Contains("2601") == true
                 || dbEx.InnerException?.Message.Contains("2627") == true)
             {
                 // L2 re-check: HANYA unique-index (SQL 2601/2627) — pre-check dup lolos tapi submit barengan menabrak
@@ -6566,6 +6568,18 @@ namespace HcPortal.Controllers
         /// </summary>
         private async Task SyncPackagesToPost(int preSessionId, int postSessionId)
         {
+            // H4 (round-3): skip-if-taken DI SUMBER. RemoveRange soal/opsi Post (di bawah) menabrak FK Restrict
+            // (PackageUserResponse→PackageQuestion / →PackageOption) bila Post SUDAH dikerjakan → DbUpdateException 500.
+            // Guard di sini melindungi SEMUA pemanggil: helper auto-sync + CopyPackagesFromPre + CreatePackage +
+            // DeletePackage. Post bernyawa JANGAN di-clone ulang; lewati + log (struktur Post dibiarkan apa adanya).
+            bool postHasResponses = await _context.PackageUserResponses
+                .AnyAsync(r => r.AssessmentSessionId == postSessionId);
+            if (postHasResponses)
+            {
+                _logger.LogWarning("SyncPackagesToPost dilewati: Post session {PostId} sudah punya jawaban — clone di-skip (FK-safe).", postSessionId);
+                return;
+            }
+
             // Hapus paket Post yang ada
             var existingPostPkgs = await _context.AssessmentPackages
                 .Include(p => p.Questions).ThenInclude(q => q.Options)
@@ -6687,20 +6701,10 @@ namespace HcPortal.Controllers
             var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
             if (linkedPost == null || !linkedPost.SamePackage) return;
 
-            // H4 re-check guard #1 (skip-if-taken): SyncPackagesToPost meng-RemoveRange soal Post lalu clone ulang.
-            // Bila Post SUDAH dikerjakan (ada PackageUserResponse), RemoveRange menabrak FK Restrict
-            // (PackageUserResponse→PackageQuestion) → DbUpdateException. JANGAN re-clone Post bernyawa; lewati + log.
-            bool postHasResponses = await _context.PackageUserResponses
-                .AnyAsync(r => r.AssessmentSessionId == linkedPost.Id);
-            if (postHasResponses)
-            {
-                _logger.LogWarning("SyncToPostIfSamePackage dilewati: Post session {PostId} sudah punya jawaban — clone SamePackage di-skip agar tak melanggar FK Restrict.", linkedPost.Id);
-                return;
-            }
-
-            // H4 re-check guard #2 (best-effort): mutasi Pre sudah ter-commit sebelum titik ini. Kegagalan sync
-            // (DbUpdateException/transien) TAK boleh men-500-kan request / menganulir mutasi Pre yang sukses.
-            // Bila gagal, Post tertinggal struktur lama (akan tersinkron pada mutasi Pre berikutnya).
+            // H4 best-effort: skip-if-taken kini ADA DI DALAM SyncPackagesToPost (guard di sumber → lindungi semua
+            // pemanggil termasuk CopyPackagesFromPre/CreatePackage/DeletePackage). Di sini cukup bungkus best-effort:
+            // mutasi Pre sudah ter-commit; kegagalan sync (DbUpdateException/transien) TAK boleh men-500-kan request /
+            // menganulir mutasi Pre. Bila gagal, Post tersinkron pada mutasi Pre berikutnya.
             try
             {
                 await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
@@ -7929,10 +7933,10 @@ namespace HcPortal.Controllers
             if (q == null) return NotFound();
 
             // H3 re-check (Phase 415): soal hasil import/SyncPackagesToPost bisa punya 5–6 opsi (E/F), tapi form edit
-            // ini hanya merender A–D. Edit penuh A–F = scope Phase 418. Sampai itu, TOLAK edit soal >4 opsi agar tak
-            // (a) menghapus opsi E/F secara senyap, atau (b) kena hard-block correctCount (kunci di E/F tak terbaca).
-            // Data soal dipertahankan utuh. Untuk mengubah, hapus soal lalu impor ulang via Excel.
-            if (questionType != "Essay" && q.Options.Count > 4)
+            // ini hanya merender A–D. Edit penuh A–F = scope Phase 418. Sampai itu, TOLAK edit soal >4 opsi untuk tipe
+            // APA PUN — termasuk konversi ke Essay yang akan RemoveRange semua opsi (E/F) secara senyap (round-3 gap).
+            // Cegah (a) hapus opsi E/F, (b) hard-block correctCount. Data utuh; untuk ubah, hapus soal + impor ulang.
+            if (q.Options.Count > 4)
             {
                 TempData["Error"] = "Soal ini memiliki lebih dari 4 opsi (E/F) dan belum dapat diedit lewat form ini (dukungan edit 5–6 opsi menyusul). Untuk mengubahnya, hapus soal lalu impor ulang via Excel.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
