@@ -1,10 +1,11 @@
 ---
 phase: 421
 slug: retake-lifecycle-hardening
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-23
+reviewed_at: 2026-06-23
 ---
 
 # Phase 421 — UI Design Contract
