@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-06-23T13:01:22.969Z",
+  "phase": "422",
+  "phase_name": "SamePackage & Shuffle Integrity",
+  "phase_dir": ".planning/phases/422-samepackage-shuffle-integrity",
+  "plan": 3,
+  "task": null,
+  "total_tasks": 3,
+  "status": "paused",
+  "milestone": "v32.7",
+  "driver": "milestone-autopilot",
+  "head": "6c21a9de",
+  "summary": "Phase 422 (SHFX-01..07) fully executed + ALL quality gates PASS. Only `gsd-tools phase complete 422` + autopilot advance to Phase 423 remain.",
+  "completed_tasks": [
+    {"id": "422-01", "name": "Keystone helpers + migration + MAX+1/ThenBy", "status": "done"},
+    {"id": "422-02", "name": "Sync 6-jalur + lock guard + inherit + sibling type-aware", "status": "done"},
+    {"id": "422-03", "name": "ToggleSamePackage endpoint + UI + checkpoint UAT 6/6 PASS", "status": "done"},
+    {"id": "GATE-regression-fix", "name": "RetakeThenPassCertTests MAX+1 fixture fix", "status": "done", "commit": "ce3b280a"},
+    {"id": "GATE-verify", "name": "gsd-verifier", "status": "done", "result": "PASSED 5/5 (422-VERIFICATION.md)"},
+    {"id": "GATE-code-review", "name": "gsd-code-review + fix", "status": "done", "result": "0C/2W/3I; WR-01/WR-02/IN-01/IN-03 fixed (bea2a75a,788153eb,d71411ca,24e4ea7d); 422-REVIEW.md + 422-REVIEW-FIX.md"},
+    {"id": "GATE-secure", "name": "gsd-secure-phase", "status": "done", "result": "SECURED 13/13 threats_open=0 (422-SECURITY.md)"},
+    {"id": "GATE-validate", "name": "gsd-validate-phase", "status": "done", "result": "NYQUIST-COMPLIANT 7/7 SHFX 0 gaps (422-VALIDATION.md, commit 6c21a9de)"}
+  ],
+  "remaining_tasks": [
+    {"id": "GATE-phase-complete", "name": "Run `node $HOME/.claude/get-shit-done/bin/gsd-tools.cjs phase complete 422` → marks ROADMAP [x], REQUIREMENTS traceability, advances STATE; then commit ROADMAP/STATE/REQUIREMENTS", "status": "not_started"},
+    {"id": "ADVANCE-423", "name": "milestone-autopilot advances to Phase 423 (Certificate Issuance Consistency, CERT-01..07, migration=FALSE, NO CONTEXT yet) → discuss inline INTERACTIVE (user answers, NOT --auto)", "status": "not_started"}
+  ],
+  "blockers": [],
+  "human_actions_pending": [
+    {"action": "Notify IT at milestone v32.7 end: migration=TRUE AddPackageNumberUniqueIndex (commit 31ef3e1d). IT query Dev/Prod for duplicate (AssessmentSessionId, PackageNumber) before apply (dedup-renumber idempotent, safe).", "context": "v32.7 deploy bundle", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "Executors SEQUENTIAL on main tree (no worktree)", "rationale": "3 waves x 1 plan = no parallelism; shared controller; OneDrive worktree risk", "phase": "422"},
+    {"decision": "UAT via Playwright MCP + manual lpc: DB snapshot/restore", "rationale": "spec dbSnapshot helper uses named-pipes sqlcmd (fails NTLM-loopback); needs lpc:", "phase": "422"},
+    {"decision": "Code-review fixes incl IN-01 (pre-existing CreateQuestion CSRF gap)", "rationale": "genuine CSRF hole, trivial+safe attribute relocation, 422 lock guard lives in that method", "phase": "422"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Run `node \"$HOME/.claude/get-shit-done/bin/gsd-tools.cjs\" phase complete 422`, then commit ROADMAP.md/STATE.md/REQUIREMENTS.md (+ remove .continue-here.md). THEN continue milestone-autopilot: STEP 0 roadmap analyze → next phase = 423 (no CONTEXT) → `/gsd-discuss-phase 423` INTERACTIVE (user answers design Qs, NOT --auto), then ui-phase(if frontend)→plan→execute→review→secure→validate→UAT→commit.",
+  "context_notes": "Phase 422 is DONE — all code + 5 gates green (692/0/2 full suite, UAT 6/6, SECURED 13/13, nyquist 7/7). NOT pushed. SQL: dotnet build/test/ef use SqlClient shared-memory (work); sqlcmd needs `lpc:localhost\\SQLEXPRESS` prefix. App @5270: ASPNETCORE_ENVIRONMENT=Development Authentication__UseActiveDirectory=false dotnet run --urls http://localhost:5270 (currently STOPPED). DB pristine. Milestone v32.7 phases: 420✅ 421✅ 422✅(this) 423/424/425 pending. v32.7 NOT done — do NOT audit-milestone yet."
+}
