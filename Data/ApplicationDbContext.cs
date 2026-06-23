@@ -361,6 +361,18 @@ namespace HcPortal.Data
                       .HasDatabaseName("IX_UserUnits_UserId_Unit_Unique");
             });
 
+            // AssessmentPackage configuration (v32.7 Phase 422 SHFX-05/D-02 — PackageNumber unik per session)
+            builder.Entity<AssessmentPackage>(entity =>
+            {
+                // Jaring pengaman DB-level: cegah (AssessmentSessionId, PackageNumber) duplikat.
+                // PackageNumber = int NON-nullable -> PLAIN unique, TANPA filter (Pitfall 2).
+                // App-level prevention = CreatePackage MAX+1 + ThenBy(Id). Migration AddPackageNumberUniqueIndex
+                // dedup ROW_NUMBER renumber baris lama SEBELUM CreateIndex (Pitfall 1).
+                entity.HasIndex(p => new { p.AssessmentSessionId, p.PackageNumber })
+                      .IsUnique()
+                      .HasDatabaseName("IX_AssessmentPackages_SessionId_PackageNumber_Unique");
+            });
+
             // Proton Deliverable Tracking configuration (Phase 5)
 
             // ProtonTrack entity configuration (Phase 33)
