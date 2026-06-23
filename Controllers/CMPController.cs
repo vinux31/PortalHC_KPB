@@ -1050,6 +1050,10 @@ namespace HcPortal.Controllers
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
+                .Include(p => p.Questions)              // 416 (Pitfall 3): WAJIB — engine mempartisi pakai
+                    .ThenInclude(q => q.Section)        // q.Section?.SectionNumber/ShuffleEnabled. Tanpa ini
+                                                        // q.Section==null → semua soal jatuh ke "Lainnya" →
+                                                        // scoped-shuffle senyap mati + option-gate per-section gagal.
                 .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
                 .OrderBy(p => p.PackageNumber)
                 .ToListAsync();
@@ -1130,11 +1134,12 @@ namespace HcPortal.Controllers
                     var shuffledIds = ShuffleEngine.BuildQuestionAssignment(
                         packages, assessment.ShuffleQuestions, workerIndex, rng);
 
-                    // Option shuffle gated on ShuffleOptions (independent flag). OFF → empty dict →
-                    // serializes "{}" → view falls back to DB option order. Only the assigned questions need entries.
+                    // Option shuffle gated on ShuffleOptions (induk) ∧ ShuffleEnabled per-Section (D-416-01).
+                    // 416 (Pitfall 4): BuildSectionAwareOptionShuffle meng-gate per-soal lewat q.Section?.ShuffleEnabled;
+                    // induk OFF / Section OFF → soal tak masuk dict → view fallback DB option order. "Lainnya" ikut induk (D-15).
                     var assignedQuestions = packages.SelectMany(p => p.Questions)
                         .Where(q => shuffledIds.Contains(q.Id));
-                    var optionShuffleDict = ShuffleEngine.BuildOptionShuffle(
+                    var optionShuffleDict = ShuffleEngine.BuildSectionAwareOptionShuffle(
                         assignedQuestions, assessment.ShuffleOptions, rng);
 
                     // Sentinel: store first package ID (no schema change — AssessmentPackageId still required by FK)

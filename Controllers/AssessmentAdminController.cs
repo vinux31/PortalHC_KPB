@@ -2546,6 +2546,9 @@ namespace HcPortal.Controllers
                 var packages = await _context.AssessmentPackages
                     .Include(p => p.Questions)
                         .ThenInclude(q => q.Options)
+                    .Include(p => p.Questions)              // 416 (Pitfall 3 + 5): AddParticipantsLive WAJIB jalur
+                        .ThenInclude(q => q.Section)        // load+engine SAMA dgn StartExam (drift-free). Tanpa Section
+                                                            // → scoped-shuffle senyap mati untuk peserta yang ditambah live.
                     .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
                     .OrderBy(p => p.PackageNumber)
                     .ToListAsync();
@@ -2553,7 +2556,7 @@ namespace HcPortal.Controllers
 
                 var shuffledIds = ShuffleEngine.BuildQuestionAssignment(packages, s.ShuffleQuestions, workerIndex, rng);
                 var assignedQuestions = packages.SelectMany(p => p.Questions).Where(q => shuffledIds.Contains(q.Id));
-                var optionShuffleDict = ShuffleEngine.BuildOptionShuffle(assignedQuestions, s.ShuffleOptions, rng);
+                var optionShuffleDict = ShuffleEngine.BuildSectionAwareOptionShuffle(assignedQuestions, s.ShuffleOptions, rng);  // 416 D-416-01 gate per-section
                 var sentinelPackage = packages.First();   // sentinel per discretion (FK AssessmentPackageId tetap wajib)
 
                 _context.UserPackageAssignments.Add(new UserPackageAssignment
@@ -6022,6 +6025,8 @@ namespace HcPortal.Controllers
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
+                .Include(p => p.Questions)              // 416 (Pitfall 3): reshuffle section-aware (SHF-04) —
+                    .ThenInclude(q => q.Section)        // re-roll dalam batas Section butuh q.Section ter-load.
                 .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
                 .OrderBy(p => p.PackageNumber)
                 .ToListAsync();
@@ -6043,7 +6048,7 @@ namespace HcPortal.Controllers
             int workerIndex = sortedSiblingIds.IndexOf(sessionId);
             var shuffledIds = ShuffleEngine.BuildQuestionAssignment(packages, assessment.ShuffleQuestions, workerIndex, rng);
             var assignedQuestions = packages.SelectMany(p => p.Questions).Where(q => shuffledIds.Contains(q.Id));
-            var optDict = ShuffleEngine.BuildOptionShuffle(assignedQuestions, assessment.ShuffleOptions, rng);
+            var optDict = ShuffleEngine.BuildSectionAwareOptionShuffle(assignedQuestions, assessment.ShuffleOptions, rng);  // 416 D-416-01 gate per-section
             var sentinelPackage = packages.First();
 
             var newAssignment = new UserPackageAssignment
@@ -6102,6 +6107,8 @@ namespace HcPortal.Controllers
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
+                .Include(p => p.Questions)              // 416 (Pitfall 3): reshuffle-all section-aware (SHF-04).
+                    .ThenInclude(q => q.Section)        // sessionPackages slice (by-reference dari packages) wariskan q.Section.
                 .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
                 .OrderBy(p => p.PackageNumber)
                 .ToListAsync();
@@ -6157,7 +6164,7 @@ namespace HcPortal.Controllers
                 }
                 var sessionShuffledIds = ShuffleEngine.BuildQuestionAssignment(sessionPackages, session.ShuffleQuestions, workerIndex, rng);
                 var assignedQuestions = sessionPackages.SelectMany(p => p.Questions).Where(q => sessionShuffledIds.Contains(q.Id));
-                var optDict = ShuffleEngine.BuildOptionShuffle(assignedQuestions, session.ShuffleOptions, rng);
+                var optDict = ShuffleEngine.BuildSectionAwareOptionShuffle(assignedQuestions, session.ShuffleOptions, rng);  // 416 D-416-01 gate per-section
                 var sentinelPackage = sessionPackages.First();
 
                 if (existingAssignment != null)
