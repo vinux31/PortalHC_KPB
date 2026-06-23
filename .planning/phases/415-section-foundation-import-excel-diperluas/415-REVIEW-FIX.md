@@ -79,6 +79,23 @@ Inti correctness lain (H1/M4/H2/M1/M3/M2/L3/L6) re-check **0 masalah** — solid
 
 ---
 
+## Rounds 3–5 — Adversarial loop-until-dry (KONVERGEN DRY)
+
+Re-check berulang; tiap ronde nemu bug DI DALAM fix ronde sebelumnya sampai 1 ronde bersih.
+
+- **Validate-phase (escalation):** `Dictionary<int?,int>` tolak key null → import legacy/"Lainnya" + sibling = `ArgumentNullException` 500 (langgar keystone, laten sejak 415-03). **FIX:** sentinel `SectionStructureComparer.KeyOf`/`LainnyaKey`. +null-safe tests.
+- **Round 3 (3 fix + 1 backlog):** (1) **H4 skip-if-taken cuma sebagian** — 3 call-site paket (`CopyPackagesFromPre`/`CreatePackage`/`DeletePackage`) panggil `SyncPackagesToPost` mentah → tetap 500 → **FIX: guard dipindah ke DALAM `SyncPackagesToPost` (di sumber, lindungi semua caller)**. (2) **L2 filter MATI** — `Message.Contains("2601"/"2627")` tak pernah cocok (SQL taruh angka di `.Number`; message isi nama-index) → **FIX: tambah klausa `IX_AssessmentPackageSections_AssessmentPackageId_SectionNumber`**. (3) **H3 bypass via konversi Essay** → **FIX: guard jadi `q.Options.Count>4` (tipe apa pun)**. (4) **EditQuestion hapus opsi soal sudah-dijawab → FK 500** (pre-existing) → **backlog `999.14`**.
+- **Round 4 (1 fix):** **`CopyPackagesFromPre` sukses-palsu** — source skip-if-taken (no-op) tapi tombol eksplisit "Salin dari Pre" tetap banner sukses → HC tertipu, Post stale → **FIX: pre-check → Error jelas**.
+- **Round 5: DRY** ✅ — 0 temuan 415-introduced. Loop konvergen.
+
+Re-verify akhir: **build 0-error + full suite 655/655** (22 regression test `SectionFixRegressionTests.cs`).
+
+Backlog dari loop: **`999.13`** (M5 resume-guard), **`999.14`** (EditQuestion option-delete FK 500, pre-existing).
+
+**Lesson:** re-check adversarial atas fix nangkap bug DI DALAM fix yang build+green-suite lewatkan (perilaku-fix tak ter-test); loop-until-dry perlu sampai 1 ronde bersih — fix bisa beranak (R3 source-guard → R4 false-success). Bug paling serius (L2 dead-filter, null-key keystone) hanya muncul di ronde lanjutan + di-warning compiler (CS8714).
+
+---
+
 ## ⚠️ Caveat & rekomendasi tindak lanjut
 
 1. **H3 keterbatasan (bukan lagi data-loss):** soal hasil import 5–6 opsi (E/F) **belum bisa diedit** lewat form (ditolak dgn pesan, data dipertahankan). Untuk ubah: hapus + impor ulang. Edit penuh A–F = Phase 418.
