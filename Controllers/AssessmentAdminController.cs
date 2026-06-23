@@ -5873,16 +5873,11 @@ namespace HcPortal.Controllers
                 assessment.AssessmentType == "PostTest" && assessment.SamePackage && assessment.ShuffleQuestions;
 
             // SHFX-02/D-01: disable toggle SamePackage di view bila ADA peserta sudah-mulai di GRUP (Pre+Post
-            // pasangan). Reuse compute grup pasangan (LinkedSessionId) — server endpoint ToggleSamePackage juga
-            // hard-reject (server-authoritative); ini friendly UX layer.
-            bool anyStartedInGroup = false;
-            if (isPostSession && assessment.LinkedSessionId.HasValue)
-            {
-                var togGroupIds = new[] { assessment.Id, assessment.LinkedSessionId.Value };
-                anyStartedInGroup = await _context.AssessmentSessions
-                    .AnyAsync(s => togGroupIds.Contains(s.Id) &&
-                                   (s.StartedAt != null || s.Status == "InProgress" || s.Status == "Completed"));
-            }
+            // pasangan). IN-03: SATU sumber via AnyStartedInPairAsync — endpoint ToggleSamePackage POST pakai
+            // helper YANG SAMA untuk hard-reject (server-authoritative); ini friendly UX layer (tak boleh divergen).
+            bool anyStartedInGroup = isPostSession
+                ? await AnyStartedInPairAsync(assessment.Id, assessment.LinkedSessionId)
+                : false;
             ViewBag.AnyStartedInGroup = anyStartedInGroup;
 
             // Reminder Pre/Post (opsi Z, SHUF-13): Post page only, saved-state Pre via LinkedSessionId.
@@ -5896,6 +5891,23 @@ namespace HcPortal.Controllers
             }
 
             return View();
+        }
+
+        /// <summary>
+        /// v32.7 Phase 422 IN-03 (kill-drift) — SATU sumber kebenaran cek "ada peserta sudah-mulai di
+        /// pasangan Pre+Post". Dipakai DUA tempat: GET ManagePackages (ViewBag.AnyStartedInGroup, UX-disable)
+        /// + POST ToggleSamePackage (hard-reject server-authoritative). Keduanya WAJIB selalu sinkron —
+        /// UX-disable dan server-reject tak boleh divergen. Mirror pola SessionEditLockRules/ShuffleToggleRules.
+        /// "Sudah-mulai" = StartedAt != null || Status InProgress || Status Completed, atas {postId, preId}.
+        /// preId null (tak berpasangan) → false (tak ada pasangan untuk dicek).
+        /// </summary>
+        private async Task<bool> AnyStartedInPairAsync(int postId, int? preId)
+        {
+            if (!preId.HasValue) return false;
+            var pairIds = new[] { postId, preId.Value };
+            return await _context.AssessmentSessions
+                .AnyAsync(s => pairIds.Contains(s.Id) &&
+                               (s.StartedAt != null || s.Status == "InProgress" || s.Status == "Completed"));
         }
 
         /// <summary>
@@ -6019,12 +6031,10 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackages", new { assessmentId });
             }
 
-            // GUARD D-01: grup = pasangan Pre+Post (LinkedSessionId). Tolak bila ADA peserta sudah-mulai
-            // (StartedAt set / Status InProgress / Completed). Idiom anyStarted mirror UpdateShuffleSettings.
-            var groupIds = new[] { post.Id, post.LinkedSessionId.Value };
-            bool anyStarted = await _context.AssessmentSessions
-                .AnyAsync(s => groupIds.Contains(s.Id) &&
-                               (s.StartedAt != null || s.Status == "InProgress" || s.Status == "Completed"));
+            // GUARD D-01: grup = pasangan Pre+Post (LinkedSessionId). Tolak bila ADA peserta sudah-mulai.
+            // IN-03: SATU sumber via AnyStartedInPairAsync — helper YANG SAMA dipakai GET ViewBag
+            // (UX-disable). Server-authoritative; UX-disable & server-reject tak boleh divergen.
+            bool anyStarted = await AnyStartedInPairAsync(post.Id, post.LinkedSessionId);
             if (anyStarted)
             {
                 TempData["Error"] = "Gagal mengubah pengaturan paket-sama: sudah ada peserta yang memulai ujian di grup ini.";
