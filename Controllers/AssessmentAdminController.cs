@@ -6802,13 +6802,16 @@ namespace HcPortal.Controllers
             return View();
         }
 
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
         // Truncate alt text ke MaxLength kolom (255) sebelum assign — hindari DbUpdateException (Pitfall 6).
+        // IN-01: TruncateAlt dipindah KE ATAS agar trio attribute [HttpPost]/[Authorize]/[ValidateAntiForgeryToken]
+        // mengikat ke CreateQuestion (sebelumnya salah-ikat ke helper static ini, di mana attribute inert →
+        // CreateQuestion kehilangan CSRF/role/verb di level method).
         private static string? TruncateAlt(string? s, int max)
             => string.IsNullOrEmpty(s) ? s : (s.Length <= max ? s : s.Substring(0, max));
 
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateQuestion(
             int packageId,
             string questionText,
