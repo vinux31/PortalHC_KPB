@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
-status: completed
+status: executing
 stopped_at: Phase 421 UI-SPEC approved
-last_updated: "2026-06-23T04:03:09.158Z"
-last_activity: 2026-06-23
+last_updated: "2026-06-23T06:02:12.934Z"
+last_activity: 2026-06-23 -- Phase 421 planning complete
 progress:
   total_phases: 39
   completed_phases: 1
-  total_plans: 3
+  total_plans: 6
   completed_plans: 3
-  percent: 100
+  percent: 50
 ---
 
 # Project State: Portal HC KPB
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
 Phase: 420 (Form Create/Edit — Persistensi Field + UX Pre-Post) — ✅ COMPLETE (all gates)
 Plan: 3 of 3
-Status: 420 COMPLETE — UAT 8/8 (0 issue), secure 13/13 (threats_open 0), validate NYQUIST 11/11. Task 4 checkpoint closed via 420-UAT.md (commit 3b8f8ac6, 2026-06-23). Next: Phase 421.
-Last activity: 2026-06-23
+Status: Ready to execute
+Last activity: 2026-06-23 -- Phase 421 planning complete
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
