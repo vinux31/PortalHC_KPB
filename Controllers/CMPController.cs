@@ -1068,13 +1068,16 @@ namespace HcPortal.Controllers
                 {
                     // Phase 415 SEC-04 (D-13 titik #2): re-guard struktur Section antar-paket SEBELUM
                     // BuildQuestionAssignment. Tangkap drift edit-manual pasca-import (paket diubah setelah
-                    // lolos validasi import). Server-authoritative. Parity dgn import: sibling key
-                    // Title+Category+Schedule.Date (LOCKED, Phase 397 lesson) + grup per SectionNumber (null → "Lainnya").
+                    // lolos validasi import). Server-authoritative.
+                    // H1 fix: sibling DIPILIH via SiblingPrePostAwarePredicate (Pre/Post-aware), IDENTIK dengan
+                    // pemilihan sibling assignment di atas (:1038). Sebelumnya guard pakai key Title+Category+
+                    // Schedule.Date TANPA AssessmentType → membandingkan paket Pre lawan Post (Pre/Post se-tanggal
+                    // sah punya struktur Section beda) → salah-blok worker. Sekarang guard membandingkan hanya
+                    // paket yang assignment benar-benar gabung.
                     // Pitfall 6: HANYA fire bila ≥2 paket saudara DAN ≥1 punya Section → legacy all-null & 1-paket lolos.
                     var guardSiblingIds = await _context.AssessmentSessions
-                        .Where(s => s.Title == assessment.Title &&
-                                    s.Category == assessment.Category &&
-                                    s.Schedule.Date == assessment.Schedule.Date)
+                        .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                            assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
                         .Select(s => s.Id)
                         .ToListAsync();
 
@@ -1088,26 +1091,27 @@ namespace HcPortal.Controllers
                     bool guardAnySections = guardPackages.SelectMany(p => p.Questions).Any(q => q.SectionId != null);
                     if (guardPackages.Count >= 2 && guardAnySections)
                     {
-                        // Bandingkan count per SectionNumber tiap paket vs paket referensi pertama (null → "Lainnya").
+                        // M4 fix: count per SectionNumber via SectionStructureComparer (shared dgn validasi import).
+                        // Bandingkan tiap paket vs paket referensi pertama (null → "Lainnya"); short-circuit saat drift.
+                        // Null-safe key (validate-phase escalation): grup "Lainnya" (SectionId null) → sentinel LainnyaKey.
+                        // `Dictionary<int?,int>` tak boleh key null → paket dgn soal Lainnya + ≥1 soal ber-Section akan
+                        // 500 saat StartExam. Pakai int + KeyOf, selaras validasi import.
                         var referencePkg = guardPackages.First();
                         var refCounts = referencePkg.Questions
-                            .GroupBy(q => q.Section?.SectionNumber)
+                            .GroupBy(q => SectionStructureComparer.KeyOf(q.Section?.SectionNumber))
                             .ToDictionary(g => g.Key, g => g.Count());
 
                         bool sectionDrift = false;
                         foreach (var sib in guardPackages.Skip(1))
                         {
                             var sibCounts = sib.Questions
-                                .GroupBy(q => q.Section?.SectionNumber)
+                                .GroupBy(q => SectionStructureComparer.KeyOf(q.Section?.SectionNumber))
                                 .ToDictionary(g => g.Key, g => g.Count());
-                            var allKeys = refCounts.Keys.Union(sibCounts.Keys);
-                            foreach (var sn in allKeys)
+                            if (SectionStructureComparer.MismatchedSections(refCounts, sibCounts).Any())
                             {
-                                int x = refCounts.TryGetValue(sn, out var xc) ? xc : 0;
-                                int y = sibCounts.TryGetValue(sn, out var yc) ? yc : 0;
-                                if (x != y) { sectionDrift = true; break; }
+                                sectionDrift = true;
+                                break;
                             }
-                            if (sectionDrift) break;
                         }
 
                         if (sectionDrift)

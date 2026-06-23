@@ -265,7 +265,8 @@
                                         var sectionQuestions = questions.Where(q => q.SectionId == s.Id).ToList();
                                         <tr class="bg-light">
                                             <td colspan="5" class="fw-semibold">
-                                                @(string.IsNullOrWhiteSpace(s.Name) ? $"Section {s.SectionNumber}" : $"Section {s.SectionNumber} — {s.Name}") <span class="text-muted fw-normal">(@sectionQuestions.Count soal)</span>
+                                                @* L6: pakai sectionLabel(s) yang sama dgn dropdown assign — format label Section konsisten. *@
+                                                @sectionLabel(s) <span class="text-muted fw-normal">(@sectionQuestions.Count soal)</span>
                                             </td>
                                         </tr>
                                         @foreach (var q in sectionQuestions)

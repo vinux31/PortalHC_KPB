@@ -6302,10 +6302,14 @@ namespace HcPortal.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException dbEx) when (
+                dbEx.InnerException?.Message.Contains("2601") == true
+                || dbEx.InnerException?.Message.Contains("2627") == true)
             {
-                // L2: TOCTOU — dua submit barengan lolos pre-check, unique index (PackageId, SectionNumber)
-                // melempar. Pesan ramah, bukan 500 mentah.
+                // L2 re-check: HANYA tangkap pelanggaran unique-index (SQL 2601/2627) — TOCTOU dua submit barengan
+                // lolos pre-check, unique index (PackageId, SectionNumber) melempar. Pesan ramah + log. DbUpdateException
+                // lain (deadlock/FK/dll) SENGAJA propagate agar tak ter-telan jadi pesan menyesatkan dan tetap ter-log.
+                _logger.LogWarning(dbEx, "CreateSection race: No.Section {SectionNumber} duplikat di Package #{PackageId} (unique-index).", sectionNumber, packageId);
                 _context.ChangeTracker.Clear();
                 TempData["Error"] = $"No. Section {sectionNumber} sudah ada di paket ini.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
@@ -6358,10 +6362,13 @@ namespace HcPortal.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException dbEx) when (
+                dbEx.InnerException?.Message.Contains("2601") == true
+                || dbEx.InnerException?.Message.Contains("2627") == true)
             {
-                // L2: TOCTOU — pre-check dup lolos tapi submit barengan menabrak unique index
-                // (PackageId, SectionNumber). Pesan ramah, bukan 500 mentah.
+                // L2 re-check: HANYA unique-index (SQL 2601/2627) — pre-check dup lolos tapi submit barengan menabrak
+                // unique index (PackageId, SectionNumber). Pesan ramah + log. DbUpdateException lain SENGAJA propagate.
+                _logger.LogWarning(dbEx, "EditSection race: No.Section {SectionNumber} duplikat di Package #{PackageId} (unique-index).", sectionNumber, packageId);
                 _context.ChangeTracker.Clear();
                 TempData["Error"] = $"No. Section {sectionNumber} sudah ada di paket ini.";
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
@@ -6676,11 +6683,32 @@ namespace HcPortal.Controllers
             var parentPkg = await _context.AssessmentPackages.FindAsync(packageId);
             if (parentPkg == null) return;
             var parentSession = await _context.AssessmentSessions.FindAsync(parentPkg.AssessmentSessionId);
-            if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
+            if (parentSession?.AssessmentType != "PreTest" || !parentSession.LinkedSessionId.HasValue) return;
+            var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
+            if (linkedPost == null || !linkedPost.SamePackage) return;
+
+            // H4 re-check guard #1 (skip-if-taken): SyncPackagesToPost meng-RemoveRange soal Post lalu clone ulang.
+            // Bila Post SUDAH dikerjakan (ada PackageUserResponse), RemoveRange menabrak FK Restrict
+            // (PackageUserResponse→PackageQuestion) → DbUpdateException. JANGAN re-clone Post bernyawa; lewati + log.
+            bool postHasResponses = await _context.PackageUserResponses
+                .AnyAsync(r => r.AssessmentSessionId == linkedPost.Id);
+            if (postHasResponses)
             {
-                var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
-                if (linkedPost != null && linkedPost.SamePackage)
-                    await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
+                _logger.LogWarning("SyncToPostIfSamePackage dilewati: Post session {PostId} sudah punya jawaban — clone SamePackage di-skip agar tak melanggar FK Restrict.", linkedPost.Id);
+                return;
+            }
+
+            // H4 re-check guard #2 (best-effort): mutasi Pre sudah ter-commit sebelum titik ini. Kegagalan sync
+            // (DbUpdateException/transien) TAK boleh men-500-kan request / menganulir mutasi Pre yang sukses.
+            // Bila gagal, Post tertinggal struktur lama (akan tersinkron pada mutasi Pre berikutnya).
+            try
+            {
+                await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
+            }
+            catch (Exception ex)
+            {
+                _context.ChangeTracker.Clear();
+                _logger.LogWarning(ex, "SyncPackagesToPost gagal Pre {PreId}→Post {PostId}; Post mungkin tertinggal struktur lama.", parentSession.Id, linkedPost.Id);
             }
         }
 
@@ -7246,15 +7274,18 @@ namespace HcPortal.Controllers
                     // M3 fix: import bersifat ADDITIVE (order = pkg.Questions.Count + 1). Baseline count target =
                     // soal EXISTING paket (grouped-by-section) + incoming yang lolos dedup. Sebelumnya baseline cuma
                     // baris Excel incoming → paket yang sudah punya soal lolos validasi tapi pasca-insert melebihi sibling.
+                    // Null-safe key (validate-phase escalation): grup "Lainnya" (SectionNumber null) → sentinel LainnyaKey.
+                    // `Dictionary<int?,int>` TIDAK boleh key null → import legacy/Lainnya dgn paket saudara melempar
+                    // ArgumentNullException (500). Pakai int + KeyOf agar legacy/​mixed tetap jalan (keystone backward-compat).
                     var existingCounts = pkg.Questions
-                        .GroupBy(q => q.Section?.SectionNumber)
+                        .GroupBy(q => SectionStructureComparer.KeyOf(q.Section?.SectionNumber))
                         .ToDictionary(g => g.Key, g => g.Count());
-                    var incomingCounts = new Dictionary<int?, int>(existingCounts);
-                    foreach (var grp in validIncoming.GroupBy(v => v.SectionNumber))
+                    var incomingCounts = new Dictionary<int, int>(existingCounts);
+                    foreach (var grp in validIncoming.GroupBy(v => SectionStructureComparer.KeyOf(v.SectionNumber)))
                         incomingCounts[grp.Key] = (incomingCounts.TryGetValue(grp.Key, out var ec) ? ec : 0) + grp.Count();
 
-                    // Apakah ada section sama sekali (incoming/existing ATAU sibling)? Bila semua-null kedua sisi → legacy total-count.
-                    bool incomingHasSections = incomingCounts.Keys.Any(k => k != null);
+                    // Apakah ada section sama sekali (incoming/existing ATAU sibling)? Bila semua-Lainnya kedua sisi → legacy total-count.
+                    bool incomingHasSections = incomingCounts.Keys.Any(k => k != SectionStructureComparer.LainnyaKey);
                     bool siblingHasSections = siblingPackagesWithQuestions
                         .SelectMany(p => p.Questions).Any(q => q.SectionId != null);
 
@@ -7279,7 +7310,7 @@ namespace HcPortal.Controllers
                         foreach (var sib in siblingPackagesWithQuestions)
                         {
                             var sibCounts = sib.Questions
-                                .GroupBy(q => q.Section?.SectionNumber)
+                                .GroupBy(q => SectionStructureComparer.KeyOf(q.Section?.SectionNumber))
                                 .ToDictionary(g => g.Key, g => g.Count());
 
                             foreach (var sn in SectionStructureComparer.MismatchedSections(incomingCounts, sibCounts))
@@ -7786,20 +7817,8 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Soal berhasil ditambahkan.";
 
-            // Auto-sync to Post if SamePackage=true
-            var parentPkgCQ = await _context.AssessmentPackages.FindAsync(packageId);
-            if (parentPkgCQ != null)
-            {
-                var parentSession = await _context.AssessmentSessions.FindAsync(parentPkgCQ.AssessmentSessionId);
-                if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
-                {
-                    var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
-                    if (linkedPost != null && linkedPost.SamePackage)
-                    {
-                        await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
-                    }
-                }
-            }
+            // Auto-sync to Post if SamePackage=true — H4 re-check: lewat helper aman (skip-if-Post-taken + best-effort).
+            await SyncToPostIfSamePackageAsync(packageId);
 
             return RedirectToAction("ManagePackageQuestions", new { packageId });
         }
@@ -7908,6 +7927,16 @@ namespace HcPortal.Controllers
                 .Include(q => q.Options)
                 .FirstOrDefaultAsync(q => q.Id == questionId);
             if (q == null) return NotFound();
+
+            // H3 re-check (Phase 415): soal hasil import/SyncPackagesToPost bisa punya 5–6 opsi (E/F), tapi form edit
+            // ini hanya merender A–D. Edit penuh A–F = scope Phase 418. Sampai itu, TOLAK edit soal >4 opsi agar tak
+            // (a) menghapus opsi E/F secara senyap, atau (b) kena hard-block correctCount (kunci di E/F tak terbaca).
+            // Data soal dipertahankan utuh. Untuk mengubah, hapus soal lalu impor ulang via Excel.
+            if (questionType != "Essay" && q.Options.Count > 4)
+            {
+                TempData["Error"] = "Soal ini memiliki lebih dari 4 opsi (E/F) dan belum dapat diedit lewat form ini (dukungan edit 5–6 opsi menyusul). Untuk mengubahnya, hapus soal lalu impor ulang via Excel.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
 
             // Range validation 1-100 (D-12, D-13) - replaces force-override removed per D-14 (Phase 306)
             if (scoreValue < 1 || scoreValue > 100)
@@ -8029,22 +8058,8 @@ namespace HcPortal.Controllers
                     }
                     // slot == null && !hasText → skip (opsi tidak ada & tidak diisi)
                 }
-
-                // H3 anti-corruption GUARD: form edit hanya merender slot A–D. Soal hasil import/SyncPackagesToPost
-                // bisa punya 5–6 opsi (E/F). Slot E/F (index ≥4 di urutan ASLI 'existing') TIDAK tersentuh loop di
-                // atas → IsCorrect-nya basi (mis. soal benar={E}, admin centang A → A+E dua-duanya benar = grading
-                // korup). Sampai UI edit A–F penuh hadir (Phase 418), buang opsi E/F yang tak bisa di-edit agar tak
-                // meninggalkan kunci jawaban basi/ganda. Pakai 'existing' (snapshot pra-edit) — BUKAN q.Options
-                // pasca-edit yang jumlahnya bisa menyusut bila slot A–D dihapus → Skip(4) keliru sasaran.
-                // TODO Phase 418: render & edit Opsi E/F (thread MaxOptions=6 lewat view/JS/controller), hapus guard ini.
-                var extraOptions = existing.Skip(4).ToList();
-                foreach (var extra in extraOptions)
-                {
-                    if (!q.Options.Contains(extra)) continue; // sudah ter-remove di loop (slot==null path tak mungkin utk idx≥4, defensif)
-                    if (!string.IsNullOrEmpty(extra.ImagePath)) imagePathsToDelete.Add(extra.ImagePath!);
-                    _context.PackageOptions.Remove(extra);
-                    q.Options.Remove(extra);
-                }
+                // H3 re-check: blok lama "buang opsi E/F" DIHAPUS — soal >4 opsi kini ditolak di awal EditQuestion
+                // (preserve data), jadi loop A–D di atas hanya jalan untuk soal ≤4 opsi. Edit penuh A–F → Phase 418.
             }
 
             await _context.SaveChangesAsync();
@@ -8080,20 +8095,8 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Soal berhasil diperbarui.";
 
-            // Auto-sync to Post if SamePackage=true
-            var parentPkgEQ = await _context.AssessmentPackages.FindAsync(packageId);
-            if (parentPkgEQ != null)
-            {
-                var parentSession = await _context.AssessmentSessions.FindAsync(parentPkgEQ.AssessmentSessionId);
-                if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
-                {
-                    var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
-                    if (linkedPost != null && linkedPost.SamePackage)
-                    {
-                        await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
-                    }
-                }
-            }
+            // Auto-sync to Post if SamePackage=true — H4 re-check: lewat helper aman (skip-if-Post-taken + best-effort).
+            await SyncToPostIfSamePackageAsync(packageId);
 
             // Ref-count + File.Delete SETELAH auto-sync (SYN-02 / D-10 / OQ2 ordering).
             // KRITIS: harus setelah SaveChanges DAN auto-sync — agar Post yang share path
@@ -8173,20 +8176,8 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Soal berhasil dihapus.";
 
-            // Auto-sync to Post if SamePackage=true
-            var parentPkgDQ = await _context.AssessmentPackages.FindAsync(packageId);
-            if (parentPkgDQ != null)
-            {
-                var parentSession = await _context.AssessmentSessions.FindAsync(parentPkgDQ.AssessmentSessionId);
-                if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
-                {
-                    var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
-                    if (linkedPost != null && linkedPost.SamePackage)
-                    {
-                        await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
-                    }
-                }
-            }
+            // Auto-sync to Post if SamePackage=true — H4 re-check: lewat helper aman (skip-if-Post-taken + best-effort).
+            await SyncToPostIfSamePackageAsync(packageId);
 
             // SYN-02 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (warn-only per file).
             await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "DeleteQuestion image");
