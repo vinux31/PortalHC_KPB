@@ -5792,9 +5792,10 @@ namespace HcPortal.Controllers
             ViewBag.RetakeCooldownHours = assessment.RetakeCooldownHours;
             ViewBag.HideRetakeToggle = HcPortal.Helpers.RetakeRules.ShouldHideRetakeToggle(assessment.AssessmentType, assessment.IsManualEntry);
             // Warning non-blocking: MaxAttempts < attempt terpakai peserta mana pun di grup (Title/Category).
-            int retakeMaxArchivedForGroup = await _context.AssessmentAttemptHistory
-                .Where(h => h.Title == assessment.Title && h.Category == assessment.Category)
-                .GroupBy(h => h.UserId).Select(g => g.Count()).OrderByDescending(c => c).FirstOrDefaultAsync();
+            // v32.7 RTH-03 (D-05): satu sumber counting — kini SNAPSHOT-AWARE (legacy HC-reset pre-v32.4 excluded);
+            // GroupBy-max semantics dipertahankan (MaxInGroupAsync), HANYA filter snapshot-presence yang ditambahkan.
+            int retakeMaxArchivedForGroup = await HcPortal.Helpers.RetakeCountingRules.MaxInGroupAsync(
+                _context, assessment.Title, assessment.Category);
             ViewBag.RetakeMaxAttemptsUsedInGroup = retakeMaxArchivedForGroup + 1;
 
             // Warning §9 precondition: jumlah paket-ber-soal + mismatch ukuran (mirror view L70-81).

@@ -2469,10 +2469,9 @@ namespace HcPortal.Controllers
             // View (407-03) hanya MERENDER; eligibility/tier dihitung server (leak-safety = keputusan server).
             // (a) Flag retake/tier — mirror counting RetakeService.CanRetakeAsync :237-242.
             //     Tier pakai assessment.IsPassed (bool?), BUKAN viewModel.IsPassed (bool) — Pitfall 5.
-            int eraRetakeArchives = await _context.AssessmentAttemptHistory
-                .Where(h => h.UserId == assessment.UserId && h.Title == assessment.Title && h.Category == assessment.Category
-                         && _context.AssessmentAttemptResponseArchives.Any(a => a.AttemptHistoryId == h.Id))
-                .CountAsync();
+            // v32.7 RTH-03 (D-05): satu sumber counting era-retake snapshot-presence (kill-drift).
+            int eraRetakeArchives = await RetakeCountingRules.CountForUserAsync(
+                _context, assessment.UserId, assessment.Title, assessment.Category);
             int currentAttempt = eraRetakeArchives + 1;
             // v32.7 RTH-01 (Pitfall 1 & 2): masa ujian tutup → retake MUSTAHIL. +7h WIB byte-identik StartExam:956.
             bool windowClosed = assessment.ExamWindowCloseDate.HasValue

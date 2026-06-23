@@ -152,13 +152,9 @@ namespace HcPortal.Services
                 if (questions.Count > 0)
                 {
                     // Counting era-retake (UserId, Title, Category) — must-fix #3 anti-konflasi Pre/Post +
-                    // D-01 snapshot-presence (arsip ber-child saja; legacy HC-reset natural-excluded).
-                    int eraRetakeArchives = await _context.AssessmentAttemptHistory
-                        .Where(h => h.UserId == assessment.UserId
-                                 && h.Title == assessment.Title
-                                 && h.Category == assessment.Category
-                                 && _context.AssessmentAttemptResponseArchives.Any(a => a.AttemptHistoryId == h.Id))
-                        .CountAsync();
+                    // D-01 snapshot-presence. v32.7 RTH-03 (D-05): via satu sumber RetakeCountingRules (kill-drift).
+                    int eraRetakeArchives = await RetakeCountingRules.CountForUserAsync(
+                        _context, assessment.UserId, assessment.Title, assessment.Category);
 
                     var attemptHistory = new AssessmentAttemptHistory
                     {
@@ -245,12 +241,9 @@ namespace HcPortal.Services
             var s = await _context.AssessmentSessions.FirstOrDefaultAsync(a => a.Id == sessionId);
             if (s == null) return false;
 
-            int eraRetakeArchives = await _context.AssessmentAttemptHistory
-                .Where(h => h.UserId == s.UserId
-                         && h.Title == s.Title
-                         && h.Category == s.Category
-                         && _context.AssessmentAttemptResponseArchives.Any(a => a.AttemptHistoryId == h.Id))
-                .CountAsync();
+            // v32.7 RTH-03 (D-05): satu sumber counting era-retake snapshot-presence (kill-drift).
+            int eraRetakeArchives = await RetakeCountingRules.CountForUserAsync(
+                _context, s.UserId, s.Title, s.Category);
 
             return RetakeRules.CanRetake(
                 s.AllowRetake, s.AssessmentType, s.IsManualEntry, s.Status, s.IsPassed,
