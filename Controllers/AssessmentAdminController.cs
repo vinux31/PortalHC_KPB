@@ -6729,6 +6729,16 @@ namespace HcPortal.Controllers
             }
 
             int preSessionId = postSession.LinkedSessionId.Value;
+
+            // Round-4: aksi EKSPLISIT "Salin dari Pre". Bila Post SUDAH dikerjakan, SyncPackagesToPost akan
+            // skip-if-taken (no-op, FK-safe) — JANGAN tampilkan sukses palsu. Beri tahu HC struktur tak diubah.
+            bool postTaken = await _context.PackageUserResponses.AnyAsync(r => r.AssessmentSessionId == postSessionId);
+            if (postTaken)
+            {
+                TempData["Error"] = "Tidak dapat menyalin: Post-Test sudah dikerjakan peserta. Struktur paket dibiarkan agar jawaban yang sudah masuk tetap valid.";
+                return RedirectToAction("ManagePackages", new { assessmentId = postSessionId });
+            }
+
             await SyncPackagesToPost(preSessionId, postSessionId);
 
             var preCount = await _context.AssessmentPackages.CountAsync(p => p.AssessmentSessionId == preSessionId);
