@@ -55,7 +55,7 @@
 | 415. Section Foundation + Import Excel Diperluas | 0/4 | 4/4 | Complete   | 2026-06-22 |
 | 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | 2/2 | Complete    | 2026-06-23 |
 | 416. Scoped Shuffle (Acak per-Section) | 0/3 | 3/3 | Complete    | 2026-06-23 |
-| 417. Section Pagination | 0/3 | Not started | FALSE | - |
+| 417. Section Pagination | 0/3 | 1/3 | In Progress|  |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
 | 419. Export Label Section + Polish + Test/UAT | 0/? | Not started | FALSE | - |
 
@@ -138,7 +138,7 @@ Plans:
   2. Section ber-"Mulai Halaman Baru" dimulai di halaman baru; Section panjang otomatis terpecah per 10 soal; tombol cepat "semua section pisah halaman" memaksa page-break di semua Section.
   3. Resume ujian (`LastActivePage`) tetap mengarah ke halaman yang benar saat pagination Section aktif; identitas soal stabil (by question id) walau struktur berubah pasca-lock, dengan fallback aman ke halaman 0 bila di luar rentang.
 **Plans**: 3 plans (wave 1->2->3 sequential; file-overlap `StartExam.cshtml`/`CMPController.cs` Plan 02; e2e+UAT Plan 03)
-- [ ] 417-01-PLAN.md — `Helpers/SectionPaginator.cs` pure `ComputePages`/`ClampResumePage` + field section di `ExamQuestionItem` + Wave-0 xUnit `SectionPaginatorTests` (golden no-Section baseline) (PAG-01/02/03) [wave 1, migration=FALSE]
+- [x] 417-01-PLAN.md — `Helpers/SectionPaginator.cs` pure `ComputePages`/`ClampResumePage` + field section di `ExamQuestionItem` + Wave-0 xUnit `SectionPaginatorTests` (golden no-Section baseline) (PAG-01/02/03) [wave 1, migration=FALSE]
 - [ ] 417-02-PLAN.md — Wire `CMPController.StartExam` (isi field Section + ComputePages + clamp resume + mobile UA) + `StartExam.cshtml` render section-aware (header/navigator/indikator/resume RESUME_PAGE+toast, single-source page-map, backward-compat) (PAG-01/02/03) [wave 2]
 - [ ] 417-03-PLAN.md — Playwright e2e `section-pagination.spec.ts` (header/lanjutan/break/navigator/resume-toast/no-Section flat) + verify admin quick-button (Phase 415) + checkpoint UAT live @5277 (PAG-01/02/03) [wave 3, autonomous:false]
 **Migration**: FALSE (`LastActivePage` tetap `int?`, page-number dihitung saat render, bukan disimpan per-soal — D-11).
