@@ -53,9 +53,9 @@ created: 2026-06-23
 
 ## Wave 0 Requirements
 
-- [ ] `HcPortal.Tests/ShuffleEngineScopedTests.cs` — unit stubs: section-isolation, precedence, pooling, ET-warning (SHF-01/02/03)
-- [ ] `HcPortal.Tests/ShuffleEngineGoldenOrderTests.cs` — golden-order all-null == baseline + workerIndex determinism (SHF-04)
-- [ ] Fixed-seed helper `new Random(42)` pattern for determinism (reuse existing ShuffleEngine test convention if present)
+- [ ] `HcPortal.Tests/SectionScopedShuffleTests.cs` — unit suite (canonical single file per PLAN): section-isolation, golden-order all-null == baseline, precedence D-14, cross-package pooling, workerIndex determinism, reshuffle isolation (SHF-01/02/03/04)
+- [ ] `tests/e2e/scoped-shuffle.spec.ts` — Playwright e2e: section-isolation + backward-compat all-null + ET-warning (DB backup/restore, `--workers=1`)
+- [ ] Fixed-seed helper `new Random(42)` pattern for determinism (reuse existing `ShuffleEngineTests.cs` convention)
 
 *Engine is pure (no DB) → unit-testable directly. Reshuffle/StartExam wiring covered by integration where a seam exists; otherwise asserted via engine-level isolation tests + Playwright UAT.*
 
