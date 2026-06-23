@@ -693,6 +693,150 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
     }
 
     // =================================================================================================
+    //  H4 SOURCE-GUARD (round-3 / Issue-1). Skip-if-Post-taken dipindah KE DALAM SyncPackagesToPost (guard di
+    //  SUMBER), sehingga melindungi SEMUA pemanggil — termasuk caller level-paket (CreatePackage / DeletePackage /
+    //  CopyPackagesFromPre) yang dulu memanggil SyncPackagesToPost mentah dan akan 500 (FK Restrict) saat Post sudah
+    //  dikerjakan. KUNCI: lewat caller LEVEL-PAKET (CreatePackage), bukan Section-CRUD (yang sudah dikunci H4(b)).
+    //
+    //  Caller dipilih: CreatePackage. Alasan: signature paling lugas (assessmentId Pre + packageName), dan blok
+    //  auto-sync di akhirnya memanggil SyncPackagesToPost(Pre,Post) MENTAH (tanpa bungkus try/skip caller-level) —
+    //  jadi yang teruji murni guard di SUMBER. Pra-fix: CreatePackage di Pre → SyncPackagesToPost RemoveRange soal
+    //  Post yang dirujuk PackageUserResponse → DbUpdateException (FK Restrict) → 500.
+    // =================================================================================================
+    [Fact]
+    public async Task H4Source_CreatePackageOnPreWithTakenPost_NoThrow_PostUntouched()
+    {
+        int preSessionId, postSessionId, postPkgId, postQuestionId; string actorId;
+        int postQuestionTextHashBefore;
+        await using (var seed = NewCtx())
+        {
+            var ids = await SeedSamePackagePrePostAsync(seed);
+            preSessionId = ids.preSessionId;
+            postSessionId = ids.postSessionId;
+            actorId = (await SeedActorAsync(seed)).Id;
+
+            // Bangun paket Post NYATA (clone Pre) via CopyPackagesFromPre agar ada soal Post yang bisa "dikerjakan".
+            var actor = await seed.Users.FindAsync(actorId);
+            var ctrlSeed = MakeController(seed, actor!, "CopyPackagesFromPre");
+            await ctrlSeed.CopyPackagesFromPre(postSessionId);
+
+            var postPkg = await seed.AssessmentPackages.SingleAsync(p => p.AssessmentSessionId == postSessionId);
+            postPkgId = postPkg.Id;
+            var postQ = await seed.PackageQuestions.FirstAsync(q => q.AssessmentPackageId == postPkgId);
+            postQuestionId = postQ.Id;
+            postQuestionTextHashBefore = postQ.QuestionText.GetHashCode();
+
+            // Worker mengerjakan Post: PackageUserResponse merujuk soal Post → FK Restrict aktif (RemoveRange = 500).
+            seed.PackageUserResponses.Add(new PackageUserResponse
+            {
+                AssessmentSessionId = postSessionId,
+                PackageQuestionId = postQuestionId,
+                SubmittedAt = DateTime.UtcNow
+            });
+            await seed.SaveChangesAsync();
+        }
+
+        int postQuestionCountBefore, postSectionCountBefore, postPkgCountBefore;
+        await using (var before = NewCtx())
+        {
+            postQuestionCountBefore = await before.PackageQuestions.CountAsync(q => q.AssessmentPackageId == postPkgId);
+            postSectionCountBefore = await before.AssessmentPackageSections.CountAsync(s => s.AssessmentPackageId == postPkgId);
+            postPkgCountBefore = await before.AssessmentPackages.CountAsync(p => p.AssessmentSessionId == postSessionId);
+        }
+
+        // CreatePackage caller LEVEL-PAKET di sesi PRE → blok auto-sync memanggil SyncPackagesToPost(Pre,Post) mentah.
+        // Guard di SUMBER (Post taken) HARUS men-skip clone → tak throw. Pra-fix: DbUpdateException FK Restrict (500).
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "CreatePackage");
+            var ex = await Record.ExceptionAsync(() => ctrl.CreatePackage(preSessionId, "Paket Pre Baru"));
+            Assert.Null(ex);                                                    // TIDAK 500 (guard di sumber men-skip sync)
+        }
+
+        await using (var verify = NewCtx())
+        {
+            // Pre benar-benar termutasi: paket baru ter-tambah di sesi Pre.
+            var preSession = await verify.AssessmentSessions.SingleAsync(s => s.Id == preSessionId);
+            Assert.True(await verify.AssessmentPackages.AnyAsync(p => p.AssessmentSessionId == preSessionId && p.PackageName == "Paket Pre Baru"));
+
+            // Post UTUH (sync di-skip, TIDAK di-clone ulang): jumlah paket/soal/Section Post TIDAK berubah.
+            Assert.Equal(postPkgCountBefore, await verify.AssessmentPackages.CountAsync(p => p.AssessmentSessionId == postSessionId));
+            Assert.Equal(postQuestionCountBefore, await verify.PackageQuestions.CountAsync(q => q.AssessmentPackageId == postPkgId));
+            Assert.Equal(postSectionCountBefore, await verify.AssessmentPackageSections.CountAsync(s => s.AssessmentPackageId == postPkgId));
+
+            // Soal Post yang dirujuk response masih ada (tidak ter-RemoveRange) + identitasnya tak berubah.
+            var postQ = await verify.PackageQuestions.SingleAsync(q => q.Id == postQuestionId);
+            Assert.Equal(postQuestionTextHashBefore, postQ.QuestionText.GetHashCode());
+            Assert.True(await verify.PackageUserResponses.AnyAsync(r => r.AssessmentSessionId == postSessionId && r.PackageQuestionId == postQuestionId));
+        }
+    }
+
+    // =================================================================================================
+    //  H3 ESSAY-CONVERSION BYPASS CLOSED (round-3 / Issue-3). Guard >4 opsi di EditQuestion DIUBAH dari
+    //  `questionType != "Essay" && q.Options.Count > 4` → `q.Options.Count > 4` (tipe APA PUN). Konversi soal
+    //  6-opsi tersimpan ke Essay (yang akan RemoveRange SEMUA opsi termasuk E/F senyap) kini JUGA DITOLAK.
+    //  Pra-fix: cabang Essay lolos guard → opsi E/F (dan A–D) ter-RemoveRange diam-diam (data loss).
+    // =================================================================================================
+    [Fact]
+    public async Task H3_EditQuestionConvertToEssay_MoreThan4Options_Rejected_OptionsIntact()
+    {
+        int packageId, questionId; string actorId;
+        await using (var seed = NewCtx())
+        {
+            (_, packageId, _, _, _) = await SeedSessionPackageAsync(seed, "H3essay");
+            actorId = (await SeedActorAsync(seed)).Id;
+            // Mirror seed 6-opsi (A–F) dari H3_EditQuestionWithMoreThan4Options_Rejected_OptionsUnchanged.
+            var q = new PackageQuestion
+            {
+                AssessmentPackageId = packageId, QuestionText = "Soal 6 opsi (ke Essay)", Order = 1, ScoreValue = 10,
+                QuestionType = "MultipleAnswer", MaxCharacters = 2000,
+                Options = new List<PackageOption>
+                {
+                    new() { OptionText = "A", IsCorrect = true  },
+                    new() { OptionText = "B", IsCorrect = false },
+                    new() { OptionText = "C", IsCorrect = false },
+                    new() { OptionText = "D", IsCorrect = false },
+                    new() { OptionText = "E", IsCorrect = true  },   // benar di E (di luar A–D form)
+                    new() { OptionText = "F", IsCorrect = false },
+                }
+            };
+            seed.PackageQuestions.Add(q);
+            await seed.SaveChangesAsync();
+            questionId = q.Id;
+        }
+
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "EditQuestion");
+            // Sama signature dgn H3 existing, TAPI questionType="Essay" (konversi). Pra-fix: lolos guard → RemoveRange opsi.
+            var res = await ctrl.EditQuestion(
+                questionId, packageId, "Soal 6 opsi (jadi Essay)", "Essay", 10, "K3", "Rubrik X", 2000,
+                "A", "B", "C", "D", false, false, false, false,
+                null, null, false, null, null, null, null,
+                null, null, null, null, false, false, false, false,
+                sectionId: null);
+            var redirect = Assert.IsType<RedirectToActionResult>(res);
+            Assert.Equal("ManagePackageQuestions", redirect.ActionName);
+            var err = ctrl.TempData["Error"] as string;
+            Assert.False(string.IsNullOrWhiteSpace(err));
+            Assert.Contains("opsi", err!, StringComparison.OrdinalIgnoreCase);  // pesan keterbatasan >4 opsi (bukan rubrik/dll)
+        }
+
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.Include(x => x.Options)
+                .SingleAsync(x => x.Id == questionId);
+            Assert.Equal(6, q.Options.Count);                                   // 6 opsi UTUH (TIDAK ter-RemoveRange oleh cabang Essay)
+            Assert.Equal("MultipleAnswer", q.QuestionType);                     // tipe tak berubah jadi Essay
+            Assert.Equal("Soal 6 opsi (ke Essay)", q.QuestionText);            // teks soal tak berubah
+            var correct = q.Options.Where(o => o.IsCorrect).Select(o => o.OptionText).OrderBy(x => x).ToList();
+            Assert.Equal(new[] { "A", "E" }, correct);                          // IsCorrect asli (A & E) lestari
+        }
+    }
+
+    // =================================================================================================
     //  M1 — dedup-aware sibling count (IMP-03). Count untuk validasi sibling = jumlah yang BENAR-BENAR ter-insert
     //  (setelah dedup), bukan jumlah baris valid mentah. Sibling Section 1 = 2; import 3 baris (1 duplikat) →
     //  distinct=2 → cocok → import sukses, tepat 2 soal di Section 1.
