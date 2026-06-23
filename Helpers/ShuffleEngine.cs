@@ -17,6 +17,23 @@ namespace HcPortal.Helpers
     /// - OFF = deterministik: 1 paket urut q.Order; ≥2 paket round-robin index-session-stabil
     ///         1 paket UTUH per worker (filter paket kosong SEBELUM modulo), urut q.Order.
     ///
+    /// Phase 416 (SHF-01..04) — SECTION-SCOPED: <c>BuildQuestionAssignment</c> kini mempartisi soal
+    /// lintas-paket berdasarkan Section (kunci komposit <c>(SectionNumber, ET)</c>) lalu menjalankan
+    /// algoritma distribusi existing per-Section via <see cref="BuildSectionQuestionAssignment"/>, lalu
+    /// concat urut SectionNumber dengan grup "Lainnya" (SectionId=null) selalu TERAKHIR (D-15).
+    /// Option-shuffle di-gate per-Section via <c>AssessmentPackageSection.ShuffleEnabled</c> (D-416-01)
+    /// melalui <see cref="BuildSectionAwareOptionShuffle"/>. Precedence induk/anak (D-14): induk
+    /// <c>ShuffleQuestions</c> OFF → SEMUA section terurut; induk ON → tiap section ikut ShuffleEnabled-nya.
+    ///
+    /// BACKWARD-COMPAT (invariant keystone, SHF-04): bila SEMUA <c>SectionId=null</c> → satu grup tunggal
+    /// "Lainnya" → sub-fungsi dipanggil SEKALI atas seluruh kolam dengan <c>sectionShuffle = shuffleQuestions</c>
+    /// = output BYTE-IDENTIK baseline pra-416 (golden-order). Partisi & sort Section memakai operasi
+    /// deterministik non-RNG → TIDAK menggeser stream <c>rng</c> pada jalur all-null (Pitfall 2).
+    ///
+    /// Asumsi (Pitfall 3): SectionNumber dibaca dari navigasi <c>q.Section?.SectionNumber</c>. Call-site
+    /// produksi (Plan 02) WAJIB memuat <c>q.Section</c> (atau menyediakan map) agar partisi benar; bila
+    /// <c>q.Section</c> null, soal jatuh ke grup "Lainnya" (perilaku global lama, aman).
+    ///
     /// Pure by design (only System/Linq/HcPortal.Models) → unit-testable without a database.
     /// </summary>
     public static class ShuffleEngine
@@ -32,31 +49,118 @@ namespace HcPortal.Helpers
         }
 
         /// <summary>
-        /// Combined question-assignment entry point. ON → canonical cross-package shuffle (verbatim).
-        /// OFF → deterministic: 1 paket urut q.Order; ≥2 paket worker[i] dapat
-        /// <c>packagesWithQuestions[workerIndex % count]</c> paket UTUH urut q.Order (D-05, tidak dipotong K-min).
+        /// Section-scoped question-assignment entry point (Phase 416, signature WAJIB tetap untuk 3 call-site).
+        /// Mempartisi soal lintas-paket berdasarkan Section (kunci <c>SectionNumber</c>; null → "Lainnya")
+        /// lalu menjalankan distribusi existing per-Section via <see cref="BuildSectionQuestionAssignment"/>,
+        /// lalu concat urut SectionNumber (grup "Lainnya" selalu TERAKHIR, D-15).
+        ///
+        /// Precedence D-14: induk <paramref name="shuffleQuestions"/> OFF → sectionShuffle=false untuk SEMUA
+        /// section (terurut); induk ON → sectionShuffle = ShuffleEnabled section itu ("Lainnya"/null section
+        /// tak punya row → ikut induk, D-15).
+        ///
+        /// Invariant golden-order (SHF-04): all-null → 1 grup "Lainnya" → sub-fungsi dipanggil SEKALI atas
+        /// seluruh kolam dengan sectionShuffle = shuffleQuestions → byte-identik baseline pra-416. Partisi &amp;
+        /// sort memakai operasi deterministik NON-RNG (tak menggeser stream rng pada jalur all-null, Pitfall 2).
         /// </summary>
         public static List<int> BuildQuestionAssignment(List<AssessmentPackage> packages, bool shuffleQuestions, int workerIndex, Random rng)
         {
             if (packages.Count == 0) return new List<int>();
-            if (shuffleQuestions) return BuildCrossPackageAssignment(packages, rng);   // ON-path verbatim canonical
+
+            var allQuestions = packages.SelectMany(p => p.Questions).ToList();
+            if (allQuestions.Count == 0) return new List<int>();
+
+            // Partisi key = SectionNumber (null → LainnyaKey). Operasi deterministik NON-RNG (Pitfall 2).
+            // "Lainnya" selalu terakhir (D-15): OrderBy(k => k == LainnyaKey).ThenBy(k => k).
+            var sectionKeys = allQuestions
+                .Select(q => SectionStructureComparer.KeyOf(q.Section?.SectionNumber))
+                .Distinct()
+                .OrderBy(k => k == SectionStructureComparer.LainnyaKey)
+                .ThenBy(k => k)
+                .ToList();
+
+            // Jalur all-null (atau single section): satu key saja → sub-fungsi dipanggil SEKALI atas
+            // seluruh kolam → identik BuildQuestionAssignment lama (golden-order by construction).
+            var result = new List<int>();
+            foreach (var sk in sectionKeys)
+            {
+                var sectionPackages = SlicePackagesBySection(packages, sk);
+                bool sectionShuffle = shuffleQuestions && ResolveSectionShuffle(allQuestions, sk);
+                result.AddRange(BuildSectionQuestionAssignment(sectionPackages, sectionShuffle, workerIndex, rng));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Distribusi soal untuk SATU Section (slice paket sudah berisi hanya soal section itu). Logika =
+        /// SAMA PERSIS <c>BuildQuestionAssignment</c> lama (pra-416): ON → canonical cross-package shuffle
+        /// (verbatim <see cref="BuildCrossPackageAssignment"/>); OFF → deterministik 1 paket urut q.Order /
+        /// ≥2 paket worker[i] dapat <c>packagesWithQuestions[workerIndex % count]</c> paket UTUH urut q.Order.
+        /// Guard defensif: slice kosong → return empty (skip section), JANGAN throw (D-416-03 best-effort).
+        /// </summary>
+        private static List<int> BuildSectionQuestionAssignment(List<AssessmentPackage> sectionPackages, bool sectionShuffle, int workerIndex, Random rng)
+        {
+            if (sectionPackages.Count == 0) return new List<int>();
+            if (sectionShuffle) return BuildCrossPackageAssignment(sectionPackages, rng);   // ON-path verbatim canonical
 
             // ---- OFF ----
-            if (packages.Count == 1)
+            if (sectionPackages.Count == 1)
             {
-                var q1 = packages[0].Questions;
+                var q1 = sectionPackages[0].Questions;
                 if (q1 == null || q1.Count == 0) return new List<int>();
                 return q1.OrderBy(x => x.Order).Select(x => x.Id).ToList();            // SHUF-05: urut, NO shuffle
             }
 
             // OFF + ≥2 paket (SHUF-06)
-            var packagesWithQuestions = packages
+            var packagesWithQuestions = sectionPackages
                 .Where(p => p.Questions != null && p.Questions.Count > 0)              // D-02b: guard SEBELUM modulo
                 .OrderBy(p => p.PackageNumber)                                         // anchor stabil
                 .ToList();
             if (packagesWithQuestions.Count == 0) return new List<int>();              // guard DivideByZero (V5)
             var chosen = packagesWithQuestions[workerIndex % packagesWithQuestions.Count];   // D-02: index-session-stabil
             return chosen.Questions.OrderBy(x => x.Order).Select(x => x.Id).ToList();  // SHUF-06: paket UTUH urut Order, NO shuffle
+        }
+
+        /// <summary>
+        /// Slice tiap paket menjadi AssessmentPackage shallow yang Questions-nya HANYA berisi soal milik
+        /// <paramref name="sectionKey"/> (kunci = SectionNumber via <see cref="SectionStructureComparer.KeyOf"/>;
+        /// LainnyaKey = soal SectionId=null). Shallow + filtered Questions (ref ke PackageQuestion yang sama,
+        /// JANGAN clone objek EF). Pertahankan Id/PackageNumber agar anchor stabil. Pure helper (no RNG).
+        /// </summary>
+        private static List<AssessmentPackage> SlicePackagesBySection(List<AssessmentPackage> packages, int sectionKey)
+        {
+            var sliced = new List<AssessmentPackage>(packages.Count);
+            foreach (var p in packages)
+            {
+                var sectionQuestions = p.Questions
+                    .Where(q => SectionStructureComparer.KeyOf(q.Section?.SectionNumber) == sectionKey)
+                    .ToList();
+                var shallow = new AssessmentPackage
+                {
+                    Id = p.Id,
+                    PackageNumber = p.PackageNumber,
+                    AssessmentSessionId = p.AssessmentSessionId,
+                    Questions = sectionQuestions   // ref sama (no deep clone)
+                };
+                sliced.Add(shallow);
+            }
+            return sliced;
+        }
+
+        /// <summary>
+        /// Resolve ShuffleEnabled untuk satu Section key dari soal yang ada. Grup "Lainnya" (LainnyaKey, soal
+        /// SectionId=null) tak punya row Section → effective = induk (D-15), jadi return true (gate akhir =
+        /// induk ∧ true = induk). Untuk section riil: ambil ShuffleEnabled dari navigasi <c>q.Section</c> soal
+        /// pertama pada section itu (semua soal section sama Section). Bila navigasi null (Section tak ter-load),
+        /// default true (ikut induk; aman, scoped-shuffle senyap mengikuti perilaku global). Pure helper (no RNG).
+        /// </summary>
+        private static bool ResolveSectionShuffle(List<PackageQuestion> allQuestions, int sectionKey)
+        {
+            if (sectionKey == SectionStructureComparer.LainnyaKey) return true;        // Lainnya ikut induk (D-15)
+            var section = allQuestions
+                .Where(q => SectionStructureComparer.KeyOf(q.Section?.SectionNumber) == sectionKey)
+                .Select(q => q.Section)
+                .FirstOrDefault(s => s != null);
+            return section?.ShuffleEnabled ?? true;                                   // default ikut induk bila tak ter-load
         }
 
         /// <summary>
@@ -70,6 +174,30 @@ namespace HcPortal.Helpers
             if (!shuffleOptions) return dict;        // OFF → empty → caller serializes "{}" → view DB-order fallback
             foreach (var q in questions)
             {
+                var optionIds = q.Options.Select(o => o.Id).ToList();
+                Shuffle(optionIds, rng);
+                dict[q.Id] = optionIds;
+            }
+            return dict;
+        }
+
+        /// <summary>
+        /// Phase 416 D-416-01 — Section-aware option shuffle. Gate per-soal = induk
+        /// <paramref name="parentShuffleOptions"/> ∧ ShuffleEnabled Section soal itu (dari navigasi
+        /// <c>q.Section</c>). Soal pada Section yang OFF (atau induk OFF) TIDAK masuk dict → caller fallback
+        /// DB-order (sama perilaku OFF existing). Soal "Lainnya" (SectionId=null, q.Section==null) → ikut induk
+        /// (D-15): effective = parentShuffleOptions. Hanya soal effective==true yang opsinya diacak.
+        ///
+        /// Bila induk OFF, dict KOSONG (semua fallback). Grading by PackageOption.Id → urutan opsi tak pengaruhi skor.
+        /// </summary>
+        public static Dictionary<int, List<int>> BuildSectionAwareOptionShuffle(IEnumerable<PackageQuestion> assignedQuestions, bool parentShuffleOptions, Random rng)
+        {
+            var dict = new Dictionary<int, List<int>>();
+            if (!parentShuffleOptions) return dict;  // induk OFF → semua fallback DB-order (precedence D-14)
+            foreach (var q in assignedQuestions)
+            {
+                bool sectionEnabled = q.Section?.ShuffleEnabled ?? true;   // null section (Lainnya) → ikut induk (D-15)
+                if (!sectionEnabled) continue;                            // Section OFF → soal ini fallback DB-order
                 var optionIds = q.Options.Select(o => o.Id).ToList();
                 Shuffle(optionIds, rng);
                 dict[q.Id] = optionIds;
