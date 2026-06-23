@@ -40,7 +40,7 @@
 - [ ] **Phase 415: Section Foundation + Import Excel Diperluas** — Tabel `AssessmentPackageSection` + `SectionId` nullable + UI kelola/urut/toggle section + import kolom Section/Opsi A–F dual-format + validasi struktur antar-paket (D-13). **migration=TRUE**.
 - [x] **Phase 415.1: Hotfix Guard Penilaian Essay Cross-Package (INSERTED, URGENT)** — Fix guard WR-02 `SubmitEssayScore` (L4210-4215) yang false-positive nolak penilaian essay ("Soal bukan milik sesi ini.") karena ownership per-sesi bentrok dgn pooling paket lintas sesi-sibling. Ganti ke cek `questionId ∈ UserPackageAssignment.GetShuffledQuestionIds()`. **Off-theme dari Section — hotfix prioritas (sebelum 416), boleh ship duluan. migration=FALSE.**
  (completed 2026-06-23)
-- [ ] **Phase 416: Scoped Shuffle (Acak per-Section)** — Generalisasi `ShuffleEngine` jadi acak per-section (kunci ET komposit `(Section,ET)`) + precedence toggle induk/anak + pooling antar-paket per-section + reshuffle section-aware. migration=FALSE.
+- [x] **Phase 416: Scoped Shuffle (Acak per-Section)** — Generalisasi `ShuffleEngine` jadi acak per-section (kunci ET komposit `(Section,ET)`) + precedence toggle induk/anak + pooling antar-paket per-section + reshuffle section-aware. migration=FALSE. (completed 2026-06-23)
 - [ ] **Phase 417: Section Pagination** — Header section saat render + `StartNewPage` page-break + tombol cepat "semua section pisah halaman" + auto-pecah per-10 + resume map (`LastActivePage`). migration=FALSE.
 - [ ] **Phase 418: Opsi Jawaban Dinamis 2–6** — Refactor kontrak HTTP CreateQuestion/EditQuestion + form authoring + form Inject + render ujian/preview/results huruf A–F dinamis + import Opsi A–F + validator min-2/max-6. migration=FALSE.
 - [ ] **Phase 419: Export Label Section + Polish + Test/UAT Milestone** — Label/header Section di export per-soal (Excel/PDF) + sync Pre→Post struktur Section + audit interaksi lintas-milestone + suite test baru + Playwright real-browser UAT + audit milestone. migration=FALSE.
@@ -53,7 +53,7 @@
 |-------|----------------|--------|-----------|-----------|
 | 415. Section Foundation + Import Excel Diperluas | 0/4 | 4/4 | Complete   | 2026-06-22 |
 | 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | 2/2 | Complete    | 2026-06-23 |
-| 416. Scoped Shuffle (Acak per-Section) | 0/3 | 3/3 | Complete   | 2026-06-23 |
+| 416. Scoped Shuffle (Acak per-Section) | 0/3 | 3/3 | Complete    | 2026-06-23 |
 | 417. Section Pagination | 0/? | Not started | FALSE | - |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
 | 419. Export Label Section + Polish + Test/UAT | 0/? | Not started | FALSE | - |
@@ -195,7 +195,7 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 - Fix: ganti cek `== Completed` dgn helper `AssessmentConstants.IsAssessmentSubmitted(status)` (cover `Completed || PendingGrading`) + regression test lock "pure-edit PendingGrading DITOLAK". Wajib `dotnet build` + `dotnet test` + `dotnet run` gate (CLAUDE.md Develop Workflow). 0 migration. Off-theme dari v32.5.
 
 **Requirements:** TBD
-**Plans:** 0 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
