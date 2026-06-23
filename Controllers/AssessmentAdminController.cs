@@ -5444,7 +5444,7 @@ namespace HcPortal.Controllers
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
                 .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
-                .OrderBy(p => p.PackageNumber)
+                .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                 .ToListAsync();
 
             if (!packages.Any())
@@ -5524,7 +5524,7 @@ namespace HcPortal.Controllers
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
                 .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
-                .OrderBy(p => p.PackageNumber)
+                .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                 .ToListAsync();
 
             if (!packages.Any())
@@ -5569,7 +5569,7 @@ namespace HcPortal.Controllers
                 int workerIndex = typeSiblingIds.IndexOf(session.Id);
                 var sessionPackages = packages
                     .Where(p => typeSiblingIds.Contains(p.AssessmentSessionId))
-                    .OrderBy(p => p.PackageNumber)
+                    .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                     .ToList();
                 if (!sessionPackages.Any())
                 {
@@ -5761,7 +5761,7 @@ namespace HcPortal.Controllers
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                 .Where(p => p.AssessmentSessionId == assessmentId)
-                .OrderBy(p => p.PackageNumber)
+                .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                 .ToListAsync();
 
             var packageIds = packages.Select(p => p.Id).ToList();
@@ -5892,7 +5892,7 @@ namespace HcPortal.Controllers
             var prePkgs = await _context.AssessmentPackages
                 .Include(p => p.Questions).ThenInclude(q => q.Options)
                 .Where(p => p.AssessmentSessionId == preSessionId)
-                .OrderBy(p => p.PackageNumber)
+                .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                 .ToListAsync();
 
             foreach (var prePkg in prePkgs)
@@ -5966,14 +5966,18 @@ namespace HcPortal.Controllers
             var assessment = await _context.AssessmentSessions.FindAsync(assessmentId);
             if (assessment == null) return NotFound();
 
-            var existingCount = await _context.AssessmentPackages
-                .CountAsync(p => p.AssessmentSessionId == assessmentId);
+            // SHFX-05/D-02: MAX(PackageNumber)+1 per session (BUKAN count-based existingCount+1 yang
+            // turun setelah hapus paket tengah -> bentrok). Gap nomor dibiarkan; unique index = jaring DB-level.
+            var maxNumber = await _context.AssessmentPackages
+                .Where(p => p.AssessmentSessionId == assessmentId)
+                .Select(p => (int?)p.PackageNumber)
+                .MaxAsync();   // null bila belum ada paket
 
             var pkg = new AssessmentPackage
             {
                 AssessmentSessionId = assessmentId,
                 PackageName = packageName.Trim(),
-                PackageNumber = existingCount + 1
+                PackageNumber = (maxNumber ?? 0) + 1
             };
             _context.AssessmentPackages.Add(pkg);
             await _context.SaveChangesAsync();
