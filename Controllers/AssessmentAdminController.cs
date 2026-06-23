@@ -5998,8 +5998,9 @@ namespace HcPortal.Controllers
 
         // v32.7 Phase 422 SHFX-02/D-01 (FLOW-07, keputusan bisnis b) — toggle SamePackage editable
         // pasca-create. Mirror UpdateShuffleSettings (RBAC + antiforgery + PRG + guard anyStarted + audit).
-        //   ON  → set SamePackage=true + SaveChanges (SEBELUM helper) → SyncToLinkedPostIfSamePackageAsync
-        //         (sync Pre→Post + lock implisit via SamePackage=true). + defensif clear stale Post UPA (Open Q2).
+        //   ON  → (transaksi WR-01) set SamePackage=true + SaveChanges (SEBELUM helper) →
+        //         SyncToLinkedPostIfSamePackageAsync (sync Pre→Post + lock implisit). Stale Post UPA
+        //         dibersihkan terpusat di SyncPackagesToPost (WR-02 — bukan lagi inline di sini).
         //   OFF → set SamePackage=false SAJA (lepas lock). PERTAHANKAN paket clone (Pitfall 5: JANGAN sync/delete).
         //   GUARD → tolak (TempData Error non-blocking) bila ADA peserta sudah-mulai di GRUP (Pre+Post pasangan);
         //           belum-mulai = boleh. Server-authoritative (view disable hanya UX layer).
@@ -6030,30 +6031,38 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackages", new { assessmentId });
             }
 
-            post.SamePackage = samePackage;
-            post.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();   // SamePackage tersimpan SEBELUM panggil helper (helper baca post.SamePackage==true)
-
             if (samePackage)
             {
                 // ON → sync Pre→Post (overwrite paket Post dgn clone Pre) + lock implisit (SamePackage=true).
-                // Open Q2 (dangling UPA): SyncPackagesToPost menghapus paket Post lama (+Q+Options) TAPI TIDAK
-                // hapus UserPackageAssignment yang menunjuk paket Post lama → potensi dangling. Guard anyStarted
-                // di atas mengurangi risiko (belum-mulai biasanya belum ada assignment), tapi edge belum-mulai-
-                // tapi-ada-assignment WAJIB dibersihkan defensif (test E). Bersihkan UPA Post grup SEBELUM sync.
-                var stalePostAssignments = await _context.UserPackageAssignments
-                    .Where(a => a.AssessmentSessionId == post.Id)
-                    .ToListAsync();
-                if (stalePostAssignments.Any())
-                    _context.UserPackageAssignments.RemoveRange(stalePostAssignments);
-                await _context.SaveChangesAsync();
+                // v32.7 Phase 422 WR-01: bungkus mutasi multi-langkah (set flag + sync paket) dalam transaksi
+                // eksplisit (mirror pola Import :6617) agar flag-set + package-sync commit ATOMIK. Kegagalan
+                // di tengah me-rollback (bukan meninggalkan SamePackage=true + paket Post belum ter-sync).
+                // v32.7 WR-02: cleanup stale Post UPA kini DIPUSATKAN di SyncPackagesToPost, jadi inline
+                // UPA-clear lama (Open Q2) DIHAPUS di sini — satu sumber kebenaran, hindari double-work.
+                await using var tx = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    post.SamePackage = true;
+                    post.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();   // SamePackage tersimpan SEBELUM helper (helper baca post.SamePackage==true)
 
-                await SyncToLinkedPostIfSamePackageAsync(post.LinkedSessionId.Value);   // pre→post deep-clone
+                    await SyncToLinkedPostIfSamePackageAsync(post.LinkedSessionId.Value);   // pre→post deep-clone (+ UPA cleanup terpusat)
+                    await tx.CommitAsync();
+                }
+                catch
+                {
+                    await tx.RollbackAsync();
+                    throw;
+                }
                 TempData["Success"] = "Pengaturan paket-sama diaktifkan. Paket Post-Test telah disinkronkan dari Pre-Test dan dikunci.";
             }
             else
             {
                 // OFF → KEEP paket clone (Pitfall 5: lepas lock SAJA, JANGAN sync/delete). Paket Post jadi editable.
+                // Single SaveChanges, no destructive multi-step → tak butuh transaksi eksplisit.
+                post.SamePackage = false;
+                post.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
                 TempData["Success"] = "Pengaturan paket-sama dinonaktifkan. Kunci dilepas; paket salinan dipertahankan untuk diedit.";
             }
 
