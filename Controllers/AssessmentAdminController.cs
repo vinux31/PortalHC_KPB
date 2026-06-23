@@ -7349,9 +7349,9 @@ namespace HcPortal.Controllers
                 if (sectionNumber == null) return null; // tanpa Section → Lainnya
                 if (sectionCache.TryGetValue(sectionNumber.Value, out var existing))
                 {
-                    // first-non-empty Nama menang HANYA bila section yang baru-dibuat masih tanpa Nama.
-                    if (string.IsNullOrWhiteSpace(existing.Name) && !string.IsNullOrWhiteSpace(sectionName)
-                        && newSections.Contains(existing))
+                    // L1 (D: backfill-saat-kosong): isi Nama dari Excel bila Section (baru ATAU existing di DB)
+                    // masih tanpa Nama. Nama non-kosong TIDAK ditimpa — lindungi label yang diedit manual di panel.
+                    if (string.IsNullOrWhiteSpace(existing.Name) && !string.IsNullOrWhiteSpace(sectionName))
                         existing.Name = sectionName.Trim();
                     return existing;
                 }
