@@ -42,6 +42,21 @@ namespace HcPortal.Models
         // RND-01: gambar soal (StartExam). Diisi controller dari PackageQuestion.ImagePath/ImageAlt.
         public string? ImagePath { get; set; }
         public string? ImageAlt { get; set; }
+
+        // Phase 417 PAG-01/02/03: metadata pagination section-aware.
+        // Dihitung saat render (SectionPaginator.ComputePages), TIDAK disimpan per-soal (D-11, migration=FALSE).
+        /// <summary>Nomor Section soal ini; null = grup "Lainnya".</summary>
+        public int? SectionNumber { get; set; }
+        /// <summary>Nama Section (D-417-01, name-only). Null untuk "Lainnya".</summary>
+        public string? SectionName { get; set; }
+        /// <summary>Salinan AssessmentPackageSection.StartNewPage — apakah Section ini mulai halaman baru.</summary>
+        public bool SectionStartNewPage { get; set; }
+        /// <summary>Indeks halaman 0-based hasil ComputePages. Default 0.</summary>
+        public int PageNumber { get; set; }
+        /// <summary>True bila soal ini awal Section (Section berubah) → render header polos.</summary>
+        public bool IsSectionStart { get; set; }
+        /// <summary>True bila Section SAMA tapi soal pertama di halaman baru (auto-split) → header "(lanjutan)".</summary>
+        public bool IsSectionContinuation { get; set; }
     }
 
     public class ExamOptionItem
