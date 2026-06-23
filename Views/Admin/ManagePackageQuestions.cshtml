@@ -178,6 +178,26 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        @* 416 D-416-03: peringatan cakupan Elemen Teknis per-Section — NON-BLOCKING (sinyal saja, *@
+                        @* tetap boleh mulai ujian / kelola). Tampil hanya saat distinct ET > jumlah soal (K) di Section. *@
+                        @if (ViewBag.SectionEtWarnings is System.Collections.IEnumerable sectionEtWarnings)
+                        {
+                            foreach (var w in sectionEtWarnings)
+                            {
+                                var wt = (dynamic)w;
+                                string secLabel = string.IsNullOrWhiteSpace((string?)wt.Name)
+                                    ? $"Section {wt.SectionNumber}"
+                                    : $"Section {wt.SectionNumber} ({wt.Name})";
+                                <div class="alert alert-warning small d-flex align-items-start mt-3 mb-0" role="alert">
+                                    <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+                                    <div>
+                                        <strong>@secLabel:</strong> @wt.DistinctEt Elemen Teknis tapi hanya @wt.K soal —
+                                        sebagian Elemen Teknis tak terjamin muncul saat ujian. Tambah soal bila ingin cakupan penuh.
+                                    </div>
+                                </div>
+                            }
+                        }
                     }
                 </div>
                 <!-- Form buat/edit Section -->

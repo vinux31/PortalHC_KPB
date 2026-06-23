@@ -7666,8 +7666,24 @@ namespace HcPortal.Controllers
             ViewBag.AssessmentTitle = assessment.Title;
             ViewBag.Questions = pkg.Questions.OrderBy(q => q.Order).ToList();
             ViewBag.Sections = sections;
+
+            // 416 D-416-03: peringatan cakupan Elemen Teknis (ET) per-Section, NON-BLOCKING (sinyal, bukan error).
+            // K = jumlah soal Section. Bila distinct ET > K, sebagian ET tak terjamin muncul saat ujian
+            // (Phase 1 ShuffleEngine hanya jamin 1-soal-per-ET sampai kuota K habis). TIDAK memblokir mulai/kelola.
+            ViewBag.SectionEtWarnings = sections.Select(s =>
+            {
+                var qs = pkg.Questions.Where(q => q.SectionId == s.Id).ToList();
+                int k = qs.Count;
+                int distinctEt = qs.Where(q => !string.IsNullOrWhiteSpace(q.ElemenTeknis))
+                                   .Select(q => q.ElemenTeknis!).Distinct().Count();
+                return new SectionEtWarning(s.SectionNumber, s.Name, k, distinctEt);
+            }).Where(w => w.DistinctEt > w.K).ToList();
+
             return View();
         }
+
+        // 416 D-416-03: tipe ringkas peringatan cakupan ET per-Section (strongly-typed untuk view).
+        public sealed record SectionEtWarning(int SectionNumber, string? Name, int K, int DistinctEt);
 
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
