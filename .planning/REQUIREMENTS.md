@@ -36,9 +36,9 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 - [ ] **SHFX-02**: HC dapat mengubah setelan SamePackage setelah grup Pre-Post dibuat, dengan sinkron/unsync paket + guard sebelum peserta mulai. [FLOW-07] (keputusan bisnis b)
 - [ ] **SHFX-03**: Endpoint POST kelola paket/soal menolak edit pada Post yang terkunci SamePackage (lock server-side, bukan hanya di tampilan). [SHUF-ISS-02]
 - [ ] **SHFX-04**: Peserta baru yang ditambahkan ke grup Pre-Post mewarisi setelan SamePackage dari grup. [PA-02]
-- [ ] **SHFX-05**: Penomoran paket (PackageNumber) tetap unik & terurut deterministik setelah operasi hapus paket. [SHUF-ISS-08]
+- [x] **SHFX-05**: Penomoran paket (PackageNumber) tetap unik & terurut deterministik setelah operasi hapus paket. [SHUF-ISS-08]
 - [ ] **SHFX-06**: Kunci pasangan Pre/Post untuk lock & simpan setelan shuffle konsisten type-aware (selaras StartExam/Reshuffle). [SHUF-ISS-01]
-- [ ] **SHFX-07**: Peringatan shuffle lengkap — SamePackage+Acak ON, pemangkasan K=min, dan hitung mismatch dari satu sumber. [SHUF-ISS-04, SHUF-ISS-05, SHUF-ISS-07]
+- [x] **SHFX-07**: Peringatan shuffle lengkap — SamePackage+Acak ON, pemangkasan K=min, dan hitung mismatch dari satu sumber. [SHUF-ISS-04, SHUF-ISS-05, SHUF-ISS-07]
 
 ### CERT — Certificate Issuance Consistency (Phase 423)
 
@@ -109,9 +109,9 @@ Diakui tapi ditunda dari v32.7.
 | SHFX-02 | Phase 422 | Pending |
 | SHFX-03 | Phase 422 | Pending |
 | SHFX-04 | Phase 422 | Pending |
-| SHFX-05 | Phase 422 | Pending |
+| SHFX-05 | Phase 422 | Complete |
 | SHFX-06 | Phase 422 | Pending |
-| SHFX-07 | Phase 422 | Pending |
+| SHFX-07 | Phase 422 | Complete |
 | CERT-01 | Phase 423 | Pending |
 | CERT-02 | Phase 423 | Pending |
 | CERT-03 | Phase 423 | Pending |

@@ -106,7 +106,7 @@
   4. Penomoran paket (PackageNumber) tetap unik & terurut deterministik setelah hapus paket; kunci pasangan Pre/Post untuk lock & simpan setelan shuffle konsisten type-aware (selaras StartExam/Reshuffle). *(SHFX-05, SHFX-06)*
   5. Peringatan shuffle lengkap & dari satu sumber — SamePackage+Acak ON diperingatkan, pemangkasan K=min diberitahu, hitung mismatch dari satu sumber kebenaran (bukan dua). *(SHFX-07)*
 **Plans:** 3 plans (3 waves — sekuensial by file-overlap: ketiganya sentuh AssessmentAdminController.cs)
-- [ ] 422-01-PLAN.md — Wave 1 [KEYSTONE, migration=TRUE]: pure helpers (PackageSizeAnalysis NEW · SessionEditLockRules NEW · ShuffleToggleRules extend K=min ON-path D-04) + migration AddPackageNumberUniqueIndex (dedup→CreateIndex D-02) + CreatePackage MAX+1 + 5× ThenBy(Id) + Wave-0 pure/integration tests (SHFX-05, SHFX-07)
+- [x] 422-01-PLAN.md — Wave 1 [KEYSTONE, migration=TRUE]: pure helpers (PackageSizeAnalysis NEW · SessionEditLockRules NEW · ShuffleToggleRules extend K=min ON-path D-04) + migration AddPackageNumberUniqueIndex (dedup→CreateIndex D-02) + CreatePackage MAX+1 + 5× ThenBy(Id) + Wave-0 pure/integration tests (SHFX-05, SHFX-07)
 - [ ] 422-02-PLAN.md — Wave 2 [migration=FALSE]: SyncToLinkedPostIfSamePackageAsync 6-jalur incl Import BOCOR (SHUF-ISS-03 HIGH) + guard IsSessionEditLocked 5 endpoint POST server-side + newPost inherit SamePackage + sibling key type-aware LOCK-ONLY (propagation unchanged) + tests (SHFX-01, SHFX-03, SHFX-04, SHFX-06); depends 01
 - [ ] 422-03-PLAN.md — Wave 3 [migration=FALSE, autonomous=false]: ToggleSamePackage endpoint (ON sync/OFF keep + guard anyStarted D-01) + UI ManagePackages (toggle card + warning D-03/D-04 + mismatch single-source D-05 + lock disable) + ManagePackageQuestions friendly disable + Playwright + checkpoint UAT @5270 (SHFX-02, SHFX-07); depends 01+02
 **UI hint:** yes
@@ -159,7 +159,7 @@
 |-------|----------------|--------|-----------|
 | 420. Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11) | 3/3 | ✅ Complete (UAT 8/8 + secure 13/13 + validate NYQUIST 11/11) | 2026-06-23 |
 | 421. Retake Lifecycle Hardening (RTH-01..05) | 3/3 | Complete   | 2026-06-23 |
-| 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 0/3 | Planned (3 waves, migration=TRUE) | - |
+| 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 1/3 | In Progress|  |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 0/TBD | Not started | - |
 | 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..07) | 0/TBD | Not started | - |
 | 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 0/TBD | Not started | - |
