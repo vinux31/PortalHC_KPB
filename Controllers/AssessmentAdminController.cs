@@ -5984,6 +5984,14 @@ namespace HcPortal.Controllers
             var assessment = await _context.AssessmentSessions.FindAsync(assessmentId);
             if (assessment == null) return NotFound();
 
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama). Defense-in-depth
+            // terhadap root-cause SHUF-ISS-02 (lock view-only bisa di-bypass via POST langsung).
+            if (SessionEditLockRules.IsSessionEditLocked(assessment))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackages", new { assessmentId = assessment.Id });
+            }
+
             // SHFX-05/D-02: MAX(PackageNumber)+1 per session (BUKAN count-based existingCount+1 yang
             // turun setelah hapus paket tengah -> bentrok). Gap nomor dibiarkan; unique index = jaring DB-level.
             var maxNumber = await _context.AssessmentPackages
@@ -6021,6 +6029,14 @@ namespace HcPortal.Controllers
             if (pkg == null) return NotFound();
 
             int assessmentId = pkg.AssessmentSessionId;
+
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama).
+            var delLockSession = await _context.AssessmentSessions.FindAsync(assessmentId);
+            if (delLockSession != null && SessionEditLockRules.IsSessionEditLocked(delLockSession))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
 
             // D-11 / SYN-02: path-collect SEBELUM cascade RemoveRange (union semua gambar soal+opsi).
             var imagePathsToDelete = new List<string>();
@@ -6230,6 +6246,15 @@ namespace HcPortal.Controllers
                     .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
+
+            // SHFX-03/D-07 + Pitfall 3 (guard-ordering): tolak Import LANGSUNG ke paket Post terkunci
+            // di AWAL endpoint. Import ke Pre (lock false) lolos → sync Pre→Post di AKHIR success-path.
+            var importLockSession = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
+            if (importLockSession != null && SessionEditLockRules.IsSessionEditLocked(importLockSession))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Impor soal harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackages", new { assessmentId = pkg.AssessmentSessionId });
+            }
 
             var existingFingerprints = pkg.Questions.Select(q =>
             {
@@ -6672,6 +6697,14 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
 
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama).
+            var cqLockSession = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
+            if (cqLockSession != null && SessionEditLockRules.IsSessionEditLocked(cqLockSession))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
             // Range validation 1-100 (D-12, D-13) - replaces force-override removed per D-14 (Phase 306)
             if (scoreValue < 1 || scoreValue > 100)
             {
@@ -6881,6 +6914,18 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(q => q.Id == questionId);
             if (q == null) return NotFound();
 
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama).
+            var eqLockPkg = await _context.AssessmentPackages.FindAsync(packageId);
+            if (eqLockPkg != null)
+            {
+                var eqLockSession = await _context.AssessmentSessions.FindAsync(eqLockPkg.AssessmentSessionId);
+                if (eqLockSession != null && SessionEditLockRules.IsSessionEditLocked(eqLockSession))
+                {
+                    TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
+            }
+
             // Range validation 1-100 (D-12, D-13) - replaces force-override removed per D-14 (Phase 306)
             if (scoreValue < 1 || scoreValue > 100)
             {
@@ -7079,6 +7124,18 @@ namespace HcPortal.Controllers
                 .Include(q => q.Options)
                 .FirstOrDefaultAsync(q => q.Id == questionId);
             if (q == null) return NotFound();
+
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama).
+            var dqLockPkg = await _context.AssessmentPackages.FindAsync(packageId);
+            if (dqLockPkg != null)
+            {
+                var dqLockSession = await _context.AssessmentSessions.FindAsync(dqLockPkg.AssessmentSessionId);
+                if (dqLockSession != null && SessionEditLockRules.IsSessionEditLocked(dqLockSession))
+                {
+                    TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
+            }
 
             // SYN-02 / D-10: path-collect SEBELUM RemoveRange (gambar soal + opsi).
             var imagePathsToDelete = new List<string>();
