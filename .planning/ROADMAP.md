@@ -231,6 +231,23 @@ Plans:
 
 ---
 
+### Phase 999.14: EditQuestion hapus opsi soal SUDAH-DIJAWAB → FK Restrict 500 (BACKLOG, MED, pre-existing, found 415 re-check round-3)
+
+**Goal:** [Captured dari re-check round-3 Phase 415, 2026-06-23] `EditQuestion` menghapus `PackageOption` (konversi MC/MA→Essay `RemoveRange(q.Options)` ~AAC:8019, atau penyusutan opsi 4→3 `Remove(slot)` ~8049) dengan `SaveChangesAsync` TANPA guard. Bila ada `PackageUserResponse.PackageOptionId` yang mereferensikan opsi itu (FK `PackageUserResponse→PackageOption` = Restrict, `ApplicationDbContext.cs:561`), SaveChanges melempar `DbUpdateException` → 500 mentah. Pre-existing (BUKAN diperkenalkan 415); kelas sama dgn hazard H4 tapi di jalur hapus-opsi EditQuestion, bukan sync.
+
+**Context:**
+- Trigger: worker jawab soal MC/MA (pilih opsi C) → `PackageUserResponse.PackageOptionId` ke-set. Admin lalu edit soal itu, konversi ke Essay ATAU kosongkan teks opsi C (4→3) → RemoveRange/Remove opsi ber-referensi → 500.
+- H3 fix (round-3) sudah blok jalur soal >4-opsi → Essay, TAPI Issue ini masih kena soal ≤4-opsi yang sudah dijawab.
+- Keputusan desain perlu: (a) blok edit-opsi pada soal yang sudah dijawab dengan pesan ramah, ATAU (b) try/catch DbUpdateException → friendly "soal sudah dijawab, opsi tak bisa diubah", ATAU (c) soft-handle response. 0 migration. Off-theme 415 (general EditQuestion).
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.7: e2e exam-taking — migrasi 10 create flow ke wizard 4-langkah (PROMOTED -> v28.0 Phase 379, 2026-06-14)
 
 **Goal:** [Captured Phase 364, 2026-06-12] `exam-taking.spec.ts` Flow A–J semua `test.fixme` — flat-form create usang. `/Admin/CreateAssessment` kini wizard 4-langkah (`1.Kategori`→`2.Peserta[disabled]`→`3.Settings`→`4.Konfirmasi`); worker checkbox `display:none` di step 2. Title sudah prefixed `Pre Test ` (REST-06 comply) tapi flow tak bisa jalan tanpa navigasi wizard.
