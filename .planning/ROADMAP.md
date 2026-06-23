@@ -88,7 +88,10 @@
   2. Reset assessment oleh HC menghapus `NomorSertifikat` sehingga sesi non-lulus tidak menyandang nomor sertifikat menggantung. *(RTH-02)*
   3. Penghitungan jumlah percobaan konsisten antara batas (cap) dan peringatan di ManagePackages (satu sumber counting). *(RTH-03)*
   4. Guard hapus peserta menolak/menangani sesi Abandoned atau ber-riwayat percobaan, dan membersihkan arsip respons terkait; mengubah MaxAttempts di bawah jumlah percobaan terpakai memunculkan peringatan non-blocking. *(RTH-04, RTH-05)*
-**Plans:** TBD
+**Plans:** 3 plans (3 waves — sekuensial by file-overlap: ketiganya sentuh AssessmentAdminController.cs/RetakeService.cs)
+- [ ] 421-01-PLAN.md — Wave 1: Window gate eligibility+eksekusi (RTH-01) + nol-kan NomorSertifikat saat reset (RTH-02) + Results window-aware [migration=FALSE]
+- [ ] 421-02-PLAN.md — Wave 2: Helper CountEraRetakeArchives kill-drift + wire 4 situs hitung, fix warning divergen (RTH-03) [migration=FALSE]; depends 01
+- [ ] 421-03-PLAN.md — Wave 3: Guard hapus peserta ber-riwayat server round-trip + cleanup arsip cascade (RTH-04) + modal pra-simpan MaxAttempts<terpakai & warning cooldown>window (RTH-05/D-02) + UAT @5270 [migration=FALSE, autonomous=false]; depends 02
 **UI hint:** yes
 
 ### Phase 422: SamePackage & Shuffle Integrity
