@@ -89,6 +89,13 @@ namespace HcPortal.Services
             if (assessment.Status == "Open")
                 return new RetakeResult(true, null);
 
+            // v32.7 RTH-01 (RTK-LOGIC-02 HIGH) — ABORT-BEFORE-DESTROY: bila masa ujian sudah tutup, retake/reset
+            // mustahil berhasil (StartExam akan blok window) → JANGAN hancurkan sesi live jadi shell kosong.
+            // Defense-in-depth lapis-kedua D-01 (lapis-pertama = eligibility RetakeRules.CanRetake window-aware).
+            // +7h WIB byte-identik StartExam (CMPController:956). Berlaku juga jalur HC (delegasi) — cegah dead shell.
+            if (assessment.ExamWindowCloseDate.HasValue && DateTime.UtcNow.AddHours(7) > assessment.ExamWindowCloseDate.Value)
+                return new RetakeResult(false, "Masa ujian sudah ditutup — ujian ulang tidak bisa dijalankan.");
+
             // WR-02 (review 405): bungkus claim → snapshot → archive-insert → delete dalam SATU transaksi eksplisit
             // (mirror pola bulk-assign AssessmentAdminController :2196). ExecuteUpdateAsync ikut enlist di transaksi
             // pada koneksi yang sama. Audit + SignalR (langkah 5-6) SENGAJA di luar commit (warn-only side effect).
@@ -109,6 +116,10 @@ namespace HcPortal.Services
                     .SetProperty(r => r.CompletedAt, (DateTime?)null)
                     .SetProperty(r => r.ElapsedSeconds, (int)0)
                     .SetProperty(r => r.LastActivePage, (int?)null)
+                    // v32.7 RTH-02 (RTK-LOGIC-01) D-03: nol-kan NomorSertifikat agar sesi non-lulus pasca-reset
+                    // tidak menyandang nomor sertifikat menggantung (inflasi unique index + certCount proxy).
+                    // Jalur HC ResetAssessment tercakup via delegasi (Don't Hand-Roll di controller).
+                    .SetProperty(r => r.NomorSertifikat, (string?)null)
                     .SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
 
             if (rows == 0)
@@ -244,7 +255,7 @@ namespace HcPortal.Services
             return RetakeRules.CanRetake(
                 s.AllowRetake, s.AssessmentType, s.IsManualEntry, s.Status, s.IsPassed,
                 attemptsUsed: eraRetakeArchives + 1, s.MaxAttempts, s.RetakeCooldownHours,
-                s.CompletedAt, DateTime.UtcNow);
+                s.CompletedAt, DateTime.UtcNow, s.ExamWindowCloseDate);   // v32.7 RTH-01: suplai window ke gate eligibility
         }
     }
 }

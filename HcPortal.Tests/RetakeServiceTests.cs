@@ -123,7 +123,8 @@ public class RetakeServiceTests : IClassFixture<RetakeServiceFixture>
         ApplicationDbContext ctx, string userId, string title, string category,
         string status = "Completed", bool? isPassed = false, bool allowRetake = true,
         int maxAttempts = 2, int cooldownHours = 0, DateTime? completedAt = null,
-        string? assessmentType = null, bool isManualEntry = false)
+        string? assessmentType = null, bool isManualEntry = false,
+        DateTime? examWindowCloseDate = null, string? nomorSertifikat = null)
     {
         var s = new AssessmentSession
         {
@@ -132,6 +133,7 @@ public class RetakeServiceTests : IClassFixture<RetakeServiceFixture>
             IsPassed = isPassed, AllowRetake = allowRetake, MaxAttempts = maxAttempts,
             RetakeCooldownHours = cooldownHours, CompletedAt = completedAt,
             AssessmentType = assessmentType, IsManualEntry = isManualEntry,
+            ExamWindowCloseDate = examWindowCloseDate, NomorSertifikat = nomorSertifikat,
             Score = 50, Progress = 100
         };
         ctx.AssessmentSessions.Add(s);
@@ -355,5 +357,81 @@ public class RetakeServiceTests : IClassFixture<RetakeServiceFixture>
         // Post TIDAK terpengaruh (counting (UserId,Title,Category) memisahkan) → eraRetakeArchives==0 →
         // attemptsUsed==1 < 2 → CanRetake true.
         Assert.True(await svc.CanRetakeAsync(postSessionId));
+    }
+
+    // ====================== Test 6: v32.7 RTH-01 — abort-before-destroy saat window tutup ======================
+    // Dead-end RTK-LOGIC-02: cooldown dorong eligibility lewat ExamWindowCloseDate → retake HARUS ditolak SEBELUM
+    // destruksi. Bukti: ExecuteAsync return Success=false + responses/assignment/ET MASIH ADA + Status TIDAK berubah
+    // (sesi live utuh, bukan shell kosong).
+    [Fact]
+    public async Task Execute_WindowClosed_AbortsBeforeDestroy()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var sessionId = await SeedSessionAsync(ctx, userId, "WindowClosedTitle", "Test",
+            status: "Completed", examWindowCloseDate: DateTime.UtcNow.AddDays(-1));   // window tutup (now+7h > EWCD)
+        const int N = 3;
+        await SeedPackageWithResponsesAsync(ctx, sessionId, N);
+        var svc = NewService(ctx);
+
+        var r = await svc.ExecuteAsync(sessionId, userId, "Tester", "ResetAssessment", "window_closed");
+        Assert.False(r.Success);
+        Assert.Contains("Masa ujian sudah ditutup", r.Error);
+
+        // Sesi live UTUH — tidak ada destruksi.
+        await using var verify = NewCtx();
+        int liveResponses = await verify.PackageUserResponses.CountAsync(x => x.AssessmentSessionId == sessionId);
+        int liveAssignments = await verify.UserPackageAssignments.CountAsync(a => a.AssessmentSessionId == sessionId);
+        var status = await verify.AssessmentSessions.Where(a => a.Id == sessionId).Select(a => a.Status).SingleAsync();
+        Assert.Equal(N, liveResponses);       // responses TIDAK dihapus
+        Assert.Equal(1, liveAssignments);     // assignment TIDAK dihapus
+        Assert.Equal("Completed", status);    // Status TIDAK jadi Open (bukan shell)
+        // Tak ada AttemptHistory dibuat (abort sebelum archive).
+        int histCount = await verify.AssessmentAttemptHistory
+            .CountAsync(h => h.UserId == userId && h.Title == "WindowClosedTitle" && h.Category == "Test");
+        Assert.Equal(0, histCount);
+    }
+
+    // ====================== Test 7: v32.7 RTH-02 — reset nol-kan NomorSertifikat ======================
+    // RTK-LOGIC-01: HC reset sesi LULUS ber-sertifikat → NomorSertifikat HARUS jadi null (tak menggantung).
+    [Fact]
+    public async Task Execute_ResetPassedSession_NullsNomorSertifikat()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var sessionId = await SeedSessionAsync(ctx, userId, "CertTitle", "Test",
+            status: "Completed", isPassed: true, nomorSertifikat: "KPB/099/VI/2026",
+            examWindowCloseDate: DateTime.UtcNow.AddDays(30));   // window terbuka → tidak abort
+        await SeedPackageWithResponsesAsync(ctx, sessionId, 2);
+        var svc = NewService(ctx);
+
+        var r = await svc.ExecuteAsync(sessionId, userId, "Tester", "ResetAssessment", "hc_reset_passed");
+        Assert.True(r.Success);
+
+        await using var verify = NewCtx();
+        var cert = await verify.AssessmentSessions.Where(a => a.Id == sessionId).Select(a => a.NomorSertifikat).SingleAsync();
+        Assert.Null(cert);   // nomor sertifikat dicabut
+    }
+
+    // ====================== Test 8: v32.7 RTH-01 — window terbuka tidak meng-abort (backward-compat) ======================
+    // Gate window TIDAK false-trigger saat window masih terbuka: reset normal sukses + responses ter-RemoveRange + Open.
+    [Fact]
+    public async Task Execute_WindowOpen_ProceedsNormally()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var sessionId = await SeedSessionAsync(ctx, userId, "WindowOpenTitle", "Test",
+            status: "Completed", examWindowCloseDate: DateTime.UtcNow.AddDays(30));   // window terbuka
+        await SeedPackageWithResponsesAsync(ctx, sessionId, 2);
+        var svc = NewService(ctx);
+
+        var r = await svc.ExecuteAsync(sessionId, userId, "Tester", "ResetAssessment", "window_open");
+        Assert.True(r.Success);
+
+        await using var verify = NewCtx();
+        int liveResponses = await verify.PackageUserResponses.CountAsync(x => x.AssessmentSessionId == sessionId);
+        var status = await verify.AssessmentSessions.Where(a => a.Id == sessionId).Select(a => a.Status).SingleAsync();
+        Assert.Equal(0, liveResponses);    // destruksi normal terjadi (window terbuka)
+        Assert.Equal("Open", status);
     }
 }
