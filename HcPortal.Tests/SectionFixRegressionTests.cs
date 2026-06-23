@@ -773,6 +773,58 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
     }
 
     // =================================================================================================
+    //  Round-4 (CopyPackagesFromPre false-success). Aksi EKSPLISIT "Salin dari Pre" pada Post yang SUDAH dikerjakan:
+    //  source skip-if-taken (round-3) bikin SyncPackagesToPost no-op (FK-safe) — TAPI dulu tetap tampil
+    //  TempData["Success"] (sukses palsu). Fix: pre-check → TempData["Error"], bukan sukses palsu; Post dibiarkan utuh.
+    // =================================================================================================
+    [Fact]
+    public async Task CopyPackagesFromPre_PostAlreadyTaken_ShowsError_NotFalseSuccess()
+    {
+        int postSessionId, postPkgId; string actorId;
+        await using (var seed = NewCtx())
+        {
+            var ids = await SeedSamePackagePrePostAsync(seed);
+            postSessionId = ids.postSessionId;
+            actorId = (await SeedActorAsync(seed)).Id;
+
+            var actor = await seed.Users.FindAsync(actorId);
+            var ctrlSeed = MakeController(seed, actor!, "CopyPackagesFromPre");
+            await ctrlSeed.CopyPackagesFromPre(postSessionId);   // bangun paket Post (Post belum taken)
+
+            var postPkg = await seed.AssessmentPackages.SingleAsync(p => p.AssessmentSessionId == postSessionId);
+            postPkgId = postPkg.Id;
+            var postQ = await seed.PackageQuestions.FirstAsync(q => q.AssessmentPackageId == postPkgId);
+
+            seed.PackageUserResponses.Add(new PackageUserResponse
+            {
+                AssessmentSessionId = postSessionId,
+                PackageQuestionId = postQ.Id,
+                SubmittedAt = DateTime.UtcNow
+            });
+            await seed.SaveChangesAsync();
+        }
+
+        int postQCountBefore;
+        await using (var before = NewCtx())
+            postQCountBefore = await before.PackageQuestions.CountAsync(q => q.AssessmentPackageId == postPkgId);
+
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "CopyPackagesFromPre");
+            var res = await ctrl.CopyPackagesFromPre(postSessionId);   // salin ulang pada Post yang SUDAH taken
+            Assert.IsType<RedirectToActionResult>(res);
+            var td = (TempDataDictionary)ctrl.TempData;
+            Assert.NotNull(td["Error"]);   // pesan "tidak dapat menyalin"
+            Assert.Null(td["Success"]);    // BUKAN sukses palsu
+        }
+
+        await using (var verify = NewCtx())
+            // Post utuh — tak di-clone ulang (jumlah soal sama).
+            Assert.Equal(postQCountBefore, await verify.PackageQuestions.CountAsync(q => q.AssessmentPackageId == postPkgId));
+    }
+
+    // =================================================================================================
     //  H3 ESSAY-CONVERSION BYPASS CLOSED (round-3 / Issue-3). Guard >4 opsi di EditQuestion DIUBAH dari
     //  `questionType != "Essay" && q.Options.Count > 4` → `q.Options.Count > 4` (tipe APA PUN). Konversi soal
     //  6-opsi tersimpan ke Essay (yang akan RemoveRange SEMUA opsi termasuk E/F senyap) kini JUGA DITOLAK.
