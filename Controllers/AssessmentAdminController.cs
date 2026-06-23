@@ -5932,6 +5932,24 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// v32.7 Phase 422 SHFX-01/D-06 — SATU sumber kebenaran auto-sync Pre→Post (kill-drift).
+        /// Mengganti 5 blok copy-paste identik (CreatePackage/DeletePackage/CreateQuestion/EditQuestion/
+        /// DeleteQuestion) + menutup jalur Import yang BOCOR (SHUF-ISS-03 HIGH). Membungkus
+        /// <see cref="SyncPackagesToPost"/> (deep-clone, sudah benar — JANGAN ubah).
+        /// No-op aman bila: sesi bukan PreTest, tak punya LinkedSessionId, linkedPost null, atau !SamePackage.
+        /// </summary>
+        private async Task SyncToLinkedPostIfSamePackageAsync(int preSessionId)
+        {
+            var pre = await _context.AssessmentSessions.FindAsync(preSessionId);
+            if (pre?.AssessmentType == "PreTest" && pre.LinkedSessionId.HasValue)
+            {
+                var post = await _context.AssessmentSessions.FindAsync(pre.LinkedSessionId.Value);
+                if (post != null && post.SamePackage)
+                    await SyncPackagesToPost(pre.Id, post.Id);   // existing :5875-5933 deep-clone, sudah benar
+            }
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
@@ -5984,15 +6002,8 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = $"Package '{packageName}' created.";
 
-            // Auto-sync: jika ini Pre-Test session dan ada Post-Test dengan SamePackage=true
-            if (assessment.AssessmentType == "PreTest" && assessment.LinkedSessionId.HasValue)
-            {
-                var postSession = await _context.AssessmentSessions.FindAsync(assessment.LinkedSessionId.Value);
-                if (postSession != null && postSession.SamePackage)
-                {
-                    await SyncPackagesToPost(assessment.Id, postSession.Id);
-                }
-            }
+            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift).
+            await SyncToLinkedPostIfSamePackageAsync(assessment.Id);
 
             return RedirectToAction("ManagePackages", new { assessmentId });
         }
@@ -6068,16 +6079,8 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = $"Package '{pkg.PackageName}' deleted.";
 
-            // Auto-sync: jika ini Pre-Test session, sync ke Post jika SamePackage=true
-            var deletedFromSession = await _context.AssessmentSessions.FindAsync(assessmentId);
-            if (deletedFromSession?.AssessmentType == "PreTest" && deletedFromSession.LinkedSessionId.HasValue)
-            {
-                var postSession = await _context.AssessmentSessions.FindAsync(deletedFromSession.LinkedSessionId.Value);
-                if (postSession != null && postSession.SamePackage)
-                {
-                    await SyncPackagesToPost(deletedFromSession.Id, postSession.Id);
-                }
-            }
+            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift).
+            await SyncToLinkedPostIfSamePackageAsync(assessmentId);
 
             // D-11 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (Post mungkin di-rebuild share path).
             await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "DeletePackage image");
@@ -6566,6 +6569,11 @@ namespace HcPortal.Controllers
             else
                 TempData["Success"] = $"{added} added, {skipped} skipped.";
 
+            // SHFX-01/D-06 (BOCOR SHUF-ISS-03 HIGH ditutup): Import beroperasi pada paket Pre →
+            // sisip auto-sync Pre→Post di AKHIR success-path (Pitfall 3: lock-guard di AWAL endpoint,
+            // sync di AKHIR). Import langsung ke Post terkunci sudah ditolak guard di awal (SHFX-03).
+            await SyncToLinkedPostIfSamePackageAsync(pkg.AssessmentSessionId);
+
             return RedirectToAction("ManagePackages", new { assessmentId = pkg.AssessmentSessionId });
         }
 
@@ -6774,20 +6782,10 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Soal berhasil ditambahkan.";
 
-            // Auto-sync to Post if SamePackage=true
+            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift).
             var parentPkgCQ = await _context.AssessmentPackages.FindAsync(packageId);
             if (parentPkgCQ != null)
-            {
-                var parentSession = await _context.AssessmentSessions.FindAsync(parentPkgCQ.AssessmentSessionId);
-                if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
-                {
-                    var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
-                    if (linkedPost != null && linkedPost.SamePackage)
-                    {
-                        await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
-                    }
-                }
-            }
+                await SyncToLinkedPostIfSamePackageAsync(parentPkgCQ.AssessmentSessionId);
 
             return RedirectToAction("ManagePackageQuestions", new { packageId });
         }
@@ -7037,20 +7035,10 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Soal berhasil diperbarui.";
 
-            // Auto-sync to Post if SamePackage=true
+            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift).
             var parentPkgEQ = await _context.AssessmentPackages.FindAsync(packageId);
             if (parentPkgEQ != null)
-            {
-                var parentSession = await _context.AssessmentSessions.FindAsync(parentPkgEQ.AssessmentSessionId);
-                if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
-                {
-                    var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
-                    if (linkedPost != null && linkedPost.SamePackage)
-                    {
-                        await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
-                    }
-                }
-            }
+                await SyncToLinkedPostIfSamePackageAsync(parentPkgEQ.AssessmentSessionId);
 
             // Ref-count + File.Delete SETELAH auto-sync (SYN-02 / D-10 / OQ2 ordering).
             // KRITIS: harus setelah SaveChanges DAN auto-sync — agar Post yang share path
@@ -7130,20 +7118,10 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Soal berhasil dihapus.";
 
-            // Auto-sync to Post if SamePackage=true
+            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift).
             var parentPkgDQ = await _context.AssessmentPackages.FindAsync(packageId);
             if (parentPkgDQ != null)
-            {
-                var parentSession = await _context.AssessmentSessions.FindAsync(parentPkgDQ.AssessmentSessionId);
-                if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
-                {
-                    var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
-                    if (linkedPost != null && linkedPost.SamePackage)
-                    {
-                        await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
-                    }
-                }
-            }
+                await SyncToLinkedPostIfSamePackageAsync(parentPkgDQ.AssessmentSessionId);
 
             // SYN-02 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (warn-only per file).
             await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "DeleteQuestion image");
