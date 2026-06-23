@@ -90,7 +90,7 @@
   4. Guard hapus peserta menolak/menangani sesi Abandoned atau ber-riwayat percobaan, dan membersihkan arsip respons terkait; mengubah MaxAttempts di bawah jumlah percobaan terpakai memunculkan peringatan non-blocking. *(RTH-04, RTH-05)*
 **Plans:** 3 plans (3 waves — sekuensial by file-overlap: ketiganya sentuh AssessmentAdminController.cs/RetakeService.cs)
 - [x] 421-01-PLAN.md — Wave 1: Window gate eligibility+eksekusi (RTH-01) + nol-kan NomorSertifikat saat reset (RTH-02) + Results window-aware [migration=FALSE]
-- [ ] 421-02-PLAN.md — Wave 2: Helper CountEraRetakeArchives kill-drift + wire 4 situs hitung, fix warning divergen (RTH-03) [migration=FALSE]; depends 01
+- [x] 421-02-PLAN.md — Wave 2: Helper CountEraRetakeArchives kill-drift + wire 4 situs hitung, fix warning divergen (RTH-03) [migration=FALSE]; depends 01
 - [ ] 421-03-PLAN.md — Wave 3: Guard hapus peserta ber-riwayat server round-trip + cleanup arsip cascade (RTH-04) + modal pra-simpan MaxAttempts<terpakai & warning cooldown>window (RTH-05/D-02) + UAT @5270 [migration=FALSE, autonomous=false]; depends 02
 **UI hint:** yes
 
@@ -155,7 +155,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 420. Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11) | 3/3 | ✅ Complete (UAT 8/8 + secure 13/13 + validate NYQUIST 11/11) | 2026-06-23 |
-| 421. Retake Lifecycle Hardening (RTH-01..05) | 1/3 | In Progress|  |
+| 421. Retake Lifecycle Hardening (RTH-01..05) | 2/3 | In Progress|  |
 | 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 0/TBD | Not started | - |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 0/TBD | Not started | - |
 | 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..07) | 0/TBD | Not started | - |
