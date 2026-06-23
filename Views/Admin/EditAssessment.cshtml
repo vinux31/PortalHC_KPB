@@ -711,6 +711,30 @@
                 <input type="hidden" name="sessionId" id="deletePesertaSessionId" />
                 <input type="hidden" name="returnToId" value="@Model.Id" />
             </form>
+
+            @* v32.7 RTH-04 (D-06): soft-confirm hapus peserta ber-riwayat — server round-trip Pola B. *@
+            @* "Tetap Hapus" me-replay keep-list (UserIds) + flag confirmRemoveWithHistory=true (server-authoritative). *@
+            @if (TempData["PendingKeepUserIds"] is string pendingKeep)
+            {
+                var keepIds = pendingKeep.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                <div class="alert alert-warning d-flex align-items-start mt-3" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2 mt-1"></i>
+                    <div>
+                        <div>@TempData["Warning"]</div>
+                        <form method="post" asp-action="EditAssessment" asp-route-id="@Model.Id" class="mt-2 mb-0">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="confirmRemoveWithHistory" value="true" />
+                            @foreach (var k in keepIds)
+                            {
+                                <input type="hidden" name="UserIds" value="@k" />
+                            }
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash me-1"></i>Tetap Hapus
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>

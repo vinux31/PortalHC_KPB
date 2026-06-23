@@ -1823,7 +1823,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> EditAssessment(int id, AssessmentSession model, List<string> NewUserIds,
             DateTime? PreSchedule, int? PreDurationMinutes, DateTime? PreExamWindowCloseDate,
             DateTime? PostSchedule, int? PostDurationMinutes, DateTime? PostExamWindowCloseDate,
-            List<string>? UserIds)
+            List<string>? UserIds, bool confirmRemoveWithHistory = false)   // v32.7 RTH-04/D-06: server round-trip flag
         {
             var assessment = await _context.AssessmentSessions.FindAsync(id);
             if (assessment == null)
@@ -1913,6 +1913,9 @@ namespace HcPortal.Controllers
                     }
                 }
 
+                // v32.7 RTH-04 (PA-06, D-06): peserta ber-riwayat yang dibatalkan penghapusannya (butuh konfirmasi flag).
+                // Dideklarasi DI LUAR blok agar terlihat di cek redirect pasca-loop.
+                var pendingHistoryRemovals = new List<string>();
                 // D-31: Tambah peserta baru = buat Pre+Post session
                 if (UserIds != null && UserIds.Any())
                 {
@@ -1936,6 +1939,25 @@ namespace HcPortal.Controllers
                         {
                             TempData["Error"] = $"Tidak dapat menghapus peserta — sesi Post-Test sudah {userPostSession.Status}.";
                             continue;
+                        }
+
+                        // v32.7 RTH-04 (PA-06, D-06): soft-confirm — sesi Abandoned / sudah-dimulai / ber-AttemptHistory
+                        // (riwayat percobaan tercatat walau status kembali Open via reset) = HAPUS RIWAYAT.
+                        // Server-authoritative: flag confirmRemoveWithHistory HANYA menekan peringatan; guard
+                        // dievaluasi ulang tiap POST (forged flag tetap melewati guard hard-block di atas).
+                        bool preHasHistory = userPreSession != null &&
+                            (userPreSession.Status == "Abandoned" || userPreSession.StartedAt != null);
+                        bool postHasHistory = userPostSession != null &&
+                            (userPostSession.Status == "Abandoned" || userPostSession.StartedAt != null);
+                        var sessIdsForHistCheck = new List<int>();
+                        if (userPreSession != null) sessIdsForHistCheck.Add(userPreSession.Id);
+                        if (userPostSession != null) sessIdsForHistCheck.Add(userPostSession.Id);
+                        bool hasAttemptHistory = sessIdsForHistCheck.Count > 0 && await _context.AssessmentAttemptHistory
+                            .AnyAsync(h => sessIdsForHistCheck.Contains(h.SessionId));
+                        if ((preHasHistory || postHasHistory || hasAttemptHistory) && !confirmRemoveWithHistory)
+                        {
+                            pendingHistoryRemovals.Add(removedUserId);
+                            continue;   // BATALKAN penghapusan peserta INI; edit metadata + peserta lain tetap jalan
                         }
 
                         var sessionsToRemove = new List<AssessmentSession>();
@@ -2031,6 +2053,17 @@ namespace HcPortal.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                // v32.7 RTH-04 (D-06): bila ada peserta ber-riwayat yang penghapusannya dibatalkan, kembali ke
+                // form Edit dengan peringatan + keep-list (UserIds) tersimpan → tombol "Tetap Hapus" me-replay
+                // UserIds + confirmRemoveWithHistory=true (server round-trip, BUKAN JS-only). Metadata + peserta
+                // tanpa-riwayat SUDAH tersimpan (SaveChanges di atas). Non-history → flow ManageAssessment normal.
+                if (pendingHistoryRemovals.Any())
+                {
+                    TempData["PendingRemoveCount"] = pendingHistoryRemovals.Count;
+                    TempData["PendingKeepUserIds"] = string.Join(",", UserIds ?? new List<string>());
+                    TempData["Warning"] = $"{pendingHistoryRemovals.Count} peserta memiliki riwayat ujian (sesi sudah dimulai/ditinggalkan/percobaan tercatat). Menghapusnya akan menghapus riwayat percobaan terkait. Klik 'Tetap Hapus' untuk melanjutkan.";
+                    return RedirectToAction("EditAssessment", new { id });
+                }
                 TempData["Success"] = "Assessment Pre-Post Test berhasil diperbarui.";
                 return RedirectToAction("ManageAssessment");
             }
