@@ -136,4 +136,30 @@ public class RetakeRulesTests
     [Fact]
     public void Tier_FullReview_WhenPassed()
         => Assert.Equal(RetakeReviewMode.ShowFullReview, RetakeRules.ResolveReviewMode(true, true, true));
+
+    // v32.7 RTH-01/D-02 — CooldownMayExceedWindow: peringatan dini cooldown bisa lewat ExamWindowCloseDate.
+    // nowWib = Now + 7h (= 2026-06-19 19:00 UTC pada fixed clock).
+    [Fact]
+    public void CooldownMayExceedWindow_NullWindow_False()
+        => Assert.False(RetakeRules.CooldownMayExceedWindow(Now, null, 24));
+
+    [Fact]
+    public void CooldownMayExceedWindow_ZeroCooldown_False()
+        => Assert.False(RetakeRules.CooldownMayExceedWindow(Now, Now.AddDays(1), 0));
+
+    [Fact]
+    public void CooldownMayExceedWindow_WindowAlreadyClosed_False()   // nowWib(19:00) > EWCD(12:00) → urusan gate D-01
+        => Assert.False(RetakeRules.CooldownMayExceedWindow(Now, Now, 24));
+
+    [Fact]
+    public void CooldownMayExceedWindow_OpenButCooldownExceeds_True() // EWCD=Now+8h(20:00) open; nowWib+2h(21:00) > 20:00
+        => Assert.True(RetakeRules.CooldownMayExceedWindow(Now, Now.AddHours(8), 2));
+
+    [Fact]
+    public void CooldownMayExceedWindow_OpenAndCooldownFits_False()   // EWCD=Now+17h; nowWib+2h(Now+9h) <= EWCD
+        => Assert.False(RetakeRules.CooldownMayExceedWindow(Now, Now.AddHours(17), 2));
+
+    [Fact]
+    public void CooldownMayExceedWindow_Boundary_Plus7h_Sensitive()   // EWCD=Now+7h30m: +7h→open→true; +8h→tutup→false (kill-drift)
+        => Assert.True(RetakeRules.CooldownMayExceedWindow(Now, Now.AddHours(7).AddMinutes(30), 1));
 }

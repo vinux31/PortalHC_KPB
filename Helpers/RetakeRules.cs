@@ -66,6 +66,22 @@ namespace HcPortal.Helpers
             => assessmentType == "PreTest" || isManualEntry;
 
         /// <summary>
+        /// v32.7 RTH-01/D-02 — peringatan dini HC: apakah masa jeda (cooldown) bisa mendorong
+        /// eligibility ujian ulang MELEWATI batas tutup ujian (ExamWindowCloseDate)? PURE, EF-free.
+        /// +7h WIB hidup di SATU tempat (byte-identik StartExam CMPController:956) supaya controller &amp; test
+        /// memanggil kode yang SAMA (kill-drift — drift +7h→+8h pasti ketahuan test). NON-blocking warning only.
+        /// False bila: tak ada window, cooldown ≤ 0, atau window SUDAH tutup (kasus itu = gate D-01, bukan D-02).
+        /// </summary>
+        public static bool CooldownMayExceedWindow(DateTime nowUtc, DateTime? examWindowCloseDate, int retakeCooldownHours)
+        {
+            if (examWindowCloseDate == null) return false;
+            if (retakeCooldownHours <= 0) return false;
+            var nowWib = nowUtc.AddHours(7);                              // +7h WIB verbatim — JANGAN +8h/DateTime.Now/TimeZoneInfo
+            if (nowWib > examWindowCloseDate.Value) return false;        // window sudah tutup → urusan gate D-01
+            return nowWib.AddHours(retakeCooldownHours) > examWindowCloseDate.Value;
+        }
+
+        /// <summary>
         /// v32.4 RTK-11 (Phase 407) — tier feedback PURE 3-state, leak-safe.
         /// LOCKED orchestrator (A1): sembunyikan kunci selama retake MASIH MUNGKIN — yaitu belum-lulus
         /// (isPassed != true: failed ATAU pending null) DAN attemptsRemaining → ShowWrongFlagsOnly.

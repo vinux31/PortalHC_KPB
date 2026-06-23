@@ -5716,6 +5716,14 @@ namespace HcPortal.Controllers
             }
             await _context.SaveChangesAsync();
 
+            // v32.7 RTH-01/D-02: peringatan NON-BLOCKING — cooldown bisa mendorong eligibility lewat batas tutup ujian?
+            // Predikat hidup di RetakeRules.CooldownMayExceedWindow (pure, +7h WIB SATU tempat) — controller & test panggil
+            // method yang SAMA (kill-drift). Setelan SUDAH tersimpan di atas; warning ko-eksis dgn Success, JANGAN return early.
+            if (HcPortal.Helpers.RetakeRules.CooldownMayExceedWindow(DateTime.UtcNow, assessment.ExamWindowCloseDate, retakeCooldownHours))
+            {
+                TempData["Warning"] = "Masa jeda ujian ulang yang Anda atur bisa melewati batas tutup ujian. Peserta yang gagal mungkin tidak sempat mengulang sebelum ujian ditutup. Pengaturan tetap bisa disimpan.";
+            }
+
             try
             {
                 var hcUser = await _userManager.GetUserAsync(User);
@@ -5726,6 +5734,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for UpdateRetakeSettings (assessmentId={Id})", assessmentId); }
 
+            // D-07: angka "terpakai" untuk modal pra-simpan TIDAK dihitung di sini — disuplai oleh GET ManagePackages
+            //       via RetakeCountingRules.MaxInGroupAsync (helper D-05, wired 421-02). POST = PRG redirect; no recompute.
             TempData["Success"] = "Pengaturan ujian ulang berhasil disimpan.";
             return RedirectToAction("ManagePackages", new { assessmentId });
         }

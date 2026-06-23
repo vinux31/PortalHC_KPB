@@ -140,7 +140,7 @@
                 <h5 class="mb-0"><i class="bi bi-arrow-repeat text-primary me-1"></i>Ujian Ulang</h5>
             </div>
             <div class="card-body">
-                <form method="post" asp-action="UpdateRetakeSettings" asp-controller="AssessmentAdmin">
+                <form method="post" asp-action="UpdateRetakeSettings" asp-controller="AssessmentAdmin" id="retakeSettingsForm">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="assessmentId" value="@ViewBag.AssessmentId" />
                     <div class="form-check form-switch mb-2">
@@ -173,6 +173,50 @@
                 </form>
             </div>
         </div>
+
+        @* v32.7 RTH-05/D-07: modal pra-simpan NON-BLOCKING saat MaxAttempts dipilih < jumlah terpakai (angka dari GET via MaxInGroupAsync). *@
+        <div class="modal fade" id="retakeMaxConfirmModal" tabindex="-1" aria-labelledby="retakeMaxConfirmLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="retakeMaxConfirmLabel"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Konfirmasi Batas Percobaan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+              </div>
+              <div class="modal-body">
+                Sebagian peserta sudah memakai lebih dari batas percobaan baru. Mereka tidak akan kehilangan percobaan yang sudah berjalan, tetapi tidak bisa menambah percobaan baru. Lanjutkan menyimpan?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="retakeMaxConfirmYes"><i class="bi bi-save me-1"></i>Ya, Lanjutkan</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <script>
+            (function () {
+                var form = document.getElementById('retakeSettingsForm');
+                if (!form) return;
+                var usedInGroup = @(ViewBag.RetakeMaxAttemptsUsedInGroup ?? 0);   // angka terpakai dari GET (MaxInGroupAsync, D-05)
+                var confirmed = false;
+                var modalEl = document.getElementById('retakeMaxConfirmModal');
+                var modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+                form.addEventListener('submit', function (e) {
+                    if (confirmed || !modal) return;   // sudah dikonfirmasi → biarkan submit
+                    var input = document.getElementById('maxAttempts');
+                    var val = input ? parseInt(input.value, 10) : NaN;
+                    if (!isNaN(val) && val < usedInGroup) {   // non-blocking: hanya konfirmasi, server tetap simpan
+                        e.preventDefault();
+                        modal.show();
+                    }
+                });
+                var yesBtn = document.getElementById('retakeMaxConfirmYes');
+                if (yesBtn) yesBtn.addEventListener('click', function () {
+                    confirmed = true;
+                    if (modal) modal.hide();
+                    form.submit();
+                });
+            })();
+        </script>
     }
 
     <div class="card mb-4">

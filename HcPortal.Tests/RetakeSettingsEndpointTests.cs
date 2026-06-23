@@ -199,4 +199,83 @@ public class RetakeSettingsEndpointTests : IClassFixture<RetakeServiceFixture>
         bool guardTriggered = RetakeRules.ShouldHideRetakeToggle(assessmentType, isManualEntry);
         Assert.Equal(shouldBlock, guardTriggered);
     }
+
+    // ---- v32.7 RTH-05/D-07 seed helpers (era-archive ber-snapshot / legacy tanpa child) ----
+    private static async Task SeedEraArchiveAsync(ApplicationDbContext ctx, int sessionId, string userId, string title, string category)
+    {
+        var h = new AssessmentAttemptHistory { SessionId = sessionId, UserId = userId, Title = title, Category = category, AttemptNumber = 1 };
+        ctx.AssessmentAttemptHistory.Add(h);
+        await ctx.SaveChangesAsync();
+        ctx.AssessmentAttemptResponseArchives.Add(new AssessmentAttemptResponseArchive
+        {
+            AttemptHistoryId = h.Id, PackageQuestionId = 1, QuestionText = "Q", AnswerText = "A", IsCorrect = true, AwardedScore = 10
+        });
+        await ctx.SaveChangesAsync();
+    }
+
+    private static async Task SeedLegacyArchiveAsync(ApplicationDbContext ctx, string userId, string title, string category)
+    {
+        ctx.AssessmentAttemptHistory.Add(new AssessmentAttemptHistory { SessionId = 0, UserId = userId, Title = title, Category = category, AttemptNumber = 1 });
+        await ctx.SaveChangesAsync();
+    }
+
+    // RTH-05/D-07: NON-BLOCKING — turunkan MaxAttempts di bawah jumlah terpakai → setelan TETAP tersimpan.
+    [Fact]
+    public async Task UpdateRetakeSettings_MaxBelowUsed_StillSaves_NonBlocking()
+    {
+        var marker = "D07-" + Guid.NewGuid().ToString("N")[..8];
+        var sched = new DateTime(2026, 5, 1, 8, 0, 0);
+        string u1;
+        await using (var ctx = NewCtx())
+        {
+            u1 = await SeedUserAsync(ctx);
+            var u2 = await SeedUserAsync(ctx);
+            ctx.AssessmentSessions.Add(MakeSibling(u1, marker, sched));
+            ctx.AssessmentSessions.Add(MakeSibling(u2, marker, sched));
+            await ctx.SaveChangesAsync();
+            // u1 sudah memakai 3 percobaan era-retake (ber-snapshot) → MaxInGroup = 3.
+            for (int i = 0; i < 3; i++) await SeedEraArchiveAsync(ctx, 0, u1, marker, "Test");
+        }
+
+        // Used-count via helper 421-02 (D-05) = 3; HC set maxAttempts = 1 (< terpakai).
+        await using (var ctx = NewCtx())
+        {
+            int usedMax = await RetakeCountingRules.MaxInGroupAsync(ctx, marker, "Test");
+            Assert.Equal(3, usedMax);
+
+            const int newMax = 1;   // < usedMax → modal konfirmasi (UI), TAPI server tetap simpan (non-blocking)
+            var siblings = await ctx.AssessmentSessions
+                .Where(s => s.Title == marker && s.Category == "Test" && s.Schedule.Date == sched.Date).ToListAsync();
+            foreach (var s in siblings)
+            {
+                s.AllowRetake = true;
+                s.MaxAttempts = Math.Clamp(newMax, 1, 5);
+                s.UpdatedAt = DateTime.UtcNow;
+            }
+            await ctx.SaveChangesAsync();   // TIDAK diblok meski terpakai (3) > batas baru (1)
+        }
+
+        await using var verify = NewCtx();
+        var rows = await verify.AssessmentSessions.AsNoTracking().Where(s => s.Title == marker).ToListAsync();
+        Assert.Equal(2, rows.Count);
+        Assert.All(rows, r => Assert.Equal(1, r.MaxAttempts));   // tersimpan apa adanya (non-blocking)
+    }
+
+    // RTH-05/D-05 reuse: used-count via MaxInGroupAsync hanya hitung snapshot-presence (legacy excluded).
+    [Fact]
+    public async Task UsedCount_ViaHelper_ExcludesLegacy()
+    {
+        var marker = "D07leg-" + Guid.NewGuid().ToString("N")[..8];
+        await using (var ctx = NewCtx())
+        {
+            var u1 = await SeedUserAsync(ctx);
+            await SeedEraArchiveAsync(ctx, 0, u1, marker, "Test");      // ber-snapshot → dihitung
+            await SeedEraArchiveAsync(ctx, 0, u1, marker, "Test");      // ber-snapshot → dihitung
+            await SeedLegacyArchiveAsync(ctx, u1, marker, "Test");      // legacy → diabaikan
+        }
+
+        await using var ctx2 = NewCtx();
+        int usedMax = await RetakeCountingRules.MaxInGroupAsync(ctx2, marker, "Test");
+        Assert.Equal(2, usedMax);   // 2 era-archive (legacy tak dihitung) — konsisten helper 421-02
+    }
 }
