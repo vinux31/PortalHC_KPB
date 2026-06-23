@@ -5857,19 +5857,33 @@ namespace HcPortal.Controllers
                 _context, assessment.Title, assessment.Category);
             ViewBag.RetakeMaxAttemptsUsedInGroup = retakeMaxArchivedForGroup + 1;
 
-            // Warning §9 precondition: jumlah paket-ber-soal + mismatch ukuran (mirror view L70-81).
-            var pkgWithQuestions = packages.Where(p => p.Questions.Any()).ToList();
-            int packagesWithQuestions = pkgWithQuestions.Count;
-            bool hasMismatch = false;
-            if (packagesWithQuestions > 0)
-            {
-                int refCount = pkgWithQuestions[0].Questions.Count;
-                hasMismatch = pkgWithQuestions.Any(p => p.Questions.Count != refCount);
-            }
-            ViewBag.PackagesWithQuestions = packagesWithQuestions;
-            ViewBag.HasSizeMismatch = hasMismatch;
+            // v32.7 Phase 422 D-05/SHFX-07: mismatch SATU SUMBER via PackageSizeAnalysis.Compute (kill-drift —
+            // gantikan compute inline lama DI SINI + re-derive view ManagePackages.cshtml:72-78 yang DIHAPUS).
+            var sizeAnalysis = PackageSizeAnalysis.Compute(packages);
+            ViewBag.PackagesWithQuestions = sizeAnalysis.PackagesWithQuestions;
+            ViewBag.HasSizeMismatch = sizeAnalysis.HasMismatch;
+            ViewBag.ReferenceCount = sizeAnalysis.ReferenceCount;
             ViewBag.ShowSizeMismatchWarning = ShuffleToggleRules.ShouldShowSizeMismatchWarning(
-                packagesWithQuestions, assessment.ShuffleQuestions, hasMismatch);
+                sizeAnalysis.PackagesWithQuestions, assessment.ShuffleQuestions, sizeAnalysis.HasMismatch);
+            // D-04: warning K=min truncation ON-path (Acak ON + ukuran paket beda → soal dipangkas ke K=min).
+            ViewBag.ShowKMinWarning = ShuffleToggleRules.ShouldShowKMinTruncationWarning(
+                sizeAnalysis.PackagesWithQuestions, assessment.ShuffleQuestions, sizeAnalysis.HasMismatch);
+            // D-03: warning Acak ON pada Post SamePackage (pengacakan kaburkan komparasi item-level Pre/Post).
+            ViewBag.ShowAcakOnSamePackageWarning =
+                assessment.AssessmentType == "PostTest" && assessment.SamePackage && assessment.ShuffleQuestions;
+
+            // SHFX-02/D-01: disable toggle SamePackage di view bila ADA peserta sudah-mulai di GRUP (Pre+Post
+            // pasangan). Reuse compute grup pasangan (LinkedSessionId) — server endpoint ToggleSamePackage juga
+            // hard-reject (server-authoritative); ini friendly UX layer.
+            bool anyStartedInGroup = false;
+            if (isPostSession && assessment.LinkedSessionId.HasValue)
+            {
+                var togGroupIds = new[] { assessment.Id, assessment.LinkedSessionId.Value };
+                anyStartedInGroup = await _context.AssessmentSessions
+                    .AnyAsync(s => togGroupIds.Contains(s.Id) &&
+                                   (s.StartedAt != null || s.Status == "InProgress" || s.Status == "Completed"));
+            }
+            ViewBag.AnyStartedInGroup = anyStartedInGroup;
 
             // Reminder Pre/Post (opsi Z, SHUF-13): Post page only, saved-state Pre via LinkedSessionId.
             if (isPostSession && assessment.LinkedSessionId.HasValue)
@@ -5964,6 +5978,86 @@ namespace HcPortal.Controllers
                 if (post != null && post.SamePackage)
                     await SyncPackagesToPost(pre.Id, post.Id);   // existing :5875-5933 deep-clone, sudah benar
             }
+        }
+
+        // v32.7 Phase 422 SHFX-02/D-01 (FLOW-07, keputusan bisnis b) — toggle SamePackage editable
+        // pasca-create. Mirror UpdateShuffleSettings (RBAC + antiforgery + PRG + guard anyStarted + audit).
+        //   ON  → set SamePackage=true + SaveChanges (SEBELUM helper) → SyncToLinkedPostIfSamePackageAsync
+        //         (sync Pre→Post + lock implisit via SamePackage=true). + defensif clear stale Post UPA (Open Q2).
+        //   OFF → set SamePackage=false SAJA (lepas lock). PERTAHANKAN paket clone (Pitfall 5: JANGAN sync/delete).
+        //   GUARD → tolak (TempData Error non-blocking) bila ADA peserta sudah-mulai di GRUP (Pre+Post pasangan);
+        //           belum-mulai = boleh. Server-authoritative (view disable hanya UX layer).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleSamePackage(int assessmentId, bool samePackage)
+        {
+            var post = await _context.AssessmentSessions.FindAsync(assessmentId);
+            if (post == null) return NotFound();
+
+            // Hanya berlaku untuk Post-Test berpasangan (backward-compat: Standard/Pre tak tersentuh).
+            if (post.AssessmentType != "PostTest" || !post.LinkedSessionId.HasValue)
+            {
+                TempData["Error"] = "Pengaturan paket-sama hanya berlaku untuk Post-Test berpasangan.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
+
+            // GUARD D-01: grup = pasangan Pre+Post (LinkedSessionId). Tolak bila ADA peserta sudah-mulai
+            // (StartedAt set / Status InProgress / Completed). Idiom anyStarted mirror UpdateShuffleSettings.
+            var groupIds = new[] { post.Id, post.LinkedSessionId.Value };
+            bool anyStarted = await _context.AssessmentSessions
+                .AnyAsync(s => groupIds.Contains(s.Id) &&
+                               (s.StartedAt != null || s.Status == "InProgress" || s.Status == "Completed"));
+            if (anyStarted)
+            {
+                TempData["Error"] = "Gagal mengubah pengaturan paket-sama: sudah ada peserta yang memulai ujian di grup ini.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
+
+            post.SamePackage = samePackage;
+            post.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();   // SamePackage tersimpan SEBELUM panggil helper (helper baca post.SamePackage==true)
+
+            if (samePackage)
+            {
+                // ON → sync Pre→Post (overwrite paket Post dgn clone Pre) + lock implisit (SamePackage=true).
+                // Open Q2 (dangling UPA): SyncPackagesToPost menghapus paket Post lama (+Q+Options) TAPI TIDAK
+                // hapus UserPackageAssignment yang menunjuk paket Post lama → potensi dangling. Guard anyStarted
+                // di atas mengurangi risiko (belum-mulai biasanya belum ada assignment), tapi edge belum-mulai-
+                // tapi-ada-assignment WAJIB dibersihkan defensif (test E). Bersihkan UPA Post grup SEBELUM sync.
+                var stalePostAssignments = await _context.UserPackageAssignments
+                    .Where(a => a.AssessmentSessionId == post.Id)
+                    .ToListAsync();
+                if (stalePostAssignments.Any())
+                    _context.UserPackageAssignments.RemoveRange(stalePostAssignments);
+                await _context.SaveChangesAsync();
+
+                await SyncToLinkedPostIfSamePackageAsync(post.LinkedSessionId.Value);   // pre→post deep-clone
+                TempData["Success"] = "Pengaturan paket-sama diaktifkan. Paket Post-Test telah disinkronkan dari Pre-Test dan dikunci.";
+            }
+            else
+            {
+                // OFF → KEEP paket clone (Pitfall 5: lepas lock SAJA, JANGAN sync/delete). Paket Post jadi editable.
+                TempData["Success"] = "Pengaturan paket-sama dinonaktifkan. Kunci dilepas; paket salinan dipertahankan untuk diedit.";
+            }
+
+            // Audit try/catch warn-only (pola UpdateShuffleSettings :5675-5687).
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorNameStr = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+                await _auditLog.LogAsync(
+                    hcUser?.Id ?? "",
+                    actorNameStr,
+                    "ToggleSamePackage",
+                    $"Set SamePackage={samePackage} for Post-Test '{post.Title}' [ID={post.Id}, linkedPre={post.LinkedSessionId.Value}]" +
+                        (samePackage ? " (synced Pre→Post + locked)" : " (unlocked, clone kept)"),
+                    assessmentId,
+                    "AssessmentSession");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for ToggleSamePackage (assessmentId={Id})", assessmentId); }
+
+            return RedirectToAction("ManagePackages", new { assessmentId });
         }
 
         [HttpPost]
