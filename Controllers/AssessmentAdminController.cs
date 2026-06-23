@@ -6759,6 +6759,11 @@ namespace HcPortal.Controllers
             ViewBag.AssessmentId = pkg.AssessmentSessionId;
             ViewBag.AssessmentTitle = assessment.Title;
             ViewBag.Questions = pkg.Questions.OrderBy(q => q.Order).ToList();
+            // v32.7 Phase 422 D-07/SHFX-03: friendly-disable UX layer — server SUDAH hard-reject edit soal
+            // saat Post-Test terkunci (paket-sama) via guard 5 endpoint (Wave 2). View pakai ini untuk banner
+            // + disable tombol; bukan satu-satunya pengaman (server-authoritative).
+            ViewBag.IsSamePackageLocked = assessment.AssessmentType == "PostTest" && assessment.SamePackage;
+            ViewBag.PreSessionId = assessment.LinkedSessionId;
             return View();
         }
 
