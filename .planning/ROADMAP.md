@@ -38,7 +38,8 @@
 ### Phases
 
 - [ ] **Phase 415: Section Foundation + Import Excel Diperluas** — Tabel `AssessmentPackageSection` + `SectionId` nullable + UI kelola/urut/toggle section + import kolom Section/Opsi A–F dual-format + validasi struktur antar-paket (D-13). **migration=TRUE**.
-- [x] **Phase 415.1: Hotfix Guard Penilaian Essay Cross-Package (INSERTED, URGENT)** — Fix guard WR-02 `SubmitEssayScore` (L4210-4215) yang false-positive nolak penilaian essay ("Soal bukan milik sesi ini.") karena ownership per-sesi bentrok dgn pooling paket lintas sesi-sibling. Ganti ke cek `questionId ∈ UserPackageAssignment.GetShuffledQuestionIds()`. **Off-theme dari Section — hotfix prioritas (sebelum 416), boleh ship duluan. migration=FALSE.** (completed 2026-06-23)
+- [x] **Phase 415.1: Hotfix Guard Penilaian Essay Cross-Package (INSERTED, URGENT)** — Fix guard WR-02 `SubmitEssayScore` (L4210-4215) yang false-positive nolak penilaian essay ("Soal bukan milik sesi ini.") karena ownership per-sesi bentrok dgn pooling paket lintas sesi-sibling. Ganti ke cek `questionId ∈ UserPackageAssignment.GetShuffledQuestionIds()`. **Off-theme dari Section — hotfix prioritas (sebelum 416), boleh ship duluan. migration=FALSE.**
+ (completed 2026-06-23)
 - [ ] **Phase 416: Scoped Shuffle (Acak per-Section)** — Generalisasi `ShuffleEngine` jadi acak per-section (kunci ET komposit `(Section,ET)`) + precedence toggle induk/anak + pooling antar-paket per-section + reshuffle section-aware. migration=FALSE.
 - [ ] **Phase 417: Section Pagination** — Header section saat render + `StartNewPage` page-break + tombol cepat "semua section pisah halaman" + auto-pecah per-10 + resume map (`LastActivePage`). migration=FALSE.
 - [ ] **Phase 418: Opsi Jawaban Dinamis 2–6** — Refactor kontrak HTTP CreateQuestion/EditQuestion + form authoring + form Inject + render ujian/preview/results huruf A–F dinamis + import Opsi A–F + validator min-2/max-6. migration=FALSE.
@@ -52,7 +53,7 @@
 |-------|----------------|--------|-----------|-----------|
 | 415. Section Foundation + Import Excel Diperluas | 0/4 | 4/4 | Complete   | 2026-06-22 |
 | 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | 2/2 | Complete    | 2026-06-23 |
-| 416. Scoped Shuffle (Acak per-Section) | 0/? | Not started | FALSE | - |
+| 416. Scoped Shuffle (Acak per-Section) | 0/3 | Planned | FALSE | - |
 | 417. Section Pagination | 0/? | Not started | FALSE | - |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/? | Not started | FALSE | - |
 | 419. Export Label Section + Polish + Test/UAT | 0/? | Not started | FALSE | - |
@@ -120,7 +121,10 @@ Plans:
   2. HC dapat menyalakan/mematikan acak per-Section, dan toggle acak level-assessment berfungsi sebagai induk (induk OFF → semua terurut; induk ON → tiap Section ikut toggle-nya).
   3. Untuk assessment >1 paket, tiap Section diisi dari gabungan Section padanan lintas-paket lalu diacak/di-sampling dalam batas Section, dengan cakupan Elemen Teknis dijamin per-Section.
   4. Reshuffle per-paket maupun semua peserta menghormati batas Section (soal tetap tak bocor antar-Section).
-**Plans**: TBD
+**Plans**: 3 plans (wave 1->2->3 sequential; file-overlap `Helpers/ShuffleEngine.cs` -> controllers -> e2e)
+- [ ] 416-01-PLAN.md — Refactor `ShuffleEngine` section-aware (partisi (SectionNumber, ET) + BuildSectionQuestionAssignment + precedence D-14 + option-gate per-Section) + suite test baru `SectionScopedShuffleTests` golden-order/isolasi/precedence/pooling/determinisme (SHF-01..04) [wave 1, migration=FALSE]
+- [ ] 416-02-PLAN.md — Wire 3 call-site uniform (StartExam + ReshufflePackage/All + EagerAssign: load Section + BuildSectionAwareOptionShuffle) + peringatan ET-coverage non-blocking (D-416-03) di ManagePackageQuestions GET + view (SHF-01/02/03/04) [wave 2]
+- [ ] 416-03-PLAN.md — Playwright e2e `scoped-shuffle.spec.ts` (isolasi section + backward-compat all-null + ET-warning, DB backup/restore) + checkpoint UAT live @5277 (D-416-05) [wave 3, autonomous:false]
 **Migration**: FALSE.
 **File-overlap (sequential setelah 415; sebelum 417)**: `Helpers/ShuffleEngine.cs` (refactor `BuildSectionQuestionAssignment` + kunci komposit `(SectionNumber, ET)`), `CMPController.StartExam` (wire), reshuffle endpoints `ReshufflePackage`/`ReshuffleAll`. Interaksi lintas-milestone: `AddParticipantsLive` (v32.5 Phase 410) eager-assignment WAJIB pakai per-section assignment yang sama (seed `workerIndex` konsisten).
 
