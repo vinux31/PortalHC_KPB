@@ -97,7 +97,14 @@ public class RetakeThenPassCertTests : IClassFixture<RetakeServiceFixture>
     /// <summary>Seed 1 package + N MC soal (1 correct option each) untuk session + assignment + responses-benar.</summary>
     private static async Task<List<int>> SeedPackageWithResponsesAsync(ApplicationDbContext ctx, int sessionId, int nQuestions)
     {
-        var pkg = new AssessmentPackage { AssessmentSessionId = sessionId, PackageName = "Paket A", PackageNumber = 1 };
+        // PackageNumber MAX+1 per session (Phase 422 IX_AssessmentPackages_SessionId_PackageNumber_Unique):
+        // test re-seeds setelah retake (sesi sama) → hardcode 1 melanggar unique index. Grading aman karena
+        // pakai ShuffledQuestionIds assignment (paket baru) — paket orphan diabaikan (GradingService:71-76).
+        int nextPackageNumber = (await ctx.AssessmentPackages
+            .Where(p => p.AssessmentSessionId == sessionId)
+            .Select(p => (int?)p.PackageNumber)
+            .MaxAsync() ?? 0) + 1;
+        var pkg = new AssessmentPackage { AssessmentSessionId = sessionId, PackageName = "Paket A", PackageNumber = nextPackageNumber };
         ctx.AssessmentPackages.Add(pkg);
         await ctx.SaveChangesAsync();
 
