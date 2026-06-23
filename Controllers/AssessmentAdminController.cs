@@ -4207,11 +4207,15 @@ namespace HcPortal.Controllers
             //     pada soal MC/MA (korupsi skor: aggregator menjumlah EssayScore via case Essay).
             if (question.QuestionType != "Essay")
                 return Json(new { success = false, message = "Soal ini bukan tipe Essay." });
-            // 2c. WR-02 (386-REVIEW) — questionId WAJIB milik sesi ini (cross-session tampering guard). Rantai nav
-            //     terverifikasi: PackageQuestion.AssessmentPackage.AssessmentSessionId == sessionId.
-            var ownsQuestion = await _context.PackageQuestions
-                .AnyAsync(q => q.Id == questionId && q.AssessmentPackage.AssessmentSessionId == sessionId);
-            if (!ownsQuestion)
+            // 2c. WR-02 (FIXED 415.1) — questionId WAJIB bagian assignment peserta INI (bukan ownership paket).
+            //     Paket di-pool lintas sesi-sibling (by design: CreateEagerAssignmentsAsync/StartExam/Reshuffle),
+            //     jadi ownership-by-package (lama) salah → false-positive. Sumber-kebenaran = UserPackageAssignment
+            //     .GetShuffledQuestionIds() — IDENTIK dengan GET EssayGrading loader (L4131-4143).
+            //     D-02: assignment null (degenerate/non-paket) → IZINKAN (andalkan guard tipe-Essay + status + range);
+            //     peserta yang benar mengerjakan PASTI punya UPA. HC adalah role tepercaya (Admin/HC).
+            var assignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+            if (assignment != null && !assignment.GetShuffledQuestionIds().Contains(questionId))
                 return Json(new { success = false, message = "Soal bukan milik sesi ini." });
 
             // 3. UPSERT (Phase 386 PXF-04 D-08) — baris essay kosong tak ada → buat baru (TextAnswer null) lalu skor;
@@ -6294,11 +6298,25 @@ namespace HcPortal.Controllers
                 ShuffleEnabled = shuffleEnabled
             };
             _context.AssessmentPackageSections.Add(section);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // L2: TOCTOU — dua submit barengan lolos pre-check, unique index (PackageId, SectionNumber)
+                // melempar. Pesan ramah, bukan 500 mentah.
+                _context.ChangeTracker.Clear();
+                TempData["Error"] = $"No. Section {sectionNumber} sudah ada di paket ini.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
 
             await LogSectionAuditAsync("CreateSection",
                 $"Create Section No.{sectionNumber} '{section.Name ?? "(tanpa nama)"}' (StartNewPage={startNewPage}, ShuffleEnabled={shuffleEnabled}) for Package #{packageId}",
                 section.Id);
+
+            // H4: mutasi struktur Section → sync paket Post SamePackage.
+            await SyncToPostIfSamePackageAsync(packageId);
 
             TempData["Success"] = "Section berhasil disimpan.";
             return RedirectToAction("ManagePackageQuestions", new { packageId });
@@ -6336,11 +6354,25 @@ namespace HcPortal.Controllers
             section.Name = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
             section.StartNewPage = startNewPage;
             section.ShuffleEnabled = shuffleEnabled;
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // L2: TOCTOU — pre-check dup lolos tapi submit barengan menabrak unique index
+                // (PackageId, SectionNumber). Pesan ramah, bukan 500 mentah.
+                _context.ChangeTracker.Clear();
+                TempData["Error"] = $"No. Section {sectionNumber} sudah ada di paket ini.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
 
             await LogSectionAuditAsync("EditSection",
                 $"Edit Section #{sectionId} → No.{sectionNumber} '{section.Name ?? "(tanpa nama)"}' (StartNewPage={startNewPage}, ShuffleEnabled={shuffleEnabled}) for Package #{packageId}",
                 section.Id);
+
+            // H4: mutasi struktur Section → sync paket Post SamePackage.
+            await SyncToPostIfSamePackageAsync(packageId);
 
             TempData["Success"] = "Section berhasil disimpan.";
             return RedirectToAction("ManagePackageQuestions", new { packageId });
@@ -6370,6 +6402,9 @@ namespace HcPortal.Controllers
                 $"Delete Section #{sectionId} No.{section.SectionNumber} from Package #{packageId} (soal di dalamnya jadi Lainnya)",
                 sectionId);
 
+            // H4: mutasi struktur Section → sync paket Post SamePackage.
+            await SyncToPostIfSamePackageAsync(packageId);
+
             TempData["Success"] = "Section dihapus. Soal di dalamnya menjadi 'Lainnya'.";
             return RedirectToAction("ManagePackageQuestions", new { packageId });
         }
@@ -6392,6 +6427,9 @@ namespace HcPortal.Controllers
             await LogSectionAuditAsync("SetAllSectionsNewPage",
                 $"Set StartNewPage=true for ALL {sections.Count} Section(s) in Package #{packageId}",
                 packageId);
+
+            // H4: mutasi struktur Section (toggle StartNewPage) → sync paket Post SamePackage.
+            await SyncToPostIfSamePackageAsync(packageId);
 
             TempData["Success"] = "Semua Section disetel mulai halaman baru.";
             return RedirectToAction("ManagePackageQuestions", new { packageId });
@@ -6626,6 +6664,24 @@ namespace HcPortal.Controllers
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        // Phase 415 H4: helper SamePackage Post-sync. Tiap surface yang MEMUTASI struktur paket Pre
+        // (soal ATAU Section) WAJIB memanggil ini agar paket Post SamePackage tetap selaras — kalau tidak,
+        // Post tertinggal struktur lama sampai HC kebetulan edit soal (langgar invariant SamePackage; ganggu
+        // pagination/scoped-shuffle; bila Pre/Post se-tanggal → re-guard StartExam bisa blokir ujian).
+        // Pola IDENTIK dgn blok inline di CreateQuestion/EditQuestion (kill-drift).
+        private async Task SyncToPostIfSamePackageAsync(int packageId)
+        {
+            var parentPkg = await _context.AssessmentPackages.FindAsync(packageId);
+            if (parentPkg == null) return;
+            var parentSession = await _context.AssessmentSessions.FindAsync(parentPkg.AssessmentSessionId);
+            if (parentSession?.AssessmentType == "PreTest" && parentSession.LinkedSessionId.HasValue)
+            {
+                var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
+                if (linkedPost != null && linkedPost.SamePackage)
+                    await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
+            }
         }
 
         [HttpPost]
@@ -6989,9 +7045,20 @@ namespace HcPortal.Controllers
                     var ws = workbook.Worksheets.First();
 
                     // Phase 415 IMP-02 (D-415-03, Pitfall 3/4): deteksi format dari HEADER row (selalu terisi
-                    // penuh; data rows punya sel kosong di akhir untuk Essay → skew). Boundary >9 = format baru.
+                    // penuh; data rows punya sel kosong di akhir untuk Essay → skew).
+                    // M2 fix: JANGAN andalkan colCount>9 saja — file lama 9-kolom yang punya konten nyasar di
+                    // kolom 10+ akan salah-deteksi format baru → peta kolom geser → korupsi senyap. Validasi NAMA
+                    // HEADER kolom khas format baru ("Opsi E" @6, "Opsi F" @7, "No. Section" @9, "Nama Section" @10).
+                    // Hanya bila SEMUA marker cocok → format baru; selain itu → legacy (backward-compat utuh).
+                    string HeaderAt(int col) => System.Text.RegularExpressions.Regex
+                        .Replace((ws.Row(1).Cell(col).GetString() ?? "").Trim(), @"\s+", " ")
+                        .ToLowerInvariant();
                     int colCount = ws.Row(1).LastCellUsed()?.Address.ColumnNumber ?? 0;
-                    bool isNewFormat = colCount > 9;
+                    bool isNewFormat = colCount > 9
+                        && HeaderAt(6) == "opsi e"
+                        && HeaderAt(7) == "opsi f"
+                        && HeaderAt(9) == "no. section"
+                        && HeaderAt(10) == "nama section";
 
                     int rowNum = 1;
                     foreach (var row in ws.RowsUsed().Skip(1))
@@ -7096,26 +7163,61 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ImportPackageQuestions", new { packageId });
             }
 
+            // H2 helper: ambil huruf benar dari kolom Correct sesuai tipe soal (MA = comma-split A–F; MC = 1 huruf).
+            // Dipakai BAIK oleh RowIsValid (count-validation) MAUPUN loop build di bawah → satu sumber aturan,
+            // sehingga count-validation tak pernah meloloskan baris yang ungradeable (huruf benar nunjuk opsi kosong).
+            List<string> ParseCorrectLetters(string correct, string questionType)
+            {
+                if (questionType == "Essay") return new List<string>();
+                if (questionType == "MultipleAnswer")
+                    return correct.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim().ToUpper())
+                        .Where(s => new[] { "A", "B", "C", "D", "E", "F" }.Contains(s))
+                        .Distinct()
+                        .ToList();
+                var single = ExtractPackageCorrectLetter(correct);
+                return new[] { "A", "B", "C", "D", "E", "F" }.Contains(single)
+                    ? new List<string> { single }
+                    : new List<string>();
+            }
+
+            // H2 helper: tiap huruf benar HARUS memetakan ke cell opsi non-kosong (A→OptA … F→OptF) DAN minimal 1 huruf benar.
+            bool CorrectLettersMapToFilledOptions(
+                (string Question, string OptA, string OptB, string OptC, string OptD, string OptE, string OptF, string Correct, int? SectionNumber, string? SectionName, string? ElemenTeknis, string QuestionType, string? Rubrik) r,
+                List<string> correctLetters)
+            {
+                if (correctLetters.Count == 0) return false;
+                var cellByLetter = new Dictionary<string, string>
+                {
+                    ["A"] = r.OptA, ["B"] = r.OptB, ["C"] = r.OptC, ["D"] = r.OptD, ["E"] = r.OptE, ["F"] = r.OptF
+                };
+                return correctLetters.All(l => cellByLetter.TryGetValue(l, out var cell) && !string.IsNullOrWhiteSpace(cell));
+            }
+
             // Helper: apakah baris valid (bisa di-import). Dipakai oleh validasi count per-Section di bawah.
+            // H2: selain A–D terisi, huruf benar WAJIB nunjuk opsi non-kosong (≥1 IsCorrect ke-apply) — selaras loop build.
             bool RowIsValid((string Question, string OptA, string OptB, string OptC, string OptD, string OptE, string OptF, string Correct, int? SectionNumber, string? SectionName, string? ElemenTeknis, string QuestionType, string? Rubrik) r)
             {
                 if (string.IsNullOrWhiteSpace(r.Question)) return false;
                 if (r.QuestionType == "Essay") return true; // Essay: hanya butuh teks soal
-                var normalizedCor = ExtractPackageCorrectLetter(r.Correct);
-                return !string.IsNullOrWhiteSpace(r.OptA) && !string.IsNullOrWhiteSpace(r.OptB) &&
-                       !string.IsNullOrWhiteSpace(r.OptC) && !string.IsNullOrWhiteSpace(r.OptD) &&
-                       (new[] { "A", "B", "C", "D", "E", "F" }.Contains(normalizedCor) || r.Correct.Contains(','));
+                if (string.IsNullOrWhiteSpace(r.OptA) || string.IsNullOrWhiteSpace(r.OptB) ||
+                    string.IsNullOrWhiteSpace(r.OptC) || string.IsNullOrWhiteSpace(r.OptD))
+                    return false;
+                var correctLetters = ParseCorrectLetters(r.Correct, r.QuestionType);
+                return CorrectLettersMapToFilledOptions(r, correctLetters);
             }
 
             // Phase 415 SEC-04 / IMP-03 (D-13 titik #1): validasi jumlah soal PER-Section antar-paket saudara.
-            // Sibling key Title+Category+Schedule.Date (LOCKED, Phase 397 lesson — JANGAN ganti key).
+            // H1 fix: sibling DIPILIH via SiblingPrePostAwarePredicate (Pre/Post-aware) — IDENTIK dengan re-guard
+            // StartExam (CMPController) DAN dengan pemilihan sibling saat assignment ujian. Sebelumnya pakai key
+            // Title+Category+Schedule.Date TANPA AssessmentType → validasi bisa membandingkan paket Pre lawan Post
+            // (Pre/Post se-tanggal sah punya struktur Section beda) → salah-tolak import.
             var targetSession = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
             if (targetSession != null)
             {
                 var siblingSessionIds = await _context.AssessmentSessions
-                    .Where(s => s.Title == targetSession.Title &&
-                                s.Category == targetSession.Category &&
-                                s.Schedule.Date == targetSession.Schedule.Date)
+                    .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                        targetSession.Title, targetSession.Category, targetSession.Schedule.Date, targetSession.AssessmentType))
                     .Select(s => s.Id)
                     .ToListAsync();
 
@@ -7129,12 +7231,29 @@ namespace HcPortal.Controllers
 
                 if (siblingPackagesWithQuestions.Any())
                 {
-                    // Grup soal INCOMING (yang valid) per SectionNumber (null → grup "Lainnya", §15.A).
-                    var incomingCounts = rows.Where(RowIsValid)
-                        .GroupBy(r => r.SectionNumber)
-                        .ToDictionary(g => g.Key, g => g.Count());
+                    // M1 fix: hitung baris INCOMING yang BENAR-BENAR akan ter-insert = valid DAN tidak ter-dedup
+                    // (fingerprint vs soal existing paket + vs baris lebih awal di batch ini). Sebelumnya count
+                    // pakai semua baris valid TERMASUK duplikat → count check lolos (10==10) padahal hanya 9 ke-insert.
+                    var validIncoming = new List<(int? SectionNumber, string Fp)>();
+                    var seenForCount = new HashSet<string>(existingFingerprints);
+                    foreach (var r in rows.Where(RowIsValid))
+                    {
+                        var fp = MakePackageFingerprint(r.Question, r.OptA, r.OptB, r.OptC, r.OptD, r.OptE, r.OptF, r.SectionNumber);
+                        if (!seenForCount.Add(fp)) continue; // duplikat existing / batch → tak ter-insert
+                        validIncoming.Add((r.SectionNumber, fp));
+                    }
 
-                    // Apakah ada section sama sekali (incoming ATAU sibling)? Bila semua-null kedua sisi → legacy total-count.
+                    // M3 fix: import bersifat ADDITIVE (order = pkg.Questions.Count + 1). Baseline count target =
+                    // soal EXISTING paket (grouped-by-section) + incoming yang lolos dedup. Sebelumnya baseline cuma
+                    // baris Excel incoming → paket yang sudah punya soal lolos validasi tapi pasca-insert melebihi sibling.
+                    var existingCounts = pkg.Questions
+                        .GroupBy(q => q.Section?.SectionNumber)
+                        .ToDictionary(g => g.Key, g => g.Count());
+                    var incomingCounts = new Dictionary<int?, int>(existingCounts);
+                    foreach (var grp in validIncoming.GroupBy(v => v.SectionNumber))
+                        incomingCounts[grp.Key] = (incomingCounts.TryGetValue(grp.Key, out var ec) ? ec : 0) + grp.Count();
+
+                    // Apakah ada section sama sekali (incoming/existing ATAU sibling)? Bila semua-null kedua sisi → legacy total-count.
                     bool incomingHasSections = incomingCounts.Keys.Any(k => k != null);
                     bool siblingHasSections = siblingPackagesWithQuestions
                         .SelectMany(p => p.Questions).Any(q => q.SectionId != null);
@@ -7143,34 +7262,31 @@ namespace HcPortal.Controllers
 
                     if (!incomingHasSections && !siblingHasSections)
                     {
-                        // Legacy guard (Pitfall 6): semua-null kedua sisi → perilaku lama (total-count vs paket referensi).
-                        var referencePackage = siblingPackagesWithQuestions.First();
+                        // Legacy guard (Pitfall 6): semua-null kedua sisi → perilaku lama (total-count).
+                        // L3 fix: bandingkan vs SETIAP paket saudara (bukan stop-at-first) — selaras cabang Section-aware.
                         int incomingTotal = incomingCounts.Values.Sum();
-                        int expectedCount = referencePackage.Questions.Count;
-                        if (incomingTotal != expectedCount)
-                            mismatchList.Add($"Section Lainnya: Paket \"{pkg.PackageName}\" punya {incomingTotal} soal, Paket \"{referencePackage.PackageName}\" punya {expectedCount} soal (harus sama).");
+                        foreach (var referencePackage in siblingPackagesWithQuestions)
+                        {
+                            int expectedCount = referencePackage.Questions.Count;
+                            if (incomingTotal != expectedCount)
+                                mismatchList.Add($"Section Lainnya: Paket \"{pkg.PackageName}\" punya {incomingTotal} soal, Paket \"{referencePackage.PackageName}\" punya {expectedCount} soal (harus sama).");
+                        }
                     }
                     else
                     {
-                        // Section-aware: bandingkan count per SectionNumber vs SETIAP paket saudara (daftar LENGKAP, NEVER stop-at-first).
-                        string SectionLabel(int? sn) => sn?.ToString() ?? "Lainnya";
+                        // Section-aware (M4): bandingkan count per SectionNumber vs SETIAP paket saudara via
+                        // SectionStructureComparer (shared dgn re-guard StartExam). Daftar LENGKAP, NEVER stop-at-first.
                         foreach (var sib in siblingPackagesWithQuestions)
                         {
                             var sibCounts = sib.Questions
                                 .GroupBy(q => q.Section?.SectionNumber)
                                 .ToDictionary(g => g.Key, g => g.Count());
 
-                            var allSectionKeys = incomingCounts.Keys.Union(sibCounts.Keys)
-                                .OrderBy(k => k == null) // null (Lainnya) terakhir
-                                .ThenBy(k => k)
-                                .ToList();
-
-                            foreach (var sn in allSectionKeys)
+                            foreach (var sn in SectionStructureComparer.MismatchedSections(incomingCounts, sibCounts))
                             {
                                 int x = incomingCounts.TryGetValue(sn, out var xc) ? xc : 0;
                                 int y = sibCounts.TryGetValue(sn, out var yc) ? yc : 0;
-                                if (x != y)
-                                    mismatchList.Add($"Section {SectionLabel(sn)}: Paket \"{pkg.PackageName}\" punya {x} soal, Paket \"{sib.PackageName}\" punya {y} soal (harus sama).");
+                                mismatchList.Add($"Section {SectionStructureComparer.SectionLabel(sn)}: Paket \"{pkg.PackageName}\" punya {x} soal, Paket \"{sib.PackageName}\" punya {y} soal (harus sama).");
                             }
                         }
                     }
@@ -7274,6 +7390,19 @@ namespace HcPortal.Controllers
                     correctLetters = new List<string> { normalizedCor };
                 }
 
+                // H2: tiap huruf benar WAJIB menunjuk opsi NON-KOSONG (A→OptA … F→OptF). Tanpa cek ini, huruf benar
+                // 'E'/'F' (atau lainnya) yang cell-nya kosong → flag IsCorrect tak ke-apply → soal 0 opsi benar =
+                // ungradeable senyap (semua worker skor 0 / kunci jawaban salah). Tolak baris dengan pesan jelas.
+                if (questionType != "Essay")
+                {
+                    var rowForCheck = (q, a, b, c, d, e, f, cor, sectionNumber, sectionName, rawSubComp, questionType, rubrik);
+                    if (!CorrectLettersMapToFilledOptions(rowForCheck, correctLetters))
+                    {
+                        errors.Add($"Row {i + 1}: Jawaban benar ('{cor}') menunjuk ke opsi yang kosong. Pastikan setiap huruf jawaban benar memiliki teks opsi. Skipped.");
+                        continue;
+                    }
+                }
+
                 // Dedup fingerprint (essay uses empty options). Phase 415 IMP-03: +Opsi E/F +SectionNumber.
                 var fp = MakePackageFingerprint(q, a, b, c, d, e, f, sectionNumber);
                 if (existingFingerprints.Contains(fp) || seenInBatch.Contains(fp))
@@ -7338,6 +7467,10 @@ namespace HcPortal.Controllers
                     await importTx.RollbackAsync();
                     throw;
                 }
+
+                // H4: import = mutasi struktur paket (soal + Section) → sync paket Post SamePackage.
+                // Selaras dgn surface mutasi lain (CreateQuestion/EditQuestion); tanpa ini Post tertinggal basi.
+                await SyncToPostIfSamePackageAsync(packageId);
             }
 
             if (added == 0 && skipped == 0)
@@ -7895,6 +8028,22 @@ namespace HcPortal.Controllers
                         q.Options.Add(newOpt);
                     }
                     // slot == null && !hasText → skip (opsi tidak ada & tidak diisi)
+                }
+
+                // H3 anti-corruption GUARD: form edit hanya merender slot A–D. Soal hasil import/SyncPackagesToPost
+                // bisa punya 5–6 opsi (E/F). Slot E/F (index ≥4 di urutan ASLI 'existing') TIDAK tersentuh loop di
+                // atas → IsCorrect-nya basi (mis. soal benar={E}, admin centang A → A+E dua-duanya benar = grading
+                // korup). Sampai UI edit A–F penuh hadir (Phase 418), buang opsi E/F yang tak bisa di-edit agar tak
+                // meninggalkan kunci jawaban basi/ganda. Pakai 'existing' (snapshot pra-edit) — BUKAN q.Options
+                // pasca-edit yang jumlahnya bisa menyusut bila slot A–D dihapus → Skip(4) keliru sasaran.
+                // TODO Phase 418: render & edit Opsi E/F (thread MaxOptions=6 lewat view/JS/controller), hapus guard ini.
+                var extraOptions = existing.Skip(4).ToList();
+                foreach (var extra in extraOptions)
+                {
+                    if (!q.Options.Contains(extra)) continue; // sudah ter-remove di loop (slot==null path tak mungkin utk idx≥4, defensif)
+                    if (!string.IsNullOrEmpty(extra.ImagePath)) imagePathsToDelete.Add(extra.ImagePath!);
+                    _context.PackageOptions.Remove(extra);
+                    q.Options.Remove(extra);
                 }
             }
 
