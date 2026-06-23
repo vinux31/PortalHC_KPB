@@ -214,6 +214,23 @@ Plans:
 
 ---
 
+### Phase 999.13: M5 — Section re-guard StartExam tak cek drift di resume path (BACKLOG, MED, deferred from 415 re-check)
+
+**Goal:** [Captured dari /gsd-validate-phase 415 re-check, 2026-06-23] Re-guard struktur Section di `CMPController.StartExam` (`:1067`) hanya berjalan di jalur first-build (`assignment == null`). Worker yang resume (assignment sudah ada) melewati guard tanpa cek Section-drift. Keputusan user (2026-06-23): **backlog** — bukan fix sekarang.
+
+**Context:**
+- Defensible by design: ada safety-net independen `SavedQuestionCount != currentQuestionCount` (`CMPController.cs:1179`) → "Soal ujian telah berubah" bila jumlah soal worker berubah. Soal worker mid-exam sudah di-pin di `ShuffledQuestionIds`; reshuffle/edit Section tak mengubah set yang sudah di-pin.
+- Verifier menilai PLAUSIBLE (low-confidence): re-blok worker mid-exam justru UX buruk. Gap hanya muncul bila drift Section TANPA perubahan jumlah soal mempengaruhi worker yang resume — belum terbukti reachable.
+- Fix (bila dipromosikan): pertimbangkan cek Section-drift ringan di resume path ATAU perkuat `SavedQuestionCount` jadi hash struktur. 0 migration. Off-theme; bundle dengan kerja StartExam berikutnya.
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.7: e2e exam-taking — migrasi 10 create flow ke wizard 4-langkah (PROMOTED -> v28.0 Phase 379, 2026-06-14)
 
 **Goal:** [Captured Phase 364, 2026-06-12] `exam-taking.spec.ts` Flow A–J semua `test.fixme` — flat-form create usang. `/Admin/CreateAssessment` kini wizard 4-langkah (`1.Kategori`→`2.Peserta[disabled]`→`3.Settings`→`4.Konfirmasi`); worker checkbox `display:none` di step 2. Title sudah prefixed `Pre Test ` (REST-06 comply) tapi flow tak bisa jalan tanpa navigasi wizard.
