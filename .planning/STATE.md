@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
-status: verifying
-stopped_at: Phase 422 context gathered
-last_updated: "2026-06-23T09:36:43.219Z"
-last_activity: 2026-06-23
+status: executing
+stopped_at: Phase 422 UI-SPEC approved
+last_updated: "2026-06-23T10:21:12.922Z"
+last_activity: 2026-06-23 -- Phase 422 execution started
 progress:
   total_phases: 39
   completed_phases: 2
-  total_plans: 6
+  total_plans: 9
   completed_plans: 6
-  percent: 100
+  percent: 67
 ---
 
 # Project State: Portal HC KPB
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 421 — Retake Lifecycle Hardening
+**Current focus:** Phase 422 — SamePackage & Shuffle Integrity
 
 ## Current Position
 
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
-Phase: 421 (Retake Lifecycle Hardening) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-06-23
+Phase: 422 (SamePackage & Shuffle Integrity) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 422
+Last activity: 2026-06-23 -- Phase 422 execution started
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
@@ -142,6 +142,6 @@ Backlog tracked: 999.6/9/10/11/12.
 
 Last activity: 2026-06-23
 
-Stopped at: Phase 422 context gathered
+Stopped at: Phase 422 UI-SPEC approved
 
 Next action: **`/gsd-discuss-phase 421`** (Retake Lifecycle Hardening; RTH-01..05; RTK-LOGIC-02 🔴 retake dead-end). Phase 420 done. Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.
