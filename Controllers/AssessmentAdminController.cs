@@ -2041,7 +2041,8 @@ namespace HcPortal.Controllers
                             AssessmentType = "PostTest",
                             LinkedGroupId = linkedGroupId,
                             CreatedBy = currentUser?.Id,
-                            BannerColor = repPost.BannerColor
+                            BannerColor = repPost.BannerColor,
+                            SamePackage = repPost.SamePackage   // SHFX-04/PA-02: peserta baru warisi SamePackage grup (bukan default false)
                         };
 
                         _context.AssessmentSessions.AddRange(newPre, newPost);
@@ -5626,7 +5627,9 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(a => a.Id == assessmentId);
             if (assessment == null) return NotFound();
 
-            // Sibling group — key identik StartExam/Reshuffle/EditAssessment (spec §5).
+            // PROPAGATION scope (type-AGNOSTIC, by design): shuffle Pre↔Post SENGAJA berbagi setting
+            // (cross-type). JANGAN ubah scope ini (Pitfall 4 / RESEARCH A3 — type-aware di sini = regresi
+            // propagation shuffle). Dipakai HANYA untuk foreach write di bawah.
             var siblingSessionIds = await _context.AssessmentSessions
                 .Where(s => s.Title == assessment.Title &&
                             s.Category == assessment.Category &&
@@ -5634,11 +5637,20 @@ namespace HcPortal.Controllers
                 .Select(s => s.Id)
                 .ToListAsync();
 
-            // Defense-in-depth (D-04a / SHUF-11): re-cek lock server-side.
+            // SHFX-06/SHUF-ISS-01 (LOCK-DETECTION SAJA): kunci sibling TYPE-AWARE — Pre mulai TIDAK
+            // mengunci Post (dan sebaliknya). Predicate kanonik selaras StartExam/Reshuffle. TERPISAH dari
+            // propagationSiblingIds di atas (cross-type) supaya over-lock hilang tanpa merusak propagation.
+            var lockSiblingIds = await _context.AssessmentSessions
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            // Defense-in-depth (D-04a / SHUF-11): re-cek lock server-side (type-aware sibling).
             bool anyStarted = await _context.AssessmentSessions
-                .AnyAsync(s => siblingSessionIds.Contains(s.Id) && s.StartedAt != null);
+                .AnyAsync(s => lockSiblingIds.Contains(s.Id) && s.StartedAt != null);
             bool anyAssignment = await _context.UserPackageAssignments
-                .AnyAsync(a => siblingSessionIds.Contains(a.AssessmentSessionId));
+                .AnyAsync(a => lockSiblingIds.Contains(a.AssessmentSessionId));
 
             if (ShuffleToggleRules.IsShuffleLocked(anyStarted, anyAssignment))
             {
@@ -5646,7 +5658,7 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackages", new { assessmentId });
             }
 
-            // Propagate ke SEMUA sibling grup (pola EditAssessment foreach).
+            // Propagate ke SEMUA sibling grup cross-type (Pre↔Post share shuffle by design — JANGAN ubah scope).
             var siblings = await _context.AssessmentSessions
                 .Where(s => siblingSessionIds.Contains(s.Id))
                 .ToListAsync();
@@ -5700,9 +5712,12 @@ namespace HcPortal.Controllers
             maxAttempts = Math.Clamp(maxAttempts, 1, 5);
             retakeCooldownHours = Math.Clamp(retakeCooldownHours, 0, 168);
 
-            // Sibling group key identik shuffle (Title/Category/Schedule.Date).
+            // SHFX-06/SHUF-ISS-01: sibling key TYPE-AWARE (selaras StartExam/Reshuffle). Retake config
+            // bersifat per-type (PreTest sudah ditolak ShouldHideRetakeToggle di atas; Post retake tak
+            // berbagi setting dgn Pre by design) — propagate hanya ke sibling same-type, bukan cross-type.
             var siblingSessionIds = await _context.AssessmentSessions
-                .Where(s => s.Title == assessment.Title && s.Category == assessment.Category && s.Schedule.Date == assessment.Schedule.Date)
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
                 .Select(s => s.Id).ToListAsync();
             var siblings = await _context.AssessmentSessions.Where(s => siblingSessionIds.Contains(s.Id)).ToListAsync();
             var now = DateTime.UtcNow;
@@ -5811,10 +5826,11 @@ namespace HcPortal.Controllers
             ViewBag.IsSamePackageLocked = isPostSession && assessment.SamePackage;
 
             // === Phase 374: Shuffle toggle state ===
+            // SHFX-06/SHUF-ISS-01: lock-detection TYPE-AWARE (Pre mulai → Post TIDAK terkunci). Site GET
+            // ini MURNI lock-detection (tak ada propagation), jadi sibling key boleh sepenuhnya type-aware.
             var shufSiblingIds = await _context.AssessmentSessions
-                .Where(s => s.Title == assessment.Title &&
-                            s.Category == assessment.Category &&
-                            s.Schedule.Date == assessment.Schedule.Date)
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
                 .Select(s => s.Id)
                 .ToListAsync();
 
