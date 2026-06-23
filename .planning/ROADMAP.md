@@ -165,6 +165,7 @@ Plans:
 **Plans**: TBD
 **Migration**: FALSE.
 **File-overlap (final; sequential setelah semua fitur)**: `ExcelExportHelper`/`AddDetailPerSoalSheet` + `GeneratePerPesertaPdf` (label Section), `SyncPackagesToPost`/`CopyPackagesFromPre` (audit ulang SEMUA pemicu sync salin Section+opsi), monitoring label. Interaksi LinkPrePost (Phase 397): struktur Section harus identik Pre↔Post (blok link bila beda).
+**Carry-over dari Phase 416 (keputusan user 2026-06-23):** fix **DEF-416-01 / WR-01** — predikat ET-coverage warning `DistinctEt > K` (`AssessmentAdminController.cs:7680`) tak pernah menyala untuk data single-package (dead-nicety, non-blocking). Re-spec ke pool ET lintas paket-saudara vs `K = min(count Section antar sibling)` + selaraskan grouping warning `SectionId`→`SectionNumber` (IN-01) + test positif. Ref: `.planning/phases/416-scoped-shuffle-acak-per-section/deferred-items.md`.
 
 <details>
 <summary>✅ v32.5 Flexible Add/Remove Participant (Phases 409-414) — SHIPPED 2026-06-22</summary>

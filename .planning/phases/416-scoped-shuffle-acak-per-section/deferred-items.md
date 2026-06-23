@@ -23,3 +23,8 @@ Temuan di luar scope tugas saat ini (Plan 03). Tidak di-fix di sini; diangkat ke
   paket-saudara)` (kuota yang benar-benar dipresentasikan). Saat itu warning bisa fire bermakna.
 - **Coverage e2e saat ini:** S3 membuktikan NON-BLOCKING (load-bearing); S3b membuktikan tak ada
   false-positive (cakupan penuh → tak ada alert). Sisi-positif render alert = di-defer (predikat unreachable).
+- **DISPOSISI (keputusan user 2026-06-23):** **→ FIX DI PHASE 419** (carry-over). Phase 419 (Export Label
+  Section + Polish + Test/UAT Milestone) memang audit ulang sync lintas-paket — perbaikan predikat ET-warning
+  (pool ET lintas-sibling + group by `SectionNumber`, plus test positif) masuk scope 419. 416 ditutup sekarang
+  dengan alert dead tapi non-blocking. Saat `/gsd-discuss-phase 419` / `/gsd-plan-phase 419`: angkat DEF-416-01
+  sebagai REQ tambahan (fix ET-warning predicate) + IN-01 (selaraskan grouping SectionId→SectionNumber).
