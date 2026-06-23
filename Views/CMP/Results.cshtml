@@ -515,6 +515,14 @@
             <span class="text-muted small">Percobaan ke-@Model.CurrentAttempt dari @Model.MaxAttempts</span>
         </div>
     }
+    else if (ViewBag.WindowClosed == true)
+    {
+        @* v32.7 RTH-01 (RTK-LOGIC-02): masa ujian tutup → retake mustahil. Alert informasional (BUKAN tombol disabled), reuse alert Bootstrap existing. *@
+        <div class="alert alert-secondary mb-4" role="alert">
+            <i class="bi bi-clock-history me-2"></i>
+            Masa ujian sudah ditutup. Ujian ulang tidak tersedia untuk assessment ini. Hubungi HC bila perlu kesempatan tambahan.
+        </div>
+    }
 
     <!-- Action Buttons -->
     <div class="d-flex gap-2 mb-4">

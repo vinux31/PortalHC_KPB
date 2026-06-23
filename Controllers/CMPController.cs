@@ -2474,12 +2474,18 @@ namespace HcPortal.Controllers
                          && _context.AssessmentAttemptResponseArchives.Any(a => a.AttemptHistoryId == h.Id))
                 .CountAsync();
             int currentAttempt = eraRetakeArchives + 1;
+            // v32.7 RTH-01 (Pitfall 1 & 2): masa ujian tutup → retake MUSTAHIL. +7h WIB byte-identik StartExam:956.
+            bool windowClosed = assessment.ExamWindowCloseDate.HasValue
+                && DateTime.UtcNow.AddHours(7) > assessment.ExamWindowCloseDate.Value;
+            ViewBag.WindowClosed = windowClosed;
             // attemptsRemaining utk TIER = "retake mungkin secara prinsip" (abaikan cooldown timing):
             // AllowRetake ON, tipe tak dikecualikan (PreTest/Manual via ShouldHideRetakeToggle), attempt belum habis.
             // WAJIB sertakan AllowRetake + ShouldHideRetakeToggle → assessment non-retake → kunci boleh tampil (ShowFullReview).
+            // RTH-01 Pitfall 2: window tutup → attemptsRemaining=false → ResolveReviewMode buka full review (retake mustahil).
             bool attemptsRemaining = assessment.AllowRetake
                 && !RetakeRules.ShouldHideRetakeToggle(assessment.AssessmentType, assessment.IsManualEntry)
-                && currentAttempt < assessment.MaxAttempts;
+                && currentAttempt < assessment.MaxAttempts
+                && !windowClosed;
             viewModel.CurrentAttempt = currentAttempt;
             viewModel.MaxAttempts = assessment.MaxAttempts;
             viewModel.CanRetake = await _retakeService.CanRetakeAsync(assessment.Id);
@@ -2491,7 +2497,8 @@ namespace HcPortal.Controllers
             // CanRetake (CanRetakeAsync) bernilai FALSE selama cooldown, jadi countdown tak boleh digate olehnya.
             // IsInCooldown = layak-ulang-abaikan-cooldown (gagal + attempt-sisa) DAN cooldown masih aktif.
             viewModel.IsInCooldown = attemptsRemaining && assessment.IsPassed == false
-                && viewModel.CooldownUntilUtc.HasValue && viewModel.CooldownUntilUtc > DateTime.UtcNow;
+                && viewModel.CooldownUntilUtc.HasValue && viewModel.CooldownUntilUtc > DateTime.UtcNow
+                && !windowClosed;   // v32.7 RTH-01 Pitfall 1: window tutup → JANGAN tampilkan countdown cooldown (dead-end UX)
 
             // (b) Riwayat load — cermin verbatim RiwayatPercobaan :3493-3522 (reuse RetakeArchiveBuilder + RiwayatUnifier).
             var histories = await _context.AssessmentAttemptHistory
