@@ -47,8 +47,12 @@ async function setMode(page: Page, value: 'Standard' | 'PrePostTest'): Promise<v
   await page.selectOption('#creationMode', value);
 }
 
-const postTestCard = (page: Page) => page.locator('.card', { hasText: 'Setelan Post-Test' });
-const sharedCard = (page: Page) => page.locator('.card', { hasText: 'Setelan Bersama Pre' });
+// Scope ke #prePostSettingsCards (descendant .card = sub-kartu, BUKAN wrapper/wizard-card luar) →
+// hindari strict-mode violation (UAT 2026-06-23: `.card` polos resolve 3 elemen). Pakai toHaveCount
+// (BUKAN toBeVisible): assertion render-mode dilakukan di Step 1 sementara sub-kartu ada di Step 3
+// (display:none) — kontrak nyata redesign = toggle kelas d-none/disabled, bukan visibilitas Step 3.
+const postTestCard = (page: Page) => page.locator('#prePostSettingsCards .card', { hasText: 'Setelan Post-Test' });
+const sharedCard = (page: Page) => page.locator('#prePostSettingsCards .card', { hasText: 'Setelan Bersama Pre' });
 
 test.describe('Phase 420 FORM-07..11 — render per-mode + regresi Standard', () => {
   test.beforeAll(async () => {
@@ -81,8 +85,8 @@ test.describe('Phase 420 FORM-07..11 — render per-mode + regresi Standard', ()
     // Pilih Pre-Post → wrapper sub-kartu tampil + dua heading visible (FORM-10: JS creationMode jalan).
     await setMode(page, 'PrePostTest');
     await expect(page.locator('#prePostSettingsCards')).not.toHaveClass(/d-none/);
-    await expect(postTestCard(page)).toBeVisible();
-    await expect(sharedCard(page)).toBeVisible();
+    await expect(postTestCard(page)).toHaveCount(1);
+    await expect(sharedCard(page)).toHaveCount(1);
 
     // Kembali Standard → wrapper sub-kartu hidden lagi (regresi DOM tunggal).
     await setMode(page, 'Standard');
@@ -99,7 +103,7 @@ test.describe('Phase 420 FORM-07..11 — render per-mode + regresi Standard', ()
     // Pre-Post → SamePackage checkbox tampil di header + berada DI LUAR #ppt-jadwal-section (kartu Pre/Post).
     await setMode(page, 'PrePostTest');
     await expect(page.locator('#samePackageHeaderWrapper')).not.toHaveClass(/d-none/);
-    await expect(page.locator('#samePackageHeaderWrapper input[name="SamePackage"]')).toBeVisible();
+    await expect(page.locator('#samePackageHeaderWrapper input[name="SamePackage"]')).toHaveCount(1);
     // Header berada di luar kartu Pre/Post (tidak ada SamePackage di dalam #ppt-jadwal-section).
     await expect(page.locator('#ppt-jadwal-section input[name="SamePackage"]')).toHaveCount(0);
   });

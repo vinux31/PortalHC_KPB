@@ -61,7 +61,10 @@ async function createStandardAssessment(page: Page, title: string): Promise<numb
 }
 
 async function openEdit(page: Page, id: number): Promise<void> {
-  await page.goto(`/Admin/EditAssessment/${id}`);
+  // Route: AssessmentAdminController is attribute-routed `[Route("Admin/[action]")]` (no `{id}`
+  // segment) → path-style `/Admin/EditAssessment/{id}` 404s. EditAssessment(int id) binds id from
+  // query string. Verified live @5270 UAT 2026-06-23 (Task 4 checkpoint).
+  await page.goto(`/Admin/EditAssessment?id=${id}`);
   await page.waitForLoadState('networkidle');
   // Pastikan halaman Edit (bukan redirect manual/lock).
   await expect(page.locator('#editAssessmentForm')).toBeVisible();
