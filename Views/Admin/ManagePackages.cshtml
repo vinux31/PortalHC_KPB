@@ -193,15 +193,18 @@
           </div>
         </div>
         <script>
-            (function () {
+            // v32.7 RTH-05/D-07: WAJIB DOMContentLoaded — script ini ter-render inline di tengah body,
+            // sedangkan bootstrap.bundle dimuat di akhir layout. Tanpa defer → `bootstrap is not defined`
+            // (ReferenceError) → interceptor submit tak ke-attach → modal tak muncul (lesson Phase 390.1).
+            document.addEventListener('DOMContentLoaded', function () {
                 var form = document.getElementById('retakeSettingsForm');
                 if (!form) return;
                 var usedInGroup = @(ViewBag.RetakeMaxAttemptsUsedInGroup ?? 0);   // angka terpakai dari GET (MaxInGroupAsync, D-05)
                 var confirmed = false;
                 var modalEl = document.getElementById('retakeMaxConfirmModal');
-                var modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+                var modal = (modalEl && typeof bootstrap !== 'undefined') ? new bootstrap.Modal(modalEl) : null;
                 form.addEventListener('submit', function (e) {
-                    if (confirmed || !modal) return;   // sudah dikonfirmasi → biarkan submit
+                    if (confirmed || !modal) return;   // sudah dikonfirmasi (atau modal tak tersedia) → biarkan submit
                     var input = document.getElementById('maxAttempts');
                     var val = input ? parseInt(input.value, 10) : NaN;
                     if (!isNaN(val) && val < usedInGroup) {   // non-blocking: hanya konfirmasi, server tetap simpan
@@ -215,7 +218,7 @@
                     if (modal) modal.hide();
                     form.submit();
                 });
-            })();
+            });
         </script>
     }
 
