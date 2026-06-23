@@ -1086,4 +1086,50 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
             Assert.Equal(1, await verify.PackageQuestions.CountAsync(q => q.AssessmentPackageId == targetPackageId && q.SectionId == null));
         }
     }
+
+    // =================================================================================================
+    //  L1 (D: backfill-saat-kosong) — re-import mengisi Nama Section existing yang KOSONG dari kolom Excel
+    //  "Nama Section", TAPI tidak menimpa Nama yang sudah ada (lindungi edit manual di panel). Pra-fix:
+    //  guard `newSections.Contains(existing)` selalu false untuk Section dari DB → Nama existing tak pernah
+    //  ke-backfill (silent no-op). Single package (tanpa sibling) → count guard di-skip.
+    // =================================================================================================
+    [Fact]
+    public async Task L1_ImportBackfillsBlankSectionName_DoesNotOverwriteExisting()
+    {
+        int packageId; string actorId;
+        await using (var seed = NewCtx())
+        {
+            var (_, pkgId, _, _, _) = await SeedSessionPackageAsync(seed, "Paket L1");
+            packageId = pkgId;
+            // Section 1: Nama KOSONG (null) → harus ke-backfill dari Excel.
+            seed.AssessmentPackageSections.Add(new AssessmentPackageSection { AssessmentPackageId = pkgId, SectionNumber = 1, Name = null });
+            // Section 2: Nama sudah ada → TIDAK boleh ditimpa.
+            seed.AssessmentPackageSections.Add(new AssessmentPackageSection { AssessmentPackageId = pkgId, SectionNumber = 2, Name = "Manual Pompa" });
+            await seed.SaveChangesAsync();
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+
+        var file = BuildNewFormatFile(new[]
+        {
+            new[] { "S1 soal?", "a1", "a2", "a3", "a4", "", "", "A", "1", "Excel Pompa",    "K3", "MultipleChoice", "" },
+            new[] { "S2 soal?", "b1", "b2", "b3", "b4", "", "", "A", "2", "Excel Override", "K3", "MultipleChoice", "" },
+        });
+
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "ImportPackageQuestions");
+            var res = await ctrl.ImportPackageQuestions(packageId, file, null);
+            Assert.IsType<RedirectToActionResult>(res);
+            Assert.Null(DeserializeMismatch((TempDataDictionary)ctrl.TempData));
+        }
+
+        await using (var verify = NewCtx())
+        {
+            var sec1 = await verify.AssessmentPackageSections.FirstAsync(s => s.AssessmentPackageId == packageId && s.SectionNumber == 1);
+            var sec2 = await verify.AssessmentPackageSections.FirstAsync(s => s.AssessmentPackageId == packageId && s.SectionNumber == 2);
+            Assert.Equal("Excel Pompa", sec1.Name);   // KOSONG → ke-backfill dari Excel
+            Assert.Equal("Manual Pompa", sec2.Name);  // non-kosong → TIDAK ditimpa
+        }
+    }
 }
