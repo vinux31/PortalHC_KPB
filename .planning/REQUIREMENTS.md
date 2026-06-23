@@ -27,8 +27,8 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 - [x] **RTH-01**: Ujian ulang ditolak bila ExamWindowCloseDate sudah lewat — sesi live tidak dihapus (tidak ada dead-end destruktif). [RTK-LOGIC-02, HIGH]
 - [x] **RTH-02**: Reset assessment oleh HC menghapus NomorSertifikat sehingga sesi non-lulus tidak menyandang nomor sertifikat menggantung. [RTK-LOGIC-01]
 - [x] **RTH-03**: Penghitungan jumlah percobaan konsisten antara batas (cap) dan peringatan di ManagePackages. [RTK-LOGIC-03]
-- [ ] **RTH-04**: Guard hapus peserta menolak/menangani sesi Abandoned atau ber-riwayat percobaan, dan membersihkan arsip respons terkait. [PA-06]
-- [ ] **RTH-05**: Mengubah MaxAttempts di bawah jumlah percobaan yang sudah terpakai memunculkan peringatan (non-blocking). [VAL-06]
+- [x] **RTH-04**: Guard hapus peserta menolak/menangani sesi Abandoned atau ber-riwayat percobaan, dan membersihkan arsip respons terkait. [PA-06]
+- [x] **RTH-05**: Mengubah MaxAttempts di bawah jumlah percobaan yang sudah terpakai memunculkan peringatan (non-blocking). [VAL-06]
 
 ### SHFX — SamePackage & Shuffle Integrity (Phase 422)
 
@@ -103,8 +103,8 @@ Diakui tapi ditunda dari v32.7.
 | RTH-01 | Phase 421 | Complete |
 | RTH-02 | Phase 421 | Complete |
 | RTH-03 | Phase 421 | Complete |
-| RTH-04 | Phase 421 | Pending |
-| RTH-05 | Phase 421 | Pending |
+| RTH-04 | Phase 421 | Complete |
+| RTH-05 | Phase 421 | Complete |
 | SHFX-01 | Phase 422 | Pending |
 | SHFX-02 | Phase 422 | Pending |
 | SHFX-03 | Phase 422 | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
-status: executing
+status: verifying
 stopped_at: Phase 421 UI-SPEC approved
-last_updated: "2026-06-23T07:18:49.971Z"
+last_updated: "2026-06-23T08:10:27.858Z"
 last_activity: 2026-06-23
 progress:
   total_phases: 39
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
 Phase: 421 (Retake Lifecycle Hardening) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-23
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
