@@ -140,10 +140,11 @@ public class PostLisensorPolishTests : IClassFixture<PostLisensorPolishFixture>
         if (question.QuestionType != "Essay")
             return new(false, "Soal ini bukan tipe Essay.");
 
-        // 2c. WR-02 — questionId WAJIB milik sesi ini (387-01)
-        var ownsQuestion = await ctx.PackageQuestions
-            .AnyAsync(q => q.Id == questionId && q.AssessmentPackage.AssessmentSessionId == sessionId);
-        if (!ownsQuestion)
+        // 2c. WR-02 (FIXED 415.1) — questionId WAJIB bagian assignment peserta INI; null->allow (D-02).
+        //     Byte-identik controller SubmitEssayScore (replica-validity).
+        var assignment = await ctx.UserPackageAssignments
+            .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+        if (assignment != null && !assignment.GetShuffledQuestionIds().Contains(questionId))
             return new(false, "Soal bukan milik sesi ini.");
 
         // 3. UPSERT EssayScore
@@ -195,6 +196,10 @@ public class PostLisensorPolishTests : IClassFixture<PostLisensorPolishFixture>
         var (sessionB, pkgB) = await SeedSessionAsync(ctx, userId, S.PendingGrading);
         // Soal essay milik sesi B, tapi SubmitEssayScore dipanggil dgn sessionId = A.
         var essayB = await SeedQuestionAsync(ctx, pkgB, "Essay", 10, 1, "Essay milik B.");
+        // 415.1: seed UPA sessionA TANPA essayB → genuine tamper tetap ditolak (bukan jatuh ke cabang null-allow).
+        ctx.UserPackageAssignments.Add(new UserPackageAssignment
+        { AssessmentSessionId = sessionA, AssessmentPackageId = pkgA, UserId = userId, ShuffledQuestionIds = "[]" });
+        await ctx.SaveChangesAsync();
 
         var result = await RunSubmitEssayScoreLogicAsync(ctx, sessionA, essayB, 7);
 
@@ -204,6 +209,47 @@ public class PostLisensorPolishTests : IClassFixture<PostLisensorPolishFixture>
         var row = await verify.PackageUserResponses
             .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionA && r.PackageQuestionId == essayB);
         Assert.Null(row);  // tak ada baris cross-session tertulis
+    }
+
+    [Fact]
+    public async Task SubmitEssayScore_CrossPackageAssignedQuestion_Succeeds()  // 415.1 BUKTI FIX
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        // Sesi INDUK (S1) memiliki paket P + essayQ.
+        var (parentSession, parentPkg) = await SeedSessionAsync(ctx, userId, S.PendingGrading);
+        var essayQ = await SeedQuestionAsync(ctx, parentPkg, "Essay", 10, 1, "Essay milik paket induk.");
+        // Sesi worker LAIN (S2) — paket P dipool ke S2 (UPA S2.ShuffledQuestionIds MEMUAT essayQ).
+        var (workerSession, _) = await SeedSessionAsync(ctx, userId, S.PendingGrading);
+        ctx.UserPackageAssignments.Add(new UserPackageAssignment
+        { AssessmentSessionId = workerSession, AssessmentPackageId = parentPkg, UserId = userId,
+          ShuffledQuestionIds = "[" + essayQ + "]" });
+        await ctx.SaveChangesAsync();
+
+        var result = await RunSubmitEssayScoreLogicAsync(ctx, workerSession, essayQ, 5);
+
+        Assert.True(result.Success);  // sebelum fix: reject "Soal bukan milik sesi ini."
+        await using var verify = NewCtx();
+        var row = await verify.PackageUserResponses
+            .FirstAsync(r => r.AssessmentSessionId == workerSession && r.PackageQuestionId == essayQ);
+        Assert.Equal(5, row.EssayScore);  // baris EssayScore tertulis untuk soal cross-package
+    }
+
+    [Fact]
+    public async Task SubmitEssayScore_NullAssignment_Allowed()  // 415.1 D-02
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var (sessionId, pkgId) = await SeedSessionAsync(ctx, userId, S.PendingGrading);
+        var essayQ = await SeedQuestionAsync(ctx, pkgId, "Essay", 10, 1, "Essay tanpa UPA.");
+        // TANPA UserPackageAssignment untuk sessionId (kasus degenerate).
+        var result = await RunSubmitEssayScoreLogicAsync(ctx, sessionId, essayQ, 7);
+
+        Assert.True(result.Success);  // null assignment → diizinkan (andalkan guard sisa)
+        await using var verify = NewCtx();
+        var row = await verify.PackageUserResponses
+            .FirstAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == essayQ);
+        Assert.Equal(7, row.EssayScore);
     }
 
     [Fact]
