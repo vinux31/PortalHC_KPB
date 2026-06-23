@@ -74,7 +74,7 @@ Mode **Standard** WAJIB tak berubah perilaku DOM+payload. Dilindungi:
 - e2e `form-prepost-ux-420.spec.ts` skenario "Regresi Standard" (round-trip Pre-Post→Standard restore DOM tunggal) — ✅ green.
 - e2e `assessment.spec.ts` 8.3/8.4 (mode-switch Status, rename-critical) — ✅ green.
 - unit `EditCompletedLockGuard_StandardCompleted_*` (regresi guard standard) — ✅ green.
-- CATATAN out-of-scope: `assessment.spec.ts` 8.1/8.2 gagal pada `toBeVisible`/`selectOption` #Status step-3-dari-step-1 — flaw scaffold WAVE-0 PRE-EXISTING (bukan regresi 420; kontrak Status terbukti utuh via UAT live).
+- `assessment.spec.ts` 8.1/8.2 — **FIXED 2026-06-23** (debt scaffold Phase 308, BUKAN regresi 420): diubah ke kontrak observable value+class spt 8.3/8.4; tak lagi `toBeVisible`/`selectOption` atas `#Status` (step-3) dari step-1. **FLOW 8 (8.1-8.4) hijau penuh.**
 
 ---
 

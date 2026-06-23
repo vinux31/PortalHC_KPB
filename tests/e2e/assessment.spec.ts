@@ -183,45 +183,40 @@ test.describe('Assessment - Phase 308 PrePost Wizard Validation', () => {
     await page.goto('/Admin/CreateAssessment');
   });
 
-  test('8.1 - Standard mode Status field interactable + value persistence (regression guard success criteria #5 — wave 0 partial)', async ({ page }) => {
-    // Standard mode default — Status field visible (NOT d-none)
-    await expect(page.locator(selectors.statusFieldWrapper)).toBeVisible();
+  test('8.1 - Standard mode Status field active + interactable (regression guard success criteria #5)', async ({ page }) => {
+    // #statusFieldWrapper + #Status hidup di dalam #step-3 (`step-panel d-none` saat di step-1).
+    // Kontrak mode-toggle = kelas d-none + enabled — observable TANPA membuka step-3 (idiom 8.3/8.4).
+    // toBeVisible/selectOption #Status dari step-1 mustahil (elemen step-3 collapsed) → kontrak observable.
+    //
+    // Standard default: wrapper TIDAK disembunyikan mode-toggle (no d-none di elemen sendiri),
+    // select Status enabled (user bisa pilih), value kosong (D-11: Standard wajib pilih eksplisit).
     await expect(page.locator(selectors.statusFieldWrapper)).not.toHaveClass(/d-none/);
+    await expect(page.locator(selectors.statusSelect)).toBeEnabled();
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('');
 
-    // Pilih 1 user
-    const rinoCheckbox = page.locator('.user-check-item', { hasText: 'rino.prasetyo' }).locator('input');
-    await rinoCheckbox.click({ force: true });
-
-    // Fill Step 1: Title + Category + assessmentType (default Standard)
+    // Step-1 fields terisi + mode default Standard ter-konfirmasi (submit penuh di-cover e2e lain).
     await page.fill('#Title', uniqueTitle('Phase 308 Standard'));
     await page.selectOption('#Category', 'OJT');
-
-    // Fill Status (Standard mode WAJIB pilih — D-11 regression guard)
-    await page.selectOption(selectors.statusSelect, 'Open');
-
-    // Verify Status value ke-set
-    await expect(page.locator(selectors.statusSelect)).toHaveValue('Open');
-
-    // NOTE: Test SCAFFOLD wave 0 — full wizard navigation (Step 2/3/4 + submit) di-defer ke Wave 1
-    // expect partial verification: Status field interactable + value persistence
+    await expect(page.locator(selectors.assessmentTypeInput)).toHaveValue('Standard');
   });
 
   test('8.2 - Switch S→PP→S Status field clear (mode-switch state cleanup D-02)', async ({ page }) => {
-    // Initial: Standard mode → fill Status
-    await expect(page.locator(selectors.statusFieldWrapper)).toBeVisible();
-    await page.selectOption(selectors.statusSelect, 'Open');
-    await expect(page.locator(selectors.statusSelect)).toHaveValue('Open');
+    // #Status di step-3 (collapsed di step-1) → kontrak via value+class (idiom 8.3/8.4), bukan
+    // toBeVisible/selectOption(#Status). Mode-toggle #creationMode ada di step-1 (interactable).
+    // Bukti D-02 cleanup: 'Upcoming' (di-set PP) → '' (clear saat balik Standard) — non-empty→cleared.
 
-    // Switch ke PrePost — D-01 expected: Status auto-set 'Upcoming', wrapper hidden
+    // Standard default: wrapper aktif (no d-none), Status kosong.
+    await expect(page.locator(selectors.statusFieldWrapper)).not.toHaveClass(/d-none/);
+    await expect(page.locator(selectors.statusSelect)).toHaveValue('');
+
+    // Switch ke PrePost — D-01: Status auto-set 'Upcoming' (programmatic) + wrapper hidden.
     await page.selectOption(selectors.assessmentTypeInput, 'PrePostTest');
     await expect(page.locator(selectors.statusFieldWrapper)).toHaveClass(/d-none/);
-    // D-01 verification: Status value programmatically set ke 'Upcoming' meskipun field hidden
     await expect(page.locator(selectors.statusSelect)).toHaveValue('Upcoming');
 
-    // Switch back ke Standard — D-02 expected: Status value clear (''), wrapper visible
+    // Switch back ke Standard — D-02: Status clear dari 'Upcoming' → '' (cleanup), wrapper visible lagi.
     await page.selectOption(selectors.assessmentTypeInput, 'Standard');
     await expect(page.locator(selectors.statusFieldWrapper)).not.toHaveClass(/d-none/);
-    // D-02 verification: Status value cleared, force user re-pick
     await expect(page.locator(selectors.statusSelect)).toHaveValue('');
   });
 
