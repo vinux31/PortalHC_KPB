@@ -5910,6 +5910,22 @@ namespace HcPortal.Controllers
                 .Where(p => p.AssessmentSessionId == postSessionId)
                 .ToListAsync();
 
+            // v32.7 Phase 422 WR-02 (kill-drift): bersihkan UserPackageAssignment Post yang menunjuk paket
+            // yang akan DIHAPUS, SEBELUM RemoveRange. UserPackageAssignment.AssessmentPackageId ber-FK
+            // OnDelete(Restrict) (ApplicationDbContext.cs:543-546) → menghapus paket Post sementara ada UPA
+            // yang merujuknya melempar DbUpdateException. Dipusatkan DI SINI agar SEMUA 7 caller (toggle +
+            // CreatePackage/DeletePackage/CreateQuestion/EditQuestion/DeleteQuestion/Import) ter-cover
+            // (defense-in-depth: legacy data / jalur out-of-band). Lingkup by AssessmentPackageId (FK Restrict).
+            var postPkgIds = existingPostPkgs.Select(p => p.Id).ToList();
+            if (postPkgIds.Count > 0)
+            {
+                var staleUpa = await _context.UserPackageAssignments
+                    .Where(a => postPkgIds.Contains(a.AssessmentPackageId))
+                    .ToListAsync();
+                if (staleUpa.Count > 0)
+                    _context.UserPackageAssignments.RemoveRange(staleUpa);
+            }
+
             foreach (var pkg in existingPostPkgs)
             {
                 foreach (var q in pkg.Questions)
