@@ -47,15 +47,15 @@ key-decisions:
 requirements-completed: [FORM-07, FORM-08, FORM-09, FORM-10, FORM-11]
 
 # Metrics
-duration: in-progress
-completed: 2026-06-22
+duration: complete
+completed: 2026-06-23
 ---
 
 # Phase 420 Plan 03: Form Create/Edit — Persistensi Field + UX Pre-Post Summary
 
 **Redesign tata-letak form Create mode Pre-Post (SamePackage ke header, dua sub-kartu scope-explicit, retake disembunyikan, input standard di-disable agar tak ter-POST) + rename atomik penanda mode internal `AssessmentTypeInput`->`CreationMode` — mode Standard WAJIB tidak berubah perilaku (backward-compat = risiko utama, dijaga via DOM-relokasi single-source). Plus 2 spec e2e (FORM-01 lifecycle + per-mode FORM-07..11 + regresi Standard).**
 
-> STATUS: 3/4 task auto SELESAI + commit. **Task 4 = checkpoint:human-verify (UAT live @5270) — MENUNGGU orchestrator/user.** Plan BELUM complete.
+> STATUS: ✅ **COMPLETE** (4/4 task). Task 4 (UAT live @5270) DONE 2026-06-23 — `420-UAT.md` status:complete, 8/8 pass, 0 issue (commit `3b8f8ac6`). Plan + phase 420 lulus semua gerbang (secure 13/13, validate NYQUIST 11/11).
 
 ## Status Saat Ini
 
@@ -64,7 +64,7 @@ completed: 2026-06-22
 | 1 | FORM-10 rename atomik AssessmentTypeInput -> CreationMode | auto | DONE | `1ddfc952` |
 | 2 | FORM-07/08/09/11 redesign view Create Pre-Post + JS toggle | auto | DONE | `3bdc29f8` |
 | 3 | 2 spec e2e (persistence-420 + prepost-ux-420) | auto | DONE | `2c558a75` |
-| 4 | UAT live @5270 render per-mode + regresi Standard | checkpoint:human-verify | **AWAITING** | — |
+| 4 | UAT live @5270 render per-mode + regresi Standard | checkpoint:human-verify | ✅ DONE | `3b8f8ac6` |
 
 ## Accomplishments (task auto)
 - **FORM-10 (rename atomik):** `AssessmentTypeInput` -> `CreationMode` di 6 ref controller (param + ViewBag + 2 compare + isPrePostMode + validasi/ModelState key) + 9 ref view (select name + id + 8 JS `getElementById('creationMode')`) + XML-doc model 4-nilai. Kolom DB `AssessmentType` TIDAK disentuh. Grep produksi (Controllers/+Views/) 0 sisa.
@@ -132,5 +132,5 @@ None — migration=FALSE (tidak ada perubahan schema).
 
 ---
 *Phase: 420-form-create-edit-persistensi-field-ux-pre-post*
-*Status: 3/4 task auto DONE — Task 4 (UAT live) AWAITING orchestrator/user. Plan BELUM complete.*
-*Updated: 2026-06-22*
+*Status: ✅ COMPLETE 4/4 — Task 4 (UAT live @5270) DONE 2026-06-23 (8/8 pass). Phase 420 lulus semua gerbang (UAT/secure/validate).*
+*Updated: 2026-06-23*

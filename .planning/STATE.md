@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
 status: executing
-stopped_at: Paused at 420-03 Task 4 checkpoint (UAT live @5270 awaiting)
-last_updated: "2026-06-22T14:19:55.200Z"
-last_activity: 2026-06-22
+stopped_at: Phase 420 complete (UAT 8/8 + secure 13/13 + validate NYQUIST 11/11) — next Phase 421
+last_updated: "2026-06-23T03:35:00.000Z"
+last_activity: 2026-06-23
 progress:
   total_phases: 39
   completed_phases: 1
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 420 — Form Create/Edit — Persistensi Field + UX Pre-Post
+**Current focus:** Phase 420 ✅ COMPLETE (all gates) — next Phase 421 (Retake Lifecycle Hardening)
 
 ## Current Position
 
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
-Phase: 420 (Form Create/Edit — Persistensi Field + UX Pre-Post) — EXECUTING
+Phase: 420 (Form Create/Edit — Persistensi Field + UX Pre-Post) — ✅ COMPLETE (all gates)
 Plan: 3 of 3
-Status: 420-03 paused at Task 4 checkpoint:human-verify (UAT live @5270 awaiting) — task auto 1-3 SHIPPED, plan BELUM complete
-Last activity: 2026-06-22
+Status: 420 COMPLETE — UAT 8/8 (0 issue), secure 13/13 (threats_open 0), validate NYQUIST 11/11. Task 4 checkpoint closed via 420-UAT.md (commit 3b8f8ac6, 2026-06-23). Next: Phase 421.
+Last activity: 2026-06-23
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
 ## Next Action
 
-**v32.7 roadmap created ✅ — next `/gsd-plan-phase 420`.** Sumber: audit `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (~60 temuan, 4 High). 6 fase 420-425 (1:1 dgn kategori REQ), urutan eksekusi **sekuensial by file-overlap** 420 → 421 → 422 → 423 → 424 → 425:
+**Phase 420 ✅ COMPLETE (UAT/secure/validate all green) — next `/gsd-discuss-phase 421`.** Sumber: audit `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (~60 temuan, 4 High). 6 fase 420-425 (1:1 dgn kategori REQ), urutan eksekusi **sekuensial by file-overlap** 420 → 421 → 422 → 423 → 424 → 425:
 
 1. **Phase 420 (P1) FORM** — Form Create/Edit persistensi field (E-01 🔴) + UX Pre-Post. FORM-01..11. migration=FALSE.
 2. **Phase 421 (P2) RTH** — Retake lifecycle hardening (RTK-LOGIC-02 🔴). RTH-01..05. migration=FALSE.
@@ -46,7 +46,7 @@ Last activity: 2026-06-22
 
 **Coverage:** 42/42 v1 REQ mapped, 0 orphan, 0 duplikat. Keputusan bisnis terkonfirmasi: (a) Pre wajib selesai dulu (GRDF-01); (b) SamePackage fleksibel (SHFX-02); (c) soal Post=Pre sudah ada (SamePackage). Inject (VAL-01) & Section/ScopedShuffle (v32.6) OUT-of-scope.
 
-**NEXT:** `/gsd-plan-phase 420`. Fase mulai 420 (main pakai 409-419: v32.5=409-414, v32.6=415-419) — hindari integer collision saat bundle deploy.
+**NEXT:** `/gsd-discuss-phase 421` (Phase 420 ✅ done — 4 gerbang lulus; 5 commit lokal `1bb18090`→`056b1201`, NOT pushed). Fase mulai 420 (main pakai 409-419: v32.5=409-414, v32.6=415-419) — hindari integer collision saat bundle deploy.
 
 **Deploy bundle (user-owned):** v32.1 + v32.3 + v32.4 (+v32.7 saat siap) → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` + Fase 405 retake cols + v32.7 migration P3/P6 TBD; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`).
 
@@ -140,8 +140,8 @@ Backlog tracked: 999.6/9/10/11/12.
 
 ## Session Continuity
 
-Last activity: 2026-06-22
+Last activity: 2026-06-23
 
-Stopped at: Paused at 420-03 Task 4 checkpoint (UAT live @5270 awaiting)
+Stopped at: Phase 420 ✅ COMPLETE — semua gerbang lulus (UAT 8/8, secure 13/13 threats_open 0, validate NYQUIST 11/11); Task 4 checkpoint ditutup. Test-debt Phase 308 8.1/8.2 juga di-fix (FLOW 8 hijau). Siap Phase 421.
 
-Next action: **`/gsd-plan-phase 420`** (FORM Create/Edit persistensi field + UX Pre-Post; FORM-01..11; memuat HIGH E-01 shuffle reset-OFF). Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.
+Next action: **`/gsd-discuss-phase 421`** (Retake Lifecycle Hardening; RTH-01..05; RTK-LOGIC-02 🔴 retake dead-end). Phase 420 done. Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.
