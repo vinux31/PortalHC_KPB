@@ -47,7 +47,7 @@
  (completed 2026-06-24)
 - [x] **Phase 418: Opsi Jawaban Dinamis 2–6** — Refactor kontrak HTTP CreateQuestion/EditQuestion + form authoring + form Inject + render ujian/preview/results huruf A–F dinamis + import Opsi A–F + validator min-2/max-6. migration=FALSE.
  (completed 2026-06-24)
-- [ ] **Phase 419: Export Label Section + Polish + Test/UAT Milestone** — Label/header Section di export per-soal (Excel/PDF) + sync Pre→Post struktur Section + audit interaksi lintas-milestone + suite test baru + Playwright real-browser UAT + audit milestone. migration=FALSE.
+- [x] **Phase 419: Export Label Section + Polish + Test/UAT Milestone** — Label/header Section di export per-soal (Excel/PDF) + sync Pre→Post struktur Section + audit interaksi lintas-milestone + suite test baru + Playwright real-browser UAT + audit milestone. migration=FALSE. (completed 2026-06-24)
 
 **Coverage:** 20/20 REQ mapped (SEC-01..06+IMP-01..03 → 415; SHF-01..04 → 416; PAG-01/02/03 → 417; OPT-01..03 → 418; PAG-04 → 419). Spec: [design](../docs/superpowers/specs/2026-06-22-section-scoped-shuffle-pagination-dynamic-options-design.md).
 
@@ -60,7 +60,7 @@
 | 416. Scoped Shuffle (Acak per-Section) | 0/3 | 3/3 | Complete    | 2026-06-23 |
 | 417. Section Pagination | 0/3 | 3/3 | Complete   | 2026-06-24 |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/4 | 4/4 | Complete   | 2026-06-24 |
-| 419. Export Label Section + Polish + Test/UAT | 0/? | 4/4 | Complete   | 2026-06-24 |
+| 419. Export Label Section + Polish + Test/UAT | 0/? | 4/4 | Complete    | 2026-06-24 |
 
 **Dependency DAG:** 415 (keystone) → 416 → 417 ; 415 → 418 (workstream agak terpisah, sequential anti-konflik file) ; (415,416,417,418) → 419.
 **Catatan sekuensial (file-overlap):** 416 dan 418 sama-sama menyentuh authoring/`StartExam.cshtml`/import → jalankan **berurutan, bukan paralel** (mirror v32.5/v32.2). 417 & 418 sama-sama edit `StartExam.cshtml` → jangan paralel.
@@ -210,7 +210,7 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 - **Promosikan HANYA bila** muncul surface LinkPrePost non-inject yang menaut dua room ber-Section yang di-author independen (mis. fitur "link dua room online existing"). Saat itu guard ini baru reachable & bernilai. 0 migration.
 
 **Requirements:** TBD
-**Plans:** 0 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
