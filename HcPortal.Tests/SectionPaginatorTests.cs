@@ -131,6 +131,10 @@ public class SectionPaginatorTests
     {
         Assert.Equal(2, SectionPaginator.ClampResumePage(2, 4));
         Assert.Equal(0, SectionPaginator.ClampResumePage(0, 4));
+        // WR-02 boundary: batas atas tepat (requested == maxPage = halaman terakhir) HARUS lolos apa adanya,
+        // bukan di-clamp ke 0 / over. Server guard pakai `> maxPage` (inklusif maxPage), client guard pakai
+        // `< TOTAL_PAGES` (== `<= maxPage`) — pin boundary ini supaya regresi (mis. `>` jadi `>=`) tertangkap.
+        Assert.Equal(4, SectionPaginator.ClampResumePage(4, 4));
     }
 
     [Fact] // PAG-03
