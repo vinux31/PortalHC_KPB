@@ -747,7 +747,12 @@ else
             // If RESUME_PAGE === 0 the worker simply opened the exam and left without answering —
             // there's nothing to restore, so a "failure" toast is misleading.
             if (RESUME_PAGE > 0) {
-                showResumeFailureToast('Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. ' + (RESUME_PAGE * QUESTIONS_PER_PAGE + 1) + '.');
+                // Phase 417 WR-01: turunkan nomor soal dari sumber yang SAMA dengan toast INFO (D-417-06),
+                // bukan rumus flat lama (RESUME_PAGE * QUESTIONS_PER_PAGE + 1) yang salah di mode section-aware
+                // (batas halaman tak lagi sejajar kelipatan QUESTIONS_PER_PAGE saat ada StartNewPage / section pendek).
+                var firstQid = pageQuestionIds[RESUME_PAGE] && pageQuestionIds[RESUME_PAGE][0];
+                var num = firstQid ? getDisplayNumForQuestion(firstQid) : (RESUME_PAGE * QUESTIONS_PER_PAGE + 1);
+                showResumeFailureToast('Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. ' + num + '.');
             }
             return;
         }
