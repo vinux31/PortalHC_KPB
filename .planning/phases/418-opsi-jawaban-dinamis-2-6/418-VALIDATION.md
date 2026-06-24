@@ -38,7 +38,7 @@ created: 2026-06-24
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists | Status |
 |--------|----------|-----------|-------------------|-------------|--------|
-| OPT-03 | Validator tolak <2 opsi | unit | `--filter OptionValidation` | ✅ `QuestionOptionValidatorTests` (min-2 ada) | ⬜ |
+| OPT-03 | Validator tolak <2 opsi | unit | `--filter OptionValidation` | ✅ `OptionValidationTests.cs` (min-2 ada) | ⬜ |
 | OPT-03 | Validator tolak >6 opsi (BARU) | unit | `--filter OptionValidation_MaxSix` | ❌ W0 | ⬜ |
 | OPT-03 | Validator terima 5 & 6 opsi valid | unit | idem | ❌ W0 | ⬜ |
 | OPT-03 | correct-tanpa-teks ditolak (array-6) | unit | idem | ❌ W0 (extend) | ⬜ |
@@ -61,7 +61,7 @@ created: 2026-06-24
 
 ## Wave 0 Requirements
 
-- [ ] `QuestionOptionValidatorTests` (atau `OptionValidationTests`) — tambah Fact: `MaxSix_Rejected`, `FiveOptions_Accepted`, `SixOptions_Accepted`, `SixOpt_CorrectWithoutText_Rejected` (extend array→6). Covers **OPT-03**.
+- [ ] `OptionValidationTests.cs` — tambah Fact: `MaxSix_Rejected`, `FiveOptions_Accepted`, `SixOptions_Accepted`, `SixOpt_CorrectWithoutText_Rejected` (extend array→6). Covers **OPT-03**.
 - [ ] Edit-shrink guard test — pure-logic (`removedOptionIds ∩ responseOptionIds`) ATAU integration real-SQL (pola `SectionFixRegressionTests`/`SubmitResurrectionTests` yang seed `PackageUserResponse`). Covers **D-418-02**.
 - [ ] `tests/e2e/option-dynamic-418.spec.ts` — add/remove rows, disabled@6, min-2, re-letter, render A–F, PreviewPackage 6th="F", edit 5-opsi prefill, image-row reassociation (flag#4), edit-shrink blocked message. Covers **OPT-01/OPT-02/D-418-02**. Pakai DB BACKUP/RESTORE (SEED_WORKFLOW).
 - [ ] Extend `wizardSelectors.ts` — `optionE/F`, `correctE/F`, `optE/FImgField`/`ImageAlt`, `addOptionBtn`, `removeOptionBtn`.
