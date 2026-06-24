@@ -29,8 +29,9 @@ Fase **TERAKHIR** milestone v32.6. Tiga tujuan:
   - **Huruf opsi A–F dinamis** (Phase 418) WAJIB konsisten di export (reuse `AssessmentScoreAggregator.BuildAnswerCell`/`IsQuestionCorrect` — kill-drift dengan web Results).
 
 ### Guard LinkPrePost × Section
-- **D-02:** **Hard-block bila struktur Section beda.** LinkPrePost (Phase 397) **menolak** menaut Pre↔Post bila struktur Section tidak identik (jumlah Section + jumlah soal per-SectionNumber per paket berbeda), dengan pesan jelas (sebut SectionNumber + jumlah diharapkan vs aktual). Reuse logika fingerprint identitas per-Section dari **SEC-04** (Phase 415) bila ada — jangan duplikasi predikat.
-  - Rasional: SEC-06 sync deep-clone menjamin struktur identik HANYA untuk jalur sync SamePackage; LinkPrePost menaut room **existing** yang bisa di-author independen → struktur bisa divergen tanpa guard. Ini perilaku BARU (bukan audit-only).
+- **D-02:** **Hard-block bila struktur Section beda — TAPI skip bila ada sisi all-Lainnya.** LinkPrePost (Phase 397) **menolak** menaut Pre↔Post bila **KEDUA** sisi punya Section nyata dan strukturnya tidak identik (jumlah Section + jumlah soal per-SectionNumber per paket berbeda), dengan pesan jelas (sebut SectionNumber + jumlah diharapkan vs aktual). Reuse helper **`SectionStructureComparer.MismatchedSections`** (SEC-04, Phase 415) + pola pemanggilan `CMPController.StartExam:1098-1119` (`guardAnySections`) — jangan tulis predikat baru.
+  - **Resolusi Open-Q research (user 2026-06-24):** bila **salah satu** sisi **tanpa Section sama sekali** (all-"Lainnya" — mis. paket buatan **Inject** yang `InjectQuestionSpec` tak punya field Section) → **LEWATI guard** (boleh link). Konsisten dengan SEC-04 StartExam `guardAnySections` (skip bila tak ada Section di salah satu sisi). Mencegah memblok semua link inject-Pre ↔ room ber-Section.
+  - Rasional: SEC-06 sync deep-clone menjamin struktur identik HANYA untuk jalur sync SamePackage; LinkPrePost menaut room **existing** yang bisa di-author independen → struktur bisa divergen tanpa guard. Ini perilaku BARU (bukan audit-only). Research: surface LinkPrePost = **inject-based** (Phase 397); tak ada surface non-inject lain.
 
 ### Fix ET-coverage Warning (DEF-416-01 + IN-01)
 - **D-03:** **Full re-spec predikat.** Lokasi `AssessmentAdminController.cs:7673-7680` (`ViewBag.SectionEtWarnings`).
