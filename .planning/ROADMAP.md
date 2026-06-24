@@ -45,7 +45,8 @@
  (completed 2026-06-23)
 - [x] **Phase 417: Section Pagination** — Header section saat render + `StartNewPage` page-break + tombol cepat "semua section pisah halaman" + auto-pecah per-10 + resume map (`LastActivePage`). migration=FALSE.
  (completed 2026-06-24)
-- [ ] **Phase 418: Opsi Jawaban Dinamis 2–6** — Refactor kontrak HTTP CreateQuestion/EditQuestion + form authoring + form Inject + render ujian/preview/results huruf A–F dinamis + import Opsi A–F + validator min-2/max-6. migration=FALSE.
+- [x] **Phase 418: Opsi Jawaban Dinamis 2–6** — Refactor kontrak HTTP CreateQuestion/EditQuestion + form authoring + form Inject + render ujian/preview/results huruf A–F dinamis + import Opsi A–F + validator min-2/max-6. migration=FALSE.
+ (completed 2026-06-24)
 - [ ] **Phase 419: Export Label Section + Polish + Test/UAT Milestone** — Label/header Section di export per-soal (Excel/PDF) + sync Pre→Post struktur Section + audit interaksi lintas-milestone + suite test baru + Playwright real-browser UAT + audit milestone. migration=FALSE.
 
 **Coverage:** 20/20 REQ mapped (SEC-01..06+IMP-01..03 → 415; SHF-01..04 → 416; PAG-01/02/03 → 417; OPT-01..03 → 418; PAG-04 → 419). Spec: [design](../docs/superpowers/specs/2026-06-22-section-scoped-shuffle-pagination-dynamic-options-design.md).

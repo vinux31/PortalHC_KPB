@@ -59,14 +59,14 @@ completed: 2026-06-24
 
 ## Scope Plan 04 vs eksekusi ini
 
-Plan 418-04 punya 3 task. SUMMARY ini mencakup **Task 1 + Task 2 (autonomous)**. **Task 3 = `checkpoint:human-verify gate=blocking`** (UAT live 8-langkah @5277, lesson 354) — diserahkan ke orchestrator (autopilot §5), TIDAK dieksekusi di sesi executor ini.
+Plan 418-04 punya 3 task. **SEMUA SELESAI.** Task 1 + Task 2 (autonomous) dieksekusi executor. **Task 3 (`checkpoint:human-verify gate=blocking` — UAT live @5277) = ✅ APPROVED (auto) oleh orchestrator/autopilot §5** — e2e dijalankan ULANG di kode FINAL (post code-review-fix + validate gap-fill): `option-dynamic-418` **9/9 PASS** + regresi `option-validation-386` **2/2 PASS**, DB pristine. Bukti per-skenario di `418-UAT.md`.
 
 ## Performance
 
 - **Duration:** ~18 min
 - **Started:** 2026-06-24T03:33:11Z
 - **Completed (Task 1+2):** 2026-06-24T03:52:02Z
-- **Tasks (executor scope):** 2/2 (Task 3 = pending orchestrator UAT)
+- **Tasks:** 3/3 ✅ (Task 3 UAT = APPROVED auto via autopilot §5, e2e final-code 9/9 + regresi 386 2/2 — `418-UAT.md`)
 - **Files created:** 3 (1 xUnit, 1 e2e spec, 1 fixture) + 1 modified (SEED_JOURNAL)
 
 ## Accomplishments
