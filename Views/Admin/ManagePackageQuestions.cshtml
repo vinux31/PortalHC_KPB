@@ -386,47 +386,62 @@
                             <div class="form-text">JPG atau PNG, maksimal 5 MB.</div>
                         </div>
 
-                        <!-- Opsi A-D (MC/MA) -->
+                        <!-- Opsi dinamis 2–6 (MC/MA) — Phase 418 OPT-01 -->
                         <div id="optionsSection" class="mb-3">
                             <label class="form-label fw-medium small">Opsi Jawaban</label>
                             <div id="maLabel" class="alert alert-info py-1 px-2 small mb-2" style="display:none">
                                 <i class="bi bi-info-circle me-1"></i>Centang semua opsi yang benar (minimal 2).
                             </div>
-                            @foreach (var (letter, name) in new[] { ("A","optionA"), ("B","optionB"), ("C","optionC"), ("D","optionD") })
-                            {
-                                var correctName = "correct" + char.ToUpper(name[^1]);
-                                <div class="input-group input-group-sm mb-2">
-                                    <div class="input-group-text" style="width:36px">
-                                        <input class="form-check-input mt-0 correct-input" type="radio"
-                                               name="@correctName" id="correct_@letter" value="true"
-                                               aria-label="Opsi @letter benar" />
+                            <!-- Pesan validasi client-side (min-2/max-6/correct-hilang/edit-shrink ditolak) -->
+                            <div id="authError" class="alert alert-danger py-1 px-2 small d-none mb-2" role="alert"></div>
+                            <!-- Container baris opsi — JS men-render & me-re-letter dari template di bawah -->
+                            <div id="optionRows">
+                                @* Mulai 4 baris (A–D). Atribut letter & index dinormalkan oleh reletterRows() saat load. *@
+                                @for (int i = 0; i < 4; i++)
+                                {
+                                    var letter = ((char)('A' + i)).ToString();
+                                    <div class="option-row" data-option-row data-index="@i">
+                                        <div class="input-group input-group-sm mb-2">
+                                            <div class="input-group-text" style="width:36px">
+                                                <input class="form-check-input mt-0 correct-input" type="radio"
+                                                       name="correctIndex" id="correct_@letter" value="@i"
+                                                       aria-label="Opsi @letter benar" />
+                                            </div>
+                                            <span class="input-group-text fw-bold" data-letter>@letter</span>
+                                            <input type="text" class="form-control" name="options[@i].Text"
+                                                   id="option_@letter" placeholder="Opsi @letter" aria-label="Teks opsi @letter" />
+                                            <button type="button" class="btn btn-outline-danger remove-option-btn @(i < 2 ? "d-none" : "")"
+                                                    aria-label="Hapus opsi @letter" title="Hapus opsi @letter">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                        <!-- Gambar opsi @letter inline (D-01) — id berbasis letter, name berbasis index -->
+                                        <div class="img-drop mb-2 ms-4 d-flex align-items-center gap-2" id="opt@(letter)ImgWrap">
+                                            <span class="img-thumb d-inline-flex align-items-center justify-content-center border rounded bg-light"
+                                                  style="width:46px;height:46px;overflow:hidden;flex:0 0 46px">
+                                                <img id="opt@(letter)ImgThumb" src="" alt="" class="d-none" style="width:46px;height:46px;object-fit:cover" />
+                                                <i id="opt@(letter)ImgIcon" class="bi bi-image text-muted"></i>
+                                            </span>
+                                            <span id="opt@(letter)ImgMeta" class="text-muted flex-grow-1" style="font-size:.72rem">Belum ada gambar</span>
+                                            <input type="text" name="options[@i].ImageAlt" id="opt@(letter)ImageAlt"
+                                                   class="form-control form-control-sm" style="max-width:140px" placeholder="Teks alternatif (opsional)" />
+                                            <label class="btn btn-outline-primary btn-sm mb-0" id="opt@(letter)ImgPickBtn">
+                                                Pilih<input type="file" name="options[@i].Image" id="opt@(letter)ImgField" accept="image/png,image/jpeg" hidden />
+                                            </label>
+                                            <button type="button" class="btn btn-outline-danger btn-sm d-none" id="opt@(letter)ImgClear" aria-label="Hapus gambar opsi @letter">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                            <span class="form-check mb-0 d-none" id="opt@(letter)RemoveWrap">
+                                                <input class="form-check-input" type="checkbox" name="options[@i].RemoveImage" value="true" id="removeOption@(letter)Image" />
+                                                <label class="form-check-label small" for="removeOption@(letter)Image">Hapus</label>
+                                            </span>
+                                        </div>
                                     </div>
-                                    <span class="input-group-text fw-bold">@letter</span>
-                                    <input type="text" class="form-control" name="@name"
-                                           id="option_@letter" placeholder="Opsi @letter" />
-                                </div>
-                                <!-- Gambar opsi @letter inline (D-01) -->
-                                <div class="img-drop mb-2 ms-4 d-flex align-items-center gap-2" id="opt@(letter)ImgWrap">
-                                    <span class="img-thumb d-inline-flex align-items-center justify-content-center border rounded bg-light"
-                                          style="width:46px;height:46px;overflow:hidden;flex:0 0 46px">
-                                        <img id="opt@(letter)ImgThumb" src="" alt="" class="d-none" style="width:46px;height:46px;object-fit:cover" />
-                                        <i id="opt@(letter)ImgIcon" class="bi bi-image text-muted"></i>
-                                    </span>
-                                    <span id="opt@(letter)ImgMeta" class="text-muted flex-grow-1" style="font-size:.72rem">Belum ada gambar</span>
-                                    <input type="text" name="@($"option{letter}ImageAlt")" id="opt@(letter)ImageAlt"
-                                           class="form-control form-control-sm" style="max-width:140px" placeholder="Teks alternatif (opsional)" />
-                                    <label class="btn btn-outline-primary btn-sm mb-0" id="opt@(letter)ImgPickBtn">
-                                        Pilih<input type="file" name="@($"option{letter}Image")" id="opt@(letter)ImgField" accept="image/png,image/jpeg" hidden />
-                                    </label>
-                                    <button type="button" class="btn btn-outline-danger btn-sm d-none" id="opt@(letter)ImgClear" aria-label="Hapus gambar opsi @letter">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                    <span class="form-check mb-0 d-none" id="opt@(letter)RemoveWrap">
-                                        <input class="form-check-input" type="checkbox" name="@($"removeOption{letter}Image")" value="true" id="removeOption@(letter)Image" />
-                                        <label class="form-check-label small" for="removeOption@(letter)Image">Hapus</label>
-                                    </span>
-                                </div>
-                            }
+                                }
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-1" id="addOptionBtn">
+                                <i class="bi bi-plus-circle me-1"></i>Tambah Opsi
+                            </button>
                             <div class="form-text">Klik radio/checkbox di kiri untuk tandai jawaban benar.</div>
                         </div>
 
@@ -690,27 +705,21 @@
         var secSel = document.getElementById('sectionIdSelect');
         if (secSel) secSel.value = (data.sectionId != null) ? String(data.sectionId) : '';
 
-        // Populate options
-        var optLetters = ['A', 'B', 'C', 'D'];
-        var optFields = ['optionA', 'optionB', 'optionC', 'optionD'];
-        var correctFields = ['correctA', 'correctB', 'correctC', 'correctD'];
+        // Populate options — Phase 418 (C6/Pitfall 5): enumerasi DINAMIS 0..n (4 ATAU 5/6 baris untuk soal import).
+        var opts = (data.options && data.options.length) ? data.options : [];
+        // Bangun jumlah baris == jumlah opsi (minimum 2) lalu re-letter → id option_{letter}/correct_{letter} + IMAGE_FIELDS dinamis siap.
+        ensureRowCount(opts.length || MIN_OPTIONS);
 
-        if (data.options && data.options.length) {
-            data.options.forEach(function (opt, i) {
-                if (i < 4) {
-                    var textEl = document.getElementById('option_' + optLetters[i]);
-                    var correctEl = document.getElementById('correct_' + optLetters[i]);
-                    if (textEl) textEl.value = opt.optionText || '';
-                    if (correctEl) correctEl.checked = opt.isCorrect === true;
-                    // Prefill thumbnail gambar opsi (D-06/IMG-07)
-                    prefillImage(IMAGE_FIELDS[i + 1], opt.imagePath, opt.imageAlt);
-                }
-            });
-        }
-        // Opsi tak terisi (mis. <4) → reset image field-nya ke create-state
-        for (var k = (data.options ? data.options.length : 0); k < 4; k++) {
-            resetImageField(IMAGE_FIELDS[k + 1]);
-        }
+        opts.forEach(function (opt, i) {
+            var L = LETTERS[i];
+            var textEl = document.getElementById('option_' + L);
+            if (textEl) textEl.value = opt.optionText || '';
+            // Selektor benar: MC → set radio correctIndex (value=index) yang benar; MA → checkbox per-baris.
+            var correctEl = document.getElementById('correct_' + L);
+            if (correctEl) correctEl.checked = opt.isCorrect === true;
+            // Prefill thumbnail gambar opsi (D-06/IMG-07) — IMAGE_FIELDS dibangun ulang oleh ensureRowCount.
+            prefillImage(IMAGE_FIELDS[i + 1], opt.imagePath, opt.imageAlt);
+        });
         // Prefill thumbnail gambar soal (D-06/IMG-07)
         prefillImage(IMAGE_FIELDS[0], data.imagePath, data.imageAlt);
 
@@ -722,14 +731,177 @@
     }
 
     // ---- Gambar: FileReader thumbnail instan + prefill edit (D-07a/D-03/IMG-07) ----
-    // prefix: 'question' | 'optA'..'optD'. Field id konvensi: {prefix}ImgThumb/Icon/Meta/Field/Clear, {removeId}.
-    var IMAGE_FIELDS = [
-        { prefix: 'question', removeId: 'removeQuestionImage', removeWrap: 'questionRemoveWrap', pickBtn: 'questionImgPickBtn' },
-        { prefix: 'optA', removeId: 'removeOptionAImage', removeWrap: 'optARemoveWrap', pickBtn: 'optAImgPickBtn' },
-        { prefix: 'optB', removeId: 'removeOptionBImage', removeWrap: 'optBRemoveWrap', pickBtn: 'optBImgPickBtn' },
-        { prefix: 'optC', removeId: 'removeOptionCImage', removeWrap: 'optCRemoveWrap', pickBtn: 'optCImgPickBtn' },
-        { prefix: 'optD', removeId: 'removeOptionDImage', removeWrap: 'optDRemoveWrap', pickBtn: 'optDImgPickBtn' }
-    ];
+    // prefix: 'question' | 'optA'..'optF'. Field id konvensi: {prefix}ImgThumb/Icon/Meta/Field/Clear, {removeId}.
+    // Phase 418 (C6): IMAGE_FIELDS dibangun DINAMIS dari DOM aktual (0..n baris) — bukan array statis 5-entri.
+    var LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+    var MAX_OPTIONS = 6;
+    var MIN_OPTIONS = 2;
+
+    function imageFieldCfg(prefix) {
+        var L = prefix.indexOf('opt') === 0 ? prefix.slice(3) : null;
+        return {
+            prefix: prefix,
+            removeId: L ? ('removeOption' + L + 'Image') : 'removeQuestionImage',
+            removeWrap: L ? ('opt' + L + 'RemoveWrap') : 'questionRemoveWrap',
+            pickBtn: L ? ('opt' + L + 'ImgPickBtn') : 'questionImgPickBtn'
+        };
+    }
+
+    // Bangun daftar konfigurasi image-field dari DOM aktual: gambar soal + tiap baris opsi (per letter posisi).
+    function buildImageFields() {
+        var list = [imageFieldCfg('question')];
+        var rows = document.querySelectorAll('#optionRows [data-option-row]');
+        for (var i = 0; i < rows.length; i++) {
+            list.push(imageFieldCfg('opt' + LETTERS[i]));
+        }
+        return list;
+    }
+
+    var IMAGE_FIELDS = buildImageFields();
+
+    // ---- Phase 418 OPT-01: baris opsi dinamis 2–6 (Tambah/Hapus + re-letter A–F + reasosiasi gambar) ----
+    function optionRowEls() {
+        return Array.prototype.slice.call(document.querySelectorAll('#optionRows [data-option-row]'));
+    }
+
+    // Re-letter SEMUA baris berurutan dari posisi: huruf display, id letter-based, name index-based,
+    // aria, value radio, reasosiasi blok gambar (id prefix opt{letter}). Gambar terikat node baris.
+    function reletterRows() {
+        var rows = optionRowEls();
+        var qtype = document.getElementById('QuestionType').value;
+        rows.forEach(function (row, i) {
+            var L = LETTERS[i];
+            row.dataset.index = i;
+            var letterSpan = row.querySelector('[data-letter]');
+            if (letterSpan) letterSpan.textContent = L;
+
+            // Input teks opsi
+            var txt = row.querySelector('input[type=text].form-control');
+            if (txt) {
+                txt.name = 'options[' + i + '].Text';
+                txt.id = 'option_' + L;
+                txt.placeholder = 'Opsi ' + L;
+                txt.setAttribute('aria-label', 'Teks opsi ' + L);
+            }
+            // Selektor benar (radio MC: satu name grup 'correctIndex' value=index; MA checkbox: per-index)
+            var correct = row.querySelector('.correct-input');
+            if (correct) {
+                correct.id = 'correct_' + L;
+                correct.setAttribute('aria-label', 'Opsi ' + L + ' benar');
+                if (qtype === 'MultipleAnswer') {
+                    correct.name = 'options[' + i + '].IsCorrect';
+                    correct.value = 'true';
+                } else {
+                    correct.name = 'correctIndex';
+                    correct.value = String(i);
+                }
+            }
+            // Tombol hapus baris
+            var rmBtn = row.querySelector('.remove-option-btn');
+            if (rmBtn) {
+                rmBtn.setAttribute('aria-label', 'Hapus opsi ' + L);
+                rmBtn.setAttribute('title', 'Hapus opsi ' + L);
+                rmBtn.classList.toggle('d-none', rows.length <= MIN_OPTIONS);
+            }
+            // Blok gambar — rename id prefix opt{letter} + name index-based + label for
+            var imgWrap = row.querySelector('.img-drop');
+            if (imgWrap) {
+                imgWrap.id = 'opt' + L + 'ImgWrap';
+                var setId = function (sel, id) { var el = imgWrap.querySelector(sel); if (el) el.id = id; };
+                setId('img', 'opt' + L + 'ImgThumb');
+                setId('.bi-image', 'opt' + L + 'ImgIcon');
+                var meta = imgWrap.querySelector('span.text-muted'); if (meta) meta.id = 'opt' + L + 'ImgMeta';
+                var alt = imgWrap.querySelector('input[type=text]');
+                if (alt) { alt.id = 'opt' + L + 'ImageAlt'; alt.name = 'options[' + i + '].ImageAlt'; }
+                var pickBtn = imgWrap.querySelector('label.btn'); if (pickBtn) pickBtn.id = 'opt' + L + 'ImgPickBtn';
+                var file = imgWrap.querySelector('input[type=file]');
+                if (file) { file.id = 'opt' + L + 'ImgField'; file.name = 'options[' + i + '].Image'; }
+                var clearBtn = imgWrap.querySelector('button.btn-outline-danger');
+                if (clearBtn) { clearBtn.id = 'opt' + L + 'ImgClear'; clearBtn.setAttribute('aria-label', 'Hapus gambar opsi ' + L); }
+                var removeWrap = imgWrap.querySelector('.form-check'); if (removeWrap) removeWrap.id = 'opt' + L + 'RemoveWrap';
+                var removeCb = imgWrap.querySelector('input[type=checkbox]');
+                if (removeCb) { removeCb.id = 'removeOption' + L + 'Image'; removeCb.name = 'options[' + i + '].RemoveImage'; }
+                var removeLbl = imgWrap.querySelector('.form-check-label'); if (removeLbl) removeLbl.setAttribute('for', 'removeOption' + L + 'Image');
+            }
+        });
+        // Toggle tombol Tambah disabled saat mencapai maksimum (6)
+        var addBtn = document.getElementById('addOptionBtn');
+        if (addBtn) {
+            var atMax = rows.length >= MAX_OPTIONS;
+            addBtn.disabled = atMax;
+            if (atMax) addBtn.setAttribute('title', 'Maksimal 6 opsi'); else addBtn.removeAttribute('title');
+        }
+        IMAGE_FIELDS = buildImageFields();
+    }
+
+    // Tambah satu baris (clone baris pertama, reset nilai), hingga MAX_OPTIONS.
+    function addOptionRow() {
+        var rows = optionRowEls();
+        if (rows.length >= MAX_OPTIONS) return null;
+        var clone = rows[0].cloneNode(true);
+        // Reset nilai input + state gambar pada clone
+        clone.querySelectorAll('input').forEach(function (inp) {
+            if (inp.type === 'text') inp.value = '';
+            if (inp.type === 'radio' || inp.type === 'checkbox') inp.checked = false;
+            if (inp.type === 'file') inp.value = '';
+            inp.removeAttribute('data-wired');
+        });
+        var thumb = clone.querySelector('img'); if (thumb) { thumb.src = ''; thumb.classList.add('d-none'); }
+        var icon = clone.querySelector('.bi-image'); if (icon) icon.classList.remove('d-none');
+        var clearBtn = clone.querySelector('button.btn-outline-danger'); if (clearBtn) clearBtn.classList.add('d-none');
+        var removeWrap = clone.querySelector('.form-check'); if (removeWrap) removeWrap.classList.add('d-none');
+        var pick = clone.querySelector('label.btn'); if (pick && pick.childNodes[0]) pick.childNodes[0].nodeValue = 'Pilih';
+        var rmRowBtn = clone.querySelector('.remove-option-btn'); if (rmRowBtn) rmRowBtn.classList.remove('d-none');
+        document.getElementById('optionRows').appendChild(clone);
+        applyQTypeSwitch(document.getElementById('QuestionType').value);
+        reletterRows();
+        wireAllImageFields();
+        // fokus ke input teks baris baru
+        var newTxt = clone.querySelector('input[type=text].form-control');
+        if (newTxt) newTxt.focus();
+        return clone;
+    }
+
+    // Hapus baris (node utuh termasuk blok gambar) bila baris > MIN_OPTIONS, lalu re-letter.
+    function removeOptionRow(btn) {
+        var rows = optionRowEls();
+        if (rows.length <= MIN_OPTIONS) return;
+        var row = btn.closest('[data-option-row]');
+        if (!row) return;
+        var idx = rows.indexOf(row);
+        row.parentNode.removeChild(row);
+        reletterRows();
+        // fokus ke input teks baris sebelumnya (atau pertama)
+        var after = optionRowEls();
+        var target = after[Math.max(0, idx - 1)];
+        if (target) { var t = target.querySelector('input[type=text].form-control'); if (t) t.focus(); }
+    }
+
+    // Pastikan jumlah baris == n (1..6) — dipakai populateEditForm untuk prefill 4/5/6 opsi.
+    function ensureRowCount(n) {
+        n = Math.max(MIN_OPTIONS, Math.min(MAX_OPTIONS, n));
+        var rows = optionRowEls();
+        while (rows.length < n) { addOptionRow(); rows = optionRowEls(); }
+        while (rows.length > n) {
+            var last = rows[rows.length - 1];
+            last.parentNode.removeChild(last);
+            rows = optionRowEls();
+        }
+        reletterRows();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var addBtn = document.getElementById('addOptionBtn');
+        if (addBtn) addBtn.addEventListener('click', addOptionRow);
+        var rowsContainer = document.getElementById('optionRows');
+        if (rowsContainer) {
+            rowsContainer.addEventListener('click', function (e) {
+                var btn = e.target.closest('.remove-option-btn');
+                if (btn) removeOptionRow(btn);
+            });
+        }
+        reletterRows();
+    });
 
     function fmtSize(bytes) {
         var kb = bytes / 1024;
@@ -758,30 +930,47 @@
         if (field) field.value = '';
     }
 
+    // Resolusi prefix AKTUAL dari node (re-letter mengubah id, jadi listener TAK boleh meng-capture prefix lama).
+    // Gambar soal: prefix 'question'. Gambar opsi: prefix 'opt{letter posisi baris}'.
+    function prefixForNode(node) {
+        var row = node.closest('[data-option-row]');
+        if (!row) return 'question';
+        var rows = Array.prototype.slice.call(document.querySelectorAll('#optionRows [data-option-row]'));
+        var idx = rows.indexOf(row);
+        return 'opt' + LETTERS[idx >= 0 ? idx : 0];
+    }
+
     function wireImageField(cfg) {
         var field = imgEl(cfg.prefix, 'ImgField');
         var clear = imgEl(cfg.prefix, 'ImgClear');
-        var removeCb = document.getElementById(cfg.removeId);
-        if (field) {
+        // Guard double-bind: tiap field hanya di-wire sekali (re-letter mengubah id, tapi node sama).
+        if (field && field.dataset.wired === '1') { /* clear di-handle via delegasi node */ }
+        if (field && field.dataset.wired !== '1') {
+            field.dataset.wired = '1';
             field.addEventListener('change', function () {
-                if (!field.files || !field.files.length) { emptyThumb(cfg.prefix); return; }
+                var prefix = prefixForNode(field);
+                var removeCb = imgEl(prefix, 'RemoveWrap') ? document.getElementById(imageFieldCfg(prefix).removeId) : null;
+                if (!field.files || !field.files.length) { emptyThumb(prefix); return; }
                 var file = field.files[0];
                 var reader = new FileReader();
-                reader.onload = function (e) { showThumb(cfg.prefix, e.target.result, file.name + ' · ' + fmtSize(file.size)); };
+                reader.onload = function (e) { showThumb(prefix, e.target.result, file.name + ' · ' + fmtSize(file.size)); };
                 reader.readAsDataURL(file);
                 // Konflik D-05 nicety: file baru → uncheck + disable checkbox hapus (backend tetap otoritatif).
                 if (removeCb) { removeCb.checked = false; removeCb.disabled = true; }
             });
         }
-        if (clear) {
+        if (clear && clear.dataset.wired !== '1') {
+            clear.dataset.wired = '1';
             clear.addEventListener('click', function () {
-                emptyThumb(cfg.prefix);
+                var prefix = prefixForNode(clear);
+                emptyThumb(prefix);
+                var removeCb = document.getElementById(imageFieldCfg(prefix).removeId);
                 if (removeCb) removeCb.disabled = false;
             });
         }
     }
 
-    function wireAllImageFields() { IMAGE_FIELDS.forEach(wireImageField); }
+    function wireAllImageFields() { buildImageFields().forEach(wireImageField); }
     document.addEventListener('DOMContentLoaded', wireAllImageFields);
 
     // Prefill thumbnail lama saat edit (file input tetap kosong — D-03).
