@@ -12,6 +12,17 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v32.8 Exam Security & Audit Hardening — 🚧 STARTED 2026-06-24 (branch ITHandoff)
+
+**Goal:** Tutup 3 tech-debt dari backlog (defer Phase 425 + Phase 403) — token ujian server-authoritative, idempotensi write-on-GET StartExam, dan audit-trail rename/reparent unit. Diturunkan dari backlog 999.x + cross-branch overlap check vs `main` (999.9 DROP karena main sudah hapus BulkBackfill; 999.12 ops-aside).
+
+**Target features (3 REQ, fase 426-428):**
+- **AUDIT-01 (426)** — `EditOrganizationUnit` (rename/reparent unit) menulis `AuditLog` (mirror `DeleteOrganizationUnit`), termasuk cascade counts (users/mappings/UserUnits). File `OrganizationController.cs` terisolasi, **migration=FALSE**.
+- **EXSEC-01 (427)** — Token verifikasi ujian server-authoritative via kolom `TokenVerifiedAt` menggantikan `TempData.Peek`; re-arm (`=null`) saat retake/ResetExam. **migration=TRUE** (`AddTokenVerifiedAt`, `DateTime? null` aditif).
+- **EXSEC-02 (428)** — `StartExam` tidak mutasi status via GET (idempotensi) — side-effect `Upcoming→Open` dipindah/diamankan ke jalur POST/guarded. **migration=FALSE**.
+
+**Konteks kunci (dari overlap check 2026-06-24, verified git):** Branch `main` (v32.5/v32.6) tidak refactor blok token-gate/write-on-GET (byte-identik), TAPI metode `StartExam` = **zona konflik merge PASTI** (ITHandoff punya GRDF-01 Pre→Post ph424; main punya Section/ScopedShuffle ph415-417 + guard ph409). Refactor 427/428 menambah lapisan — saat merge ITHandoff↔main, `StartExam` rekonsiliasi manual (pertahankan KEDUA; GRDF-01 setelah cek-Completed sebelum token-gate). Rantai migrasi divergen → `AddTokenVerifiedAt` stamp setelah semua migrasi kedua branch + regen snapshot. 427→428 sekuensial (sama-sama edit `StartExam`); 426 file-disjoint. Branch ITHandoff (bundle deploy v32.1+v32.3+v32.4+v32.7+v32.8). 999.9 DROP (SUPERSEDED main 396-05), 999.12 ops-aside.
+
 ## Last Shipped Milestone: v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test — ✅ CLOSED 2026-06-24 (audit PASSED, 41/41 in-scope REQ, integration SOUND)
 
 **Shipped (6 fase 420-425, 19 plans):** 420 form persistensi+UX Pre-Post · 421 retake lifecycle hardening · 422 SamePackage & shuffle integrity (migration=TRUE `AddPackageNumberUniqueIndex`) · 423 certificate issuance consistency · 424 grading de-dup + gating Pre→Post · 425 cosmetic/tech-debt cleanup. **migration=TRUE hanya Phase 422**; 420/421/423/424/425=FALSE. GRDF-06 covered v32.5. Deferred: FLOW-08/FLOW-10 → backlog 999.13/999.14. Archive `milestones/v32.7-*` + tag lokal `v32.7`. **NOT pushed** (deploy bundle ITHandoff v32.1+v32.3+v32.4+v32.7). Integration checker SOUND (E2E Pre/Post lifecycle utuh).

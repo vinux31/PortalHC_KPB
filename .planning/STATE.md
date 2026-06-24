@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v32.7
-milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
-status: v32.7 CLOSED 2026-06-24 — audit PASSED 41/41 in-scope, integration SOUND, tag lokal v32.7, NOT pushed
-stopped_at: Milestone v32.7 complete; next = /gsd-new-milestone
-last_updated: "2026-06-24T11:51:59.600Z"
+milestone: v32.8
+milestone_name: Exam Security & Audit Hardening
+status: v32.8 STARTED 2026-06-24 — defining requirements (3 REQ, fase 426-428)
+stopped_at: Milestone v32.8 init; next = roadmap then /gsd-plan-phase 426
+last_updated: "2026-06-24T12:00:00.000Z"
 last_activity: 2026-06-24
 progress:
-  total_phases: 41
-  completed_phases: 6
-  total_plans: 19
-  completed_plans: 19
-  percent: 100
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -21,24 +21,26 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Planning milestone baru (`/gsd-new-milestone`) — v32.7 CLOSED 2026-06-24
+**Current focus:** v32.8 Exam Security & Audit Hardening — defining requirements (fase 426-428)
 
 ## Current Position
 
-Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — ✅ CLOSED 2026-06-24 (branch ITHandoff)
-Phases: 6/6 COMPLETE (420 FORM · 421 RTH · 422 SHFX · 423 CERT · 424 GRDF · 425 CLN), 19 plans
-Status: v32.7 CLOSED — audit PASSED 41/41 in-scope REQ, integration SOUND, tag lokal `v32.7`. Archive `milestones/v32.7-*`. NOT pushed (deploy bundle).
-Last activity: 2026-06-24
+Milestone: **v32.8 Exam Security & Audit Hardening** — 🚧 STARTED 2026-06-24 (branch ITHandoff)
+Phase: Not started (defining requirements → roadmap)
+Plan: —
+Status: Defining requirements (3 REQ: AUDIT-01/426 · EXSEC-01/427 migration=TRUE · EXSEC-02/428). Diturunkan backlog 999.11/999.13/999.14 + overlap check vs main (999.9 DROP superseded, 999.12 ops-aside).
+Last activity: 2026-06-24 — Milestone v32.8 started
 
-**v32.1 + v32.3 + v32.4 + v32.7 semua CLOSED di ITHandoff** (deploy bundle bersama). Tag lokal masing-masing. NOT pushed.
+**Predecessor v32.7 ✅ CLOSED 2026-06-24** (audit PASSED 41/41 in-scope, tag lokal). v32.1 + v32.3 + v32.4 + v32.7 semua CLOSED di ITHandoff (deploy bundle bersama). Tag lokal masing-masing. NOT pushed.
 
 ## Next Action
 
-**`/gsd-new-milestone`** — v32.7 (fase terakhir) sudah CLOSED, semua gate tuntas. Tidak ada fase aktif tersisa di v32.7.
+**Roadmap v32.8 → `/gsd-plan-phase 426`.** Scope terkunci (3 fase, user-confirmed 2026-06-24):
+- **426** Audit-Log EditOrganizationUnit (999.11) — `OrganizationController.cs`, migration=FALSE, file-disjoint.
+- **427** Exam Token-Gate Server-Authoritative (999.13) — `CMPController.cs`+`AssessmentSession.cs`+migration, **migration=TRUE** (`AddTokenVerifiedAt`). KEYSTONE.
+- **428** StartExam Write-on-GET Idempotency (999.14) — `CMPController.cs`, migration=FALSE. Sekuensial setelah 427 (sama-sama edit `StartExam`).
 
-Opsional sebelum milestone baru:
-- Backfill `420/421 VERIFICATION.md` (verifikasi fungsional sudah ada via VALIDATION nyquist + SECURITY + UAT; hanya artefak yang absen) — `/gsd-verify-work 420|421`.
-- Promote backlog 999.x via `/gsd-review-backlog` saat milestone baru punya scope.
+**⚠ Merge risk (overlap check, verified git):** `StartExam` = zona konflik PASTI vs main (ITHandoff GRDF-01 ph424 vs main Section/ScopedShuffle ph415-417 + guard ph409). 427/428 nambah lapisan → saat merge pertahankan KEDUA, GRDF-01 setelah cek-Completed sebelum token-gate. `AddTokenVerifiedAt` stamp setelah semua migrasi kedua branch + regen snapshot. 999.9 DROP (main 396-05 hapus BulkBackfill, NOT-ancestor ITHandoff).
 
 **Deploy bundle (user-owned):** v32.1 + v32.3 + v32.4 + v32.7 → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` + Fase 405 retake cols + **Fase 422 `AddPackageNumberUniqueIndex`**; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`). v32.7 migration=TRUE HANYA Phase 422; 420/421/423/424/425=FALSE.
 
