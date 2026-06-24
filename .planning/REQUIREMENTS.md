@@ -16,11 +16,11 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 - [x] **FORM-04**: Tanggal kadaluarsa sertifikat (ValidUntil) yang diubah di form Edit tersimpan di jalur standard. [E-05]
 - [x] **FORM-05**: Assessment Pre/Post yang sudah Completed terkunci dari perubahan metadata via form Edit. [E-04]
 - [x] **FORM-06**: Membuka Edit untuk sesi entry-manual mengarahkan ke form edit manual (bukan form online). [E-08, E-07]
-- [ ] **FORM-07**: Di form Create mode Pre-Post, opsi "Paket soal sama" (SamePackage) ditempatkan di tingkat pasangan Pre↔Post, bukan terkubur di dalam kartu Post. [FORM-PP-01]
-- [ ] **FORM-08**: Di form Create mode Pre-Post, tiap setelan ujian/sertifikat menampilkan penanda scope (berlaku Pre / Post / keduanya) atau dikelompokkan eksplisit. [FORM-PP-02]
-- [ ] **FORM-09**: Form Create mode Pre-Post tidak mengirim input jadwal/durasi/batas-waktu standard yang tersembunyi (eliminasi field duplikat ter-POST). [FORM-PP-03]
-- [ ] **FORM-10**: Penamaan tipe assessment konsisten — input pemilih mode diselaraskan dengan kolom DB AssessmentType; label & XML-doc diperbarui. [FLD-5.2-01, FORM-PP-07]
-- [ ] **FORM-11**: Tata-letak Group "Pengaturan Ujian" mode Pre-Post dirapikan — baris Status/PassPercentage tidak timpang; PassPercentage/Retake tidak tampil seakan berlaku ke Pre baseline; token jelas scope-nya. [FORM-PP-05, FORM-PP-06]
+- [x] **FORM-07**: Di form Create mode Pre-Post, opsi "Paket soal sama" (SamePackage) ditempatkan di tingkat pasangan Pre↔Post, bukan terkubur di dalam kartu Post. [FORM-PP-01]
+- [x] **FORM-08**: Di form Create mode Pre-Post, tiap setelan ujian/sertifikat menampilkan penanda scope (berlaku Pre / Post / keduanya) atau dikelompokkan eksplisit. [FORM-PP-02]
+- [x] **FORM-09**: Form Create mode Pre-Post tidak mengirim input jadwal/durasi/batas-waktu standard yang tersembunyi (eliminasi field duplikat ter-POST). [FORM-PP-03]
+- [x] **FORM-10**: Penamaan tipe assessment konsisten — input pemilih mode diselaraskan dengan kolom DB AssessmentType; label & XML-doc diperbarui. [FLD-5.2-01, FORM-PP-07]
+- [x] **FORM-11**: Tata-letak Group "Pengaturan Ujian" mode Pre-Post dirapikan — baris Status/PassPercentage tidak timpang; PassPercentage/Retake tidak tampil seakan berlaku ke Pre baseline; token jelas scope-nya. [FORM-PP-05, FORM-PP-06]
 
 ### RTH — Retake Lifecycle Hardening (Phase 421)
 
@@ -32,12 +32,12 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 
 ### SHFX — SamePackage & Shuffle Integrity (Phase 422)
 
-- [ ] **SHFX-01**: Mengimpor soal via Excel ke paket Pre yang ber-SamePackage memicu sinkronisasi otomatis ke Post. [SHUF-ISS-03, HIGH]
-- [ ] **SHFX-02**: HC dapat mengubah setelan SamePackage setelah grup Pre-Post dibuat, dengan sinkron/unsync paket + guard sebelum peserta mulai. [FLOW-07] (keputusan bisnis b)
-- [ ] **SHFX-03**: Endpoint POST kelola paket/soal menolak edit pada Post yang terkunci SamePackage (lock server-side, bukan hanya di tampilan). [SHUF-ISS-02]
-- [ ] **SHFX-04**: Peserta baru yang ditambahkan ke grup Pre-Post mewarisi setelan SamePackage dari grup. [PA-02]
+- [x] **SHFX-01**: Mengimpor soal via Excel ke paket Pre yang ber-SamePackage memicu sinkronisasi otomatis ke Post. [SHUF-ISS-03, HIGH]
+- [x] **SHFX-02**: HC dapat mengubah setelan SamePackage setelah grup Pre-Post dibuat, dengan sinkron/unsync paket + guard sebelum peserta mulai. [FLOW-07] (keputusan bisnis b)
+- [x] **SHFX-03**: Endpoint POST kelola paket/soal menolak edit pada Post yang terkunci SamePackage (lock server-side, bukan hanya di tampilan). [SHUF-ISS-02]
+- [x] **SHFX-04**: Peserta baru yang ditambahkan ke grup Pre-Post mewarisi setelan SamePackage dari grup. [PA-02]
 - [x] **SHFX-05**: Penomoran paket (PackageNumber) tetap unik & terurut deterministik setelah operasi hapus paket. [SHUF-ISS-08]
-- [ ] **SHFX-06**: Kunci pasangan Pre/Post untuk lock & simpan setelan shuffle konsisten type-aware (selaras StartExam/Reshuffle). [SHUF-ISS-01]
+- [x] **SHFX-06**: Kunci pasangan Pre/Post untuk lock & simpan setelan shuffle konsisten type-aware (selaras StartExam/Reshuffle). [SHUF-ISS-01]
 - [x] **SHFX-07**: Peringatan shuffle lengkap — SamePackage+Acak ON, pemangkasan K=min, dan hitung mismatch dari satu sumber. [SHUF-ISS-04, SHUF-ISS-05, SHUF-ISS-07]
 
 ### CERT — Certificate Issuance Consistency (Phase 423)
@@ -52,13 +52,13 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 
 ### GRDF — Grading De-dup + Flow/Linking + Gating Pre→Post (Phase 424)
 
-- [ ] **GRDF-01**: Peserta tidak dapat memulai (StartExam) Post-Test sebelum Pre-Test pasangannya berstatus Completed. [FLOW-04, HIGH] (keputusan bisnis a)
-- [ ] **GRDF-02**: Logika penilaian per-soal (MC/MA/Essay) memakai satu fungsi murni bersama dengan strategi dedupe konsisten di semua jalur. [GRD-09, GRD-02, GRD-03]
-- [ ] **GRDF-03**: Pemasangan Pre/Post memakai satu sumber kebenaran (tidak tiga jalur divergen; pairing per-peserta terfilter UserId). [FLOW-01]
-- [ ] **GRDF-04**: Assessment mode Standard tidak mendapat link Pre/Post semu yang diturunkan dari pola judul. [FLOW-03]
-- [ ] **GRDF-05**: Perhitungan durasi aktif (ElapsedSeconds) memperhitungkan ExtraTimeMinutes secara konsisten. [FLOW-02]
-- [ ] **GRDF-06**: Manajemen peserta simetris — hapus peserta tersedia/konsisten di Standard & Pre-Post; logika dedup seragam. [PA-07, PA-08]
-- [ ] **GRDF-07**: Submit ujian on-time menolak essay kosong di sisi server (validasi tidak hanya client-side). [VAL-03]
+- [x] **GRDF-01**: Peserta tidak dapat memulai (StartExam) Post-Test sebelum Pre-Test pasangannya berstatus Completed. [FLOW-04, HIGH] (keputusan bisnis a)
+- [x] **GRDF-02**: Logika penilaian per-soal (MC/MA/Essay) memakai satu fungsi murni bersama dengan strategi dedupe konsisten di semua jalur. [GRD-09, GRD-02, GRD-03]
+- [x] **GRDF-03**: Pemasangan Pre/Post memakai satu sumber kebenaran (tidak tiga jalur divergen; pairing per-peserta terfilter UserId). [FLOW-01]
+- [x] **GRDF-04**: Assessment mode Standard tidak mendapat link Pre/Post semu yang diturunkan dari pola judul. [FLOW-03]
+- [x] **GRDF-05**: Perhitungan durasi aktif (ElapsedSeconds) memperhitungkan ExtraTimeMinutes secara konsisten. [FLOW-02]
+- [~] **GRDF-06**: Manajemen peserta simetris — hapus peserta tersedia/konsisten di Standard & Pre-Post; logika dedup seragam. [PA-07, PA-08] — **OUT OF v32.7 SCOPE: covered by v32.5 merge (main)** per ROADMAP Phase 424 (di-EXCLUDE dari 424).
+- [x] **GRDF-07**: Submit ujian on-time menolak essay kosong di sisi server (validasi tidak hanya client-side). [VAL-03]
 
 ### CLN — Cosmetic / Naming / Tech-Debt Cleanup (Phase 425, low-risk)
 
@@ -95,22 +95,22 @@ Diakui tapi ditunda dari v32.7.
 | FORM-04 | Phase 420 | Complete |
 | FORM-05 | Phase 420 | Complete |
 | FORM-06 | Phase 420 | Complete |
-| FORM-07 | Phase 420 | Pending |
-| FORM-08 | Phase 420 | Pending |
-| FORM-09 | Phase 420 | Pending |
-| FORM-10 | Phase 420 | Pending |
-| FORM-11 | Phase 420 | Pending |
+| FORM-07 | Phase 420 | Complete |
+| FORM-08 | Phase 420 | Complete |
+| FORM-09 | Phase 420 | Complete |
+| FORM-10 | Phase 420 | Complete |
+| FORM-11 | Phase 420 | Complete |
 | RTH-01 | Phase 421 | Complete |
 | RTH-02 | Phase 421 | Complete |
 | RTH-03 | Phase 421 | Complete |
 | RTH-04 | Phase 421 | Complete |
 | RTH-05 | Phase 421 | Complete |
-| SHFX-01 | Phase 422 | Pending |
-| SHFX-02 | Phase 422 | Pending |
-| SHFX-03 | Phase 422 | Pending |
-| SHFX-04 | Phase 422 | Pending |
+| SHFX-01 | Phase 422 | Complete |
+| SHFX-02 | Phase 422 | Complete |
+| SHFX-03 | Phase 422 | Complete |
+| SHFX-04 | Phase 422 | Complete |
 | SHFX-05 | Phase 422 | Complete |
-| SHFX-06 | Phase 422 | Pending |
+| SHFX-06 | Phase 422 | Complete |
 | SHFX-07 | Phase 422 | Complete |
 | CERT-01 | Phase 423 | Complete |
 | CERT-02 | Phase 423 | Complete |
@@ -119,13 +119,13 @@ Diakui tapi ditunda dari v32.7.
 | CERT-05 | Phase 423 | Complete |
 | CERT-06 | Phase 423 | Complete |
 | CERT-07 | Phase 423 | Complete |
-| GRDF-01 | Phase 424 | Pending |
-| GRDF-02 | Phase 424 | Pending |
-| GRDF-03 | Phase 424 | Pending |
-| GRDF-04 | Phase 424 | Pending |
-| GRDF-05 | Phase 424 | Pending |
-| GRDF-06 | Phase 424 | Pending |
-| GRDF-07 | Phase 424 | Pending |
+| GRDF-01 | Phase 424 | Complete |
+| GRDF-02 | Phase 424 | Complete |
+| GRDF-03 | Phase 424 | Complete |
+| GRDF-04 | Phase 424 | Complete |
+| GRDF-05 | Phase 424 | Complete |
+| GRDF-06 | Phase 424 | Out of v32.7 scope — covered by v32.5 merge (main) |
+| GRDF-07 | Phase 424 | Complete |
 | CLN-01 | Phase 425 | Complete |
 | CLN-02 | Phase 425 | Complete |
 | CLN-03 | Phase 425 | Complete |
