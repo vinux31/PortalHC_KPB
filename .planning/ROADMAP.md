@@ -45,7 +45,7 @@
 **Requirements:** `.planning/REQUIREMENTS.md` (FORM-01..11 / RTH-01..05 / SHFX-01..07 / CERT-01..07 / GRDF-01..07 / CLN-01..05 — traceability fase 420-425).
 **Goal:** Tutup ~60 temuan audit Pre/Post-Test — integritas perilaku ujian, persistensi field form, lifecycle retake, integritas SamePackage/shuffle, konsistensi penerbitan sertifikat, dedup grading + gating Pre→Post, cleanup tech-debt. Keputusan bisnis terkonfirmasi: **(a)** Pre WAJIB selesai sebelum Post (→ GRDF-01 gating); **(b)** SamePackage fleksibel bisa diubah pasca-create (→ SHFX-02 toggle); **(c)** fasilitas soal Post=Pre sudah ada (SamePackage).
 **4 HIGH:** **E-01** (shuffle reset-OFF tiap Edit → 420) · **RTK-LOGIC-02** (cooldown lewat ExamWindow = dead-end destruktif → 421) · **SHUF-ISS-03** (sync SamePackage absen di Import → 422) · **FLOW-04** (Pre wajib Completed sebelum Post StartExam → 424).
-**Migration:** **420=FALSE, 421=FALSE, 423=FALSE, 424=FALSE; 422=KEMUNGKINAN TRUE** (toggle/kolom SamePackage editable — TBD plan-phase); **425=KEMUNGKINAN TRUE** (CLN-03 drop kolom `AssessmentPhase` — TBD plan-phase). Notify IT saat promosi (bundle dgn v32.1+v32.3+v32.4 migration=TRUE).
+**Migration:** **420=FALSE, 421=FALSE, 423=FALSE, 424=FALSE, 425=FALSE; 422=TRUE** (`AddPackageNumberUniqueIndex` applied). **425=FALSE FINAL** (CLN-03 RESERVED via XML-doc, BUKAN drop — D-01 resolved). Notify IT saat promosi (bundle dgn v32.1+v32.3+v32.4 migration=TRUE).
 **Phase numbering (PENTING):** v32.7 mulai **420** (BUKAN 409) — branch `main` sudah pakai 409-419 (v32.5=409-414, v32.6=415-419); branch ITHandoff ini mulai 420 untuk hindari integer collision saat bundle deploy. Gunakan tepat: 420, 421, 422, 423, 424, 425.
 **Urutan eksekusi (sekuensial by file-overlap):** **420 → 421 → 422 → 423 → 424 → 425.** Rasional: 420 (form) & 424 (grading/flow) sama-sama sentuh `CreateAssessment`/grading; 422 (shuffle) & 424 (grading) sentuh `StartExam` — kerjakan sekuensial untuk hindari konflik. 425 terakhir (cleanup).
 **⚠️ Koordinasi lintas-branch:** Fase 422 (SamePackage & Shuffle) OVERLAP dengan v32.6 (branch main, Section + Scoped Shuffle, fase 415-419) — perlu rekonsiliasi saat merge. Fase 420 (form Pre-Post) juga beririsan UX dengan v32.6 — catat untuk merge, JANGAN duplikasi di sini.
@@ -146,19 +146,24 @@
 **UI hint:** yes
 
 ### Phase 425: Cosmetic / Naming / Tech-Debt Cleanup
-**Goal:** Bersihkan tech-debt non-fungsional yang aman di-batch terakhir — label/dokumentasi diselaraskan, entry manual divalidasi-silang, dead-field di-drop/RESERVED, timing dirapikan ke satu sumber, dan konvensi ModelState distandarkan.
+**Goal:** Bersihkan tech-debt non-fungsional yang aman di-batch terakhir — label/dokumentasi diselaraskan, entry manual divalidasi-silang (warning non-blocking), dead-field ditandai RESERVED (TIDAK di-drop), timing dirapikan ke satu sumber (`ExamTimeRules`), dan konvensi ModelState distandarkan via guard-helper minimal.
 **Depends on:** Phase 424 (fase terakhir — cleanup setelah semua perbaikan fungsional selesai; minim risiko regresi).
-**Migration:** **KEMUNGKINAN TRUE — TBD plan-phase** (CLN-03 drop kolom `AssessmentPhase`). Pastikan saat `/gsd-plan-phase 425`.
+**Migration:** **FALSE (FINAL)** — CLN-03 RESERVED via XML-doc (BUKAN drop, D-01); CLN-04 aman tanpa kolom baru; tak ada schema/write DB baru. Resolved oleh CONTEXT (authoritative).
 **Requirements:** CLN-01, CLN-02, CLN-03, CLN-04, CLN-05
 **Success Criteria** (what must be TRUE):
   1. Label & dokumentasi diselaraskan (label ValidUntil, komentar Status 7-nilai, nama field sentinel AssessmentPackageId, doc FK LinkedSessionId). *(CLN-01)*
   2. Entry manual — Schedule/CompletedAt diselaraskan + validasi silang IsPassed vs Score/PassPercentage (peringatan, tidak auto-override). *(CLN-02)*
-  3. Kolom dead-field AssessmentPhase di-drop (migration) atau ditandai RESERVED di XML-doc. *(CLN-03)*
-  4. Tech-debt timing — timer satu sumber (helper), token via mekanisme server-authoritative, side-effect write-on-GET StartExam dipindah/diamankan; konvensi validasi ModelState dirapikan. *(CLN-04, CLN-05)*
-**Plans:** TBD
+  3. Kolom dead-field AssessmentPhase ditandai RESERVED di XML-doc (TIDAK di-drop; D-01). *(CLN-03)*
+  4. Tech-debt timing — timer satu sumber (`ExamTimeRules`, 4 situs CMPController). FLOW-08 token server-authoritative + FLOW-10 write-on-GET StartExam = DEFER ke backlog (D-03). Konvensi ModelState dirapikan via guard-helper minimal (subset, D-04). *(CLN-04, CLN-05)*
+**Plans:** 4 plans
+Plans:
+- [ ] 425-01-PLAN.md — Wave 1: CLN-01+CLN-03 label/doc/XML-doc selaras (AssessmentPhase RESERVED, Status 7-nilai, ValidUntil [Display], LinkedSessionId koreksi PA-04, AssessmentPackageId sentinel) [migration=FALSE]
+- [ ] 425-02-PLAN.md — Wave 1: CLN-04 konsolidasi 4 situs timer CMPController → ExamTimeRules.AllowedExamSeconds + parity test (FLOW-08/FLOW-10 DEFER) [migration=FALSE]
+- [ ] 425-03-PLAN.md — Wave 1: CLN-02 ManualEntryRules.PassStatusMismatch (pure) + warning non-blocking AddManualAssessment (TETAP simpan, CSRF/authz utuh) [migration=FALSE]
+- [ ] 425-04-PLAN.md — Wave 1: CLN-05 ControllerGuards.JsonFail (shape byte-identik) + apply subset SubmitEssayScore [migration=FALSE]
 **UI hint:** no
 
-**Active mapped: 42/42 ✓ (FORM-01..11 → 420 · RTH-01..05 → 421 · SHFX-01..07 → 422 · CERT-01..07 → 423 · GRDF-01..07 → 424 · CLN-01..05 → 425) — Orphans: 0 — Duplicates: 0 — migration=TBD Phase 422 & 425. Urutan eksekusi sekuensial 420 → 421 → 422 → 423 → 424 → 425 (by file-overlap). ⚠️ 422 (+420) overlap v32.6 main — rekonsiliasi saat merge.**
+**Active mapped: 42/42 ✓ (FORM-01..11 → 420 · RTH-01..05 → 421 · SHFX-01..07 → 422 · CERT-01..07 → 423 · GRDF-01..07 → 424 · CLN-01..05 → 425) — Orphans: 0 — Duplicates: 0 — migration=TRUE Phase 422 only; 425=FALSE FINAL (CLN-03 RESERVED). Urutan eksekusi sekuensial 420 → 421 → 422 → 423 → 424 → 425 (by file-overlap); Phase 425 internal 4 plan SEMUA Wave 1 (file-ownership eksklusif, paralel). ⚠️ 422 (+420) overlap v32.6 main — rekonsiliasi saat merge.**
 
 ### Progress Table
 
@@ -169,7 +174,7 @@
 | 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 3/3 | Complete   | 2026-06-23 |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 3/3 | Complete    | 2026-06-24 |
 | 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..05,07) | 3/3 | Complete   | 2026-06-24 |
-| 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 0/TBD | Not started | - |
+| 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 0/4 | Planned | - |
 
 </details>
 

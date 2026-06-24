@@ -1,9 +1,9 @@
 ---
 phase: 425
 slug: cosmetic-naming-tech-debt-cleanup
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: planned
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-24
 ---
 
@@ -17,20 +17,20 @@ created: 2026-06-24
 
 | Property | Value |
 |----------|-------|
-| **Framework** | xUnit 2.9.3 (.NET) |
-| **Config file** | none — existing test project |
-| **Quick run command** | `dotnet test --filter "FullyQualifiedName~ExamTimeRulesTests|FullyQualifiedName~ManualEntryRules"` |
-| **Full suite command** | `dotnet test` |
-| **Estimated runtime** | ~baseline suite 748/0/2 |
+| **Framework** | xUnit 2.9.3 (.NET 8) |
+| **Config file** | none — existing test project `HcPortal.Tests/HcPortal.Tests.csproj` |
+| **Quick run command** | `dotnet test HcPortal.Tests/HcPortal.Tests.csproj --filter "FullyQualifiedName~ExamTimeRules\|FullyQualifiedName~ManualEntryRules\|FullyQualifiedName~ControllerGuards"` |
+| **Full suite command** | `dotnet test HcPortal.Tests/HcPortal.Tests.csproj` |
+| **Baseline (post-424)** | suite 748 pass / 0 fail / 2 skip — 425 jaga 0 regresi (+ test baru parity/cross-validate/shape) |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run quick run command
-- **After every plan wave:** Run full suite command
-- **Before `/gsd-verify-work`:** Full suite must be green
-- **Max feedback latency:** suite runtime
+- **After every task commit:** Run quick run command (+ `dotnet build HcPortal.csproj` 0 error)
+- **After every plan wave:** Run full suite command (jaga 748/0/2 + test baru hijau)
+- **Before `/gsd-verify-work`:** Full suite must be green + `dotnet build` 0 error/0 warning baru + UAT manual @5270 (CLN-02 warning hidup, CLN-01 label tampil)
+- **Max feedback latency:** suite runtime (~baseline)
 
 ---
 
@@ -38,18 +38,30 @@ created: 2026-06-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| {N}-01-01 | 01 | 1 | CLN-XX | — | {expected behavior} | unit | `{command}` | ✅ / ❌ W0 | ⬜ pending |
+| 425-01-01 | 01 | 1 | CLN-03, CLN-01 | T-425-01 | AssessmentPhase RESERVED (kolom tetap, no migration); komentar Status 7-nilai | static/grep | `grep "RESERVED" Models/AssessmentSession.cs` + `dotnet build` | ✅ (grep) | ⬜ pending |
+| 425-01-02 | 01 | 1 | CLN-01 | T-425-02 | ValidUntil [Display] sumber-tunggal; LinkedSessionId XML-doc dikoreksi (no "ON DELETE SET NULL") | static/grep | `grep 'Berlaku Sampai' + ! grep 'ON DELETE SET NULL'` + `dotnet build` | ✅ (grep) | ⬜ pending |
+| 425-01-03 | 01 | 1 | CLN-01 | T-425-03 | AssessmentPackageId sentinel (nama field tak berubah); label cshtml selaras | static/grep | `grep "SENTINEL (PA-05)"` + `dotnet build` | ✅ (grep) | ⬜ pending |
+| 425-02-01 | 02 | 1 (W0) | CLN-04 | T-425-04 | Parity helper == formula lama 4 situs (incl double-site :4661) | unit (pure) | `dotnet test --filter ~ExamTimeRulesTests` | ✅ EXTEND ExamTimeRulesTests.cs | ⬜ pending |
+| 425-02-02 | 02 | 1 | CLN-04 | T-425-04/05/06 | 4 situs → ExamTimeRules; formula inline habis; token gate/StartExam tak disentuh (D-03) | unit + static | `dotnet build` + `dotnet test --filter ~ExamTimeRules` + token-gate grep | ✅ (test+grep) | ⬜ pending |
+| 425-03-01 | 03 | 1 (W0) | CLN-02 | T-425-10 | PassStatusMismatch: mismatch→true / match→false / null→false / boundary→false | unit (pure) | `dotnet test --filter ~ManualEntryRules` | ❌ W0 NEW ManualEntryRules.cs + ManualEntryRulesTests.cs | ⬜ pending |
+| 425-03-02 | 03 | 1 | CLN-02 | T-425-07/08/09 | Warning non-blocking (TETAP simpan, no auto-override); CSRF/authz utuh; XSS-safe (numerik-only) | unit + static | `dotnet build` + `dotnet test --filter ~ManualEntryRules` + authz/CSRF grep | ✅ (test+grep) | ⬜ pending |
+| 425-04-01 | 04 | 1 (W0) | CLN-05 | T-425-13 | JsonFail shape byte-identik {"success":false,"message":"..."} camelCase | unit (pure) | `dotnet test --filter ~ControllerGuards` | ❌ W0 NEW ControllerGuards.cs + ControllerGuardsTests.cs | ⬜ pending |
+| 425-04-02 | 04 | 1 | CLN-05 | T-425-11/12/13/14 | Cluster SubmitEssayScore → JsonFail (pesan identik); call-site lain tak berubah; authz/CSRF + signature utuh | unit + static | `dotnet build` + `dotnet test --filter ~ControllerGuards` + authz/CSRF grep | ✅ (test+grep) | ⬜ pending |
 
-*Planner fills this map. Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+**Sampling continuity:** Setiap plan punya ≥1 task ber-`<automated>` test (CLN-04/02/05) atau grep-static (CLN-01/03). Tidak ada 3 task beruntun tanpa automated verify.
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] Parity test extends `ExamTimeRulesTests.cs` — CLN-04 (formula lama vs `AllowedExamSeconds` identik di 4 situs)
-- [ ] Cross-validation test (NEW) — CLN-02 (mismatch → warning + tetap simpan; match → no warning)
+- [x] **CLN-04** — EXTEND `HcPortal.Tests/ExamTimeRulesTests.cs` dengan [Theory] parity 4 situs (incl double-site :4661). File ADA, tambah kasus. (Plan 02 Task 1)
+- [x] **CLN-02** — NEW `Helpers/ManualEntryRules.cs` (pure `PassStatusMismatch`) + NEW `HcPortal.Tests/ManualEntryRulesTests.cs` (mismatch→warning / match→no-warning / null-safe / boundary). (Plan 03 Task 1)
+- [x] **CLN-05** — NEW `Helpers/ControllerGuards.cs` (`JsonFail`) + NEW `HcPortal.Tests/ControllerGuardsTests.cs` (shape JSON byte-identik). (Plan 04 Task 1)
+- *Framework install:* tidak perlu — xUnit 2.9.3 sudah terpasang.
 
-*Planner finalizes Wave 0 stubs.*
+**Wave 0 strategy:** Tiga test artifact (parity / cross-validate / shape) dibuat sebagai task PERTAMA di plannya masing-masing (TDD `tdd="true"` — test sebelum implementasi consumer). Logika testable diekstrak ke pure helper (ManualEntryRules, ControllerGuards) agar bebas-DB. CLN-01/CLN-03 = grep/static-verifiable (bukan Wave-0 test, bukan manual-gate).
 
 ---
 
@@ -57,19 +69,21 @@ created: 2026-06-24
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| {behavior} | CLN-XX | {reason} | {steps} |
+| Warning kuning tampil pasca-submit mismatch + assessment tetap tersimpan | CLN-02 | Verifikasi UX end-to-end (TempData survive redirect, render alert) butuh browser | @5270 Form AddManualAssessment: Score=60, Pass=70, centang Lulus → submit → cek DB tersimpan + alert kuning muncul "Ditandai Lulus walau Score 60 < Pass 70%..." |
+| Label "Berlaku Sampai" tampil konsisten di 3 form | CLN-01 | Render label cshtml visual | @5270 buka Create/Edit/AddManual assessment → label expiry sertifikat = "Berlaku Sampai" |
+| Guard SubmitEssayScore respons JSON identik di UI | CLN-05 | Frontend JS membaca data.success/data.message | @5270 EssayGrading → picu guard (skor di luar range) → toast/error muncul identik seperti sebelumnya |
 
-*Planner fills — CLN-01/03/05 likely grep/static-verifiable (not manual).*
+*CLN-04 & CLN-02/CLN-05 logic = automated (pure test). Manual = UX confirm only, bukan gate utama.*
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency acceptable
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify atau grep-static-verifiable atau Wave 0 dependency
+- [x] Sampling continuity: no 3 consecutive tasks without automated/static verify
+- [x] Wave 0 covers all MISSING references (ManualEntryRulesTests + ControllerGuardsTests NEW; ExamTimeRulesTests EXTEND)
+- [x] No watch-mode flags (`dotnet test` one-shot)
+- [x] Feedback latency acceptable (~baseline suite)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** planned — siap eksekusi
