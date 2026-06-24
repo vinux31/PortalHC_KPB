@@ -46,7 +46,7 @@ namespace HcPortal.Services
         /// 3. Update session (race-condition-safe via ExecuteUpdateAsync + status guard)
         /// 4. Update PackageAssignment.IsCompleted
         /// 5. Buat TrainingRecord (dengan duplicate guard)
-        /// 6. Generate NomorSertifikat jika session.GenerateCertificate && isPassed (retry 3x)
+        /// 6. Generate NomorSertifikat via CertIssuanceRules.ShouldIssueCertificate gate (Phase 423 CERT-01) + TryAssignNextSeqAsync
         /// 7. Kirim notifikasi grup completion
         ///
         /// PENTING: Method ini selalu grade dari DB (bukan dari form POST) — per RESEARCH.md anti-pattern.
@@ -283,38 +283,49 @@ namespace HcPortal.Services
             // (re-add 2026-04-10) - original removal di 79284609 (2026-03-18).
 
             // ---- 6. Generate NomorSertifikat (jika applicable) ----
-            // Kondisi: session.GenerateCertificate && isPassed (T-296-03: retry 3x + WHERE NomorSertifikat == null)
-            if (session.GenerateCertificate && isPassed)
+            // Phase 423 CERT-01 (SITE 1): gate kelayakan cert TUNGGAL via CertIssuanceRules.ShouldIssueCertificate
+            // (tolak PreTest + wajib GenerateCertificate && lulus). Loop seq terkonsolidasi -> TryAssignNextSeqAsync (CERT-03).
+            if (CertIssuanceRules.ShouldIssueCertificate(session))
             {
                 var certNow = DateTime.Now;
-                int certYear = certNow.Year;
-                int certAttempts = 0;
-                const int maxCertAttempts = 3;
-                bool certSaved = false;
+                bool certSaved = await CertNumberHelper.TryAssignNextSeqAsync(_context, session.Id, certNow);
 
-                while (!certSaved && certAttempts < maxCertAttempts)
+                if (certSaved)
                 {
-                    certAttempts++;
-                    try
+                    // CERT-02/06: derive ValidUntil dari CompletedAt utk CertificateType kanonik (Permanent->null/Annual->+1y/3-Year->+3y).
+                    var validUntil = CertIssuanceRules.DeriveValidUntil(session.CertificateType, session.CompletedAt);
+                    if (validUntil != null)
                     {
-                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
                         await _context.AssessmentSessions
-                            .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
-                            .ExecuteUpdateAsync(s => s
-                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
-                            );
-                        certSaved = true;
-                    }
-                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
-                    {
-                        // Retry dengan sequence baru (T-296-03)
+                            .Where(s => s.Id == session.Id)
+                            .ExecuteUpdateAsync(s => s.SetProperty(r => r.ValidUntil, (DateOnly?)validUntil));
                     }
                 }
-
-                if (!certSaved)
+                else
                 {
-                    _logger.LogError("Failed to generate certificate number for SessionId={SessionId} after {MaxAttempts} attempts due to repeated collisions.",
-                        session.Id, maxCertAttempts);
+                    // CERT-03 (D-03): seq gagal setelah retry. NON-DESTRUKTIF — sesi tetap Completed/IsPassed (JANGAN rollback).
+                    // Stamp UpdatedAt + log + audit "CertIssuanceFailed" -> predikat queryable utk HC:
+                    // (IsPassed==true && GenerateCertificate && AssessmentType!=PreTest && NomorSertifikat==null).
+                    _logger.LogError("Cert gagal terbit SessionId={SessionId} setelah retry — sesi tetap Completed (non-destruktif), tandai HC.", session.Id);
+                    await _context.AssessmentSessions
+                        .Where(s => s.Id == session.Id)
+                        .ExecuteUpdateAsync(s => s.SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
+                    try
+                    {
+                        // Audit best-effort via _context (GradingService tak inject AuditLogService — hindari ubah ctor/DI).
+                        _context.AuditLogs.Add(new AuditLog
+                        {
+                            ActorUserId = "system",
+                            ActorName = "Sistem (Grading)",
+                            ActionType = "CertIssuanceFailed",
+                            Description = $"Nomor sertifikat gagal terbit (auto-grade) utk SessionId={session.Id} setelah retry — tandai HC untuk terbit/retry manual.",
+                            TargetId = session.Id,
+                            TargetType = "AssessmentSession",
+                            CreatedAt = DateTime.UtcNow
+                        });
+                        await _context.SaveChangesAsync();
+                    }
+                    catch { /* audit best-effort: jangan blok lifecycle worker */ }
                 }
             }
 
@@ -517,37 +528,47 @@ namespace HcPortal.Services
             else if (!wasPassed && isPassed)
             {
                 // Fail -> Pass: generate sertifikat (Phase 324 D-03: TR cascade removed)
-                if (session.GenerateCertificate && session.AssessmentType != "PreTest")
+                // Phase 423 CERT-01 (SITE 2): seragamkan gate ke CertIssuanceRules.ShouldIssueCertificate
+                // (cabang ini sudah flip Fail->Pass jadi IsPassed==true). Loop seq -> TryAssignNextSeqAsync (CERT-03).
+                if (CertIssuanceRules.ShouldIssueCertificate(session))
                 {
                     var certNow = DateTime.Now;
-                    int certYear = certNow.Year;
-                    int certAttempts = 0;
-                    const int maxCertAttempts = 3;
-                    bool certSaved = false;
-                    while (!certSaved && certAttempts < maxCertAttempts)
+                    bool certSaved = await CertNumberHelper.TryAssignNextSeqAsync(_context, session.Id, certNow);
+
+                    if (certSaved)
                     {
-                        certAttempts++;
-                        try
+                        // CERT-02/06 (D-10): ValidUntil derive dari CompletedAt utk CertificateType kanonik (paritas SITE 1).
+                        var validUntil = CertIssuanceRules.DeriveValidUntil(session.CertificateType, session.CompletedAt);
+                        if (validUntil != null)
                         {
-                            var nextSeq = await HcPortal.Helpers.CertNumberHelper.GetNextSeqAsync(_context, certYear);
-                            var nomor = HcPortal.Helpers.CertNumberHelper.Build(nextSeq, certNow);
-                            // T6/D-10: ValidUntil mengikuti setup sesi HC (paritas GradeAndCompleteAsync) — TIDAK di-hardcode di sini.
-                            var updated = await _context.AssessmentSessions
-                                .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
-                                .ExecuteUpdateAsync(s => s
-                                    .SetProperty(r => r.NomorSertifikat, nomor));
-                            if (updated > 0) certSaved = true;
-                        }
-                        catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && HcPortal.Helpers.CertNumberHelper.IsDuplicateKeyException(ex))
-                        {
-                            // Retry dengan sequence baru
+                            await _context.AssessmentSessions
+                                .Where(s => s.Id == session.Id)
+                                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ValidUntil, (DateOnly?)validUntil));
                         }
                     }
-
-                    if (!certSaved)
+                    else
                     {
-                        _logger.LogError("RegradeAfterEditAsync: failed generate cert for session {SessionId} after {N} attempts",
-                            session.Id, maxCertAttempts);
+                        // CERT-03 non-destruktif: stamp UpdatedAt + audit (predikat sinyal HC, paritas SITE 1).
+                        _logger.LogError("RegradeAfterEditAsync: cert gagal terbit session {SessionId} setelah retry — sesi tetap Completed (non-destruktif), tandai HC.",
+                            session.Id);
+                        await _context.AssessmentSessions
+                            .Where(s => s.Id == session.Id)
+                            .ExecuteUpdateAsync(s => s.SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
+                        try
+                        {
+                            _context.AuditLogs.Add(new AuditLog
+                            {
+                                ActorUserId = "system",
+                                ActorName = "Sistem (Regrade)",
+                                ActionType = "CertIssuanceFailed",
+                                Description = $"Nomor sertifikat gagal terbit (re-grade Fail->Pass) utk SessionId={session.Id} setelah retry — tandai HC.",
+                                TargetId = session.Id,
+                                TargetType = "AssessmentSession",
+                                CreatedAt = DateTime.UtcNow
+                            });
+                            await _context.SaveChangesAsync();
+                        }
+                        catch { /* audit best-effort */ }
                     }
                 }
 
