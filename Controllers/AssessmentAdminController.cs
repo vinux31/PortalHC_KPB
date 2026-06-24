@@ -7685,13 +7685,29 @@ namespace HcPortal.Controllers
         // 416 D-416-03: tipe ringkas peringatan cakupan ET per-Section (strongly-typed untuk view).
         public sealed record SectionEtWarning(int SectionNumber, string? Name, int K, int DistinctEt);
 
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
         // Truncate alt text ke MaxLength kolom (255) sebelum assign — hindari DbUpdateException (Pitfall 6).
         private static string? TruncateAlt(string? s, int max)
             => string.IsNullOrEmpty(s) ? s : (s.Length <= max ? s : s.Substring(0, max));
 
+        // Phase 418 (flag #1 KEYSTONE — kontrak untuk Plan 03 markup):
+        // Resolusi kebenaran opsi server-authoritative.
+        //   MultipleChoice (radio): abaikan options[i].IsCorrect dari binding; satu correctIndex menentukan
+        //     opsi benar tunggal (radio native single-select via name="correctIndex" value=index). Sisanya false.
+        //   MultipleAnswer (checkbox): pakai options[i].IsCorrect per-baris apa adanya.
+        //   Essay / tipe lain: tidak ada opsi (caller tetap aman — options bisa kosong).
+        private static void ResolveCorrectness(string questionType, List<OptionInput> options, int? correctIndex)
+        {
+            if (questionType == "MultipleChoice")
+            {
+                for (int i = 0; i < options.Count; i++)
+                    options[i].IsCorrect = correctIndex.HasValue && correctIndex.Value == i;
+            }
+            // MultipleAnswer: options[i].IsCorrect dari checkbox dipakai apa adanya (tidak diubah).
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateQuestion(
             int packageId,
             string questionText,
@@ -7700,13 +7716,15 @@ namespace HcPortal.Controllers
             string? elemenTeknis,
             string? rubrik,
             int maxCharacters,
-            string? optionA, string? optionB, string? optionC, string? optionD,
-            bool correctA, bool correctB, bool correctC, bool correctD,
             IFormFile? questionImage, string? questionImageAlt,
-            IFormFile? optionAImage, IFormFile? optionBImage, IFormFile? optionCImage, IFormFile? optionDImage,
-            string? optionAImageAlt, string? optionBImageAlt, string? optionCImageAlt, string? optionDImageAlt,
+            List<OptionInput> options,
+            int? correctIndex = null,
             int? sectionId = null)
         {
+            options ??= new List<OptionInput>();
+            // Flag #1 keystone: resolusi kebenaran (MC single-select via correctIndex; MA per-checkbox).
+            ResolveCorrectness(questionType, options, correctIndex);
+
             // Validate QuestionType whitelist (T-298-01)
             var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
             if (!validTypes.Contains(questionType))
@@ -7715,8 +7733,9 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
-            // Validate-all image uploads fail-fast (SHARED-3 / D-08). Null file → (true,null).
-            foreach (var f in new[] { questionImage, optionAImage, optionBImage, optionCImage, optionDImage })
+            // Validate-all image uploads fail-fast (SHARED-3 / D-08, T-418-04). Null file → (true,null).
+            // Loop dinamis SEMUA gambar opsi (termasuk E/F) — jangan hand-roll (V12 ASVS).
+            foreach (var f in new[] { questionImage }.Concat(options.Select(o => o.Image)))
             {
                 var (okImg, errImg) = FileUploadHelper.ValidateImageFile(f);
                 if (!okImg)
@@ -7750,8 +7769,9 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
-            // Validate per type (D-07)
-            var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
+            // Validate per type (D-07). correctCount dihitung dari options SETELAH resolusi correctIndex
+            // (MC: tepat 1 IsCorrect via index; MA: jumlah checkbox IsCorrect).
+            var correctCount = options.Count(o => o.IsCorrect);
             if (questionType == "MultipleChoice" && correctCount != 1)
             {
                 TempData["Error"] = $"{QuestionTypeLabels.Short("MultipleChoice")} hanya boleh memiliki 1 jawaban benar.";
@@ -7769,11 +7789,11 @@ namespace HcPortal.Controllers
             }
 
             // Phase 386 PXF-02 (F-DEV-01) — option-presence validation (≥2 ber-teks + checked-correct must be ber-teks).
-            // Shared helper (kill-drift with EditQuestion). correctCount gate above is UNCHANGED.
+            // Phase 418 OPT-03: validator juga menegakkan max-6. Shared helper (kill-drift with EditQuestion).
             var (optOk, optErr) = QuestionOptionValidator.ValidateQuestionOptions(
                 questionType,
-                new[] { optionA, optionB, optionC, optionD },
-                new[] { correctA, correctB, correctC, correctD });
+                options.Select(o => o.Text).ToArray(),
+                options.Select(o => o.IsCorrect).ToArray());
             if (!optOk)
             {
                 TempData["Error"] = optErr;
@@ -7802,25 +7822,20 @@ namespace HcPortal.Controllers
 
             if (questionType != "Essay")
             {
-                var options = new[]
+                // Phase 418: persist opsi dinamis (≤6). Skip baris kosong (Pitfall 4 — mirror import "kosong diabaikan").
+                // Take(6) defensif (validator sudah menolak >6).
+                foreach (var inp in options.Take(6))
                 {
-                    (optionA, correctA, optionAImage, optionAImageAlt),
-                    (optionB, correctB, optionBImage, optionBImageAlt),
-                    (optionC, correctC, optionCImage, optionCImageAlt),
-                    (optionD, correctD, optionDImage, optionDImageAlt)
-                };
-                foreach (var (text, isCorrect, oImg, oAlt) in options)
-                {
-                    if (!string.IsNullOrWhiteSpace(text))
+                    if (!string.IsNullOrWhiteSpace(inp.Text))
                     {
                         // IMG-02/03: simpan gambar opsi (null-safe).
-                        var oImgUrl = await FileUploadHelper.SaveFileAsync(oImg, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
+                        var oImgUrl = await FileUploadHelper.SaveFileAsync(inp.Image, _env.WebRootPath, $"uploads/questions/{packageId}", _logger);
                         newQ.Options.Add(new PackageOption
                         {
-                            OptionText = text!.Trim(),
-                            IsCorrect = isCorrect,
+                            OptionText = inp.Text!.Trim(),
+                            IsCorrect = inp.IsCorrect,
                             ImagePath = oImgUrl,
-                            ImageAlt = TruncateAlt(oAlt, 255)
+                            ImageAlt = TruncateAlt(inp.ImageAlt, 255)
                         });
                     }
                 }
