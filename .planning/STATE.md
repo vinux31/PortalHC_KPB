@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
-status: executing
-stopped_at: Phase 422 COMPLETE (all 5 gates PASS) — next discuss 423
-last_updated: "2026-06-24T00:04:37.025Z"
-last_activity: 2026-06-24
+status: verifying
+stopped_at: Phase 423 context gathered
+last_updated: "2026-06-24T00:40:49.475Z"
+last_activity: 2026-06-24 -- Phase 422 finalized (checkbox flip 421+422, advance to 423)
 progress:
   total_phases: 39
   completed_phases: 3
@@ -143,6 +143,6 @@ Backlog tracked: 999.6/9/10/11/12.
 
 Last activity: 2026-06-23
 
-Stopped at: Completed 422-01-PLAN.md
+Stopped at: Phase 423 context gathered
 
 Next action: **`/gsd-discuss-phase 421`** (Retake Lifecycle Hardening; RTH-01..05; RTK-LOGIC-02 🔴 retake dead-end). Phase 420 done. Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.
