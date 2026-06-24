@@ -55,25 +55,60 @@ namespace HcPortal.Helpers
         {
             var ws = workbook.Worksheets.Add("Detail Per Soal");
             // Order field = stable sort key (AssessmentPackage.cs L38 comment)
-            var sortedQuestions = questions.OrderBy(q => q.Order).ThenBy(q => q.Id).ToList();
+            // Phase 419 PAG-04: urutan kolom soal Section-aware (canonical, mirror ShuffleEngine/SectionPaginator 416/417).
+            // Soal tanpa Section (SectionNumber null) -> grup "Lainnya" terakhir (int.MaxValue).
+            var sortedQuestions = questions
+                .OrderBy(q => q.Section?.SectionNumber ?? int.MaxValue)
+                .ThenBy(q => q.Order)
+                .ThenBy(q => q.Id)
+                .ToList();
 
-            ws.Cell(1, 1).Value = "No";
-            ws.Cell(1, 2).Value = "Nama";
-            ws.Cell(1, 3).Value = "NIP";
+            // Phase 419 PAG-04: band-header Section hanya saat ada >=1 Section. Tanpa Section -> output legacy identik
+            // (no band, header row 1, data row 2) = backward-compat. Dengan Section: band row 1, header row 2, data row 3.
+            bool anySection = sortedQuestions.Any(q => q.Section != null);
+            int bandRow = 1;
+            int headerRow = anySection ? 2 : 1;
+            int dataStartRow = headerRow + 1;
+
+            // Band-header merged per Section di atas grup kolom soal (label organisasi saja — D-12: TANPA skor per-Section).
+            if (anySection)
+            {
+                int qIdx = 0;
+                foreach (var grp in sortedQuestions
+                    .GroupBy(q => q.Section?.SectionNumber)
+                    .OrderBy(g => g.Key ?? int.MaxValue))
+                {
+                    int count = grp.Count();
+                    int startCol = 4 + 2 * qIdx;             // kolom 1-3 = No/Nama/NIP (tanpa band)
+                    int endCol = startCol + 2 * count - 1;   // tiap soal = 2 kolom (Jawaban + Benar?)
+                    var label = grp.Key.HasValue ? $"Section {grp.Key}: {grp.First().Section?.Name}" : "Lainnya";
+                    ws.Cell(bandRow, startCol).Value = label;
+                    var band = ws.Range(bandRow, startCol, bandRow, endCol);
+                    band.Merge();
+                    band.Style.Font.Bold = true;
+                    band.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    band.Style.Fill.BackgroundColor = XLColor.LightBlue;
+                    qIdx += count;
+                }
+            }
+
+            ws.Cell(headerRow, 1).Value = "No";
+            ws.Cell(headerRow, 2).Value = "Nama";
+            ws.Cell(headerRow, 3).Value = "NIP";
             int col = 4;
             for (int i = 0; i < sortedQuestions.Count; i++)
             {
-                ws.Cell(1, col++).Value = $"Soal {i + 1} Jawaban";
-                ws.Cell(1, col++).Value = $"Soal {i + 1} Benar?";
+                ws.Cell(headerRow, col++).Value = $"Soal {i + 1} Jawaban";
+                ws.Cell(headerRow, col++).Value = $"Soal {i + 1} Benar?";
             }
-            ws.Cell(1, col).Value = "Skor Total";
+            ws.Cell(headerRow, col).Value = "Skor Total";
 
-            var headerRange = ws.Range(1, 1, 1, col);
+            var headerRange = ws.Range(headerRow, 1, headerRow, col);
             headerRange.Style.Font.Bold = true;
             headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
             headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            int rowIdx = 2;
+            int rowIdx = dataStartRow;
             int seq = 1;
             foreach (var session in sessions)
             {
@@ -108,7 +143,7 @@ namespace HcPortal.Helpers
             }
 
             ws.Columns().AdjustToContents();
-            ws.SheetView.FreezeRows(1);
+            ws.SheetView.FreezeRows(anySection ? 2 : 1);
         }
 
         /// <summary>
