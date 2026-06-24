@@ -1026,6 +1026,27 @@ namespace HcPortal.Controllers
                 if (srcAlreadyRenewed)
                     ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
             }
+
+            // Phase 423 CERT-05/VAL-04 (D-07): anti double-cert guard UNCONDITIONAL.
+            // Cegah penerbitan cert kedua yang AKTIF untuk (peserta, judul) sama. Renewal (RenewsSessionId/RenewsTrainingId)
+            // DIKECUALIKAN — perpanjangan resmi. Guard ini SETARA pola double-renewal di atas (di LUAR cabang !ConfirmDuplicateTitle),
+            // jadi TIDAK bisa di-bypass via ConfirmDuplicateTitle (Pitfall 3). Hanya relevan saat cert akan terbit (GenerateCertificate).
+            if (model.GenerateCertificate && !isRenewalModePost
+                && !string.IsNullOrWhiteSpace(model.Title) && UserIds != null && UserIds.Count > 0)
+            {
+                var blocked = new List<string>();
+                foreach (var uid in UserIds.Distinct())
+                {
+                    if (await HasActiveCertForTitleAsync(uid, model.Title, null))
+                        blocked.Add(uid);
+                }
+                if (blocked.Count > 0)
+                {
+                    ModelState.AddModelError("",
+                        $"{blocked.Count} peserta sudah memiliki sertifikat aktif untuk judul ini. " +
+                        "Cert tidak bisa diterbitkan ganda (gunakan mode renewal bila ingin perpanjang).");
+                }
+            }
             // Mixed-type bulk validation (per D-11, EDGE-01)
             if (!string.IsNullOrEmpty(RenewalFkMap) && UserIds != null && UserIds.Count > 1)
             {
@@ -3883,35 +3904,31 @@ namespace HcPortal.Controllers
             // AssessmentSession sole source-of-truth untuk Records page display.
 
             // 5. Generate sertifikat jika applicable (same pattern as GradingService)
-            // PXF-08: retry 3x saat collision nomor + LogError pada kegagalan persisten (jangan silent-pass cert un-numbered).
-            if (session.GenerateCertificate && isPassed)
+            // Phase 423 CERT-01 (SITE 3): gate kelayakan cert TUNGGAL via CertIssuanceRules.ShouldIssueCertificate
+            // (tolak PreTest — sebelumnya gate ini TANPA cek PreTest). Loop seq -> TryAssignNextSeqAsync (CERT-03).
+            // PXF-08: surface kegagalan cert ke HC tetap dipertahankan di bawah (certError).
+            if (CertIssuanceRules.ShouldIssueCertificate(session))
             {
                 var certNow = DateTime.Now;
-                int certYear = certNow.Year;
-                int certAttempts = 0;
-                const int maxCertAttempts = 3;
-                bool certSaved = false;
-                while (!certSaved && certAttempts < maxCertAttempts)
+                bool certSaved = await CertNumberHelper.TryAssignNextSeqAsync(_context, session.Id, certNow);
+                if (certSaved)
                 {
-                    certAttempts++;
-                    try
+                    // CERT-02/06: derive ValidUntil dari CompletedAt utk CertificateType kanonik (paritas GradingService SITE 1).
+                    var validUntil = CertIssuanceRules.DeriveValidUntil(session.CertificateType, session.CompletedAt);
+                    if (validUntil != null)
                     {
-                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
                         await _context.AssessmentSessions
-                            .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
-                            .ExecuteUpdateAsync(s => s
-                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow)));
-                        certSaved = true;
-                    }
-                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
-                    {
-                        // Retry dengan sequence baru
+                            .Where(s => s.Id == session.Id)
+                            .ExecuteUpdateAsync(s => s.SetProperty(r => r.ValidUntil, (DateOnly?)validUntil));
                     }
                 }
-                if (!certSaved)
+                else
                 {
-                    _logger.LogError("Failed to generate certificate number for SessionId={SessionId} after {MaxAttempts} attempts due to repeated collisions.",
-                        session.Id, maxCertAttempts);
+                    // CERT-03 non-destruktif: sesi tetap final, NomorSertifikat==null -> certError (PXF-08) surface ke HC + stamp UpdatedAt.
+                    _logger.LogError("FinalizeEssayGrading: cert gagal terbit SessionId={SessionId} setelah retry — tandai HC (non-destruktif).", session.Id);
+                    await _context.AssessmentSessions
+                        .Where(s => s.Id == session.Id)
+                        .ExecuteUpdateAsync(s => s.SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
                 }
             }
 
@@ -3969,8 +3986,9 @@ namespace HcPortal.Controllers
                 nomorSertifikat = updatedSession?.NomorSertifikat
             });
 
-            // PXF-08: surface kegagalan cert ke HC (lulus + GenerateCertificate tapi NomorSertifikat masih kosong).
-            var certError = (session.GenerateCertificate && isPassed && string.IsNullOrEmpty(updatedSession?.NomorSertifikat))
+            // PXF-08: surface kegagalan cert ke HC (layak terbit tapi NomorSertifikat masih kosong).
+            // Phase 423 CERT-01: konsisten-kan kondisi ke gate tunggal ShouldIssueCertificate (bukan literal divergen).
+            var certError = (CertIssuanceRules.ShouldIssueCertificate(session) && string.IsNullOrEmpty(updatedSession?.NomorSertifikat))
                 ? "Nomor sertifikat gagal dibuat, coba lagi." : null;
             return Json(new
             {
@@ -5908,6 +5926,24 @@ namespace HcPortal.Controllers
             return await _context.AssessmentSessions
                 .AnyAsync(s => pairIds.Contains(s.Id) &&
                                (s.StartedAt != null || s.Status == "InProgress" || s.Status == "Completed"));
+        }
+
+        // Phase 423 CERT-05 (D-07) — ada cert AKTIF (ValidUntil null OR >=today) utk (peserta, judul-ternormalisasi)?
+        // Renewal (RenewsSessionId terisi) dikecualikan. UNCONDITIONAL — tak boleh dibungkus ConfirmDuplicateTitle.
+        private async Task<bool> HasActiveCertForTitleAsync(string userId, string? title, int? excludeSessionId)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var norm = AdminBaseController.NormalizeTitleForDup(title);
+            var candidates = await _context.AssessmentSessions
+                .Where(s => s.UserId == userId
+                         && s.NomorSertifikat != null
+                         && s.IsPassed == true
+                         && s.RenewsSessionId == null
+                         && (excludeSessionId == null || s.Id != excludeSessionId)
+                         && (s.ValidUntil == null || s.ValidUntil >= today))
+                .Select(s => s.Title)
+                .ToListAsync();
+            return candidates.Any(t => AdminBaseController.NormalizeTitleForDup(t) == norm);
         }
 
         /// <summary>
