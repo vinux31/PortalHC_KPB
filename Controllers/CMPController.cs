@@ -466,8 +466,9 @@ namespace HcPortal.Controllers
             // Clamp 2: tidak boleh mundur (monotonically increasing)
             clampedElapsed = Math.Max(clampedElapsed, session.ElapsedSeconds);
 
-            // Clamp 3: tidak boleh melebihi durasi total
-            clampedElapsed = Math.Min(clampedElapsed, session.DurationMinutes * 60);
+            // Clamp 3: tidak boleh melebihi durasi total + ExtraTimeMinutes (GRDF-05/FLOW-02 — root fix
+            // under-report export "Durasi Aktual"; sebelumnya over-clamp tanpa ExtraTime).
+            clampedElapsed = Math.Min(clampedElapsed, ExamTimeRules.AllowedExamSeconds(session.DurationMinutes, session.ExtraTimeMinutes));
 
             // Atomic update of elapsed time and last active page
             var updated = await _context.AssessmentSessions
@@ -1649,22 +1650,32 @@ namespace HcPortal.Controllers
                 if (pkgAssign != null)
                 {
                     var shuffledQIds = pkgAssign.GetShuffledQuestionIds();
-                    int totalQuestions = shuffledQIds.Count;
-                    // Count from form answers (MC) + DB responses for Essay/MA not in form
-                    int formAnswered = answers.Count(a => a.Value > 0);
-                    var dbResponses = await _context.PackageUserResponses
+
+                    // GRDF-07 (VAL-03): soal Essay dianggap "terjawab" HANYA bila TextAnswer non-kosong (server-
+                    // authoritative), bukan sekadar baris response ada. MC/MA: response ber-opsi di DB atau jawaban form.
+                    var qTypeById = await _context.PackageQuestions
+                        .Where(q => shuffledQIds.Contains(q.Id))
+                        .Select(q => new { q.Id, q.QuestionType })
+                        .ToDictionaryAsync(q => q.Id, q => q.QuestionType ?? "MultipleChoice");
+                    var dbResp = await _context.PackageUserResponses
                         .Where(r => r.AssessmentSessionId == id && shuffledQIds.Contains(r.PackageQuestionId))
-                        .Select(r => r.PackageQuestionId)
-                        .Distinct()
+                        .Select(r => new { r.PackageQuestionId, HasOption = r.PackageOptionId.HasValue, r.TextAnswer })
                         .ToListAsync();
-                    // Merge: questions answered in form OR in DB
-                    var allAnsweredQIds = new HashSet<int>(answers.Where(a => a.Value > 0).Select(a => a.Key));
-                    foreach (var qId in dbResponses) allAnsweredQIds.Add(qId);
-                    int answeredCount = allAnsweredQIds.Count;
-                    if (totalQuestions > 0 && answeredCount < totalQuestions)
+
+                    var formAnswered = new HashSet<int>(answers.Where(a => a.Value > 0).Select(a => a.Key));
+                    var completion = EvaluateOnTimeCompletion(
+                        shuffledQIds,
+                        qTypeById,
+                        formAnswered,
+                        dbResp.Select(r => (r.PackageQuestionId, r.HasOption, r.TextAnswer)).ToList());
+
+                    if (completion.Blocked)
                     {
-                        int unanswered = totalQuestions - answeredCount;
-                        TempData["Error"] = $"Masih ada {unanswered} soal yang belum dijawab. Jawab semua soal terlebih dahulu.";
+                        // Pesan ramah, server-authoritative (client flushEssay non-otoritatif — lesson Phase 413).
+                        // TIDAK membocorkan kunci/jawaban benar (V5).
+                        TempData["Error"] = completion.EmptyEssay
+                            ? "Isi semua jawaban essay terlebih dahulu sebelum submit."
+                            : $"Masih ada {completion.Unanswered} soal yang belum dijawab. Jawab semua soal terlebih dahulu.";
                         return RedirectToAction("ExamSummary", new { id });
                     }
                 }
@@ -4586,6 +4597,45 @@ namespace HcPortal.Controllers
         /// Bila grading gagal (DB hiccup), token TIDAK dikonsumsi → retry aman (tak permanent-reject).
         /// </summary>
         public static bool ShouldConsumeAutoSubmitToken(bool gradingSucceeded) => gradingSucceeded;
+
+        /// <summary>Hasil evaluasi kelengkapan submit on-time (GRDF-07).</summary>
+        public readonly record struct OnTimeCompletionResult(bool Blocked, bool EmptyEssay, int Unanswered);
+
+        /// <summary>
+        /// Phase 424 GRDF-07 (VAL-03) — keputusan blokir submit on-time: soal Essay "terjawab" HANYA bila
+        /// TextAnswer non-kosong (server-authoritative, bukan baris-ada); MC/MA terjawab via jawaban form
+        /// (PackageOptionId>0) atau response ber-opsi di DB. Pure, EF-free, unit-testable (pola
+        /// ShouldEnforceSubmitTimer). HANYA dipakai di cabang on-time (!serverTimerExpired) — jalur timeout
+        /// TIDAK memakai ini (D-04/PXF-04: timeout + essay kosong tetap finalize PendingGrading).
+        /// </summary>
+        public static OnTimeCompletionResult EvaluateOnTimeCompletion(
+            IReadOnlyCollection<int> shuffledQuestionIds,
+            IReadOnlyDictionary<int, string> questionTypeById,
+            ISet<int> formAnsweredQuestionIds,
+            IReadOnlyCollection<(int questionId, bool hasOption, string? textAnswer)> dbResponses)
+        {
+            var answered = new HashSet<int>(formAnsweredQuestionIds);
+            bool emptyEssay = false;
+            foreach (var qId in shuffledQuestionIds)
+            {
+                var type = questionTypeById.TryGetValue(qId, out var t) ? (t ?? "MultipleChoice") : "MultipleChoice";
+                if (type == "Essay")
+                {
+                    bool filled = dbResponses.Any(r => r.questionId == qId && !string.IsNullOrWhiteSpace(r.textAnswer));
+                    if (filled) answered.Add(qId);
+                    else emptyEssay = true;                          // essay kosong → belum terjawab
+                }
+                else if (dbResponses.Any(r => r.questionId == qId && r.hasOption))
+                {
+                    answered.Add(qId);                              // MC/MA terjawab via response ber-opsi di DB
+                }
+            }
+            int total = shuffledQuestionIds.Count;
+            int answeredCount = shuffledQuestionIds.Count(qId => answered.Contains(qId));
+            int unanswered = Math.Max(0, total - answeredCount);
+            bool blocked = total > 0 && answeredCount < total;
+            return new OnTimeCompletionResult(blocked, emptyEssay, unanswered);
+        }
         // ================================================================================
 
         private async Task<IActionResult?> EnsureCanSubmitExamAsync(

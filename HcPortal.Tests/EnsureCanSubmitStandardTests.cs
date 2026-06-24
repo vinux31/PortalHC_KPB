@@ -9,6 +9,7 @@
 // RED sebelum Task 4: stub `ShouldEnforceSubmitTimer` mengembalikan perilaku BUG saat ini (allowlist —
 // "Standard" tidak di-enforce → return false). Test A (Standard-late) HARUS fail. Setelah inversi → GREEN.
 using System;
+using System.Collections.Generic;
 using HcPortal.Controllers;
 using Xunit;
 
@@ -73,5 +74,55 @@ public class EnsureCanSubmitStandardTests
         var d = CMPController.EvaluateSubmitTimerDecision(
             elapsedSec: 800, allowedSec: 600, graceSec: 720, serverApprovedAutoSubmit: false);
         Assert.Equal(CMPController.SubmitTimerDecision.BlockGrace, d);
+    }
+
+    // ---- Phase 424 GRDF-07: EvaluateOnTimeCompletion — essay "terjawab" = TextAnswer non-kosong ----
+
+    [Fact] // on-time + 1 essay TextAnswer kosong (whitespace) → block + flag emptyEssay
+    public void OnTime_EmptyEssay_Blocks_WithEmptyEssayFlag()
+    {
+        var r = CMPController.EvaluateOnTimeCompletion(
+            new[] { 1, 2 },
+            new Dictionary<int, string> { { 1, "MultipleChoice" }, { 2, "Essay" } },
+            new HashSet<int> { 1 },                                       // MC q1 terjawab via form
+            new List<(int, bool, string?)> { (2, false, "   ") });        // essay q2 whitespace
+        Assert.True(r.Blocked);
+        Assert.True(r.EmptyEssay);
+    }
+
+    [Fact] // on-time + semua terisi (MC form + essay non-kosong) → lolos
+    public void OnTime_AllFilled_Passes()
+    {
+        var r = CMPController.EvaluateOnTimeCompletion(
+            new[] { 1, 2 },
+            new Dictionary<int, string> { { 1, "MultipleChoice" }, { 2, "Essay" } },
+            new HashSet<int> { 1 },
+            new List<(int, bool, string?)> { (2, false, "Jawaban essay terisi") });
+        Assert.False(r.Blocked);
+        Assert.False(r.EmptyEssay);
+    }
+
+    [Fact] // MC belum terjawab (bukan essay) → block, emptyEssay=false, unanswered=1
+    public void OnTime_MissingMc_Blocks_NotEssay()
+    {
+        var r = CMPController.EvaluateOnTimeCompletion(
+            new[] { 1, 2 },
+            new Dictionary<int, string> { { 1, "MultipleChoice" }, { 2, "MultipleChoice" } },
+            new HashSet<int> { 1 },                                       // q2 tak terjawab
+            new List<(int, bool, string?)>());
+        Assert.True(r.Blocked);
+        Assert.False(r.EmptyEssay);
+        Assert.Equal(1, r.Unanswered);
+    }
+
+    [Fact] // MC terjawab via DB (PackageOptionId terisi), bukan form → tetap terhitung
+    public void OnTime_McAnsweredViaDb_Counts()
+    {
+        var r = CMPController.EvaluateOnTimeCompletion(
+            new[] { 1 },
+            new Dictionary<int, string> { { 1, "MultipleChoice" } },
+            new HashSet<int>(),                                           // tak via form
+            new List<(int, bool, string?)> { (1, true, null) });          // hasOption=true di DB
+        Assert.False(r.Blocked);
     }
 }
