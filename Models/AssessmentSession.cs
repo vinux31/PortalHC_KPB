@@ -17,7 +17,9 @@ namespace HcPortal.Models
 
         public DateTime Schedule { get; set; }
         public int DurationMinutes { get; set; }
-        public string Status { get; set; } = "";   // "Open", "Upcoming", "Completed"
+        public string Status { get; set; } = "";
+        // Nilai kanonik (lihat AssessmentConstants.AssessmentStatus): Open, Upcoming, Completed,
+        // "Menunggu Penilaian" (PendingGrading), InProgress, Cancelled, Abandoned (7 status).
 
         // New Visualization Props
         public int Progress { get; set; } = 0; // 0 - 100
@@ -175,7 +177,10 @@ namespace HcPortal.Models
         public string? AssessmentType { get; set; }
 
         /// <summary>
-        /// Fase assessment dalam siklus: 'Phase1', 'Phase2', dll. Null = tidak ada fase.
+        /// RESERVED — tidak dipakai. Dideklarasikan di v14 (AddAssessmentV14Columns) untuk konsep
+        /// 'Phase1'/'Phase2' yang TIDAK PERNAH diimplementasikan. Linking Pre/Post nyata bertumpu pada
+        /// AssessmentType + LinkedGroupId + LinkedSessionId. 0 referensi di app (FLOW-06). Dipertahankan
+        /// di skema (kolom nullable, aman) untuk hindari migration destruktif. Jangan baca/tulis.
         /// </summary>
         public string? AssessmentPhase { get; set; }
 
