@@ -877,7 +877,7 @@
         if (target) { var t = target.querySelector('input[type=text].form-control'); if (t) t.focus(); }
     }
 
-    // Pastikan jumlah baris == n (1..6) — dipakai populateEditForm untuk prefill 4/5/6 opsi.
+    // Pastikan jumlah baris == n (2..6) — di-clamp ke MIN_OPTIONS (2, D-418-01); dipakai populateEditForm untuk prefill 4/5/6 opsi.
     function ensureRowCount(n) {
         n = Math.max(MIN_OPTIONS, Math.min(MAX_OPTIONS, n));
         var rows = optionRowEls();
@@ -1020,6 +1020,11 @@
         // Phase 415 SEC-03: reset dropdown Section ke "Lainnya".
         var secSel = document.getElementById('sectionIdSelect');
         if (secSel) secSel.value = '';
+
+        // IN-02: setelah batal edit soal 5/6 opsi, susutkan baris kembali ke 4 default (A–D) agar
+        // tidak ada baris ekstra tersisa di mode "Tambah Soal". reletterRows() di dalam ensureRowCount
+        // membangun ulang IMAGE_FIELDS, jadi panggil SEBELUM resetImageField loop di bawah.
+        ensureRowCount(4);
 
         IMAGE_FIELDS.forEach(resetImageField);
 
