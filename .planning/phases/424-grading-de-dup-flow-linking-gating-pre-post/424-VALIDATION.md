@@ -1,9 +1,9 @@
 ---
 phase: 424
 slug: grading-de-dup-flow-linking-gating-pre-post
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-24
 ---
 
@@ -39,15 +39,16 @@ created: 2026-06-24
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 424-01-xx | 01 | 1 | GRDF-02 | — | Server-authoritative unified scorer; identical numeric result (parity) | parity-characterization (pure + real-SQL) | `dotnet test --filter FullyQualifiedName~Grading` | ⬜ TBD planner | ⬜ pending |
-| 424-0x-xx | 0x | x | GRDF-01 | — | Post StartExam blocked when paired Pre ≠ Completed; orphan passes | real-SQL integration | `dotnet test --filter FullyQualifiedName~StartExam` | ⬜ TBD planner | ⬜ pending |
-| 424-0x-xx | 0x | x | GRDF-03/04 | — | Pairing filtered per UserId; Standard no title-pseudo-link | pure-unit + real-SQL | `dotnet test --filter FullyQualifiedName~Sibling` | ⬜ TBD planner | ⬜ pending |
-| 424-0x-xx | 0x | x | GRDF-05 | — | ElapsedSeconds includes ExtraTimeMinutes uniformly | pure-unit | `dotnet test --filter FullyQualifiedName~Elapsed` | ⬜ TBD planner | ⬜ pending |
-| 424-0x-xx | 0x | x | GRDF-07 | — | On-time empty essay rejects whole submit; timeout finalizes | real-SQL integration | `dotnet test --filter FullyQualifiedName~Essay` | ⬜ TBD planner | ⬜ pending |
+| Req | Plan | Test File(s) | Test Type | Automated Command | Status |
+|-----|------|-------------|-----------|-------------------|--------|
+| GRDF-02 | 01 | GradingDedupeTests (parity 3-path + PreviewScore PATH2 + MA-no-dedupe), AssessmentScoreAggregatorTests (MC last-write-wins + essay-null) | parity-characterization (pure + real-SQL) | `dotnet test --filter "FullyQualifiedName~GradingDedupe\|FullyQualifiedName~AssessmentScoreAggregator"` | ✅ green |
+| GRDF-01 | 02 | PrePostGatingTests (block InProgress, pass Completed, orphan/Standard/user-lain null, LinkedSessionId>LinkedGroupId) | real-SQL integration | `dotnet test --filter "FullyQualifiedName~PrePostGating"` | ✅ green + UAT live |
+| GRDF-03 | 01,02 | PrePostPairingTests (pure pass-through), PrePostGatingTests (user-lain→null) | pure + real-SQL | `dotnet test --filter "FullyQualifiedName~PrePostPairing\|FullyQualifiedName~PrePostGating"` | ✅ green |
+| GRDF-04 | 03 | AutoPairGuardTests (10, LooksLikePrePostTitle sentinel) + grep call-site=0 | pure-unit + source-assert | `dotnet test --filter "FullyQualifiedName~AutoPairGuard"` | ✅ green |
+| GRDF-05 | 01,02 | ExamTimeRulesTests (AllowedExamSeconds incl ExtraTime) | pure-unit | `dotnet test --filter "FullyQualifiedName~ExamTimeRules"` | ✅ green |
+| GRDF-07 | 02 | EnsureCanSubmitStandardTests (+4 EvaluateOnTimeCompletion), EssayEmptyPendingParityTests (timeout finalize, DO-NOT-REGRESS) | pure-unit + real-SQL guard | `dotnet test --filter "FullyQualifiedName~EnsureCanSubmit\|FullyQualifiedName~EssayEmptyPendingParity"` | ✅ green |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky. Planner/nyquist-auditor finalizes task IDs + Wave 0 stubs.*
+*Full suite: **748 passed / 0 failed / 2 skipped** (3m43s). All 6 in-scope GRDF requirements have green automated verification. Status: ✅ green.*
 
 ---
 
@@ -73,11 +74,24 @@ created: 2026-06-24
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references + parity locks
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s (pure-unit)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All requirements have `<automated>` verify (6/6 GRDF green)
+- [x] Sampling continuity: every GRDF req has a dedicated green test
+- [x] Wave 0 parity-locks written + green (GradingDedupe parity, EssayEmptyPendingParity)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s (pure-unit)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** verified 2026-06-24
+
+---
+
+## Validation Audit 2026-06-24
+| Metric | Count |
+|--------|-------|
+| Requirements | 6 (GRDF-01/02/03/04/05/07) |
+| COVERED (green automated) | 6 |
+| PARTIAL | 0 |
+| MISSING | 0 |
+| Manual-only (UAT-confirmed) | GRDF-01 redirect UX ✅ live · GRDF-07 submit UX (read-only-blocked live → unit-covered) |
+
+**Verdict: NYQUIST-COMPLIANT.** No gaps to fill (no auditor spawn needed). Full suite 748/0/2.
