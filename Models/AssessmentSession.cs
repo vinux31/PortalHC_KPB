@@ -104,6 +104,13 @@ namespace HcPortal.Models
         /// </summary>
         public string AccessToken { get; set; } = "";
 
+        /// <summary>
+        /// EXSEC-01 (Phase 427): timestamp server-authoritative saat token ujian terverifikasi (VerifyToken).
+        /// null = belum verifikasi. Di-reset null saat retake/reset (RetakeService.ExecuteAsync) → gate re-arm.
+        /// Menggantikan TempData token gate yang rapuh round-trip.
+        /// </summary>
+        public DateTime? TokenVerifiedAt { get; set; }
+
         // Audit fields
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
