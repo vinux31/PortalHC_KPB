@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using HcPortal.Data;
+using HcPortal.Helpers;
 using HcPortal.Models;
 using HcPortal.Services;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -195,5 +196,96 @@ public class GradingDedupeTests : IClassFixture<GradingDedupeFixture>
         // set {X} ≠ {X,Y} → 0%. Maka 100% membuktikan MA TIDAK ter-dedupe.
         Assert.Equal(100, graded!.Score);
         Assert.True(graded.IsPassed);
+    }
+
+    // ============================================================================================
+    // Phase 424 GRDF-02 PARITY LOCK (D-07): GradeAndCompleteAsync (PATH 1, kanonik) HARUS ==
+    // AssessmentScoreAggregator.Compute (PATH 3) untuk kasus normal (single MC, MA). Hijau SEKARANG dan
+    // WAJIB tetap hijau setelah Task 2 mengkonvergensikan Aggregator MC ke last-write-wins → bukti skor
+    // sesi normal tidak berubah (forward-only, sesi Completed lama aman).
+    // ============================================================================================
+
+    [Fact]
+    public async Task Parity_SingleMc_GradeAndComplete_Equals_Aggregator()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var session = new AssessmentSession
+        {
+            UserId = userId, Title = "MC Parity", Category = "IHT", Status = S.InProgress, AccessToken = "",
+            Schedule = new DateTime(2026, 2, 1), PassPercentage = 70, GenerateCertificate = false
+        };
+        ctx.AssessmentSessions.Add(session);
+        await ctx.SaveChangesAsync();
+        var pkg = new AssessmentPackage { AssessmentSessionId = session.Id, PackageName = "P", PackageNumber = 1 };
+        ctx.AssessmentPackages.Add(pkg);
+        await ctx.SaveChangesAsync();
+        var q = new PackageQuestion { AssessmentPackageId = pkg.Id, QuestionType = "MultipleChoice", ScoreValue = 100, Order = 1, QuestionText = "Pilih A." };
+        ctx.PackageQuestions.Add(q);
+        await ctx.SaveChangesAsync();
+        var optA = new PackageOption { PackageQuestionId = q.Id, OptionText = "A", IsCorrect = true };
+        var optB = new PackageOption { PackageQuestionId = q.Id, OptionText = "B", IsCorrect = false };
+        ctx.PackageOptions.AddRange(optA, optB);
+        await ctx.SaveChangesAsync();
+        ctx.PackageUserResponses.Add(new PackageUserResponse
+        { AssessmentSessionId = session.Id, PackageQuestionId = q.Id, PackageOptionId = optA.Id, SubmittedAt = new DateTime(2026, 2, 1, 8, 0, 0, DateTimeKind.Utc) });
+        ctx.UserPackageAssignments.Add(new UserPackageAssignment
+        { AssessmentSessionId = session.Id, AssessmentPackageId = pkg.Id, UserId = userId, ShuffledQuestionIds = JsonSerializer.Serialize(new List<int> { q.Id }) });
+        await ctx.SaveChangesAsync();
+
+        var svc = NewGradingService(ctx);
+        Assert.True(await svc.GradeAndCompleteAsync(session));
+
+        await using var verify = NewCtx();
+        var graded = await verify.AssessmentSessions.FindAsync(session.Id);
+        var questions = await verify.PackageQuestions.Include(x => x.Options).Where(x => x.AssessmentPackageId == pkg.Id).ToListAsync();
+        var responses = await verify.PackageUserResponses.Where(r => r.AssessmentSessionId == session.Id).ToListAsync();
+        var agg = AssessmentScoreAggregator.Compute(questions, responses, session.PassPercentage);
+        Assert.Equal(100, graded!.Score);
+        Assert.Equal(graded.Score, agg.Percentage);   // PATH 1 == PATH 3
+    }
+
+    [Fact]
+    public async Task Parity_Ma_GradeAndComplete_Equals_Aggregator()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var session = new AssessmentSession
+        {
+            UserId = userId, Title = "MA Parity", Category = "IHT", Status = S.InProgress, AccessToken = "",
+            Schedule = new DateTime(2026, 2, 1), PassPercentage = 70, GenerateCertificate = false
+        };
+        ctx.AssessmentSessions.Add(session);
+        await ctx.SaveChangesAsync();
+        var pkg = new AssessmentPackage { AssessmentSessionId = session.Id, PackageName = "P", PackageNumber = 1 };
+        ctx.AssessmentPackages.Add(pkg);
+        await ctx.SaveChangesAsync();
+        var q = new PackageQuestion { AssessmentPackageId = pkg.Id, QuestionType = "MultipleAnswer", ScoreValue = 100, Order = 1, QuestionText = "Pilih X dan Y." };
+        ctx.PackageQuestions.Add(q);
+        await ctx.SaveChangesAsync();
+        var optX = new PackageOption { PackageQuestionId = q.Id, OptionText = "X", IsCorrect = true };
+        var optY = new PackageOption { PackageQuestionId = q.Id, OptionText = "Y", IsCorrect = true };
+        var optZ = new PackageOption { PackageQuestionId = q.Id, OptionText = "Z", IsCorrect = false };
+        ctx.PackageOptions.AddRange(optX, optY, optZ);
+        await ctx.SaveChangesAsync();
+        var t0 = new DateTime(2026, 2, 1, 8, 0, 0, DateTimeKind.Utc);
+        ctx.PackageUserResponses.Add(new PackageUserResponse
+        { AssessmentSessionId = session.Id, PackageQuestionId = q.Id, PackageOptionId = optX.Id, SubmittedAt = t0 });
+        ctx.PackageUserResponses.Add(new PackageUserResponse
+        { AssessmentSessionId = session.Id, PackageQuestionId = q.Id, PackageOptionId = optY.Id, SubmittedAt = t0.AddSeconds(5) });
+        ctx.UserPackageAssignments.Add(new UserPackageAssignment
+        { AssessmentSessionId = session.Id, AssessmentPackageId = pkg.Id, UserId = userId, ShuffledQuestionIds = JsonSerializer.Serialize(new List<int> { q.Id }) });
+        await ctx.SaveChangesAsync();
+
+        var svc = NewGradingService(ctx);
+        Assert.True(await svc.GradeAndCompleteAsync(session));
+
+        await using var verify = NewCtx();
+        var graded = await verify.AssessmentSessions.FindAsync(session.Id);
+        var questions = await verify.PackageQuestions.Include(x => x.Options).Where(x => x.AssessmentPackageId == pkg.Id).ToListAsync();
+        var responses = await verify.PackageUserResponses.Where(r => r.AssessmentSessionId == session.Id).ToListAsync();
+        var agg = AssessmentScoreAggregator.Compute(questions, responses, session.PassPercentage);
+        Assert.Equal(100, graded!.Score);            // MA all-or-nothing utuh
+        Assert.Equal(graded.Score, agg.Percentage);  // PATH 1 == PATH 3 (MA tak ter-dedupe di kedua path)
     }
 }
