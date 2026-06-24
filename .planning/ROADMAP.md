@@ -75,7 +75,7 @@
   3. Audit ditulis SETELAH `tx.CommitAsync()` dan bersifat swallow-on-failure — kegagalan menulis audit TIDAK memblokir/menggagalkan respons sukses edit unit. *(AUDIT-01)*
   4. Edit unit yang valid tetap berhasil (cascade UserUnits-aware ph403 tak berubah perilakunya); authz/CSRF existing tetap utuh (perubahan murni aditif-traceability, BUKAN security/perilaku).
 **Plans:** 1 plan (1 wave — additive change, file-disjoint dari CMPController)
-- [ ] 426-01-PLAN.md — Audit-Log AUDIT-01: blok audit aditif di EditOrganizationUnit (mirror DeleteOrganizationUnit, only-on-change D-01 / single row D-02 / raw parent IDs D-03, swallow-on-failure setelah commit) + factory user-aware MakeControllerWithUser + 5 test T1-T5 [migration=FALSE]
+- [x] 426-01-PLAN.md — Audit-Log AUDIT-01: blok audit aditif di EditOrganizationUnit (mirror DeleteOrganizationUnit, only-on-change D-01 / single row D-02 / raw parent IDs D-03, swallow-on-failure setelah commit) + factory user-aware MakeControllerWithUser + 5 test T1-T5 [migration=FALSE]
 **UI hint:** no
 
 ### Phase 427: Exam Token-Gate Server-Authoritative
@@ -110,7 +110,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 426. Audit-Log EditOrganizationUnit (AUDIT-01) | 0/1 | Not started | - |
+| 426. Audit-Log EditOrganizationUnit (AUDIT-01) | 1/1 | Complete   | 2026-06-24 |
 | 427. Exam Token-Gate Server-Authoritative (EXSEC-01) | 0/? | Not started | - |
 | 428. StartExam Write-on-GET Idempotency (EXSEC-02) | 0/? | Not started | - |
 

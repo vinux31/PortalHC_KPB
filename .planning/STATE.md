@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.8
 milestone_name: Exam Security & Audit Hardening
-status: v32.8 STARTED 2026-06-24 — roadmap created (3 REQ, fase 426-428); ready_to_plan
-stopped_at: Roadmap v32.8 created (ROADMAP.md + REQUIREMENTS.md traceability 3/3); next = /gsd-plan-phase 426
-last_updated: "2026-06-24T12:00:00.000Z"
+status: verifying
+stopped_at: Completed 426-01-PLAN.md
+last_updated: "2026-06-24T13:04:39.168Z"
 last_activity: 2026-06-24
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 15
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -21,21 +21,22 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.8 Exam Security & Audit Hardening — roadmap created (fase 426-428); next /gsd-plan-phase 426
+**Current focus:** Phase 426 — Audit-Log EditOrganizationUnit
 
 ## Current Position
 
 Milestone: **v32.8 Exam Security & Audit Hardening** — 🚧 STARTED 2026-06-24 (branch ITHandoff)
-Phase: Not started (roadmap created → planning). NEXT `/gsd-plan-phase 426`
-Plan: —
-Status: Roadmap created — 3 REQ mapped 1:1 (AUDIT-01/426 migration=FALSE · EXSEC-01/427 **migration=TRUE** `AddTokenVerifiedAt` KEYSTONE · EXSEC-02/428 migration=FALSE, depends 427). Coverage 3/3, 0 orphan. 426 file-disjoint (independen); 427→428 sekuensial wajib (shared `StartExam`). Diturunkan backlog 999.11/999.13/999.14 + overlap check vs main (999.9 DROP superseded, 999.12 ops-aside).
-Last activity: 2026-06-24 — Roadmap v32.8 created (ROADMAP.md Phases 426-428 + Progress Table; backlog 999.11/999.13/999.14 ditandai PROMOTED -> v32.8)
+Phase: 426 (Audit-Log EditOrganizationUnit) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-06-24
 
 **Predecessor v32.7 ✅ CLOSED 2026-06-24** (audit PASSED 41/41 in-scope, tag lokal). v32.1 + v32.3 + v32.4 + v32.7 semua CLOSED di ITHandoff (deploy bundle bersama). Tag lokal masing-masing. NOT pushed.
 
 ## Next Action
 
 **Roadmap v32.8 → `/gsd-plan-phase 426`.** Scope terkunci (3 fase, user-confirmed 2026-06-24):
+
 - **426** Audit-Log EditOrganizationUnit (999.11) — `OrganizationController.cs`, migration=FALSE, file-disjoint.
 - **427** Exam Token-Gate Server-Authoritative (999.13) — `CMPController.cs`+`AssessmentSession.cs`+migration, **migration=TRUE** (`AddTokenVerifiedAt`). KEYSTONE.
 - **428** StartExam Write-on-GET Idempotency (999.14) — `CMPController.cs`, migration=FALSE. Sekuensial setelah 427 (sama-sama edit `StartExam`).
@@ -140,6 +141,6 @@ Backlog tracked: 999.9 · 999.11 · 999.12 · 999.13 (FLOW-08 token server-auth)
 
 Last activity: 2026-06-23
 
-Stopped at: Completed 425-04-PLAN.md
+Stopped at: Completed 426-01-PLAN.md
 
 Next action: **`/gsd-discuss-phase 421`** (Retake Lifecycle Hardening; RTH-01..05; RTK-LOGIC-02 🔴 retake dead-end). Phase 420 done. Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.

@@ -10,7 +10,7 @@ Requirements untuk milestone v32.8. Tiap REQ memetakan satu backlog item + temua
 
 ### AUDIT — Audit Trail Organisasi (Phase 426)
 
-- [ ] **AUDIT-01**: Setiap rename/reparent unit via `EditOrganizationUnit` menulis `AuditLog` (mirror pola `DeleteOrganizationUnit`), mencakup actor NIP/nama, oldName→newName, oldParentId→parentId, dan cascade counts (users/mappings/UserUnits). Audit swallow-on-failure (tak memblokir respons). [999.11 / 403-REVIEW WR-01, FLOW: traceability gap]
+- [x] **AUDIT-01**: Setiap rename/reparent unit via `EditOrganizationUnit` menulis `AuditLog` (mirror pola `DeleteOrganizationUnit`), mencakup actor NIP/nama, oldName→newName, oldParentId→parentId, dan cascade counts (users/mappings/UserUnits). Audit swallow-on-failure (tak memblokir respons). [999.11 / 403-REVIEW WR-01, FLOW: traceability gap]
 
 ### EXSEC — Exam Security Hardening (Phases 427-428)
 
@@ -32,7 +32,7 @@ Requirements untuk milestone v32.8. Tiap REQ memetakan satu backlog item + temua
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUDIT-01 | Phase 426 | Pending |
+| AUDIT-01 | Phase 426 | Complete |
 | EXSEC-01 | Phase 427 | Pending |
 | EXSEC-02 | Phase 428 | Pending |
 
