@@ -35,8 +35,10 @@ namespace HcPortal.Services
     /// WR-03 — <c>AttemptHistory</c> di-insert HANYA bila snapshot non-empty (deferred-insert) → tidak ada
     /// baris childless/orphan saat Completed tanpa assignment/soal.</para>
     ///
-    /// <para><b>TempData token clear (must-fix #1)</b> BUKAN tanggung jawab service (HTTP-scoped) — caller WAJIB
-    /// <c>TempData.Remove($"TokenVerified_{id}")</c> setelah ExecuteAsync sukses (controller plan 405-04 / Phase 407).</para>
+    /// <para><b>Token gate re-arm (EXSEC-01, D-01)</b> kini server-authoritative & in-service: reset
+    /// <c>TokenVerifiedAt = null</c> di chain <c>ExecuteUpdateAsync</c> (single source) — cover KEDUA jalur
+    /// retake (worker <c>RetakeExam</c> + HC <c>ResetAssessment</c>). TempData token gate lama dihapus penuh
+    /// (tak ada lagi kunci TempData token tersisa di Controllers/Services).</para>
     /// </summary>
     public class RetakeService
     {
@@ -120,6 +122,9 @@ namespace HcPortal.Services
                     // tidak menyandang nomor sertifikat menggantung (inflasi unique index + certCount proxy).
                     // Jalur HC ResetAssessment tercakup via delegasi (Don't Hand-Roll di controller).
                     .SetProperty(r => r.NomorSertifikat, (string?)null)
+                    // EXSEC-01 (D-01): reset token gate server-authoritative — single source untuk KEDUA jalur
+                    // (worker RetakeExam + HC ResetAssessment) → gate StartExam re-arm konsisten percobaan baru.
+                    .SetProperty(r => r.TokenVerifiedAt, (DateTime?)null)
                     .SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
 
             if (rows == 0)

@@ -4406,9 +4406,8 @@ namespace HcPortal.Controllers
                 });
             }
 
-            // HC reset re-arms token verification on next entry (parity dgn worker retake) — must-fix #1.
-            // StartExam pakai TempData.Peek (non-consume), jadi token stale WAJIB di-clear oleh caller.
-            TempData.Remove($"TokenVerified_{id}");
+            // EXSEC-01 (D-01): HC reset re-arms token verification — TokenVerifiedAt di-reset null di dalam
+            // RetakeService.ExecuteAsync (single source, parity worker retake). Tak ada TempData token untuk dibersihkan.
 
             TempData["Success"] = "Sesi ujian telah direset. Peserta dapat mengikuti ujian kembali.";
             return RedirectToAction("AssessmentMonitoringDetail", new {

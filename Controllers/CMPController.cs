@@ -885,8 +885,9 @@ namespace HcPortal.Controllers
 
             if (!assessment.IsTokenRequired)
             {
-                // If token not required, just success
-                TempData[$"TokenVerified_{assessment.Id}"] = true;
+                // If token not required, just success.
+                // EXSEC-01 (D-03): JANGAN stamp TokenVerifiedAt — gate StartExam hanya cek kolom saat IsTokenRequired==true,
+                // jadi null tetap benar secara semantik untuk sesi tanpa token.
                 return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
             }
 
@@ -897,7 +898,9 @@ namespace HcPortal.Controllers
             }
 
             // Token Valid -> Redirect to Exam
-            TempData[$"TokenVerified_{assessment.Id}"] = true;
+            // EXSEC-01 (D-03): server-authoritative — stamp persist, gantikan TempData.
+            assessment.TokenVerifiedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
             return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
         }
 
@@ -960,8 +963,8 @@ namespace HcPortal.Controllers
             // InProgress sessions bypass: token was checked on first entry; reload must not block the worker
             if (assessment.IsTokenRequired && assessment.UserId == user.Id && assessment.StartedAt == null)
             {
-                var tokenVerified = TempData.Peek($"TokenVerified_{id}");
-                if (tokenVerified == null)
+                // EXSEC-01 (D-02): gate server-authoritative dari kolom, bukan TempData.Peek.
+                if (assessment.TokenVerifiedAt == null)
                 {
                     TempData["Error"] = "Ujian ini membutuhkan token akses. Silakan masukkan token terlebih dahulu.";
                     return RedirectToAction("Assessment");
@@ -2581,8 +2584,8 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Results", new { id });
             }
 
-            // must-fix #1 — re-arm token (StartExam pakai TempData.Peek non-consume :944); clear setelah sukses.
-            TempData.Remove($"TokenVerified_{id}");
+            // EXSEC-01 (D-01): token gate re-arm kini server-authoritative — TokenVerifiedAt di-reset null
+            // di dalam RetakeService.ExecuteAsync (single source). Tak ada TempData token untuk dibersihkan.
             return RedirectToAction("StartExam", new { id });       // spec re-entry target
         }
 
