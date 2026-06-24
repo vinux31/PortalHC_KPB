@@ -1,7 +1,7 @@
 ---
 phase: 425
 slug: cosmetic-naming-tech-debt-cleanup
-status: planned
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-06-24
@@ -38,15 +38,15 @@ created: 2026-06-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 425-01-01 | 01 | 1 | CLN-03, CLN-01 | T-425-01 | AssessmentPhase RESERVED (kolom tetap, no migration); komentar Status 7-nilai | static/grep | `grep "RESERVED" Models/AssessmentSession.cs` + `dotnet build` | ✅ (grep) | ⬜ pending |
-| 425-01-02 | 01 | 1 | CLN-01 | T-425-02 | ValidUntil [Display] sumber-tunggal; LinkedSessionId XML-doc dikoreksi (no "ON DELETE SET NULL") | static/grep | `grep 'Berlaku Sampai' + ! grep 'ON DELETE SET NULL'` + `dotnet build` | ✅ (grep) | ⬜ pending |
-| 425-01-03 | 01 | 1 | CLN-01 | T-425-03 | AssessmentPackageId sentinel (nama field tak berubah); label cshtml selaras | static/grep | `grep "SENTINEL (PA-05)"` + `dotnet build` | ✅ (grep) | ⬜ pending |
-| 425-02-01 | 02 | 1 (W0) | CLN-04 | T-425-04 | Parity helper == formula lama 4 situs (incl double-site :4661) | unit (pure) | `dotnet test --filter ~ExamTimeRulesTests` | ✅ EXTEND ExamTimeRulesTests.cs | ⬜ pending |
-| 425-02-02 | 02 | 1 | CLN-04 | T-425-04/05/06 | 4 situs → ExamTimeRules; formula inline habis; token gate/StartExam tak disentuh (D-03) | unit + static | `dotnet build` + `dotnet test --filter ~ExamTimeRules` + token-gate grep | ✅ (test+grep) | ⬜ pending |
-| 425-03-01 | 03 | 1 (W0) | CLN-02 | T-425-10 | PassStatusMismatch: mismatch→true / match→false / null→false / boundary→false | unit (pure) | `dotnet test --filter ~ManualEntryRules` | ❌ W0 NEW ManualEntryRules.cs + ManualEntryRulesTests.cs | ⬜ pending |
-| 425-03-02 | 03 | 1 | CLN-02 | T-425-07/08/09 | Warning non-blocking (TETAP simpan, no auto-override); CSRF/authz utuh; XSS-safe (numerik-only) | unit + static | `dotnet build` + `dotnet test --filter ~ManualEntryRules` + authz/CSRF grep | ✅ (test+grep) | ⬜ pending |
-| 425-04-01 | 04 | 1 (W0) | CLN-05 | T-425-13 | JsonFail shape byte-identik {"success":false,"message":"..."} camelCase | unit (pure) | `dotnet test --filter ~ControllerGuards` | ❌ W0 NEW ControllerGuards.cs + ControllerGuardsTests.cs | ⬜ pending |
-| 425-04-02 | 04 | 1 | CLN-05 | T-425-11/12/13/14 | Cluster SubmitEssayScore → JsonFail (pesan identik); call-site lain tak berubah; authz/CSRF + signature utuh | unit + static | `dotnet build` + `dotnet test --filter ~ControllerGuards` + authz/CSRF grep | ✅ (test+grep) | ⬜ pending |
+| 425-01-01 | 01 | 1 | CLN-03, CLN-01 | T-425-01 | AssessmentPhase RESERVED (kolom tetap, no migration); komentar Status 7-nilai | static/grep | `grep "RESERVED" Models/AssessmentSession.cs` + `dotnet build` | ✅ (grep) | ✅ green |
+| 425-01-02 | 01 | 1 | CLN-01 | T-425-02 | ValidUntil [Display] sumber-tunggal; LinkedSessionId XML-doc dikoreksi (no "ON DELETE SET NULL") | static/grep | `grep 'Berlaku Sampai' + ! grep 'ON DELETE SET NULL'` + `dotnet build` | ✅ (grep) | ✅ green |
+| 425-01-03 | 01 | 1 | CLN-01 | T-425-03 | AssessmentPackageId sentinel (nama field tak berubah); label cshtml selaras | static/grep | `grep "SENTINEL (PA-05)"` + `dotnet build` | ✅ (grep) | ✅ green |
+| 425-02-01 | 02 | 1 (W0) | CLN-04 | T-425-04 | Parity helper == formula lama 4 situs (incl double-site :4661) | unit (pure) | `dotnet test --filter ~ExamTimeRulesTests` | ✅ EXTEND ExamTimeRulesTests.cs | ✅ green |
+| 425-02-02 | 02 | 1 | CLN-04 | T-425-04/05/06 | 4 situs → ExamTimeRules; formula inline habis; token gate/StartExam tak disentuh (D-03) | unit + static | `dotnet build` + `dotnet test --filter ~ExamTimeRules` + token-gate grep | ✅ (test+grep) | ✅ green |
+| 425-03-01 | 03 | 1 (W0) | CLN-02 | T-425-10 | PassStatusMismatch: mismatch→true / match→false / null→false / boundary→false | unit (pure) | `dotnet test --filter ~ManualEntryRules` | ✅ ManualEntryRules.cs + ManualEntryRulesTests.cs | ✅ green |
+| 425-03-02 | 03 | 1 | CLN-02 | T-425-07/08/09 | Warning non-blocking (TETAP simpan, no auto-override); CSRF/authz utuh; XSS-safe (numerik-only) | unit + static | `dotnet build` + `dotnet test --filter ~ManualEntryRules` + authz/CSRF grep | ✅ (test+grep) | ✅ green |
+| 425-04-01 | 04 | 1 (W0) | CLN-05 | T-425-13 | JsonFail shape byte-identik {"success":false,"message":"..."} camelCase | unit (pure) | `dotnet test --filter ~ControllerGuards` | ✅ ControllerGuards.cs + ControllerGuardsTests.cs | ✅ green |
+| 425-04-02 | 04 | 1 | CLN-05 | T-425-11/12/13/14 | Cluster SubmitEssayScore → JsonFail (pesan identik); call-site lain tak berubah; authz/CSRF + signature utuh | unit + static | `dotnet build` + `dotnet test --filter ~ControllerGuards` + authz/CSRF grep | ✅ (test+grep) | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -77,6 +77,19 @@ created: 2026-06-24
 
 ---
 
+## Validation Audit 2026-06-24
+
+| Metric | Count |
+|--------|-------|
+| Requirements | 5 (CLN-01..05) |
+| Gaps found | 0 |
+| Resolved | 0 (none needed) |
+| Escalated | 0 |
+
+**Verdict: NYQUIST-COMPLIANT (State A audit — no gaps).** Semua requirement testable COVERED + green: CLN-04 `ExamTimeRulesTests` (parity 4 situs incl double-site), CLN-02 `ManualEntryRulesTests` (mismatch/match/null/boundary), CLN-05 `ControllerGuardsTests` (shape byte-identik) → **23/23 green** (`dotnet test --filter ~ExamTimeRules|~ManualEntryRules|~ControllerGuards`). Full suite **768/0/2**, build 0 err. CLN-01/CLN-03 = static/grep-verifiable (RESERVED kolom tetap, label "Berlaku Sampai", no positive "ON DELETE SET NULL", sentinel) — dikonfirmasi gsd-verifier 5/5. No test generation needed.
+
+---
+
 ## Validation Sign-Off
 
 - [x] All tasks have `<automated>` verify atau grep-static-verifiable atau Wave 0 dependency
@@ -86,4 +99,4 @@ created: 2026-06-24
 - [x] Feedback latency acceptable (~baseline suite)
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** planned — siap eksekusi
+**Approval:** validated 2026-06-24 — NYQUIST-COMPLIANT, 0 gaps
