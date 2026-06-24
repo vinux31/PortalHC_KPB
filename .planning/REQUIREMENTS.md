@@ -42,13 +42,13 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 
 ### CERT — Certificate Issuance Consistency (Phase 423)
 
-- [ ] **CERT-01**: Penerbitan sertifikat memakai satu helper bersama yang konsisten menolak Pre-Test di SEMUA jalur grading-time. [GRD-01, FLD-5.2-10]
-- [ ] **CERT-02**: Saat sertifikat diaktifkan untuk sesi non-Pre, ValidUntil wajib diisi atau ditangani eksplisit (cert tidak terbit tanpa masa berlaku secara tak sengaja). [GRD-06]
-- [ ] **CERT-03**: Nomor urut sertifikat dihasilkan secara atomik tanpa race (tidak gagal terbit saat finalize bersamaan/burst). [GRD-08]
-- [ ] **CERT-04**: Penomoran sertifikat manual vs auto-generate tidak bentrok — kolisi memunculkan pesan error ramah, namespace dipisah. [FLD-5.2-07, FLD-5.2-02]
-- [ ] **CERT-05**: Guard server-side mencegah dua sertifikat aktif untuk (peserta, judul) yang sama dan tidak bisa di-bypass via ConfirmDuplicateTitle. [VAL-04, GRD-10]
-- [ ] **CERT-06**: CertificateType dan ValidUntil konsisten — "Permanent" menolak ValidUntil; "Annual"/"3-Year" menurunkan ValidUntil. [FLD-5.2-09]
-- [ ] **CERT-07**: Sesi "Menunggu Penilaian" menampilkan umur/penanda agar tidak menggantung tanpa finalize HC (tanpa auto-finalize). [GRD-05]
+- [x] **CERT-01**: Penerbitan sertifikat memakai satu helper bersama yang konsisten menolak Pre-Test di SEMUA jalur grading-time. [GRD-01, FLD-5.2-10]
+- [x] **CERT-02**: Saat sertifikat diaktifkan untuk sesi non-Pre, ValidUntil wajib diisi atau ditangani eksplisit (cert tidak terbit tanpa masa berlaku secara tak sengaja). [GRD-06]
+- [x] **CERT-03**: Nomor urut sertifikat dihasilkan secara atomik tanpa race (tidak gagal terbit saat finalize bersamaan/burst). [GRD-08]
+- [x] **CERT-04**: Penomoran sertifikat manual vs auto-generate tidak bentrok — kolisi memunculkan pesan error ramah, namespace dipisah. [FLD-5.2-07, FLD-5.2-02]
+- [x] **CERT-05**: Guard server-side mencegah dua sertifikat aktif untuk (peserta, judul) yang sama dan tidak bisa di-bypass via ConfirmDuplicateTitle. [VAL-04, GRD-10]
+- [x] **CERT-06**: CertificateType dan ValidUntil konsisten — "Permanent" menolak ValidUntil; "Annual"/"3-Year" menurunkan ValidUntil. [FLD-5.2-09]
+- [x] **CERT-07**: Sesi "Menunggu Penilaian" menampilkan umur/penanda agar tidak menggantung tanpa finalize HC (tanpa auto-finalize). [GRD-05]
 
 ### GRDF — Grading De-dup + Flow/Linking + Gating Pre→Post (Phase 424)
 
@@ -112,13 +112,13 @@ Diakui tapi ditunda dari v32.7.
 | SHFX-05 | Phase 422 | Complete |
 | SHFX-06 | Phase 422 | Pending |
 | SHFX-07 | Phase 422 | Complete |
-| CERT-01 | Phase 423 | Pending |
-| CERT-02 | Phase 423 | Pending |
-| CERT-03 | Phase 423 | Pending |
-| CERT-04 | Phase 423 | Pending |
-| CERT-05 | Phase 423 | Pending |
-| CERT-06 | Phase 423 | Pending |
-| CERT-07 | Phase 423 | Pending |
+| CERT-01 | Phase 423 | Complete |
+| CERT-02 | Phase 423 | Complete |
+| CERT-03 | Phase 423 | Complete |
+| CERT-04 | Phase 423 | Complete |
+| CERT-05 | Phase 423 | Complete |
+| CERT-06 | Phase 423 | Complete |
+| CERT-07 | Phase 423 | Complete |
 | GRDF-01 | Phase 424 | Pending |
 | GRDF-02 | Phase 424 | Pending |
 | GRDF-03 | Phase 424 | Pending |
