@@ -1230,9 +1230,26 @@ namespace HcPortal.Controllers
                         QuestionType = q.QuestionType ?? "MultipleChoice",
                         MaxCharacters = q.MaxCharacters > 0 ? q.MaxCharacters : 2000,
                         ImagePath = q.ImagePath,
-                        ImageAlt = q.ImageAlt
+                        ImageAlt = q.ImageAlt,
+                        // Phase 417 PAG-01/02: metadata section-aware (q.Section sudah ter-Include di :1054)
+                        SectionNumber = q.Section?.SectionNumber,
+                        SectionName = q.Section?.Name,
+                        SectionStartNewPage = q.Section?.StartNewPage ?? false  // "Lainnya"/null → tak paksa page-break (§15.A)
                     });
                 }
+
+                // Phase 417: tentukan perPage (mobile 5, desktop 10) SEBELUM compute page-map.
+                // Blok deteksi mobile UA dipindahkan ke sini (dari ~:1330) karena ComputePages butuh perPage.
+                int questionsPerPage = 10;
+                var uaForPaging = Request.Headers["User-Agent"].ToString();
+                if (uaForPaging.Contains("Mobile") || uaForPaging.Contains("Android") || uaForPaging.Contains("iPhone"))
+                {
+                    questionsPerPage = 5;
+                }
+                ViewBag.QuestionsPerPage = questionsPerPage;
+
+                // Phase 417 PAG-01/02: hitung PageNumber section-aware atas urutan section (Section 1→2→…→Lainnya).
+                HcPortal.Helpers.SectionPaginator.ComputePages(examQuestions, questionsPerPage);
 
                 vm = new PackageExamViewModel
                 {
@@ -1263,7 +1280,10 @@ namespace HcPortal.Controllers
                 int remainingSeconds = durationSeconds - elapsedSec;
 
                 ViewBag.IsResume = isResume;
-                ViewBag.LastActivePage = assessment.LastActivePage ?? 0;
+                // Phase 417 PAG-03 / D-417-05: clamp page resume ke rentang valid; null/out-of-range → 0.
+                // ComputePages sudah dipanggil di atas (PageNumber terisi) sebelum titik ini.
+                int maxPage417 = examQuestions.Count > 0 ? examQuestions.Max(q => q.PageNumber) : 0;
+                ViewBag.LastActivePage = HcPortal.Helpers.SectionPaginator.ClampResumePage(assessment.LastActivePage ?? 0, maxPage417);
                 ViewBag.ElapsedSeconds = elapsedSec;
                 ViewBag.RemainingSeconds = remainingSeconds;
                 ViewBag.ExamExpired = isResume && remainingSeconds <= 0;
@@ -1326,12 +1346,8 @@ namespace HcPortal.Controllers
 
             ViewBag.AssessmentBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
 
-            // Mobile page size (D-15): 5 questions per page on mobile devices
-            var userAgent = Request.Headers["User-Agent"].ToString();
-            if (userAgent.Contains("Mobile") || userAgent.Contains("Android") || userAgent.Contains("iPhone"))
-            {
-                ViewBag.QuestionsPerPage = 5;
-            }
+            // Mobile page size (D-15): ViewBag.QuestionsPerPage di-set di dalam package-path
+            // SEBELUM SectionPaginator.ComputePages (Phase 417) — blok lama dipindah ke atas.
 
             return View(vm);
         }
