@@ -4,6 +4,42 @@
 
 ---
 
+## Milestone: v32.6 — Section + Scoped Shuffle + Pagination + Opsi Dinamis
+
+**Shipped:** 2026-06-24 (local, NOT pushed) | **Phases:** 6 (415-419 + 415.1) | **Plans:** 20 | **Tasks:** 41
+
+### What Was Built
+Soal di-kelompokkan ke **Section** per-paket (entity `AssessmentPackageSection` + `PackageQuestion.SectionId` nullable, migration Phase 415). Di atasnya: **scoped shuffle** (acak hanya DALAM section, kunci komposit `(SectionNumber, ET)`), **pagination per-section** (`StartNewPage` + auto-split per-10 + resume), **opsi jawaban dinamis 2–6** (A–F, ganti kunci A–D), **import Excel dual-format** (13-kolom universal + kompatibel-mundur 9-kolom), dan **export label Section** (Excel band-header + PDF heading). 4 helper pure single-source: `SectionStructureComparer`, `ShuffleEngine.BuildSectionQuestionAssignment`, `SectionPaginator`, `SectionExportLayout`. +415.1 hotfix off-theme (guard essay cross-package). 100% kompatibel-mundur (no-Section = perilaku legacy byte-identik).
+
+### What Worked
+- **Pure-helper single-source kill-drift** — 4 seam Section dipakai konsisten lintas authoring→exam→export→import; integration-checker konfirmasi 0 divergent copy. Two-sentinel discipline (Comparer `int.MinValue` vs ExportLayout `int.MaxValue`) eksplisit + terdokumentasi.
+- **Pitfall-1 (.Include Section) sebagai checklist** — setiap surface section-aware wajib eager-load; tertangkap di review + integration sweep, dibuktikan live (export band-header @5277).
+- **De-tautology test** — `RepeatedEtInSibling_Fires` (ET-warning) + per-peserta heading test gagal di logika lama, lulus di baru — menangkap false-negative nyata.
+- **Cross-milestone e2e** — 4 spec (lifecycle/inject/linkprepost/add-remove × Section) membuktikan fitur lama (v32.2/397/v32.5) tetap koheren dengan Section.
+
+### What Was Inefficient
+- **Gate-doc debt terkonsentrasi di fase paling berisiko** — 415 (keystone) + 415.1 (auth-relaksasi) justru yang TANPA SECURITY.md sampai pre-close audit menangkapnya. Mitigasi substansial sudah ada+verified; hanya artefak gate yang telat. Pelajaran: jalankan secure-phase SEGERA setelah fase berisiko-tinggi, jangan tunda ke akhir.
+- **VALIDATION.md ditinggal `draft`** (415.1, 419) walau test hijau — perlu validate-phase eksplisit untuk finalize. Pelajaran: finalize nyquist gate saat fase selesai, bukan numpuk.
+- **419 phase-complete tak flip PAG-04 checkbox** — REQUIREMENTS PAG-04 tetap `[ ]`/Pending, tertangkap re-audit. Tool gap (gsd-tools phase complete lewatkan checkbox tertentu).
+- **exceljs SAX-load rapuh di Playwright runner** — pivot ke JSZip sharedStrings scan untuk assert band-header.
+
+### Patterns Established
+- **Re-audit pra-close multi-angle** (req-coverage + gate-completeness + integration + ship-readiness) sebelum complete-milestone — menangkap PAG-04 checkbox + 2 SECURITY gap + nyquist draft yang phase-level verify lewatkan.
+- **Shuffle-robust pagination assert** — saat ShuffleEnabled, jangan asumsi posisi qids[0]; assert blok (semua Section-B page > semua Section-A page).
+- **Hard-delete vs soft-remove di e2e** — peserta Not-started/no-data = hard-delete (Mode='hard', tak ke #tbodyRemoved); assert sesuai state, bukan asumsi soft.
+
+### Key Lessons
+- Peserta Not-started + no-response → `RemoveParticipantCoreAsync` hard-delete (Mode='hard'); soft-remove+Restore khusus peserta berdata.
+- Baris JS-injected (SignalR/fallback) bisa belum ter-wire Bootstrap penuh → reload sebelum aksi dropdown di e2e.
+- Re-login `page` yang sudah-auth → `/Account/Login` redirect Home → input hilang → timeout. Cek auth state dulu.
+- `human_needed` VERIFICATION = konvensi UAT-item GSD, bukan gap — verifikasi via UAT.md + ROADMAP complete.
+
+### Cost Observations
+- Heavy multi-agent: code-review (10 angle) + 3 verify-workflow + 4 e2e blueprint + audit (4 angle) + 2 secure + integration-checker. Workflow fan-out untuk review/audit, single-writer untuk edit coupled.
+- Live UAT @5277 (curl + Playwright) menangkap yang unit tak bisa (controller Include, render runtime).
+
+---
+
 ## Milestone: v32.5 — Flexible Add/Remove Participant
 
 **Shipped:** 2026-06-22 (local, NOT pushed) | **Phases:** 6 (409-414) | **Plans:** 13 | **Tasks:** 27

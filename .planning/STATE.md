@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v32.6
 milestone_name: Section + Scoped Shuffle + Section Pagination + Opsi Dinamis
-status: executing
-stopped_at: Phase 419 context gathered
-last_updated: "2026-06-24T11:20:01.123Z"
+status: milestone_complete
+stopped_at: v32.6 CLOSED — archived + tagged local (push pending IT deploy bundle)
+last_updated: "2026-06-24T12:34:52.695Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 21
@@ -203,8 +203,25 @@ _(Histori Plan 02 — Wave 1 GREEN, arsip)_
 
 ## Session Continuity
 
-Last activity: 2026-06-22
+Last activity: 2026-06-24
 
-Stopped at: Phase 419 context gathered
+Stopped at: **v32.6 CLOSED** via /gsd-complete-milestone (archived milestones/v32.6-*, ROADMAP collapsed, REQUIREMENTS git rm, tag v32.6 local). Milestone audit PASSED (20/20 REQ + integrasi SOUND + 6/6 nyquist). Semua fase 415-419+415.1 full gate-set.
 
-Next action: **Phase 415 Plan 02 COMPLETE (2/4) — Section surface admin SHIPPED lokal, migration=FALSE.** 3 commit `0b294e89` (4 endpoint Section CRUD + `int? sectionId` CreateQuestion/EditQuestion + `ViewBag.Sections`) / `7c814110` (panel inline Kelola Section + dropdown + daftar soal grouped per-Section, XSS-safe zero `@Html.Raw`) / `9fec1dc7` (5 controller-driven SectionCrud test). build 0 error; **runtime-verified @5277 HTTP 200** (panel render + CreateSection/DeleteSection live PRG + DB persist toggle + XSS-encode; lesson 354); **SectionCrud 9/9** + **fast suite 412/412** unregressed; 2 deviasi Rule-3 test-infra (StubWebHostEnvironment + NullTempDataProvider). SEC-01/02/03/05 covered. SUMMARY `.planning/phases/415-section-foundation-import-excel-diperluas/415-02-SUMMARY.md`. **NEXT: `/gsd-execute-phase 415` (Plan 03 — import Excel diperluas: template universal +No.Section/Nama+Opsi A–F, dual-format ≤9/>9 kolom, fingerprint dedup +Section+opsi5–6, validasi struktur antar-paket D-13, sync Pre→Post struktur Section).** Endpoint Section CRUD + signature siap dikonsumsi import auto-create Section (lihat SUMMARY 415-02). ⚠️ migration=FALSE Plan 02-04; hanya 415-01 = TRUE (`AddAssessmentPackageSection` `2391257c`). ❌ JANGAN push tanpa approval IT (CLAUDE.md step 4-5). ❌ JANGAN edit DB/kode Dev/Prod. ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1. Carry: v32.5 SIAP-SHIP PENDING-PUSH (audit-milestone + complete + push bundle v32.2+v32.5, notify IT Phase 409 migration=TRUE `01cd7dd0`); Phase 414 off-theme belum di-verify-work.
+Next action: **`/gsd-new-milestone`** (fresh requirements milestone berikutnya) + **push bundle origin/main + notify IT** — migration=TRUE: Phase 415 `AddAssessmentPackageSection` (v32.6) + Phase 409 `AddParticipantRemovalColumns` (v32.5, range unpushed sama) + carry 360/372. JANGAN push tanpa approval IT (CLAUDE.md step 4-5).
+
+## Deferred Items
+
+Items acknowledged + deferred at v32.6 milestone close (2026-06-24). Mostly pre-existing cross-project debt + GSD UAT-convention status-staleness — NOT v32.6 blockers (milestone audit PASSED):
+
+| Category | Count | Note |
+|----------|-------|------|
+| debug sessions | 14 | [diagnosed] — OLD/other features (KKJ matrix, paste-excel, monitoring, team-view) — predate v32.6; archive via /gsd-cleanup or resolve when those features revisited |
+| quick tasks | 45 | project-wide backlog (KKJ/CPDP/dll), bukan v32.6 |
+| verification status | 5 | 415/416/417/418/419 = `human_needed` (UAT-item convention; semua ter-UAT live + ROADMAP complete) — cosmetic status not flipped |
+| UAT | 4 | 416/417/418 = 0 pending (status field unknown); 419 = 1 pending (audit-milestone, sekarang DONE) |
+| backlog 999.x | 4 | 999.13/14/15/16 tracked di ROADMAP Backlog |
+
+Full audit: `gsd-tools audit-open`. None block ship.
+
+<!-- archived stale Phase-415 session note below (historical) -->
+Historical session note (pra-close): Phase 415 Plan 02 COMPLETE (2/4) — Section surface admin SHIPPED lokal, migration=FALSE. 3 commit `0b294e89` (4 endpoint Section CRUD + `int? sectionId` CreateQuestion/EditQuestion + `ViewBag.Sections`) / `7c814110` (panel inline Kelola Section + dropdown + daftar soal grouped per-Section, XSS-safe zero `@Html.Raw`) / `9fec1dc7` (5 controller-driven SectionCrud test). build 0 error; **runtime-verified @5277 HTTP 200** (panel render + CreateSection/DeleteSection live PRG + DB persist toggle + XSS-encode; lesson 354); **SectionCrud 9/9** + **fast suite 412/412** unregressed; 2 deviasi Rule-3 test-infra (StubWebHostEnvironment + NullTempDataProvider). SEC-01/02/03/05 covered. SUMMARY `.planning/phases/415-section-foundation-import-excel-diperluas/415-02-SUMMARY.md`. **NEXT: `/gsd-execute-phase 415` (Plan 03 — import Excel diperluas: template universal +No.Section/Nama+Opsi A–F, dual-format ≤9/>9 kolom, fingerprint dedup +Section+opsi5–6, validasi struktur antar-paket D-13, sync Pre→Post struktur Section).** Endpoint Section CRUD + signature siap dikonsumsi import auto-create Section (lihat SUMMARY 415-02). ⚠️ migration=FALSE Plan 02-04; hanya 415-01 = TRUE (`AddAssessmentPackageSection` `2391257c`). ❌ JANGAN push tanpa approval IT (CLAUDE.md step 4-5). ❌ JANGAN edit DB/kode Dev/Prod. ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1. Carry: v32.5 SIAP-SHIP PENDING-PUSH (audit-milestone + complete + push bundle v32.2+v32.5, notify IT Phase 409 migration=TRUE `01cd7dd0`); Phase 414 off-theme belum di-verify-work.
