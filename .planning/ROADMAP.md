@@ -55,7 +55,8 @@
 - [x] **Phase 420: Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11)** ✅ COMPLETE 2026-06-23 (UAT 8/8 + secure 13/13 + validate NYQUIST 11/11) — perbaiki pola "field dirender tapi tak tersimpan" + tata-letak form Pre-Post. E-01🔴 shuffle reset-OFF tiap Edit; retake bind-but-drop Create; retake no-op Edit; ValidUntil cabang std Edit; lock Completed Pre-Post; redirect manual entry; SamePackage letak tingkat-pasangan; scope-label per-setelan; eliminasi field standard dobel ter-POST; rename AssessmentTypeInput. Domain: `CreateAssessment.cshtml`/`EditAssessment.cshtml`/`AssessmentAdminController` binding. migration=FALSE.
 - [x] **Phase 421: Retake Lifecycle Hardening (RTH-01..05)** ✅ COMPLETE 2026-06-23 (UAT 4/4 + secure 14/14 + validate NYQUIST 5/5) — hardening lifecycle ujian ulang. RTK-LOGIC-02🔴 cooldown lewat ExamWindow = dead-end destruktif (tolak retake, sesi tak dihapus); reset HC hapus NomorSertifikat; counting attempt konsisten cap vs warning; guard hapus peserta Abandoned/ber-riwayat + bersihkan arsip; warning MaxAttempts retroaktif. Domain: `RetakeService`/`RetakeRules`/`CMPController.RetakeExam`. migration=FALSE.
 - [x] **Phase 422: SamePackage & Shuffle Integrity (SHFX-01..07)** ✅ COMPLETE 2026-06-23 (verify 5/5 + review-fix WR-01/02·IN-01/03 + secure 13/13 + validate NYQUIST 7/7 + UAT 6/6, migration=TRUE AddPackageNumberUniqueIndex) — integritas SamePackage + shuffle. SHUF-ISS-03🔴 sync absen di Import; toggle SamePackage editable pasca-create (keputusan bisnis b); lock server-side; peserta baru warisi SamePackage; PackageNumber renumber deterministik; kunci sibling type-aware; peringatan shuffle lengkap (ON+SamePackage, K=min, mismatch satu sumber). Domain: `ManagePackages`/`ShuffleEngine`/sync paket Pre→Post. **Planned 2026-06-23: 3 plans / 3 waves, migration=TRUE (Plan 01 AddPackageNumberUniqueIndex).** ⚠️ OVERLAP v32.6 (main, Scoped Shuffle) — rekonsiliasi saat merge.
-- [x] **Phase 423: Certificate Issuance Consistency (CERT-01..07)** — konsolidasi aturan terbit cert ke satu helper `ShouldIssueCertificate` + kelengkapan data. Helper bersama tolak Pre-Test semua jalur; ValidUntil wajib saat issue non-Pre; seq atomik anti-race; namespace manual vs auto dipisah; anti double-cert tak bisa di-bypass; CertificateType×ValidUntil konsisten; PendingGrading tampil umur (tanpa auto-finalize). Domain: `GradingService`/`CertNumberHelper`/`ShouldIssueCertificate`. migration=FALSE. (completed 2026-06-24)
+- [x] **Phase 423: Certificate Issuance Consistency (CERT-01..07)** — konsolidasi aturan terbit cert ke satu helper `ShouldIssueCertificate` + kelengkapan data. Helper bersama tolak Pre-Test semua jalur; ValidUntil wajib saat issue non-Pre; seq atomik anti-race; namespace manual vs auto dipisah; anti double-cert tak bisa di-bypass; CertificateType×ValidUntil konsisten; PendingGrading tampil umur (tanpa auto-finalize). Domain: `GradingService`/`CertNumberHelper`/`ShouldIssueCertificate`. migration=FALSE.
+ (completed 2026-06-24)
 - [ ] **Phase 424: Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..07)** 🔴 — hapus duplikasi scoring + integritas linking + gate Pre-wajib-dulu. FLOW-04🔴 Post StartExam butuh Pre Completed (keputusan bisnis a); scoring per-soal satu fungsi murni + dedupe konsisten; pairing satu sumber kebenaran per-peserta; Standard tak dapat link semu; ElapsedSeconds hitung ExtraTime; manajemen peserta simetris Standard/Pre-Post; essay kosong ditolak server-side. Domain: `GradingService`/`AssessmentScoreAggregator`/`SiblingSessionQuery`/`CMPController.StartExam`. migration=FALSE.
 - [ ] **Phase 425: Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05)** — batch low-risk naming/redundancy/dead-field/dokumentasi. Label & doc diselaraskan; entry manual Schedule/CompletedAt + cross-validate IsPassed; drop dead-field AssessmentPhase (atau RESERVED); tech-debt timing (timer satu sumber, token server-authoritative, write-on-GET diamankan); konvensi ModelState. **migration=KEMUNGKINAN TRUE** (CLN-03 drop kolom `AssessmentPhase` — TBD plan-phase).
 
@@ -132,13 +133,16 @@
 **Goal:** Logika grading bebas duplikasi, alur Pre/Post terhubung dari satu sumber kebenaran, dan keputusan bisnis ditegakkan — peserta WAJIB menyelesaikan Pre-Test sebelum boleh memulai Post-Test, scoring per-soal memakai satu fungsi murni, pairing terfilter per-peserta, dan validasi essay ditegakkan di server.
 **Depends on:** Phase 423 (sekuensial — 424 & 420 sama-sama sentuh form/grading, 424 & 422 sentuh StartExam; dikerjakan setelah area cert rapi untuk hindari konflik).
 **Migration:** false (refactor scoring/pairing + gate StartExam + validasi server; tidak ada schema/write DB baru).
-**Requirements:** GRDF-01, GRDF-02, GRDF-03, GRDF-04, GRDF-05, GRDF-06, GRDF-07
+**Requirements:** GRDF-01, GRDF-02, GRDF-03, GRDF-04, GRDF-05, GRDF-07 (**GRDF-06 di-EXCLUDE** — manajemen peserta simetris sudah dikerjakan penuh oleh v32.5 di branch `main`; tandai "covered by v32.5 merge", bukan dikerjakan di 424)
 **Success Criteria** (what must be TRUE):
   1. Peserta tidak dapat memulai (StartExam) Post-Test sebelum Pre-Test pasangannya berstatus Completed (gate pelaksanaan, bukan hanya validasi jadwal). *(GRDF-01, FLOW-04 🔴, keputusan bisnis a)*
   2. Logika penilaian per-soal (MC/MA/Essay) memakai satu fungsi murni bersama dengan strategi dedupe konsisten di semua jalur; submit on-time menolak essay kosong di sisi server. *(GRDF-02, GRDF-07)*
   3. Pemasangan Pre/Post memakai satu sumber kebenaran (tidak tiga jalur divergen; pairing per-peserta terfilter UserId); assessment Standard tidak mendapat link Pre/Post semu dari pola judul. *(GRDF-03, GRDF-04)*
-  4. Perhitungan durasi aktif (ElapsedSeconds) memperhitungkan ExtraTimeMinutes secara konsisten; manajemen peserta simetris (hapus peserta tersedia/konsisten di Standard & Pre-Post, dedup seragam). *(GRDF-05, GRDF-06)*
-**Plans:** TBD
+  4. Perhitungan durasi aktif (ElapsedSeconds) memperhitungkan ExtraTimeMinutes secara konsisten. *(GRDF-05)* — (manajemen peserta simetris GRDF-06 = covered by v32.5 merge, di luar scope 424)
+**Plans:** 3 plans (3 waves — sekuensial by file-overlap: helper/scorer → CMPController → AssessmentAdminController + UAT)
+- [ ] 424-01-PLAN.md — Wave 1 [KEYSTONE]: Wave-0 parity-lock + pure helpers PrePostPairing & ExamTimeRules (NEW) + promosikan AssessmentScoreAggregator jadi single-scorer + konvergensi 3 jalur dedupe last-write-wins (GRDF-02 / D-06/D-07) [migration=FALSE]
+- [ ] 424-02-PLAN.md — Wave 2: CMPController — gate gating Pre→Post StartExam (GRDF-01) + pairing terfilter UserId (GRDF-03) + clamp ExtraTime :469 (GRDF-05) + essay kosong on-time reject (GRDF-07) + real-SQL gate/essay tests; depends 01 [migration=FALSE]
+- [ ] 424-03-PLAN.md — Wave 3 [autonomous=false]: AssessmentAdminController — matikan auto-link judul Standard forward-only (GRDF-04/D-08) + konfirmasi export Durasi Aktual (GRDF-05) + checkpoint UAT live @5270 (gating/essay/export/forward-only/smoke); depends 01+02 [migration=FALSE]
 **UI hint:** yes
 
 ### Phase 425: Cosmetic / Naming / Tech-Debt Cleanup
@@ -164,7 +168,7 @@
 | 421. Retake Lifecycle Hardening (RTH-01..05) | 3/3 | Complete   | 2026-06-23 |
 | 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 3/3 | Complete   | 2026-06-23 |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 3/3 | Complete    | 2026-06-24 |
-| 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..07) | 0/TBD | Not started | - |
+| 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..05,07) | 0/3 | Planned (3 plans / 3 waves; GRDF-06 covered by v32.5) | - |
 | 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 0/TBD | Not started | - |
 
 </details>
