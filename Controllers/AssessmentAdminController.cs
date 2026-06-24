@@ -8027,6 +8027,16 @@ namespace HcPortal.Controllers
             // Aturan "opsi mana yang dihapus" HARUS identik dengan loop upsert di bawah (kill-drift, plan-check #4):
             // opsi existing pada posisi i (OrderBy Id) dihapus bila i >= keep ATAU options[i].Text kosong;
             // konversi ke Essay menghapus SEMUA opsi.
+            //
+            // BATASAN DIKENAL (WR-01, review 418 — pre-existing, MED, lihat backlog 999.15):
+            // Guard ini hanya menangkap penghapusan opsi dari SLOT EKOR (i >= keep). Karena upsert di bawah
+            // bersifat POSISIONAL (preserve PackageOption.Id by posisi OrderBy Id, RESEARCH Pattern 2), menghapus
+            // opsi di TENGAH membuat opsi-opsi di bawahnya GESER NAIK posisi: record Id-nya bertahan tapi TEKS-nya
+            // di-relabel — sehingga jawaban peserta yang menunjuk opsi tengah TIDAK terdeteksi sebagai "dihapus"
+            // dan guard TIDAK menyala. Akibatnya makna jawaban peserta bisa berubah senyap (grading per Id tetap
+            // konsisten teknis, tapi teks opsi-nya beda). Ini sudah ada sejak soal 4-opsi, BUKAN bug 418, dan
+            // BUKAN crash (FK-Restrict 500 tetap tertutup). Fix penuh = editing opsi berbasis IDENTITAS (bukan posisi),
+            // sebuah keputusan produk di luar scope 418. JANGAN perketat tanpa konfirmasi D-418-02 (upsert posisional dikunci spec).
             {
                 var existingForGuard = q.Options.OrderBy(o => o.Id).ToList();
                 int keep = Math.Min(options.Count(o => !string.IsNullOrWhiteSpace(o.Text)), 6);

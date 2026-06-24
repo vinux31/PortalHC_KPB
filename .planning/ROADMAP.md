@@ -263,6 +263,24 @@ Plans:
 
 ---
 
+### Phase 999.15: Edit soal: hapus opsi-tengah yang sudah dijawab me-relabel jawaban peserta secara senyap (upsert posisional) (BACKLOG, MED, pre-existing, found 418 review WR-01)
+
+**Goal:** [Captured dari review Phase 418, 2026-06-24] Loop upsert `EditQuestion` (`AssessmentAdminController.cs:8120-8153`) memetakan input ke opsi existing BERDASARKAN POSISI (`existing[i]`, OrderBy Id), mempertahankan `PackageOption.Id` per posisi. Saat HC menghapus opsi di TENGAH (mis. A,B,C,D → hapus B → form kirim 3 baris "A","C","D"), opsi di bawahnya geser naik posisi: record Id opsi B bertahan tapi teksnya di-UPDATE jadi "C", record C jadi "D", dan HANYA opsi terakhir (D) yang benar-benar di-Remove. Guard edit-shrink D-418-02 (`:8030-8069`) hanya menambahkan slot EKOR ke `removedOptionIds`, sehingga bila peserta sudah menjawab opsi B, guard TIDAK menyala (Id B selamat). Jawaban tercatat peserta yang dulu menunjuk "B" kini diam-diam menunjuk opsi berteks "C" → makna jawaban berubah senyap.
+
+**Context:**
+- Konsekuensi sah dari upsert-posisional yang DIKUNCI spec (preserve Id by posisi, RESEARCH Pattern 2). Pre-existing — sudah ada sejak soal 4-opsi, BUKAN diperkenalkan Phase 418.
+- BUKAN crash: FK-Restrict 500 (hazard 999.14) tetap tertutup; grading per `PackageOption.Id` tetap konsisten teknis. Efeknya integritas-data bisnis: teks opsi yang di-skor terhadap jawaban peserta bisa berbeda.
+- Janji guard ("opsi yang sudah dijawab tidak bisa dihapus") hanya benar untuk penghapusan dari EKOR; penghapusan tengah me-relabel alih-alih memblok.
+- Keputusan desain perlu: (a) editing opsi berbasis IDENTITAS (match opsi by Id stabil, bukan posisi) = fix penuh, ATAU (b) perketat guard untuk mendeteksi "teks opsi yang sudah dijawab berubah pada posisi yang ada" lalu tolak, ATAU (c) terima perilaku + dokumentasikan di copy UI ("Menghapus opsi tengah akan menggeser opsi di bawahnya"). 0 migration. JANGAN ubah tanpa konfirmasi D-418-02 (upsert posisional dikunci spec).
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.7: e2e exam-taking — migrasi 10 create flow ke wizard 4-langkah (PROMOTED -> v28.0 Phase 379, 2026-06-14)
 
 **Goal:** [Captured Phase 364, 2026-06-12] `exam-taking.spec.ts` Flow A–J semua `test.fixme` — flat-form create usang. `/Admin/CreateAssessment` kini wizard 4-langkah (`1.Kategori`→`2.Peserta[disabled]`→`3.Settings`→`4.Konfirmasi`); worker checkbox `display:none` di step 2. Title sudah prefixed `Pre Test ` (REST-06 comply) tapi flow tak bisa jalan tanpa navigasi wizard.
