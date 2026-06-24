@@ -291,6 +291,7 @@ namespace HcPortal.Controllers
             {
                 var completedPreSessions = await _context.AssessmentSessions
                     .Where(s => s.AssessmentType == "PreTest"
+                        && s.UserId == userId                  // GRDF-03 (FLOW-01 fix): hanya Pre milik peserta ini — cegah cross-user pairing
                         && s.LinkedGroupId.HasValue
                         && postGroupIds.Contains(s.LinkedGroupId.Value)
                         && s.Status == "Completed")
@@ -937,6 +938,20 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "This assessment has already been completed.";
                 return RedirectToAction("Assessment");
+            }
+
+            // GRDF-01 (FLOW-04, keputusan bisnis a): Post-Test tak boleh dimulai bila pasangan Pre-nya ADA
+            // tapi belum Completed. Worker-only — Admin/HC bypass (monitoring/impersonate), konsisten token gate.
+            // Penempatan: SETELAH cek Completed (reload Post selesai tak ke-gate), SEBELUM StartedAt write (no write-on-GET sesi terblok).
+            if (assessment.UserId == user.Id)
+            {
+                var pairedPre = await PrePostPairing.FindPairedPreAsync(_context, assessment);
+                if (pairedPre != null && pairedPre.Status != "Completed")   // D-01: Completed saja, BUKAN IsPassed
+                {
+                    TempData["Error"] = "Selesaikan Pre-Test dulu sebelum mulai Post-Test.";
+                    return RedirectToAction("Assessment");
+                }
+                // pairedPre == null (orphan / Standard / Pre milik user lain) → lewat (D-02 non-destruktif).
             }
 
             // Enforce token requirement — workers must verify token via Assessment lobby first (SEC-01)
