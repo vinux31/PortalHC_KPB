@@ -172,4 +172,19 @@ public class OptionValidationTests
         Assert.False(ok);
         Assert.Contains("berisi teks", error);
     }
+
+    // OPT-03 (Nyquist gap-fill 2026-06-24): batas max-6 SIMETRIS untuk MultipleAnswer (bukan hanya MC).
+    // `MaxSix_Rejected` menguji MC dgn 7; Fact ini mengunci jalur MA dgn 7 opsi terisi juga ditolak ">6",
+    // sehingga "maksimal 6 opsi ditegakkan" terbukti untuk KEDUA tipe ber-opsi (OPT-03 berlaku MC+MA).
+    [Fact]
+    public void MaxSix_MultipleAnswer_Rejected()
+    {
+        var (ok, error) = QuestionOptionValidator.ValidateQuestionOptions(
+            "MultipleAnswer",
+            new string?[] { "A", "B", "C", "D", "E", "F", "G" }, // 7 terisi → di atas batas
+            new bool[] { true, true, false, false, false, false, false });
+
+        Assert.False(ok);
+        Assert.Contains("Maksimal 6 opsi", error);
+    }
 }
