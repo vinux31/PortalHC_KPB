@@ -35,7 +35,7 @@ Requirements milestone v32.6. Tiap REQ map ke satu fase roadmap (fase mulai 415)
 ### Dynamic Options (OPT)
 
 - [x] **OPT-01**: HC dapat membuat/mengubah soal dengan 2–6 opsi jawaban (bukan terkunci A–D) lewat form authoring web dan form Inject.
-- [ ] **OPT-02**: Layar ujian, preview, dan hasil menampilkan huruf opsi A–F dinamis sesuai jumlah opsi, dan penilaian tetap benar.
+- [x] **OPT-02**: Layar ujian, preview, dan hasil menampilkan huruf opsi A–F dinamis sesuai jumlah opsi, dan penilaian tetap benar.
 - [x] **OPT-03**: Kolom "Jawaban Benar" (form & import) menerima huruf A–F; minimal 2 dan maksimal 6 opsi ditegakkan.
 
 ### Import Excel (IMP)
@@ -90,7 +90,7 @@ Tiap REQ v1 dipetakan ke tepat satu fase (roadmap v32.6, fase 415-419). Status a
 | PAG-02 | Phase 417 | Complete |
 | PAG-03 | Phase 417 | Complete |
 | OPT-01 | Phase 418 | Complete |
-| OPT-02 | Phase 418 | Pending |
+| OPT-02 | Phase 418 | Complete |
 | OPT-03 | Phase 418 | Complete |
 | PAG-04 | Phase 419 | Pending |
 

@@ -58,7 +58,7 @@
 | 415.1 Hotfix Guard Penilaian Essay Cross-Package (URGENT) | 0/2 | 2/2 | Complete    | 2026-06-23 |
 | 416. Scoped Shuffle (Acak per-Section) | 0/3 | 3/3 | Complete    | 2026-06-23 |
 | 417. Section Pagination | 0/3 | 3/3 | Complete   | 2026-06-24 |
-| 418. Opsi Jawaban Dinamis 2–6 | 0/4 | 2/4 | In Progress|  |
+| 418. Opsi Jawaban Dinamis 2–6 | 0/4 | 3/4 | In Progress|  |
 | 419. Export Label Section + Polish + Test/UAT | 0/? | Not started | FALSE | - |
 
 **Dependency DAG:** 415 (keystone) → 416 → 417 ; 415 → 418 (workstream agak terpisah, sequential anti-konflik file) ; (415,416,417,418) → 419.
@@ -158,7 +158,7 @@ Plans:
 **Plans**: 4 plans (wave 1->2->3->4 sequential; file-overlap AssessmentAdminController.cs di Plan 02, view di Plan 03)
 - [x] 418-01-PLAN.md — Wave-0 xUnit: validator max-6 (extend OptionValidationTests) + edit-shrink guard pure-logic (OptionShrinkGuard intersection) (OPT-03 + D-418-02) [wave 1, migration=FALSE, RED]
 - [x] 418-02-PLAN.md — Keystone: OptionInput model + OptionShrinkGuard helper + validator max-6 + CreateQuestion/EditQuestion POST List<OptionInput> binding + correctIndex MC single-select + hapus guard H3 + guard edit-shrink (tutup 999.14) + loop upsert A–F (OPT-01/03) [wave 2]
-- [ ] 418-03-PLAN.md — Views: render A–F 5 view + fix modulo PreviewPackage + form authoring dinamis (Tambah/Hapus/re-letter/reasosiasi gambar/populateEditForm+IMAGE_FIELDS dinamis/#authError role=alert) + form Inject dinamis + extend wizardSelectors.ts (OPT-01/02) [wave 3]
+- [x] 418-03-PLAN.md — Views: render A–F 5 view + fix modulo PreviewPackage + form authoring dinamis (Tambah/Hapus/re-letter/reasosiasi gambar/populateEditForm+IMAGE_FIELDS dinamis/#authError role=alert) + form Inject dinamis + extend wizardSelectors.ts (OPT-01/02) [wave 3]
 - [ ] 418-04-PLAN.md — Integration real-SQL edit-shrink + Playwright e2e option-dynamic-418 (add/remove/render-AF/preview-F/prefill-5/image-reassoc flag#4/edit-shrink-blocked) + checkpoint UAT live @5277 (OPT-01/02/03) [wave 4, autonomous:false]
 **Migration**: FALSE (`PackageOption` sudah `ICollection`; batas max-6 di layer aplikasi, grading by `PackageOption.Id`).
 **File-overlap (sequential setelah 415; hindari paralel dgn 417 di `StartExam.cshtml`)**: `AssessmentAdminController.cs` (CreateQuestion/EditQuestion param diskret→array), `ManagePackageQuestions.cshtml` + `_InjectQuestionForm.cshtml` (loop opsi dinamis), `StartExam.cshtml`/`_PreviewQuestion`/`Results.cshtml`/`ExamSummary.cshtml` (huruf A–F), `ExtractPackageCorrectLetter` (`'ABCD'`→`'ABCDEF'`), `QuestionOptionValidator` (min-2/max-6), import parser Opsi E–F.
