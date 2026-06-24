@@ -7936,14 +7936,15 @@ namespace HcPortal.Controllers
             string? elemenTeknis,
             string? rubrik,
             int maxCharacters,
-            string? optionA, string? optionB, string? optionC, string? optionD,
-            bool correctA, bool correctB, bool correctC, bool correctD,
             IFormFile? questionImage, string? questionImageAlt, bool removeQuestionImage,
-            IFormFile? optionAImage, IFormFile? optionBImage, IFormFile? optionCImage, IFormFile? optionDImage,
-            string? optionAImageAlt, string? optionBImageAlt, string? optionCImageAlt, string? optionDImageAlt,
-            bool removeOptionAImage, bool removeOptionBImage, bool removeOptionCImage, bool removeOptionDImage,
+            List<OptionInput> options,
+            int? correctIndex = null,
             int? sectionId = null)
         {
+            options ??= new List<OptionInput>();
+            // Flag #1 keystone: resolusi kebenaran (MC single-select via correctIndex; MA per-checkbox).
+            ResolveCorrectness(questionType, options, correctIndex);
+
             // Validate QuestionType whitelist (T-298-01)
             var validTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
             if (!validTypes.Contains(questionType))
@@ -7952,8 +7953,9 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
-            // Validate-all image uploads fail-fast (SHARED-3 / D-08). Null file → (true,null).
-            foreach (var f in new[] { questionImage, optionAImage, optionBImage, optionCImage, optionDImage })
+            // Validate-all image uploads fail-fast (SHARED-3 / D-08, T-418-04). Null file → (true,null).
+            // Loop dinamis SEMUA gambar opsi (termasuk E/F) — jangan hand-roll (V12 ASVS).
+            foreach (var f in new[] { questionImage }.Concat(options.Select(o => o.Image)))
             {
                 var (okImg, errImg) = FileUploadHelper.ValidateImageFile(f);
                 if (!okImg)
@@ -7980,15 +7982,9 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(q => q.Id == questionId);
             if (q == null) return NotFound();
 
-            // H3 re-check (Phase 415): soal hasil import/SyncPackagesToPost bisa punya 5–6 opsi (E/F), tapi form edit
-            // ini hanya merender A–D. Edit penuh A–F = scope Phase 418. Sampai itu, TOLAK edit soal >4 opsi untuk tipe
-            // APA PUN — termasuk konversi ke Essay yang akan RemoveRange semua opsi (E/F) secara senyap (round-3 gap).
-            // Cegah (a) hapus opsi E/F, (b) hard-block correctCount. Data utuh; untuk ubah, hapus soal + impor ulang.
-            if (q.Options.Count > 4)
-            {
-                TempData["Error"] = "Soal ini memiliki lebih dari 4 opsi (E/F) dan belum dapat diedit lewat form ini (dukungan edit 5–6 opsi menyusul). Untuk mengubahnya, hapus soal lalu impor ulang via Excel.";
-                return RedirectToAction("ManagePackageQuestions", new { packageId });
-            }
+            // Phase 418: guard H3 (placeholder yang menolak edit soal >4 opsi) DIHAPUS — kini form edit
+            // mendukung opsi dinamis A–F penuh. Soal hasil import 415 (5–6 opsi) jadi editable. Penyusutan opsi
+            // yang sudah dijawab peserta dilindungi guard edit-shrink (D-418-02) di bawah, bukan blanket-block.
 
             // Range validation 1-100 (D-12, D-13) - replaces force-override removed per D-14 (Phase 306)
             if (scoreValue < 1 || scoreValue > 100)
@@ -7997,8 +7993,8 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
-            // Validate per type (D-07)
-            var correctCount = (correctA ? 1 : 0) + (correctB ? 1 : 0) + (correctC ? 1 : 0) + (correctD ? 1 : 0);
+            // Validate per type (D-07). correctCount dari options SETELAH resolusi correctIndex.
+            var correctCount = options.Count(o => o.IsCorrect);
             if (questionType == "MultipleChoice" && correctCount != 1)
             {
                 TempData["Error"] = $"{QuestionTypeLabels.Short("MultipleChoice")} hanya boleh memiliki 1 jawaban benar.";
@@ -8016,15 +8012,60 @@ namespace HcPortal.Controllers
             }
 
             // Phase 386 PXF-02 (F-DEV-01) — option-presence validation (≥2 ber-teks + checked-correct must be ber-teks).
-            // Shared helper (kill-drift with CreateQuestion). correctCount gate above is UNCHANGED.
+            // Phase 418 OPT-03: validator juga menegakkan max-6. Shared helper (kill-drift with CreateQuestion).
             var (optOk, optErr) = QuestionOptionValidator.ValidateQuestionOptions(
                 questionType,
-                new[] { optionA, optionB, optionC, optionD },
-                new[] { correctA, correctB, correctC, correctD });
+                options.Select(o => o.Text).ToArray(),
+                options.Select(o => o.IsCorrect).ToArray());
             if (!optOk)
             {
                 TempData["Error"] = optErr;
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            // GUARD EDIT-SHRINK (D-418-02, tutup hazard 999.14) — SETELAH validator lulus, SEBELUM mutasi/SaveChanges.
+            // Aturan "opsi mana yang dihapus" HARUS identik dengan loop upsert di bawah (kill-drift, plan-check #4):
+            // opsi existing pada posisi i (OrderBy Id) dihapus bila i >= keep ATAU options[i].Text kosong;
+            // konversi ke Essay menghapus SEMUA opsi.
+            {
+                var existingForGuard = q.Options.OrderBy(o => o.Id).ToList();
+                int keep = Math.Min(options.Count(o => !string.IsNullOrWhiteSpace(o.Text)), 6);
+                var removedOptionIds = new List<int>();
+                if (questionType == "Essay")
+                {
+                    removedOptionIds.AddRange(existingForGuard.Select(o => o.Id));
+                }
+                else
+                {
+                    for (int i = 0; i < existingForGuard.Count; i++)
+                    {
+                        bool stillFilled = i < options.Count && !string.IsNullOrWhiteSpace(options[i].Text);
+                        if (i >= keep || !stillFilled)
+                            removedOptionIds.Add(existingForGuard[i].Id);
+                    }
+                }
+                if (removedOptionIds.Count > 0)
+                {
+                    var answered = await _context.PackageUserResponses
+                        .Where(r => r.PackageOptionId.HasValue && removedOptionIds.Contains(r.PackageOptionId.Value))
+                        .Select(r => r.PackageOptionId!.Value)
+                        .Distinct()
+                        .ToListAsync();
+                    var blocked = OptionShrinkGuard.FindBlockedOptionIds(removedOptionIds, answered);
+                    if (blocked.Count > 0)
+                    {
+                        // Huruf opsi terblok (posisi di existingForGuard, OrderBy Id) untuk pesan jelas (UI-SPEC C5).
+                        string[] letters = { "A", "B", "C", "D", "E", "F" };
+                        var blockedLetters = blocked
+                            .Select(id => existingForGuard.FindIndex(o => o.Id == id))
+                            .Where(idx => idx >= 0)
+                            .OrderBy(idx => idx)
+                            .Select(idx => idx < letters.Length ? letters[idx] : (idx + 1).ToString());
+                        var label = string.Join(", ", blockedLetters);
+                        TempData["Error"] = $"Opsi \"{label}\" sudah dijawab peserta dan tidak bisa dihapus. Batalkan perubahan atau pertahankan opsi ini.";
+                        return RedirectToAction("ManagePackageQuestions", new { packageId });
+                    }
+                }
             }
 
             // Capture old score for audit log delta detection (D-10)
@@ -8073,45 +8114,43 @@ namespace HcPortal.Controllers
             }
             else
             {
-                var optTexts = new[] { optionA, optionB, optionC, optionD };
-                var optCorrects = new[] { correctA, correctB, correctC, correctD };
-                var optImages = new[] { optionAImage, optionBImage, optionCImage, optionDImage };
-                var optAlts = new[] { optionAImageAlt, optionBImageAlt, optionCImageAlt, optionDImageAlt };
-                var optRemoves = new[] { removeOptionAImage, removeOptionBImage, removeOptionCImage, removeOptionDImage };
-
-                // Urutan SAMA dengan GET JSON (OrderBy o.Id == urutan pembuatan A-D).
+                // Phase 418: loop upsert opsi dinamis A–F (≤6), preserve Id + gambar (4-cabang: update/remove/add/skip).
+                // Urutan SAMA dengan GET JSON (OrderBy o.Id). Aturan "dihapus" IDENTIK dengan guard edit-shrink di atas
+                // (kill-drift): posisi i dihapus bila i >= keep ATAU options[i].Text kosong.
                 var existing = q.Options.OrderBy(o => o.Id).ToList();
+                int keep = Math.Min(options.Count(o => !string.IsNullOrWhiteSpace(o.Text)), 6);
+                int bound = Math.Max(keep, existing.Count);
 
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < bound; i++)
                 {
-                    var hasText = !string.IsNullOrWhiteSpace(optTexts[i]);
+                    var inp = i < options.Count ? options[i] : null;
+                    var hasText = inp != null && !string.IsNullOrWhiteSpace(inp.Text) && i < keep;
                     var slot = i < existing.Count ? existing[i] : null;
 
                     if (slot != null && hasText)
                     {
                         // UPDATE in-place: text + correct; gambar preserve kecuali image-intent.
-                        slot.OptionText = optTexts[i]!.Trim();
-                        slot.IsCorrect = optCorrects[i];
-                        await ApplyOptionImageIntent(slot, optImages[i], optAlts[i], optRemoves[i], packageId, imagePathsToDelete);
+                        slot.OptionText = inp!.Text!.Trim();
+                        slot.IsCorrect = inp.IsCorrect;
+                        await ApplyOptionImageIntent(slot, inp.Image, inp.ImageAlt, inp.RemoveImage, packageId, imagePathsToDelete);
                     }
                     else if (slot != null && !hasText)
                     {
-                        // Opsi dihapus (mis. 4→3): remove + delete-candidate gambar.
+                        // Opsi dihapus (shrink atau posisi kosong): remove + delete-candidate gambar.
+                        // Aman dari FK-Restrict — sudah lolos guard edit-shrink (D-418-02).
                         if (!string.IsNullOrEmpty(slot.ImagePath)) imagePathsToDelete.Add(slot.ImagePath!);
                         _context.PackageOptions.Remove(slot);
                         q.Options.Remove(slot);
                     }
                     else if (slot == null && hasText)
                     {
-                        // Opsi baru di posisi i: ADD (oldPath null → hanya save bila ada file).
-                        var newOpt = new PackageOption { OptionText = optTexts[i]!.Trim(), IsCorrect = optCorrects[i] };
-                        await ApplyOptionImageIntent(newOpt, optImages[i], optAlts[i], optRemoves[i], packageId, imagePathsToDelete);
+                        // Opsi baru di posisi i (mis. 4→5/6): ADD.
+                        var newOpt = new PackageOption { OptionText = inp!.Text!.Trim(), IsCorrect = inp.IsCorrect };
+                        await ApplyOptionImageIntent(newOpt, inp.Image, inp.ImageAlt, inp.RemoveImage, packageId, imagePathsToDelete);
                         q.Options.Add(newOpt);
                     }
                     // slot == null && !hasText → skip (opsi tidak ada & tidak diisi)
                 }
-                // H3 re-check: blok lama "buang opsi E/F" DIHAPUS — soal >4 opsi kini ditolak di awal EditQuestion
-                // (preserve data), jadi loop A–D di atas hanya jalan untuk soal ≤4 opsi. Edit penuh A–F → Phase 418.
             }
 
             await _context.SaveChangesAsync();

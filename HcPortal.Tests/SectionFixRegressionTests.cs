@@ -419,13 +419,15 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
     }
 
     // =================================================================================================
-    //  H3 — TOLAK edit soal >4 opsi (preserve data). Form edit hanya A–D; soal 5–6 opsi (E/F) ditolak agar
-    //  tak menghapus opsi E/F senyap atau kena hard-block correctCount. Data dipertahankan utuh.
+    //  Phase 418 (OPT-01): guard H3 (tolak edit soal >4 opsi) DIHAPUS. Soal 5–6 opsi (import 415) kini EDITABLE
+    //  via kontrak opsi dinamis (List<OptionInput> + correctIndex). Penyusutan opsi yang sudah DIJAWAB peserta
+    //  dilindungi guard edit-shrink (D-418-02 — lihat EditShrinkGuardLogicTests), bukan blanket-block H3.
     // =================================================================================================
 
-    // H3 (utama): soal 6 opsi (benar di E) → EditQuestion ditolak (TempData Error >4 opsi), opsi UTUH (6, IsCorrect lestari).
+    // Phase 418: soal 6 opsi (belum dijawab) → EditQuestion SUKSES. Edit teks + pindah benar ke F (index 5) ter-apply,
+    //  6 opsi tetap utuh. (Dulu H3 menolak ini; guard dihapus 418.)
     [Fact]
-    public async Task H3_EditQuestionWithMoreThan4Options_Rejected_OptionsUnchanged()
+    public async Task Edit6Options_NoResponses_Succeeds_OptionsUpdated()
     {
         int packageId, questionId; string actorId;
         await using (var seed = NewCtx())
@@ -442,7 +444,7 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
                     new() { OptionText = "B", IsCorrect = false },
                     new() { OptionText = "C", IsCorrect = false },
                     new() { OptionText = "D", IsCorrect = false },
-                    new() { OptionText = "E", IsCorrect = true  },   // benar di E (di luar A–D form)
+                    new() { OptionText = "E", IsCorrect = true  },   // benar di E
                     new() { OptionText = "F", IsCorrect = false },
                 }
             };
@@ -455,27 +457,30 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
         {
             var actor = await ctx.Users.FindAsync(actorId);
             var ctrl = MakeController(ctx, actor!, "EditQuestion");
-            // EditQuestion form A–D: questionType=MultipleChoice, correctA=true (akan dipakai bila lolos guard).
+            // Phase 418: kirim 6 opsi A–F via List<OptionInput>, pindah jawaban benar ke F (correctIndex=5).
             var res = await ctrl.EditQuestion(
                 questionId, packageId, "Soal 6 opsi (edit)", "MultipleChoice", 10, "K3", null, 2000,
-                "A", "B", "C", "D", true, false, false, false,
-                null, null, false, null, null, null, null,
-                null, null, null, null, false, false, false, false,
+                null, null, false,
+                new List<OptionInput>
+                {
+                    new OptionInput { Text = "A" }, new OptionInput { Text = "B" },
+                    new OptionInput { Text = "C" }, new OptionInput { Text = "D" },
+                    new OptionInput { Text = "E" }, new OptionInput { Text = "F" },
+                },
+                correctIndex: 5,
                 sectionId: null);
             var redirect = Assert.IsType<RedirectToActionResult>(res);
             Assert.Equal("ManagePackageQuestions", redirect.ActionName);
-            var err = ctrl.TempData["Error"] as string;
-            Assert.False(string.IsNullOrWhiteSpace(err));
-            Assert.Contains("opsi", err!, StringComparison.OrdinalIgnoreCase);  // pesan keterbatasan >4 opsi
+            Assert.True(string.IsNullOrWhiteSpace(ctrl.TempData["Error"] as string));  // tak ada error
         }
 
         await using (var verify = NewCtx())
         {
             var q = await verify.PackageQuestions.Include(x => x.Options)
                 .SingleAsync(x => x.Id == questionId);
-            Assert.Equal(6, q.Options.Count);                                   // opsi UTUH (tak terhapus)
-            Assert.Equal("E", q.Options.Single(o => o.IsCorrect).OptionText);   // IsCorrect asli (E) lestari
-            Assert.Equal("Soal 6 opsi", q.QuestionText);                        // teks soal pun tak berubah
+            Assert.Equal(6, q.Options.Count);                                   // 6 opsi utuh (preserve)
+            Assert.Equal("F", q.Options.Single(o => o.IsCorrect).OptionText);   // jawaban benar pindah ke F
+            Assert.Equal("Soal 6 opsi (edit)", q.QuestionText);                 // teks soal ter-update
         }
     }
 
@@ -511,9 +516,13 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
             var ctrl = MakeController(ctx, actor!, "EditQuestion");
             var res = await ctrl.EditQuestion(
                 questionId, packageId, "Soal 4 opsi (edit)", "MultipleChoice", 10, "K3", null, 2000,
-                "A", "B", "C", "D", false, true, false, false,   // pindah jawaban benar → B
-                null, null, false, null, null, null, null,
-                null, null, null, null, false, false, false, false,
+                null, null, false,
+                new List<OptionInput>
+                {
+                    new OptionInput { Text = "A" }, new OptionInput { Text = "B" },
+                    new OptionInput { Text = "C" }, new OptionInput { Text = "D" },
+                },
+                correctIndex: 1,   // pindah jawaban benar → B
                 sectionId: null);
             Assert.IsType<RedirectToActionResult>(res);
         }
@@ -825,20 +834,19 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
     }
 
     // =================================================================================================
-    //  H3 ESSAY-CONVERSION BYPASS CLOSED (round-3 / Issue-3). Guard >4 opsi di EditQuestion DIUBAH dari
-    //  `questionType != "Essay" && q.Options.Count > 4` → `q.Options.Count > 4` (tipe APA PUN). Konversi soal
-    //  6-opsi tersimpan ke Essay (yang akan RemoveRange SEMUA opsi termasuk E/F senyap) kini JUGA DITOLAK.
-    //  Pra-fix: cabang Essay lolos guard → opsi E/F (dan A–D) ter-RemoveRange diam-diam (data loss).
+    //  Phase 418: konversi soal 6-opsi (BELUM dijawab) → Essay kini SUKSES (guard H3 dihapus). Semua opsi
+    //  di-RemoveRange karena Essay tak punya opsi — aman karena tak ada PackageUserResponse yang mereferensikan
+    //  opsi tsb (guard edit-shrink D-418-02 hanya menolak bila opsi yang dihapus SUDAH dijawab). Rubrik wajib.
     // =================================================================================================
     [Fact]
-    public async Task H3_EditQuestionConvertToEssay_MoreThan4Options_Rejected_OptionsIntact()
+    public async Task EditConvertToEssay_6Options_NoResponses_Succeeds_OptionsRemoved()
     {
         int packageId, questionId; string actorId;
         await using (var seed = NewCtx())
         {
             (_, packageId, _, _, _) = await SeedSessionPackageAsync(seed, "H3essay");
             actorId = (await SeedActorAsync(seed)).Id;
-            // Mirror seed 6-opsi (A–F) dari H3_EditQuestionWithMoreThan4Options_Rejected_OptionsUnchanged.
+            // Seed 6-opsi (A–F), MultipleAnswer, BELUM ada response.
             var q = new PackageQuestion
             {
                 AssessmentPackageId = packageId, QuestionText = "Soal 6 opsi (ke Essay)", Order = 1, ScoreValue = 10,
@@ -849,7 +857,7 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
                     new() { OptionText = "B", IsCorrect = false },
                     new() { OptionText = "C", IsCorrect = false },
                     new() { OptionText = "D", IsCorrect = false },
-                    new() { OptionText = "E", IsCorrect = true  },   // benar di E (di luar A–D form)
+                    new() { OptionText = "E", IsCorrect = true  },
                     new() { OptionText = "F", IsCorrect = false },
                 }
             };
@@ -862,29 +870,26 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
         {
             var actor = await ctx.Users.FindAsync(actorId);
             var ctrl = MakeController(ctx, actor!, "EditQuestion");
-            // Sama signature dgn H3 existing, TAPI questionType="Essay" (konversi). Pra-fix: lolos guard → RemoveRange opsi.
+            // Phase 418: konversi ke Essay (rubrik wajib). options kosong (Essay tak punya opsi).
             var res = await ctrl.EditQuestion(
                 questionId, packageId, "Soal 6 opsi (jadi Essay)", "Essay", 10, "K3", "Rubrik X", 2000,
-                "A", "B", "C", "D", false, false, false, false,
-                null, null, false, null, null, null, null,
-                null, null, null, null, false, false, false, false,
+                null, null, false,
+                new List<OptionInput>(),
+                correctIndex: null,
                 sectionId: null);
             var redirect = Assert.IsType<RedirectToActionResult>(res);
             Assert.Equal("ManagePackageQuestions", redirect.ActionName);
-            var err = ctrl.TempData["Error"] as string;
-            Assert.False(string.IsNullOrWhiteSpace(err));
-            Assert.Contains("opsi", err!, StringComparison.OrdinalIgnoreCase);  // pesan keterbatasan >4 opsi (bukan rubrik/dll)
+            Assert.True(string.IsNullOrWhiteSpace(ctrl.TempData["Error"] as string));  // tak ada error (no responses)
         }
 
         await using (var verify = NewCtx())
         {
             var q = await verify.PackageQuestions.Include(x => x.Options)
                 .SingleAsync(x => x.Id == questionId);
-            Assert.Equal(6, q.Options.Count);                                   // 6 opsi UTUH (TIDAK ter-RemoveRange oleh cabang Essay)
-            Assert.Equal("MultipleAnswer", q.QuestionType);                     // tipe tak berubah jadi Essay
-            Assert.Equal("Soal 6 opsi (ke Essay)", q.QuestionText);            // teks soal tak berubah
-            var correct = q.Options.Where(o => o.IsCorrect).Select(o => o.OptionText).OrderBy(x => x).ToList();
-            Assert.Equal(new[] { "A", "E" }, correct);                          // IsCorrect asli (A & E) lestari
+            Assert.Empty(q.Options);                                            // opsi dihapus (Essay tak punya opsi)
+            Assert.Equal("Essay", q.QuestionType);                             // tipe berubah jadi Essay
+            Assert.Equal("Soal 6 opsi (jadi Essay)", q.QuestionText);          // teks soal ter-update
+            Assert.Equal("Rubrik X", q.Rubrik);                                // rubrik tersimpan
         }
     }
 

@@ -444,19 +444,29 @@ public class SectionCrudTests : IClassFixture<SectionFixture>
         {
             var actor = await ctx.Users.FindAsync(actorId);
             var ctrl = MakeController(ctx, actor!, "CreateQuestion");
-            // Param order: ...maxChars(7), optionA..D(4), correctA..D(4), questionImage+alt(2),
-            //   optionA..D Image(4), optionA..D ImageAlt(4) = 25 positional, lalu sectionId.
+            // Phase 418: kontrak baru — List<OptionInput> options + correctIndex (MC single-select).
+            // Param order: ...maxChars(7), questionImage+alt(2), options, correctIndex, sectionId.
             var resA = await ctrl.CreateQuestion(
                 packageId, "Soal A", "MultipleChoice", 10, null, null, 2000,
-                "opsi1", "opsi2", null, null, true, false, false, false,
-                null, null, null, null, null, null, null, null, null, null,
+                null, null,
+                new List<OptionInput>
+                {
+                    new OptionInput { Text = "opsi1" },
+                    new OptionInput { Text = "opsi2" }
+                },
+                correctIndex: 0,
                 sectionId: sectionId);
             Assert.IsType<RedirectToActionResult>(resA);
 
             var resB = await ctrl.CreateQuestion(
                 packageId, "Soal B", "MultipleChoice", 10, null, null, 2000,
-                "opsi1", "opsi2", null, null, false, true, false, false,
-                null, null, null, null, null, null, null, null, null, null,
+                null, null,
+                new List<OptionInput>
+                {
+                    new OptionInput { Text = "opsi1" },
+                    new OptionInput { Text = "opsi2" }
+                },
+                correctIndex: 1,
                 sectionId: null);
             Assert.IsType<RedirectToActionResult>(resB);
         }
