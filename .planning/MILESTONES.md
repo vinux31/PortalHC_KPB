@@ -1,5 +1,22 @@
 # Milestones
 
+## v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test (Shipped: 2026-06-24)
+
+**Phases completed:** 6 phases (420-425), 19 plans · **41/41 in-scope REQ** (FORM-01..11 · RTH-01..05 · SHFX-01..07 · CERT-01..07 · GRDF-01..05,07 · CLN-01..05; GRDF-06 covered by v32.5 merge) · audit PASSED, integration SOUND · **migration=TRUE hanya Phase 422** (`AddPackageNumberUniqueIndex`); 420/421/423/424/425=FALSE · branch ITHandoff, **NOT pushed** (deploy bundle dgn v32.1+v32.3+v32.4). Sumber: audit Pre/Post 2026-06-22 (~60 temuan, 4 HIGH).
+
+**Key accomplishments:**
+
+- **Phase 420 — Form Create/Edit persistensi + UX Pre-Post:** tutup pola "field dirender tapi tak tersimpan" (shuffle/retake/ValidUntil di Create+Edit), guard `Status==Completed` group-aware (tolak edit sesi/grup Completed), redirect Edit entry-manual ke form yang benar, redesign layout Pre-Post scope-explicit + rename `CreationMode`.
+- **Phase 421 — Retake lifecycle hardening:** cooldown via ExamWindow non-destruktif (RTK-LOGIC-02, tolak retake tanpa hapus sesi), reset HC hapus NomorSertifikat, counting attempt konsisten cap-vs-warning, guard hapus peserta Abandoned/ber-riwayat, warning MaxAttempts retroaktif.
+- **Phase 422 — SamePackage & Shuffle integrity (migration=TRUE):** PackageNumber unik+deterministik (`AddPackageNumberUniqueIndex` dedup ROW_NUMBER), sync Import Excel Pre→Post, lock SamePackage server-side, peserta baru warisi SamePackage, peringatan shuffle satu-sumber.
+- **Phase 423 — Certificate issuance consistency:** satu helper `ShouldIssueCertificate` tolak Pre-Test semua jalur grading-time, ValidUntil wajib saat issue non-Pre, nomor seq atomik anti-race, anti double-cert non-bypassable.
+- **Phase 424 — Grading de-dup + flow/gating:** gating Pre-wajib-Completed sebelum Post StartExam (FLOW-04, keputusan bisnis a), scorer per-soal pure fn + dedupe seragam, pairing satu sumber kebenaran UserId-filter, no link semu Standard, ElapsedSeconds hitung ExtraTime, essay kosong ditolak server-side.
+- **Phase 425 — Cosmetic/tech-debt cleanup:** label/XML-doc selaras (RESERVED AssessmentPhase, Status 7-nilai, [Display] ValidUntil), manual entry cross-validate non-blocking (`ManualEntryRules`), timer satu-sumber `ExamTimeRules.AllowedExamSeconds` (4 situs), `ControllerGuards.JsonFail`.
+
+**Known deferred at close:** (1) 4 item D-01/D-03/D-04 Phase 425 — FLOW-08 token server-auth + FLOW-10 write-on-GET dijadikan backlog 999.13/999.14; DROP AssessmentPhase + DTO refactor ditolak by-design. (2) 3 item UAT 0-pending (422/423 status passed; 424 terdokumentasi tak bisa live-drive → ditutup automated test 8/8) — acknowledged benign.
+
+---
+
 ## v32.4 Ujian Ulang (Attempt/Retake Assessment) (Shipped: 2026-06-22)
 
 **Phases completed:** 4 phases (405-408), 12 plans, 29 tasks · **14/14 REQ (RTK-01..14)** · audit PASSED · migration=TRUE (Fase 405 `AddRetakeColumnsAndArchive`); 406/407/408=FALSE · branch ITHandoff, NOT pushed.

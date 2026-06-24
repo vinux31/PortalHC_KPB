@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
-status: executing
-stopped_at: Completed 425-04-PLAN.md
-last_updated: "2026-06-24T09:59:05.031Z"
+status: v32.7 CLOSED 2026-06-24 — audit PASSED 41/41 in-scope, integration SOUND, tag lokal v32.7, NOT pushed
+stopped_at: Milestone v32.7 complete; next = /gsd-new-milestone
+last_updated: "2026-06-24T11:51:59.600Z"
 last_activity: 2026-06-24
 progress:
-  total_phases: 39
+  total_phases: 41
   completed_phases: 6
   total_plans: 19
   completed_plans: 19
@@ -21,38 +21,32 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 425 — Cosmetic / Naming / Tech-Debt Cleanup
+**Current focus:** Planning milestone baru (`/gsd-new-milestone`) — v32.7 CLOSED 2026-06-24
 
 ## Current Position
 
-Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
-Phase: 425 (Cosmetic / Naming / Tech-Debt Cleanup) — ✅ ALL 4 PLANS COMPLETE
-Plan: 4 of 4 ✅ COMPLETE (425-01 CLN-01+CLN-03 label/doc · 425-02 CLN-04 timer consolidation · 425-03 CLN-02 cross-validate entry manual · **425-04 CLN-05 ControllerGuards.JsonFail guard-helper**, semua migration=FALSE)
-Status: Phase 425 SHIPPED — semua 4 plan tuntas; Phase 425 (P6 CLN) = fase TERAKHIR v32.7
-Last activity: 2026-06-24 -- 425-04 SHIPPED (CLN-05 guard-helper ControllerGuards.JsonFail diterapkan selektif ke cluster SubmitEssayScore 6 guard, shape JSON byte-identik, D-04 minimal; build 0err; suite 768/0/2)
+Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — ✅ CLOSED 2026-06-24 (branch ITHandoff)
+Phases: 6/6 COMPLETE (420 FORM · 421 RTH · 422 SHFX · 423 CERT · 424 GRDF · 425 CLN), 19 plans
+Status: v32.7 CLOSED — audit PASSED 41/41 in-scope REQ, integration SOUND, tag lokal `v32.7`. Archive `milestones/v32.7-*`. NOT pushed (deploy bundle).
+Last activity: 2026-06-24
 
-**Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
+**v32.1 + v32.3 + v32.4 + v32.7 semua CLOSED di ITHandoff** (deploy bundle bersama). Tag lokal masing-masing. NOT pushed.
 
 ## Next Action
 
-**Phase 422 ✅ COMPLETE (all 5 gates PASS) — next `/gsd-discuss-phase 423`.** Progres: 420 ✅ + 421 ✅ + 422 ✅ (3/6). Sumber: audit `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (~60 temuan, 4 High). 6 fase 420-425 (1:1 dgn kategori REQ), urutan eksekusi **sekuensial by file-overlap** 420 → 421 → 422 → 423 → 424 → 425:
+**`/gsd-new-milestone`** — v32.7 (fase terakhir) sudah CLOSED, semua gate tuntas. Tidak ada fase aktif tersisa di v32.7.
 
-1. **Phase 420 (P1) FORM** — Form Create/Edit persistensi field (E-01 🔴) + UX Pre-Post. FORM-01..11. migration=FALSE.
-2. **Phase 421 (P2) RTH** — Retake lifecycle hardening (RTK-LOGIC-02 🔴). RTH-01..05. migration=FALSE.
-3. **Phase 422 (P3) SHFX** — SamePackage & Shuffle integrity (SHUF-ISS-03 🔴). SHFX-01..07. **migration=KEMUNGKINAN TRUE** (toggle SamePackage). ⚠️ overlap v32.6 main — rekonsiliasi saat merge.
-4. **Phase 423 (P4) CERT** — Certificate issuance consistency. CERT-01..07. migration=FALSE.
-5. **Phase 424 (P5) GRDF** — Grading de-dup + Flow/Linking + Gating Pre→Post (FLOW-04 🔴). GRDF-01..07. migration=FALSE.
-6. **Phase 425 (P6) CLN** — Cosmetic/Naming/Tech-Debt. CLN-01..05. **migration=KEMUNGKINAN TRUE** (CLN-03 drop `AssessmentPhase`).
+Opsional sebelum milestone baru:
+- Backfill `420/421 VERIFICATION.md` (verifikasi fungsional sudah ada via VALIDATION nyquist + SECURITY + UAT; hanya artefak yang absen) — `/gsd-verify-work 420|421`.
+- Promote backlog 999.x via `/gsd-review-backlog` saat milestone baru punya scope.
 
-**Coverage:** 42/42 v1 REQ mapped, 0 orphan, 0 duplikat. Keputusan bisnis terkonfirmasi: (a) Pre wajib selesai dulu (GRDF-01); (b) SamePackage fleksibel (SHFX-02); (c) soal Post=Pre sudah ada (SamePackage). Inject (VAL-01) & Section/ScopedShuffle (v32.6) OUT-of-scope.
-
-**NEXT:** `/gsd-discuss-phase 423` (Phase 422 ✅ done — 5 gerbang lulus, HEAD `a8d10ce8`, migration=TRUE `AddPackageNumberUniqueIndex` applied lokal, NOT pushed). 423 CERT (Certificate Issuance Consistency, CERT-01..07, migration=FALSE) belum punya CONTEXT.md → discuss dulu. Fase mulai 420 (main pakai 409-419: v32.5=409-414, v32.6=415-419) — hindari integer collision saat bundle deploy.
-
-**Deploy bundle (user-owned):** v32.1 + v32.3 + v32.4 (+v32.7 saat siap) → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` + Fase 405 retake cols + v32.7 migration P3/P6 TBD; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`).
+**Deploy bundle (user-owned):** v32.1 + v32.3 + v32.4 + v32.7 → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` + Fase 405 retake cols + **Fase 422 `AddPackageNumberUniqueIndex`**; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`). v32.7 migration=TRUE HANYA Phase 422; 420/421/423/424/425=FALSE.
 
 **v32.0** CLOSED manual 2026-06-19 di branch `main` (lihat MEMORY `project_v32_0_close_deferred`).
 
-Backlog tracked: 999.6/9/10/11/12.
+**Acknowledged at v32.7 close (benign, 0-pending):** 3 item UAT — 422/423 status `passed`; 424-UAT terdokumentasi tak bisa live-drive (impersonation read-only blok POST) → ditutup automated test 8/8 (`EnsureCanSubmitStandardTests` 4/4 + `EssayEmptyPendingParityTests` 4/4). Bukan gap.
+
+Backlog tracked: 999.9 · 999.11 · 999.12 · 999.13 (FLOW-08 token server-auth) · 999.14 (FLOW-10 write-on-GET StartExam). (999.6/999.10 dihapus — shipped v28.0.)
 
 ## Tag Git
 

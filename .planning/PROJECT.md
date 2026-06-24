@@ -12,9 +12,11 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test — 🚧 STARTED 2026-06-22 (branch ITHandoff)
+## Last Shipped Milestone: v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test — ✅ CLOSED 2026-06-24 (audit PASSED, 41/41 in-scope REQ, integration SOUND)
 
-**Goal:** Tutup ~60 temuan audit Pre/Post-Test (2026-06-22) — perbaiki integritas perilaku ujian, persistensi field form, lifecycle retake, integritas SamePackage/shuffle, konsistensi penerbitan sertifikat, dedup grading + gating Pre→Post, cleanup tech-debt. Sumber: `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md`. Keputusan bisnis: (a) Pre WAJIB selesai sebelum Post; (b) SamePackage fleksibel (bisa diubah pasca-create); (c) fasilitas soal Post=Pre sudah ada (SamePackage). migration kemungkinan P3 (SamePackage toggle) & P6 (drop AssessmentPhase) — TBD plan-phase. Inject (VAL-01) OUT (di branch main).
+**Shipped (6 fase 420-425, 19 plans):** 420 form persistensi+UX Pre-Post · 421 retake lifecycle hardening · 422 SamePackage & shuffle integrity (migration=TRUE `AddPackageNumberUniqueIndex`) · 423 certificate issuance consistency · 424 grading de-dup + gating Pre→Post · 425 cosmetic/tech-debt cleanup. **migration=TRUE hanya Phase 422**; 420/421/423/424/425=FALSE. GRDF-06 covered v32.5. Deferred: FLOW-08/FLOW-10 → backlog 999.13/999.14. Archive `milestones/v32.7-*` + tag lokal `v32.7`. **NOT pushed** (deploy bundle ITHandoff v32.1+v32.3+v32.4+v32.7). Integration checker SOUND (E2E Pre/Post lifecycle utuh).
+
+**Goal (selesai):** Tutup ~60 temuan audit Pre/Post-Test (2026-06-22) — perbaiki integritas perilaku ujian, persistensi field form, lifecycle retake, integritas SamePackage/shuffle, konsistensi penerbitan sertifikat, dedup grading + gating Pre→Post, cleanup tech-debt. Sumber: `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md`. Keputusan bisnis: (a) Pre WAJIB selesai sebelum Post; (b) SamePackage fleksibel (bisa diubah pasca-create); (c) fasilitas soal Post=Pre sudah ada (SamePackage). migration kemungkinan P3 (SamePackage toggle) & P6 (drop AssessmentPhase) — TBD plan-phase. Inject (VAL-01) OUT (di branch main).
 
 **Struktur 6 fase (420-425), ~37 REQ, semua ~60 temuan in-scope:**
 - **420 (P1) FORM** — Form Create/Edit persistensi field (E-01 shuffle reset 🔴, retake bind-but-drop, ValidUntil, lock Completed, redirect manual) + UX Pre-Post (SamePackage letak, scope-label, dedup input, rename AssessmentTypeInput).
@@ -85,7 +87,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **v27.0 shipped (local) + audit passed + closed (2026-06-14)** — Shuffle Toggle Acak Soal & Acak Pilihan (phases 372-375): 2 toggle independen per-assessment via ManagePackages (default ON) — data foundation 2 kolom + migration (372) + pure `Helpers/ShuffleEngine.cs` (ON canonical/OFF q.Order/OFF≥2 round-robin) wired StartExam + fix reshuffle "{}" bug (373) + UI toggle/lock/warning/reminder/hide + endpoint `UpdateShuffleSettings` (374) + xUnit 19 shuffle + Playwright 5/5 + exam-diff manual 3/3 (375). 16/16 REQ SHUF-01..16 + integration 5/5 + suite 352/352. 1 migration (ShuffleToggles). Archive: `milestones/v27.0-*`.
 
-**Current focus:** **v32.4 Ujian Ulang ✅ CLOSED 2026-06-22** (audit PASSED 14/14, tag lokal, NOT pushed). v32.1 + v32.3 + v32.4 semua CLOSED di branch ITHandoff (deploy bundle: 1 push origin/ITHandoff + notify IT **migration=TRUE Fase 399 UserUnits + Fase 405 AddRetakeColumnsAndArchive**). Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify. v32.0 close masih deferred (non-destruktif). **Next: planning milestone baru** (spec Section+ScopedShuffle+Pagination+OpsiDinamis sudah committed → `/gsd-new-milestone`).
+**Current focus:** **v32.7 Perbaikan Pre/Post ✅ CLOSED 2026-06-24** (audit PASSED 41/41 in-scope, integration SOUND, tag lokal `v32.7`, NOT pushed). v32.1 + v32.3 + v32.4 + v32.7 semua CLOSED di branch ITHandoff (deploy bundle: 1 push origin/ITHandoff + notify IT **migration=TRUE Fase 399 UserUnits + Fase 405 AddRetakeColumnsAndArchive + Fase 422 AddPackageNumberUniqueIndex**). Carry-migration IT lama (360 PendingProtonBypass + 372 ShuffleToggles) masih pending notify. v32.0 close masih deferred (non-destruktif). Backlog 999.x: 999.9/999.11/999.12/999.13(FLOW-08)/999.14(FLOW-10). **Next: planning milestone baru → `/gsd-new-milestone`** (atau backfill 420/421 VERIFICATION.md opsional).
 
 ## Current Milestone: v32.4 Ujian Ulang (Attempt/Retake Assessment) — ✅ CLOSED 2026-06-22 (audit PASSED 14/14 REQ)
 
@@ -981,4 +983,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-*Last updated: 2026-06-17 — v32.1 Perbaikan Teks & Desain STARTED (branch ITHandoff; main pegang v32.0). Pure UI/teks: LBL-03 + DSN-01..05, 0 migration, 0 backend. v31.0 CLOSED+MERGED→main 2026-06-16.*
+*Last updated: 2026-06-24 — after v32.7 milestone (Perbaikan Menyeluruh Sistem Pre-Test/Post-Test) CLOSED. 6 fase 420-425, 41/41 in-scope REQ, audit PASSED, integration SOUND, migration=TRUE Phase 422 only. branch ITHandoff, NOT pushed (bundle v32.1+v32.3+v32.4+v32.7).*
