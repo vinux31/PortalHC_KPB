@@ -7682,16 +7682,41 @@ namespace HcPortal.Controllers
             ViewBag.Questions = pkg.Questions.OrderBy(q => q.Order).ToList();
             ViewBag.Sections = sections;
 
-            // 416 D-416-03: peringatan cakupan Elemen Teknis (ET) per-Section, NON-BLOCKING (sinyal, bukan error).
-            // K = jumlah soal Section. Bila distinct ET > K, sebagian ET tak terjamin muncul saat ujian
-            // (Phase 1 ShuffleEngine hanya jamin 1-soal-per-ET sampai kuota K habis). TIDAK memblokir mulai/kelola.
-            ViewBag.SectionEtWarnings = sections.Select(s =>
+            // Phase 419 D-03 / DEF-416-01 / IN-01: peringatan cakupan Elemen Teknis (ET) per-Section, NON-BLOCKING.
+            // Re-spec lintas paket-saudara (sibling). Predikat LAMA (DistinctEt > K dalam 1 paket) tak pernah fire —
+            // tiap PackageQuestion = 1 ET → distinct ET <= jumlah soal. Sekarang: DistinctEt = distinct ET pool soal
+            // SectionNumber=N LINTAS sibling; K = min(count soal SectionNumber=N antar paket yang PUNYA N) = kuota yang
+            // dipresentasikan ke peserta. Fire bila DistinctEt > K (sebagian ET tak terjamin muncul). Group by
+            // SectionNumber (IN-01, BUKAN SectionId — sibling beda Id sama nomor). Soal "Lainnya" (Section null) di-skip.
+            // TIDAK memblokir (ViewBag sinyal saja — D-416-03 load-bearing tak berubah).
+            // Projeksi langsung (anonymous, NO-track) supaya SectionNumber/Name di-resolve via DB join — TIDAK bergantung
+            // pada nav fixup entitas pkg.Questions yang sudah ter-track dari query di atas (yang TANPA .Include Section).
+            var siblingQ = await _context.PackageQuestions
+                .Where(q => q.AssessmentPackage.AssessmentSessionId == pkg.AssessmentSessionId && q.SectionId != null)
+                .Select(q => new { q.AssessmentPackageId, q.ElemenTeknis, SectionNumber = q.Section!.SectionNumber, SectionName = q.Section!.Name })
+                .ToListAsync();
+            var siblingSectionNumbers = siblingQ
+                .Select(x => x.SectionNumber)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToList();
+            ViewBag.SectionEtWarnings = siblingSectionNumbers.Select(n =>
             {
-                var qs = pkg.Questions.Where(q => q.SectionId == s.Id).ToList();
-                int k = qs.Count;
-                int distinctEt = qs.Where(q => !string.IsNullOrWhiteSpace(q.ElemenTeknis))
-                                   .Select(q => q.ElemenTeknis!).Distinct().Count();
-                return new SectionEtWarning(s.SectionNumber, s.Name, k, distinctEt);
+                // K = min(count soal SectionNumber=n) lintas paket yang PUNYA Section n (kuota dipresentasikan).
+                int k = siblingQ
+                    .GroupBy(x => x.AssessmentPackageId)
+                    .Select(g => g.Count(x => x.SectionNumber == n))
+                    .Where(c => c > 0)
+                    .DefaultIfEmpty(0)
+                    .Min();
+                // DistinctEt = distinct ET (non-kosong) pool soal SectionNumber=n lintas SEMUA sibling.
+                int distinctEt = siblingQ
+                    .Where(x => x.SectionNumber == n && !string.IsNullOrWhiteSpace(x.ElemenTeknis))
+                    .Select(x => x.ElemenTeknis!)
+                    .Distinct()
+                    .Count();
+                var name = siblingQ.First(x => x.SectionNumber == n).SectionName;
+                return new SectionEtWarning(n, name, k, distinctEt);
             }).Where(w => w.DistinctEt > w.K).ToList();
 
             return View();
