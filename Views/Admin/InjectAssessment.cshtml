@@ -1079,6 +1079,108 @@
         });
     }
 
+    // ---- Phase 418 OPT-01: baris opsi inject dinamis 2–6 (Tambah/Hapus + re-letter A–F, TANPA gambar) ----
+    var INJ_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+    var INJ_MAX_OPTIONS = 6;
+    var INJ_MIN_OPTIONS = 2;
+
+    function injOptionRowEls() {
+        return Array.prototype.slice.call(document.querySelectorAll('#optionRows [data-option-row]'));
+    }
+
+    // Re-letter semua baris: huruf display, id letter-based, radio value=index (single-name grup), aria,
+    // toggle tombol hapus (hidden saat <=2), toggle tombol tambah disabled (>=6).
+    function injReletterRows() {
+        var rows = injOptionRowEls();
+        rows.forEach(function (row, i) {
+            var L = INJ_LETTERS[i];
+            row.dataset.index = i;
+            var letterSpan = row.querySelector('[data-letter]');
+            if (letterSpan) letterSpan.textContent = L;
+            var txt = row.querySelector('input[type=text].form-control');
+            if (txt) {
+                txt.name = 'option_' + L;
+                txt.id = 'option_' + L;
+                txt.placeholder = 'Opsi ' + L;
+                txt.setAttribute('aria-label', 'Teks opsi ' + L);
+            }
+            var correct = row.querySelector('.correct-input');
+            if (correct) {
+                correct.id = 'correct_' + L;
+                correct.value = String(i);
+                correct.setAttribute('aria-label', 'Opsi ' + L + ' benar');
+            }
+            var rmBtn = row.querySelector('.remove-option-btn');
+            if (rmBtn) {
+                rmBtn.setAttribute('aria-label', 'Hapus opsi ' + L);
+                rmBtn.setAttribute('title', 'Hapus opsi ' + L);
+                rmBtn.classList.toggle('d-none', rows.length <= INJ_MIN_OPTIONS);
+            }
+        });
+        var addBtn = document.getElementById('injAddOptionBtn');
+        if (addBtn) {
+            var atMax = rows.length >= INJ_MAX_OPTIONS;
+            addBtn.disabled = atMax;
+            if (atMax) addBtn.setAttribute('title', 'Maksimal 6 opsi'); else addBtn.removeAttribute('title');
+        }
+    }
+
+    function injAddOptionRow() {
+        var rows = injOptionRowEls();
+        if (rows.length >= INJ_MAX_OPTIONS) return null;
+        var clone = rows[0].cloneNode(true);
+        clone.querySelectorAll('input').forEach(function (inp) {
+            if (inp.type === 'text') inp.value = '';
+            if (inp.type === 'radio' || inp.type === 'checkbox') inp.checked = false;
+        });
+        var rmRowBtn = clone.querySelector('.remove-option-btn'); if (rmRowBtn) rmRowBtn.classList.remove('d-none');
+        document.getElementById('optionRows').appendChild(clone);
+        applyQTypeSwitch(document.getElementById('QuestionType').value);
+        injReletterRows();
+        var newTxt = clone.querySelector('input[type=text].form-control');
+        if (newTxt) newTxt.focus();
+        return clone;
+    }
+
+    function injRemoveOptionRow(btn) {
+        var rows = injOptionRowEls();
+        if (rows.length <= INJ_MIN_OPTIONS) return;
+        var row = btn.closest('[data-option-row]');
+        if (!row) return;
+        var idx = rows.indexOf(row);
+        row.parentNode.removeChild(row);
+        injReletterRows();
+        var after = injOptionRowEls();
+        var target = after[Math.max(0, idx - 1)];
+        if (target) { var t = target.querySelector('input[type=text].form-control'); if (t) t.focus(); }
+    }
+
+    // Pastikan jumlah baris == n (2..6) — dipakai injResetAuthoringForm (reset ke 4).
+    function injEnsureRowCount(n) {
+        n = Math.max(INJ_MIN_OPTIONS, Math.min(INJ_MAX_OPTIONS, n));
+        var rows = injOptionRowEls();
+        while (rows.length < n) { injAddOptionRow(); rows = injOptionRowEls(); }
+        while (rows.length > n) {
+            var last = rows[rows.length - 1];
+            last.parentNode.removeChild(last);
+            rows = injOptionRowEls();
+        }
+        injReletterRows();
+    }
+
+    (function injWireOptionRows() {
+        var addBtn = document.getElementById('injAddOptionBtn');
+        if (addBtn) addBtn.addEventListener('click', injAddOptionRow);
+        var rowsContainer = document.getElementById('optionRows');
+        if (rowsContainer) {
+            rowsContainer.addEventListener('click', function (e) {
+                var btn = e.target.closest('.remove-option-btn');
+                if (btn) injRemoveOptionRow(btn);
+            });
+        }
+        injReletterRows();
+    })();
+
     function injTypeLabel(t) {
         if (t === 'MultipleChoice') return 'Single Answer';
         if (t === 'MultipleAnswer') return 'Multiple Answer';
@@ -1141,9 +1243,11 @@
         var sv = document.getElementById('scoreValue'); if (sv) { sv.value = '10'; sv.classList.remove('is-invalid'); }
         var el = document.getElementById('elemenTeknis'); if (el) el.value = '';
         var rb = document.getElementById('rubrik'); if (rb) { rb.value = ''; rb.classList.remove('is-invalid'); }
-        ['A', 'B', 'C', 'D'].forEach(function (L) {
-            var o = document.getElementById('option_' + L); if (o) { o.value = ''; o.classList.remove('is-invalid'); }
-            var c = document.getElementById('correct_' + L); if (c) c.checked = false;
+        // Phase 418 OPT-01: reset ke 4 baris default + kosongkan teks/checked tiap baris.
+        injEnsureRowCount(4);
+        injOptionRowEls().forEach(function (row) {
+            var t = row.querySelector('input[type=text].form-control'); if (t) { t.value = ''; t.classList.remove('is-invalid'); }
+            var c = row.querySelector('.correct-input'); if (c) c.checked = false;
         });
         var qtype = document.getElementById('QuestionType'); if (qtype) qtype.value = 'MultipleChoice';
         applyQTypeSwitch('MultipleChoice');
@@ -1170,9 +1274,12 @@
             var options = [];
             if (qType === 'MultipleChoice' || qType === 'MultipleAnswer') {
                 var correctCount = 0;
-                ['A', 'B', 'C', 'D'].forEach(function (L) {
-                    var txt = (document.getElementById('option_' + L).value || '').trim();
-                    var isC = document.getElementById('correct_' + L).checked;
+                // Phase 418 OPT-01: enumerasi baris DOM aktual (2–6), bukan hardcoded A–D. Baca checked PER baris.
+                injOptionRowEls().forEach(function (row) {
+                    var txtEl = row.querySelector('input[type=text].form-control');
+                    var cEl = row.querySelector('.correct-input');
+                    var txt = (txtEl && txtEl.value || '').trim();
+                    var isC = cEl ? cEl.checked : false;
                     if (txt) { options.push({ text: txt, isCorrect: isC }); if (isC) correctCount++; }
                 });
                 if (options.length < 2) problems.push('Minimal 2 opsi ber-teks.');

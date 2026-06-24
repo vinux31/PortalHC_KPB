@@ -124,10 +124,18 @@ export const questionFormSelectors = {
   cancelEditBtn: '#cancelEditBtn',
   optionA: '#option_A', optionB: '#option_B', optionC: '#option_C', optionD: '#option_D',
   correctA: '#correct_A', correctB: '#correct_B', correctC: '#correct_C', correctD: '#correct_D',
+  // Phase 418 OPT-01 — opsi dinamis 2–6: baris E/F + tombol Tambah/Hapus
+  optionE: '#option_E', optionF: '#option_F',
+  correctE: '#correct_E', correctF: '#correct_F',
+  addOptionBtn: '#addOptionBtn',
+  removeOptionBtn: '.remove-option-btn',
   // Phase 355 — image upload fields (Views/Admin/ManagePackageQuestions.cshtml:145-211, hidden file inputs)
   questionImgField: '#questionImgField',
   questionImageAlt: '#questionImageAlt',
   removeQuestionImage: '#removeQuestionImage',
   optAImgField: '#optAImgField', optBImgField: '#optBImgField', optCImgField: '#optCImgField', optDImgField: '#optDImgField',
   optAImageAlt: '#optAImageAlt', optBImageAlt: '#optBImageAlt', optCImageAlt: '#optCImageAlt', optDImageAlt: '#optDImageAlt',
+  // Phase 418 OPT-01 — image fields baris E/F (authoring saja; inject tanpa gambar)
+  optEImgField: '#optEImgField', optFImgField: '#optFImgField',
+  optEImageAlt: '#optEImageAlt', optFImageAlt: '#optFImageAlt',
 } as const;

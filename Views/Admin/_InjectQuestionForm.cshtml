@@ -26,26 +26,39 @@
                       rows="3" placeholder="Tuliskan pertanyaan..."></textarea>
         </div>
 
-        <!-- Opsi A-D (MC/MA) -->
+        <!-- Opsi dinamis 2–6 (MC/MA) — Phase 418 OPT-01 (inject: TANPA blok gambar, scope 394) -->
         <div id="optionsSection" class="mb-3">
             <label class="form-label fw-medium small">Opsi Jawaban</label>
             <div id="maLabel" class="alert alert-info py-1 px-2 small mb-2" style="display:none">
                 <i class="bi bi-info-circle me-1"></i>Centang semua opsi yang benar (minimal 2).
             </div>
-            @foreach (var (letter, name) in new[] { ("A", "optionA"), ("B", "optionB"), ("C", "optionC"), ("D", "optionD") })
-            {
-                var correctName = "correct" + char.ToUpper(name[^1]);
-                <div class="input-group input-group-sm mb-2">
-                    <div class="input-group-text" style="width:36px">
-                        <input class="form-check-input mt-0 correct-input" type="radio"
-                               name="@correctName" id="correct_@letter" value="true"
-                               aria-label="Opsi @letter benar" />
+            <!-- Container baris opsi — JS men-render & me-re-letter; reader baca per baris (client-state). -->
+            <div id="optionRows">
+                @* Mulai 4 baris (A–D). Atribut letter & index dinormalkan oleh injReletterRows() saat load. *@
+                @for (int i = 0; i < 4; i++)
+                {
+                    var letter = ((char)('A' + i)).ToString();
+                    <div class="option-row" data-option-row data-index="@i">
+                        <div class="input-group input-group-sm mb-2">
+                            <div class="input-group-text" style="width:36px">
+                                <input class="form-check-input mt-0 correct-input" type="radio"
+                                       name="injCorrect" id="correct_@letter" value="@i"
+                                       aria-label="Opsi @letter benar" />
+                            </div>
+                            <span class="input-group-text fw-bold" data-letter>@letter</span>
+                            <input type="text" class="form-control" name="option_@letter"
+                                   id="option_@letter" placeholder="Opsi @letter" aria-label="Teks opsi @letter" />
+                            <button type="button" class="btn btn-outline-danger remove-option-btn @(i < 2 ? "d-none" : "")"
+                                    aria-label="Hapus opsi @letter" title="Hapus opsi @letter">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                     </div>
-                    <span class="input-group-text fw-bold">@letter</span>
-                    <input type="text" class="form-control" name="@name"
-                           id="option_@letter" placeholder="Opsi @letter" />
-                </div>
-            }
+                }
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm mt-1" id="injAddOptionBtn">
+                <i class="bi bi-plus-circle me-1"></i>Tambah Opsi
+            </button>
             <div class="form-text">Klik radio/checkbox di kiri untuk tandai jawaban benar.</div>
         </div>
 
