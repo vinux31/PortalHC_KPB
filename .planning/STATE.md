@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
 status: executing
-stopped_at: Completed 422-01-PLAN.md
-last_updated: "2026-06-23T10:51:31.394Z"
-last_activity: 2026-06-23
+stopped_at: Phase 422 COMPLETE (all 5 gates PASS) — next discuss 423
+last_updated: "2026-06-24T00:04:37.025Z"
+last_activity: 2026-06-24
 progress:
   total_phases: 39
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 422 — SamePackage & Shuffle Integrity
+**Current focus:** Phase 423 — Certificate Issuance Consistency
 
 ## Current Position
 
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
-Phase: 422 (SamePackage & Shuffle Integrity) — EXECUTING
-Plan: 2 of 3
-Status: 422-01 (Wave 1 KEYSTONE) ✅ COMPLETE — migration=TRUE AddPackageNumberUniqueIndex applied lokal (commit 31ef3e1d); next 422-02 Wave 2
-Last activity: 2026-06-23 -- Phase 422 plan 01 (SHFX-05/07 backend + migration) complete
+Phase: 423 (Certificate Issuance Consistency) — NOT STARTED (next: discuss)
+Plan: 0 of TBD
+Status: **Phase 422 ✅ COMPLETE** — all 5 gates PASS (verify 5/5 + review-fix WR-01/02·IN-01/03 + secure 13/13 + validate NYQUIST 7/7 + UAT 6/6); migration=TRUE `AddPackageNumberUniqueIndex` applied lokal (commit `31ef3e1d`). HEAD `a8d10ce8`. 420+421+422 ✅ complete (3/6). NOT pushed.
+Last activity: 2026-06-24 -- Phase 422 finalized (checkbox flip 421+422, advance to 423)
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
 ## Next Action
 
-**Phase 420 ✅ COMPLETE (UAT/secure/validate all green) — next `/gsd-discuss-phase 421`.** Sumber: audit `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (~60 temuan, 4 High). 6 fase 420-425 (1:1 dgn kategori REQ), urutan eksekusi **sekuensial by file-overlap** 420 → 421 → 422 → 423 → 424 → 425:
+**Phase 422 ✅ COMPLETE (all 5 gates PASS) — next `/gsd-discuss-phase 423`.** Progres: 420 ✅ + 421 ✅ + 422 ✅ (3/6). Sumber: audit `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (~60 temuan, 4 High). 6 fase 420-425 (1:1 dgn kategori REQ), urutan eksekusi **sekuensial by file-overlap** 420 → 421 → 422 → 423 → 424 → 425:
 
 1. **Phase 420 (P1) FORM** — Form Create/Edit persistensi field (E-01 🔴) + UX Pre-Post. FORM-01..11. migration=FALSE.
 2. **Phase 421 (P2) RTH** — Retake lifecycle hardening (RTK-LOGIC-02 🔴). RTH-01..05. migration=FALSE.
@@ -46,7 +46,7 @@ Last activity: 2026-06-23 -- Phase 422 plan 01 (SHFX-05/07 backend + migration) 
 
 **Coverage:** 42/42 v1 REQ mapped, 0 orphan, 0 duplikat. Keputusan bisnis terkonfirmasi: (a) Pre wajib selesai dulu (GRDF-01); (b) SamePackage fleksibel (SHFX-02); (c) soal Post=Pre sudah ada (SamePackage). Inject (VAL-01) & Section/ScopedShuffle (v32.6) OUT-of-scope.
 
-**NEXT:** `/gsd-discuss-phase 421` (Phase 420 ✅ done — 4 gerbang lulus; 5 commit lokal `1bb18090`→`056b1201`, NOT pushed). Fase mulai 420 (main pakai 409-419: v32.5=409-414, v32.6=415-419) — hindari integer collision saat bundle deploy.
+**NEXT:** `/gsd-discuss-phase 423` (Phase 422 ✅ done — 5 gerbang lulus, HEAD `a8d10ce8`, migration=TRUE `AddPackageNumberUniqueIndex` applied lokal, NOT pushed). 423 CERT (Certificate Issuance Consistency, CERT-01..07, migration=FALSE) belum punya CONTEXT.md → discuss dulu. Fase mulai 420 (main pakai 409-419: v32.5=409-414, v32.6=415-419) — hindari integer collision saat bundle deploy.
 
 **Deploy bundle (user-owned):** v32.1 + v32.3 + v32.4 (+v32.7 saat siap) → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` + Fase 405 retake cols + v32.7 migration P3/P6 TBD; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`).
 
