@@ -277,7 +277,16 @@
                                 <tr data-session-id="@session.Id">
                                     <td class="fw-semibold">@session.UserFullName</td>
                                     <td class="text-center progress-cell">@(session.QuestionCount > 0 ? $"\u2014/{session.QuestionCount}" : "\u2014")</td>
-                                    <td class="status-cell"><span class="badge @statusClass">@statusLabel</span></td>
+                                    <td class="status-cell">
+                                        <span class="badge @statusClass">@statusLabel</span>
+                                        @* CERT-07 (D-08/D-09): badge umur PendingGrading — display-only, NO auto-finalize. *@
+                                        @if (session.UserStatus == "Menunggu Penilaian" && session.CompletedAt.HasValue)
+                                        {
+                                            var pCls = HcPortal.Helpers.CertIssuanceRules.PendingAgeBadgeClass(session.CompletedAt, DateTime.UtcNow);
+                                            var pDays = (int)(DateTime.UtcNow - session.CompletedAt.Value).TotalDays;
+                                            <span class="badge @pCls ms-1" title="Menunggu penilaian sejak @session.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") WIB">Menunggu @pDays hari</span>
+                                        }
+                                    </td>
                                     <td class="score-cell">
                                         @if (session.Score.HasValue)
                                         {
@@ -443,6 +452,11 @@
                                         else
                                         {
                                             <span class="badge bg-success">Selesai</span>
+                                        }
+                                        @* CERT-07 (D-08/D-09): badge umur PendingGrading berdampingan — display-only, NO auto-finalize. *@
+                                        @if (s.Status == AssessmentConstants.AssessmentStatus.PendingGrading && s.CompletedAt.HasValue)
+                                        {
+                                            <span class="badge @HcPortal.Helpers.CertIssuanceRules.PendingAgeBadgeClass(s.CompletedAt, DateTime.UtcNow) ms-1" title="Menunggu penilaian sejak @s.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") WIB">Menunggu @((int)(DateTime.UtcNow - s.CompletedAt.Value).TotalDays) hari</span>
                                         }
                                     </td>
                                     <td class="text-end">

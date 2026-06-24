@@ -1,4 +1,5 @@
 @model HcPortal.Models.EssayGradingPageViewModel
+@using HcPortal.Helpers
 @{
     ViewData["Title"] = "Penilaian Essay";
 }
@@ -38,7 +39,19 @@
     </div>
 
     <!-- Identitas worker -->
-    <h2 class="fw-bold mb-1">@Model.UserFullName</h2>
+    <h2 class="fw-bold mb-1">
+        @Model.UserFullName
+        @* CERT-07 (D-08/D-09): badge umur sesi PendingGrading — display-only, NO auto-finalize. *@
+        @if (Model.CompletedAt.HasValue && !Model.IsFinalized)
+        {
+            var pendingDays = (int)(DateTime.UtcNow - Model.CompletedAt.Value).TotalDays;
+            var pendingCls = CertIssuanceRules.PendingAgeBadgeClass(Model.CompletedAt, DateTime.UtcNow);
+            <span class="badge @pendingCls ms-2 align-middle"
+                  title="Menunggu penilaian sejak @Model.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") WIB">
+                <i class="bi bi-hourglass-split me-1"></i>Menunggu @pendingDays hari
+            </span>
+        }
+    </h2>
     <p class="text-muted mb-4"><i class="bi bi-person-badge me-1"></i>NIP: @Model.UserNIP</p>
 
     @if (!Model.EssayItems.Any())
