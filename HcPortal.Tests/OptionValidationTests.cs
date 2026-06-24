@@ -110,4 +110,66 @@ public class OptionValidationTests
         Assert.True(ok);
         Assert.Null(error);
     }
+
+    // ============ Max-6 (OPT-03, Phase 418 — RED Wave 0) ============
+    //
+    // RED note: Plan 418-01 menambah 4 Fact ini SEBELUM produksi ada. `MaxSix_Rejected` SENGAJA merah
+    // karena QuestionOptionValidator belum punya cek `filled > 6` — itu ditambah di Plan 418-02 (GREEN):
+    //   if (filled > 6) return (false, "Maksimal 6 opsi per soal.");
+    // (UI-SPEC C5 Copywriting Contract — pesan persis "Maksimal 6 opsi per soal.")
+    // `FiveOptions_Accepted`/`SixOptions_Accepted` mungkin SUDAH hijau (validator agnostik panjang via
+    // texts.Count + loop i<texts.Length) — itu OK; mereka mengunci batas atas valid.
+
+    // OPT-03: MC dengan 7 opsi terisi → ditolak ">6". (RED sampai Plan 02 menambah cek filled>6.)
+    [Fact]
+    public void MaxSix_Rejected()
+    {
+        var (ok, error) = QuestionOptionValidator.ValidateQuestionOptions(
+            "MultipleChoice",
+            new string?[] { "A", "B", "C", "D", "E", "F", "G" }, // 7 terisi → di atas batas
+            new bool[] { true, false, false, false, false, false, false });
+
+        Assert.False(ok);
+        Assert.Contains("Maksimal 6 opsi", error);
+    }
+
+    // OPT-03: MA dengan 5 opsi terisi, 2 ditandai benar (keduanya ber-teks) → diterima.
+    [Fact]
+    public void FiveOptions_Accepted()
+    {
+        var (ok, error) = QuestionOptionValidator.ValidateQuestionOptions(
+            "MultipleAnswer",
+            new string?[] { "Avtur", "Solar", "Bensin", "Pertalite", "Dexlite" },
+            new bool[] { true, true, false, false, false });
+
+        Assert.True(ok);
+        Assert.Null(error);
+    }
+
+    // OPT-03: MC dengan tepat 6 opsi terisi, 1 ditandai benar (ber-teks) → diterima (batas atas valid).
+    [Fact]
+    public void SixOptions_Accepted()
+    {
+        var (ok, error) = QuestionOptionValidator.ValidateQuestionOptions(
+            "MultipleChoice",
+            new string?[] { "A", "B", "C", "D", "E", "F" }, // tepat 6 terisi
+            new bool[] { true, false, false, false, false, false });
+
+        Assert.True(ok);
+        Assert.Null(error);
+    }
+
+    // OPT-03 (extend ke array-6): correct-flag pada opsi index-4 yang TEKSNYA kosong → ditolak,
+    // walau total opsi ≤ 6. Mengunci aturan correct-must-have-text tetap berlaku untuk opsi E/F.
+    [Fact]
+    public void SixOpt_CorrectWithoutText_Rejected()
+    {
+        var (ok, error) = QuestionOptionValidator.ValidateQuestionOptions(
+            "MultipleAnswer",
+            new string?[] { "Avtur", "Solar", "Bensin", "Pertalite", null, null }, // index 4 (E) kosong
+            new bool[] { true, false, false, false, true, false });                 // tapi ditandai benar
+
+        Assert.False(ok);
+        Assert.Contains("berisi teks", error);
+    }
 }
