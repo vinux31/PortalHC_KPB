@@ -5424,6 +5424,7 @@ namespace HcPortal.Controllers
             var packageIds = sessionPackageMap.Select(x => x.AssessmentPackageId).Distinct().ToList();
             var allQuestions = await _context.PackageQuestions
                 .Include(q => q.Options)
+                .Include(q => q.Section)   // Phase 419 Pitfall 1: tanpa ini q.Section null -> band/heading export semua "Lainnya" senyap
                 .Where(q => packageIds.Contains(q.AssessmentPackageId))
                 .ToListAsync();
 
@@ -5672,6 +5673,7 @@ namespace HcPortal.Controllers
             var packageIds = sessionPackageMap.Select(x => x.AssessmentPackageId).Distinct().ToList();
             var allQuestions = await _context.PackageQuestions
                 .Include(q => q.Options)
+                .Include(q => q.Section)   // Phase 419 Pitfall 1: tanpa ini q.Section null -> band/heading export semua "Lainnya" senyap
                 .Where(q => packageIds.Contains(q.AssessmentPackageId))
                 .ToListAsync();
 
@@ -5731,7 +5733,7 @@ namespace HcPortal.Controllers
                 .ToList();
             var sessionQuestions = allQuestions
                 .Where(q => sessionPkgIds.Contains(q.AssessmentPackageId))
-                .OrderBy(q => q.Order).ThenBy(q => q.Id)
+                .OrderBy(q => q.Section?.SectionNumber ?? int.MaxValue).ThenBy(q => q.Order).ThenBy(q => q.Id)   // Phase 419 PAG-04 Section-aware
                 .ToList();
 
             return QuestPDF.Fluent.Document.Create(document =>
@@ -5812,9 +5814,21 @@ namespace HcPortal.Controllers
                         page.Content().PaddingTop(10).Column(col =>
                         {
                             col.Spacing(8);
+                            // Phase 419 PAG-04: group per Section + heading "Section {n}: {Nama}" sebelum tiap blok soal.
+                            // Backward-compat (D-01): tanpa Section sama sekali -> suppress heading (legacy identik).
+                            bool anySection = sessionQuestions.Any(sq => sq.Section != null);
                             int qNum = 1;
-                            foreach (var q in sessionQuestions)
+                            foreach (var grp in sessionQuestions
+                                .GroupBy(sq => sq.Section?.SectionNumber)
+                                .OrderBy(g => g.Key ?? int.MaxValue))
                             {
+                                if (anySection)
+                                {
+                                    var sectionLabel = grp.Key.HasValue ? $"Section {grp.Key}: {grp.First().Section?.Name}" : "Lainnya";
+                                    col.Item().PaddingTop(6).Text(sectionLabel).Bold().FontSize(12).FontColor(QuestPDF.Helpers.Colors.Blue.Darken2);
+                                }
+                                foreach (var q in grp.OrderBy(sq => sq.Order).ThenBy(sq => sq.Id))
+                                {
                                 // Phase 386 PXF-05 (F-17 D-09/D-10) — label + answer cell via shared display helpers
                                 // untuk SEMUA tipe soal. MA kini di-label all-or-nothing (SetEquals via IsQuestionCorrect)
                                 // dan kolom "Jawaban" me-list SEMUA opsi terpilih (BuildAnswerCell join ", "). MC tetap
@@ -5840,6 +5854,7 @@ namespace HcPortal.Controllers
                                     c.Item().PaddingTop(5).Text(t => { t.Span("Jawaban: ").Bold(); t.Span(jawaban); });
                                 });
                                 qNum++;
+                                }
                             }
                         });
 
