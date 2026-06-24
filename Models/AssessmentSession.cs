@@ -83,6 +83,7 @@ namespace HcPortal.Models
         /// Only relevant when GenerateCertificate = true.
         /// Phase 327 — DateOnly migrasi P04 (eliminasi tz drift permanen).
         /// </summary>
+        [Display(Name = "Berlaku Sampai")]   // CLN-01 (FLD-5.2-06): satu sumber label; selaraskan cshtml ke istilah ini
         public DateOnly? ValidUntil { get; set; }
 
         /// <summary>
@@ -131,14 +132,18 @@ namespace HcPortal.Models
         /// <summary>
         /// FK ke AssessmentSession lain yang di-renew oleh session ini.
         /// Nullable. Hanya salah satu dari RenewsSessionId/RenewsTrainingId yang boleh diisi.
-        /// ON DELETE SET NULL — jika sertifikat asal dihapus, FK jadi NULL.
+        /// CATATAN (PA-04): FK dikonfigurasi DeleteBehavior.NoAction (BUKAN ON DELETE SET NULL —
+        /// SQL Server memblokir SET NULL pada cross-FK siklus). Null-clear saat sertifikat asal
+        /// dihapus dilakukan di level aplikasi (ApplicationDbContext.cs:243-246).
         /// </summary>
         public int? RenewsSessionId { get; set; }
 
         /// <summary>
         /// FK ke TrainingRecord yang di-renew oleh session ini.
         /// Nullable. Hanya salah satu dari RenewsSessionId/RenewsTrainingId yang boleh diisi.
-        /// ON DELETE SET NULL — jika sertifikat asal dihapus, FK jadi NULL.
+        /// CATATAN (PA-04): FK dikonfigurasi DeleteBehavior.NoAction (BUKAN ON DELETE SET NULL —
+        /// SQL Server memblokir SET NULL pada cross-FK siklus). Null-clear saat sertifikat asal
+        /// dihapus dilakukan di level aplikasi (ApplicationDbContext.cs:248-251).
         /// </summary>
         public int? RenewsTrainingId { get; set; }
 
@@ -192,7 +197,8 @@ namespace HcPortal.Models
 
         /// <summary>
         /// FK ke AssessmentSession lain yang terhubung (misal: PreTest terhubung ke PostTest-nya).
-        /// ON DELETE SET NULL — jika session pasangan dihapus, FK jadi NULL.
+        /// CATATAN (PA-04): TIDAK ada FK cascade terkonfigurasi di DB. Null-clear saat pasangan
+        /// dihapus dilakukan di level aplikasi — RecordCascadeDeleteService.cs:235-237 (Delta #8).
         /// </summary>
         public int? LinkedSessionId { get; set; }
 
