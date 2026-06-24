@@ -1188,7 +1188,7 @@ namespace HcPortal.Controllers
 
                 // Resume state: set ViewBag flags for frontend
                 bool isResume = !justStarted;
-                int durationSeconds = (assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0)) * 60;
+                int durationSeconds = ExamTimeRules.AllowedExamSeconds(assessment.DurationMinutes, assessment.ExtraTimeMinutes);
                 int elapsedSec = assessment.ElapsedSeconds;
 
                 // Server-authoritative: cross-check DB elapsed dengan wall-clock elapsed sejak StartedAt
@@ -1561,7 +1561,7 @@ namespace HcPortal.Controllers
             if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
             {
                 var elapsed = (DateTime.UtcNow - assessment.StartedAt.Value).TotalSeconds;
-                var allowed = (assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0)) * 60;
+                var allowed = ExamTimeRules.AllowedExamSeconds(assessment.DurationMinutes, assessment.ExtraTimeMinutes);
                 timerExpired = elapsed >= allowed;
             }
 
@@ -1639,7 +1639,7 @@ namespace HcPortal.Controllers
             if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
             {
                 var elapsed = (DateTime.UtcNow - assessment.StartedAt.Value).TotalSeconds;
-                var allowed = (assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0)) * 60;
+                var allowed = ExamTimeRules.AllowedExamSeconds(assessment.DurationMinutes, assessment.ExtraTimeMinutes);
                 serverTimerExpired = elapsed >= allowed;
             }
 
@@ -4658,9 +4658,9 @@ namespace HcPortal.Controllers
             // Phase 313 WR-02 fix: gunakan satuan dan operator yang konsisten — detik integer, ≥.
             // Selaras dengan ExamSummary GET dan SubmitExam awal.
             var elapsed = DateTime.UtcNow - assessment.StartedAt.Value;
-            int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0);
+            int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0); // dipakai WriteSubmitBlockedAuditAsync (audit menit)
             double elapsedSec = elapsed.TotalSeconds;
-            double allowedSec = allowedMinutes * 60.0;
+            double allowedSec = ExamTimeRules.AllowedExamSeconds(assessment.DurationMinutes, assessment.ExtraTimeMinutes); // CLN-04: int->double, identik allowedMinutes*60.0
             double graceLimitSec = allowedSec + 120.0; // 2-minute grace untuk network latency (existing tier-2)
 
             // Phase 313 CR-01 fix: server-side token validation menggantikan trust client `isAutoSubmit`.
