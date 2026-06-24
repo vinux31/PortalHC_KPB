@@ -122,7 +122,10 @@
   3. Nomor urut sertifikat dihasilkan atomik tanpa race (tidak gagal terbit saat finalize bersamaan/burst); penomoran manual vs auto-generate tak bentrok (kolisi → pesan error ramah, namespace dipisah). *(CERT-03, CERT-04)*
   4. Guard server-side mencegah dua sertifikat aktif untuk (peserta, judul) yang sama dan tidak bisa di-bypass via ConfirmDuplicateTitle. *(CERT-05)*
   5. Sesi "Menunggu Penilaian" menampilkan umur/penanda agar tidak menggantung tanpa finalize HC (tanpa auto-finalize). *(CERT-07)*
-**Plans:** TBD
+**Plans:** 3 plans (3 waves — sekuensial by file-overlap: ketiganya sentuh GradingService/controllers/cert helpers)
+- [ ] 423-01-PLAN.md — Wave 1 [KEYSTONE]: NEW Helpers/CertIssuanceRules.cs (ShouldIssueCertificate · DeriveValidUntil · ResemblesAutoCertFormat · PendingAgeBadgeClass) + harden CertNumberHelper.TryAssignNextSeqAsync (retry+jitter cap 8) + Wave-0 pure tests (CERT-01/02/03/06) [migration=FALSE]
+- [ ] 423-02-PLAN.md — Wave 2: wire helper ke 4 cert-issue site (GradingService :287/:520, FinalizeEssayGrading :3887, AddManualAssessment :759) + stop hardcode + namespace reject + try/catch friendly + anti-dup guard unconditional HasActiveCertForTitleAsync + integration tests real-SQL (CERT-01/03/04/05); depends 01 [migration=FALSE]
+- [ ] 423-03-PLAN.md — Wave 3 [autonomous=false]: badge umur PendingGrading di EssayGrading.cshtml + AssessmentMonitoringDetail.cshtml (PendingAgeBadgeClass, >3 kuning >7 merah, NO auto-finalize) + Playwright smoke + checkpoint UAT @5270 (CERT-07); depends 01+02 [migration=FALSE]
 **UI hint:** yes
 
 ### Phase 424: Grading De-dup + Flow/Linking + Gating Pre→Post
@@ -160,7 +163,7 @@
 | 420. Form Create/Edit — Persistensi Field + UX Pre-Post (FORM-01..11) | 3/3 | ✅ Complete (UAT 8/8 + secure 13/13 + validate NYQUIST 11/11) | 2026-06-23 |
 | 421. Retake Lifecycle Hardening (RTH-01..05) | 3/3 | Complete   | 2026-06-23 |
 | 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 3/3 | Complete   | 2026-06-23 |
-| 423. Certificate Issuance Consistency (CERT-01..07) | 0/TBD | Not started | - |
+| 423. Certificate Issuance Consistency (CERT-01..07) | 0/3 | Not started | - |
 | 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..07) | 0/TBD | Not started | - |
 | 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 0/TBD | Not started | - |
 
