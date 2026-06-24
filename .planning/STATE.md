@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
-status: verifying
+status: executing
 stopped_at: Phase 423 context gathered
-last_updated: "2026-06-24T00:40:49.475Z"
-last_activity: 2026-06-24 -- Phase 422 finalized (checkbox flip 421+422, advance to 423)
+last_updated: "2026-06-24T01:28:42.615Z"
+last_activity: 2026-06-24 -- Phase 423 planning complete
 progress:
   total_phases: 39
   completed_phases: 3
-  total_plans: 9
+  total_plans: 12
   completed_plans: 9
-  percent: 100
+  percent: 75
 ---
 
 # Project State: Portal HC KPB
@@ -28,8 +28,8 @@ See: .planning/PROJECT.md
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
 Phase: 423 (Certificate Issuance Consistency) — NOT STARTED (next: discuss)
 Plan: 0 of TBD
-Status: **Phase 422 ✅ COMPLETE** — all 5 gates PASS (verify 5/5 + review-fix WR-01/02·IN-01/03 + secure 13/13 + validate NYQUIST 7/7 + UAT 6/6); migration=TRUE `AddPackageNumberUniqueIndex` applied lokal (commit `31ef3e1d`). HEAD `a8d10ce8`. 420+421+422 ✅ complete (3/6). NOT pushed.
-Last activity: 2026-06-24 -- Phase 422 finalized (checkbox flip 421+422, advance to 423)
+Status: Ready to execute
+Last activity: 2026-06-24 -- Phase 423 planning complete
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
