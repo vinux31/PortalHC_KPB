@@ -251,6 +251,7 @@ namespace HcPortal.Services
             // STAT-01 (D-02): guard diperluas dari `!= "Completed"` ke terminal/non-resurrectable set.
             // Tanpa ini sesi Abandoned/Cancelled/PendingGrading bisa di-resurrect jadi Completed-lulus + cert.
             // rowsAffected==0 → return false (branch di bawah, SUDAH ADA — kini juga tangkap resurrection blocked).
+            var completedAtSync = DateTime.UtcNow;
             var rowsAffected = await _context.AssessmentSessions
                 .Where(s => s.Id == session.Id
                     && s.Status != S.Completed && s.Status != S.Abandoned
@@ -260,7 +261,7 @@ namespace HcPortal.Services
                     .SetProperty(r => r.Status, S.Completed)
                     .SetProperty(r => r.Progress, 100)
                     .SetProperty(r => r.IsPassed, isPassed)
-                    .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
+                    .SetProperty(r => r.CompletedAt, completedAtSync)
                 );
 
             if (rowsAffected == 0)
@@ -271,6 +272,18 @@ namespace HcPortal.Services
                     session.Id);
                 return false;
             }
+
+            // Phase 423 (Rule 1 - Bug fix): ExecuteUpdateAsync di atas adalah bulk-update yang BYPASS change
+            // tracker → objek `session` in-memory TETAP nilai lama (IsPassed/Status/Score/CompletedAt).
+            // Gate cert CertIssuanceRules.ShouldIssueCertificate(session) membaca `session.IsPassed`, dan
+            // DeriveValidUntil membaca `session.CompletedAt` → tanpa sinkronisasi ini, sesi yang BARU lulus
+            // (skor dihitung saat ini) tak pernah lolos gate (session.IsPassed masih false) → cert tak terbit.
+            // Sinkron in-memory ke nilai yang BARU saja ditulis ke DB (identik dgn ExecuteUpdateAsync di atas).
+            session.Score = finalPercentage;
+            session.Status = S.Completed;
+            session.Progress = 100;
+            session.IsPassed = isPassed;
+            session.CompletedAt = completedAtSync;
 
             // ---- 4. Update PackageAssignment.IsCompleted ----
             await _context.UserPackageAssignments
@@ -497,6 +510,13 @@ namespace HcPortal.Services
                     session.Id);
                 throw new InvalidOperationException("Session bukan dalam status Completed saat re-grade.");
             }
+
+            // Phase 423 (Rule 1 - Bug fix): ExecuteUpdateAsync BYPASS change tracker → sinkron in-memory
+            // `session.IsPassed`/`Score` ke nilai baru. Cabang Fail->Pass di bawah memanggil
+            // CertIssuanceRules.ShouldIssueCertificate(session) yang membaca session.IsPassed — tanpa sinkron
+            // ini ia masih oldIsPassed (false) → cert tak pernah terbit walau flip Fail->Pass.
+            session.Score = newPct;
+            session.IsPassed = isPassed;
 
             await _context.SaveChangesAsync();
 
