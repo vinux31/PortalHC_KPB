@@ -708,6 +708,20 @@ namespace HcPortal.Controllers
                 }
             }
 
+            // Phase 423 CERT-06 (D-04, analog AddManualTraining): Permanent tolak ValidUntil.
+            if (model.CertificateType == "Permanent" && model.ValidUntil != null)
+                ModelState.AddModelError("ValidUntil", "Sertifikat Permanent tidak boleh punya tanggal expired.");
+
+            // Phase 423 CERT-04 (D-02): nomor manual TIDAK boleh menyerupai format auto KPB/NNN/ROMAN/TAHUN.
+            if (hasWorkerCerts)
+            {
+                foreach (var wc in model.WorkerCerts!)
+                {
+                    if (CertIssuanceRules.ResemblesAutoCertFormat(wc.NomorSertifikat))
+                        ModelState.AddModelError("", $"Nomor sertifikat manual untuk pekerja {wc.UserId} tidak boleh menyerupai format otomatis (KPB/NNN/ROMAN/TAHUN).");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 await PopulateWorkersViewBag();
@@ -756,13 +770,25 @@ namespace HcPortal.Controllers
                     AssessmentType = AssessmentConstants.AssessmentType.Manual,
                     Status = AssessmentConstants.AssessmentStatus.Completed,
                     IsManualEntry = true,
-                    GenerateCertificate = true,
+                    // Phase 423 CERT-04 (D-01/D-10): jangan hardcode true — cert manual ada bila HC isi nomor.
+                    GenerateCertificate = !string.IsNullOrWhiteSpace(wc.NomorSertifikat),
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = currentUserId
                 };
                 _context.AssessmentSessions.Add(session);
             }
-            await _context.SaveChangesAsync();
+            // Phase 423 CERT-04 (D-02): kolisi nomor sertifikat -> pesan ramah, bukan 500.
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (CertNumberHelper.IsDuplicateKeyException(ex))
+            {
+                ModelState.AddModelError("", "Nomor sertifikat sudah dipakai. Gunakan nomor lain.");
+                await PopulateWorkersViewBag();
+                await SetTrainingCategoryViewBag();
+                return View(model);
+            }
 
             var actor = await _userManager.GetUserAsync(User);
             if (actor != null)
