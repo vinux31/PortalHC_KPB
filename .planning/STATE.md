@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
 status: executing
-stopped_at: Completed 425-03-PLAN.md
-last_updated: "2026-06-24T09:47:14.382Z"
+stopped_at: Completed 425-04-PLAN.md
+last_updated: "2026-06-24T09:59:05.031Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 39
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 19
-  completed_plans: 18
-  percent: 95
+  completed_plans: 19
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
-Phase: 425 (Cosmetic / Naming / Tech-Debt Cleanup) — EXECUTING
-Plan: 3 of 4 ✅ COMPLETE (425-01 CLN-01+CLN-03 label/doc · 425-02 CLN-04 timer consolidation · **425-03 CLN-02 cross-validate entry manual**, semua migration=FALSE)
-Status: Executing Phase 425 — 425-03 SHIPPED, next 425-04
-Last activity: 2026-06-24 -- 425-03 SHIPPED (CLN-02 cross-validate IsPassed vs Score>=Pass non-blocking warning; ManualEntryRules pure helper; suite 761/0/2)
+Phase: 425 (Cosmetic / Naming / Tech-Debt Cleanup) — ✅ ALL 4 PLANS COMPLETE
+Plan: 4 of 4 ✅ COMPLETE (425-01 CLN-01+CLN-03 label/doc · 425-02 CLN-04 timer consolidation · 425-03 CLN-02 cross-validate entry manual · **425-04 CLN-05 ControllerGuards.JsonFail guard-helper**, semua migration=FALSE)
+Status: Phase 425 SHIPPED — semua 4 plan tuntas; Phase 425 (P6 CLN) = fase TERAKHIR v32.7
+Last activity: 2026-06-24 -- 425-04 SHIPPED (CLN-05 guard-helper ControllerGuards.JsonFail diterapkan selektif ke cluster SubmitEssayScore 6 guard, shape JSON byte-identik, D-04 minimal; build 0err; suite 768/0/2)
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
@@ -144,6 +144,6 @@ Backlog tracked: 999.6/9/10/11/12.
 
 Last activity: 2026-06-23
 
-Stopped at: Completed 425-03-PLAN.md
+Stopped at: Completed 425-04-PLAN.md
 
 Next action: **`/gsd-discuss-phase 421`** (Retake Lifecycle Hardening; RTH-01..05; RTK-LOGIC-02 🔴 retake dead-end). Phase 420 done. Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.

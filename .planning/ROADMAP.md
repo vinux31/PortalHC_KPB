@@ -160,7 +160,7 @@ Plans:
 - [x] 425-01-PLAN.md — Wave 1: CLN-01+CLN-03 label/doc/XML-doc selaras (AssessmentPhase RESERVED, Status 7-nilai, ValidUntil [Display], LinkedSessionId koreksi PA-04, AssessmentPackageId sentinel) [migration=FALSE]
 - [x] 425-02-PLAN.md — Wave 1: CLN-04 konsolidasi 4 situs timer CMPController → ExamTimeRules.AllowedExamSeconds + parity test (FLOW-08/FLOW-10 DEFER) [migration=FALSE]
 - [x] 425-03-PLAN.md — Wave 1: CLN-02 ManualEntryRules.PassStatusMismatch (pure) + warning non-blocking AddManualAssessment (TETAP simpan, CSRF/authz utuh) [migration=FALSE]
-- [ ] 425-04-PLAN.md — Wave 1: CLN-05 ControllerGuards.JsonFail (shape byte-identik) + apply subset SubmitEssayScore [migration=FALSE]
+- [x] 425-04-PLAN.md — Wave 1: CLN-05 ControllerGuards.JsonFail (shape byte-identik) + apply subset SubmitEssayScore [migration=FALSE]
 **UI hint:** no
 
 **Active mapped: 42/42 ✓ (FORM-01..11 → 420 · RTH-01..05 → 421 · SHFX-01..07 → 422 · CERT-01..07 → 423 · GRDF-01..07 → 424 · CLN-01..05 → 425) — Orphans: 0 — Duplicates: 0 — migration=TRUE Phase 422 only; 425=FALSE FINAL (CLN-03 RESERVED). Urutan eksekusi sekuensial 420 → 421 → 422 → 423 → 424 → 425 (by file-overlap); Phase 425 internal 4 plan SEMUA Wave 1 (file-ownership eksklusif, paralel). ⚠️ 422 (+420) overlap v32.6 main — rekonsiliasi saat merge.**
@@ -174,7 +174,7 @@ Plans:
 | 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 3/3 | Complete   | 2026-06-23 |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 3/3 | Complete    | 2026-06-24 |
 | 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..05,07) | 3/3 | Complete   | 2026-06-24 |
-| 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 3/4 | In Progress|  |
+| 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 4/4 | Complete   | 2026-06-24 |
 
 </details>
 
