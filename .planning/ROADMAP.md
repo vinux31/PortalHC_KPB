@@ -173,7 +173,12 @@ Plans:
   1. Export per-soal (Excel/PDF) menampilkan label/header Section ("Section {n}: {Nama}") yang konsisten lintas-peserta, dengan huruf opsi A–F dinamis.
   2. Suite test baru (unit `BuildSectionQuestionAssignment` isolasi-section + validasi mismatch/dual-format/fingerprint + Playwright pagination/opsi-5–6/resume) hijau dan test lama tetap hijau (kompatibel-mundur = Section kosong).
   3. Playwright real-browser UAT membuktikan alur Section+shuffle+pagination+opsi-dinamis berfungsi runtime (lesson 354: Razor/JS/SignalR WAJIB UAT browser), dan audit milestone PASSED dengan 20/20 REQ ter-cover + interaksi lintas-milestone (Inject v32.2, LinkPrePost 397, Add/Remove v32.5) koheren.
-**Plans**: TBD
+**Plans**: 5 plans (wave 1->2(02 dan 03 paralel)->3->4; file-overlap `AssessmentAdminController.cs` antara Plan 02/04 = sequential)
+- [ ] 419-01-PLAN.md — Wave-0 xUnit RED (ExportSectionLabel + LinkPrePostSectionGuard + SectionEtWarning positif) + 4 skeleton e2e (PAG-04/D-02/D-03/D-04) [wave 1]
+- [ ] 419-02-PLAN.md — PAG-04 export label: Excel band-header `AddDetailPerSoalSheet` + PDF heading `GeneratePerPesertaPdf` + 2 eager-load `.Include(q=>q.Section)` (Pitfall 1) [wave 2]
+- [ ] 419-03-PLAN.md — D-02 guard LinkPrePost × Section di `InjectAssessmentService` (reuse SectionStructureComparer, skip-on-all-Lainnya, reject-all server-authoritative) [wave 2]
+- [ ] 419-04-PLAN.md — D-03 re-spec predikat ET-warning lintas-sibling (pool ET vs K=min, group by SectionNumber IN-01, non-blocking; tutup DEF-416-01) [wave 3]
+- [ ] 419-05-PLAN.md — Isi 4 e2e UAT + full suite hijau + checkpoint UAT live @5277 (4 interaksi D-04) + cleanup D-06 (SEED snapshot/restore) + audit-readiness 20/20 REQ [wave 4, autonomous:false]
 **Migration**: FALSE.
 **File-overlap (final; sequential setelah semua fitur)**: `ExcelExportHelper`/`AddDetailPerSoalSheet` + `GeneratePerPesertaPdf` (label Section), `SyncPackagesToPost`/`CopyPackagesFromPre` (audit ulang SEMUA pemicu sync salin Section+opsi), monitoring label. Interaksi LinkPrePost (Phase 397): struktur Section harus identik Pre↔Post (blok link bila beda).
 **Carry-over dari Phase 416 (keputusan user 2026-06-23):** fix **DEF-416-01 / WR-01** — predikat ET-coverage warning `DistinctEt > K` (`AssessmentAdminController.cs:7680`) tak pernah menyala untuk data single-package (dead-nicety, non-blocking). Re-spec ke pool ET lintas paket-saudara vs `K = min(count Section antar sibling)` + selaraskan grouping warning `SectionId`→`SectionNumber` (IN-01) + test positif. Ref: `.planning/phases/416-scoped-shuffle-acak-per-section/deferred-items.md`.
