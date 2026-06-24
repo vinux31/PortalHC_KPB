@@ -126,6 +126,66 @@ public class SectionPaginatorTests
         Assert.True(list[5].IsSectionStart);
     }
 
+    [Fact] // PAG-02 — kombinasi StartNewPage + auto-split (skenario produksi: Section B StartNewPage + panjang)
+    public void StartNewPageSection_LongerThanPerPage_BreaksThenAutoSplits()
+    {
+        // Section 1 (3 soal, snp=false) lalu Section 2 (12 soal, snp=TRUE), perPage=10.
+        // PAG-02 menggabungkan DUA perilaku yang sebelumnya hanya diuji terpisah:
+        //   (a) Section 2 ber-StartNewPage → page-break SEBELUM soal pertamanya (walau page0 belum penuh),
+        //   (b) Section 2 panjang (>perPage) → auto-split per-10 DI DALAM Section, soal ke-11 = continuation.
+        var list = Build(
+            (1, false), (1, false), (1, false),                        // 3 soal Section1 → page 0
+            (2, true), (2, true), (2, true), (2, true), (2, true),      // Section2 soal 1-5
+            (2, true), (2, true), (2, true), (2, true), (2, true),      // Section2 soal 6-10  (10 soal di page 1)
+            (2, true), (2, true));                                       // Section2 soal 11-12 → page 2 (continuation)
+
+        SectionPaginator.ComputePages(list, perPage: 10);
+
+        // (a) page-break: 3 soal Section1 di page 0; soal pertama Section2 di page 1 (bukan menyambung page 0).
+        Assert.All(list.Take(3), q => Assert.Equal(0, q.PageNumber));
+        var firstSec2 = list[3];                                         // DisplayNumber 4 = soal pertama Section2
+        Assert.Equal(1, firstSec2.PageNumber);
+        Assert.True(firstSec2.IsSectionStart);
+        Assert.False(firstSec2.IsSectionContinuation);
+
+        // 10 soal Section2 (soal 1-10) penuh di page 1.
+        Assert.Equal(10, list.Count(q => q.PageNumber == 1));
+
+        // (b) auto-split: soal ke-11 Section2 (DisplayNumber 14) di page 2 = continuation (bukan section-start).
+        var q11ofSec2 = list.Single(q => q.DisplayNumber == 14);
+        Assert.Equal(2, q11ofSec2.PageNumber);
+        Assert.True(q11ofSec2.IsSectionContinuation);
+        Assert.False(q11ofSec2.IsSectionStart);
+        Assert.Equal(2, list.Max(q => q.PageNumber));
+    }
+
+    [Fact] // PAG-01/02/03 — determinisme/idempotensi (must_haves Plan 01 Task 2)
+    public void ComputePages_IsIdempotent()
+    {
+        // Plan 01 Task 2 menjanjikan ComputePages "deterministik, NON-RNG, idempotent (panggil 2x → hasil sama)".
+        // Pin invarian: dua pemanggilan berturut atas list yang sama menghasilkan PageNumber/IsSectionStart/
+        // IsSectionContinuation IDENTIK (tak akumulasi state, tak bergeser saat dipanggil ulang saat re-render).
+        var list = Build(
+            (1, false), (1, false), (1, false), (1, false), (1, false),  // Section1
+            (2, true), (2, true),                                        // Section2 (StartNewPage)
+            (null, false), (null, false));                                // Lainnya
+
+        SectionPaginator.ComputePages(list, perPage: 3);
+        var snapshot = list
+            .Select(q => (q.PageNumber, q.IsSectionStart, q.IsSectionContinuation))
+            .ToList();
+
+        // Panggil kedua kali atas LIST YANG SAMA (sudah ber-PageNumber dari panggilan pertama).
+        SectionPaginator.ComputePages(list, perPage: 3);
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            Assert.Equal(snapshot[i].PageNumber, list[i].PageNumber);
+            Assert.Equal(snapshot[i].IsSectionStart, list[i].IsSectionStart);
+            Assert.Equal(snapshot[i].IsSectionContinuation, list[i].IsSectionContinuation);
+        }
+    }
+
     [Fact] // PAG-03
     public void Resume_ClampsToValidRange()
     {
