@@ -62,9 +62,9 @@ Requirements untuk milestone v32.7. Tiap REQ memetakan satu/lebih temuan audit (
 
 ### CLN — Cosmetic / Naming / Tech-Debt Cleanup (Phase 425, low-risk)
 
-- [ ] **CLN-01**: Label & dokumentasi diselaraskan — label ValidUntil, komentar Status 7-nilai, nama field sentinel AssessmentPackageId, doc FK LinkedSessionId. [FLD-5.2-06, FLOW-05, PA-05, PA-04]
+- [x] **CLN-01**: Label & dokumentasi diselaraskan — label ValidUntil, komentar Status 7-nilai, nama field sentinel AssessmentPackageId, doc FK LinkedSessionId. [FLD-5.2-06, FLOW-05, PA-05, PA-04]
 - [ ] **CLN-02**: Entry manual — Schedule/CompletedAt diselaraskan + validasi silang IsPassed vs Score/PassPercentage (peringatan, tidak auto-override). [FLD-5.2-04, FLD-5.2-05]
-- [ ] **CLN-03**: Kolom dead-field AssessmentPhase di-drop (migration) atau ditandai RESERVED di XML-doc. [FLOW-06]
+- [x] **CLN-03**: Kolom dead-field AssessmentPhase di-drop (migration) atau ditandai RESERVED di XML-doc. [FLOW-06]
 - [ ] **CLN-04**: Tech-debt timing — hitung timer satu sumber (helper), token via mekanisme server-authoritative, side-effect write-on-GET StartExam dipindah/diamankan. [FLOW-09, FLOW-08, FLOW-10]
 - [ ] **CLN-05**: Konvensi validasi ModelState dirapikan (param scalar → DTO ber-anotasi atau guard helper bersama). [VAL-07]
 
@@ -126,9 +126,9 @@ Diakui tapi ditunda dari v32.7.
 | GRDF-05 | Phase 424 | Pending |
 | GRDF-06 | Phase 424 | Pending |
 | GRDF-07 | Phase 424 | Pending |
-| CLN-01 | Phase 425 | Pending |
+| CLN-01 | Phase 425 | Complete |
 | CLN-02 | Phase 425 | Pending |
-| CLN-03 | Phase 425 | Pending |
+| CLN-03 | Phase 425 | Complete |
 | CLN-04 | Phase 425 | Pending |
 | CLN-05 | Phase 425 | Pending |
 
