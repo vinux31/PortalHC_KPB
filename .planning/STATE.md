@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v32.9
 milestone_name: EditQuestion Option-Edit Data Integrity (Identity-Based)
-status: defining_requirements
-stopped_at: v32.9 started — defining requirements + roadmap (scope = backlog 999.15)
-last_updated: "2026-06-24T13:00:00.000Z"
+status: ready_to_plan
+stopped_at: v32.9 roadmap created (1 fase, Phase 420) — ready to plan
+last_updated: "2026-06-24T13:30:00.000Z"
 last_activity: 2026-06-24
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 420 — EditQuestion Identity-Based Option Editing (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-24 — Milestone v32.9 started
+Status: Ready to plan
+Last activity: 2026-06-24 — Milestone v32.9 roadmap created (1 fase)
 
 Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** — hapus/edit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap. Ganti upsert opsi POSISIONAL di `AssessmentAdminController.cs` EditQuestion POST menjadi **IDENTITY-based** (match baris input ke `PackageOption` existing by stable `Id`, bukan posisi) → hapus opsi tengah membuang record yang BENAR + guard answered-option (D-418-02) menyala untuk delete posisi MANAPUN. **migration=FALSE**. Branch main. Fase mulai **420** (lanjut dari 419).
 
@@ -84,9 +84,9 @@ Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** —
 
 Last activity: 2026-06-24
 
-Stopped at: **v32.9 STARTED** via /gsd-new-milestone. PROJECT.md updated (Current Milestone v32.9) + STATE.md reset. v32.6 phase dirs diarsip ke `milestones/v32.6-phases/`. Scope terverifikasi = backlog 999.15 (7-agen verify workflow).
+Stopped at: **v32.9 roadmap CREATED** via /gsd-new-milestone. PROJECT.md + REQUIREMENTS.md (OPTEDIT-01..05 + VRF-01) + ROADMAP.md (1 fase, Phase 420) + STATE.md siap. v32.6 phase dirs diarsip ke `milestones/v32.6-phases/`. Backlog di-triage (999.15 PROMOTED→420; 999.14/999.9/999.5 DROPPED; 999.13/999.16 PERMANENT-DEFER). Scope terverifikasi = backlog 999.15 (7-agen verify workflow).
 
-Next action: define REQUIREMENTS.md (kategori OPTEDIT) → spawn roadmapper (fase mulai 420) → approve roadmap → `/gsd-plan-phase 420`.
+Next action: **`/gsd-plan-phase 420`** (atau `/gsd-discuss-phase 420` dulu — fix mengubah mekanisme spec-locked D-418-02, layak discuss). migration=FALSE.
 
 ## Deferred Items
 

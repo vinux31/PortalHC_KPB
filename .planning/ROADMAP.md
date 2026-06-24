@@ -34,6 +34,38 @@
 - ✅ **v32.2 Inject Hasil Assessment Manual ("Seakan Online")** — Phases 393-398 + 398.1 (shipped local + audited PASSED 2026-06-19, 13/13 REQ INJ-01..13; 7 phase, 26 plan; **0 migration**; page baru `/Admin/InjectAssessment` Section C [Admin+HC] meng-inject hasil assessment identik online via reuse GradingService/authoring/CertNumberHelper; 398.1 = tech-debt cleanup 8 FIX/2 DROP; branch main, NOT PUSHED) — [archive](milestones/v32.2-ROADMAP.md) — [audit](milestones/v32.2-MILESTONE-AUDIT.md)
 - ✅ **v32.5 Flexible Add/Remove Participant** — Phases 409-414 (shipped local + audited PASSED 2026-06-22, 11/11 REQ PART-05/06/07 + PRMV-01..05 + PLIV-01/02/03 [Phase 414 = bugfix off-theme visibilitas review jawaban admin, 0 REQ baru]; **migration=TRUE** [Phase 409 `AddParticipantRemovalColumns` `01cd7dd0`; 410-414 = FALSE]; add & remove peserta live di Monitoring Detail [AJAX+SignalR], hapus hybrid by-state; branch main, NOT PUSHED) — [archive](milestones/v32.5-ROADMAP.md) — [audit](milestones/v32.5-MILESTONE-AUDIT.md) — [requirements](milestones/v32.5-REQUIREMENTS.md)
 - ✅ **v32.6 Section + Scoped Shuffle + Section Pagination + Opsi Dinamis** — Phases 415-419 + 415.1 (shipped local + audited PASSED 2026-06-24, 20/20 REQ SEC-01..06 + IMP-01..03 + SHF-01..04 + PAG-01..04 + OPT-01..03; **migration=TRUE** [Phase 415 `AddAssessmentPackageSection`; 415.1/416-419 = FALSE]; Section per-paket + scoped shuffle + pagination per-section + opsi jawaban dinamis 2–6 + import Excel dual-format; kompatibel-mundur 100%; integrasi SOUND + 4/4 E2E flow + 6/6 nyquist; branch main, NOT PUSHED) — [archive](milestones/v32.6-ROADMAP.md) — [audit](milestones/v32.6-MILESTONE-AUDIT.md) — [requirements](milestones/v32.6-REQUIREMENTS.md)
+- 🚧 **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** — Phase 420 (ACTIVE, ready to plan; fix backlog 999.15 relabel jawaban senyap saat hapus opsi tengah pada soal terjawab; ganti upsert posisional → identity-based; **migration=FALSE**; branch main)
+
+## Current Milestone: v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)
+
+**Goal:** Hapus/edit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap. Ganti upsert opsi POSISIONAL di `AssessmentAdminController.cs` EditQuestion POST menjadi **IDENTITY-based** (match baris input ke `PackageOption` existing by stable `Id`). **migration=FALSE** · branch main · fase mulai **420** (lanjut dari 419).
+
+**Roadmap (1 fase):**
+
+- [ ] **Phase 420**: EditQuestion Identity-Based Option Editing — OPTEDIT-01..05 + VRF-01; migration=FALSE
+
+### Phase Details
+
+**Phase 420: EditQuestion Identity-Based Option Editing**
+Goal: Ganti mekanisme upsert opsi di `EditQuestion` POST dari posisional (`existing[i]` by Id) ke identity-based (hidden `OptionId` per baris form `ManagePackageQuestions.cshtml` + match input→existing `PackageOption` by stable `Id` di controller), sehingga menghapus/mengedit opsi (termasuk opsi tengah) pada soal yang sudah dijawab tidak lagi me-relabel jawaban peserta secara senyap; guard answered-option (D-418-02) menyala untuk delete posisi manapun. Pertahankan regression-lock 999.14.
+Requirements: OPTEDIT-01, OPTEDIT-02, OPTEDIT-03, OPTEDIT-04, OPTEDIT-05, VRF-01
+Depends on: — (fase pertama milestone)
+Migration: FALSE
+⚠️ Fix ubah MEKANISME upsert, BUKAN sekadar perketat threshold guard (in-code note `AAC:8027-8035` — upsert posisional di-LOCK spec D-418-02). UAT real-browser WAJIB (lesson 354 — Razor/JS authoring form).
+Success criteria:
+1. HC menghapus opsi di tengah pada soal yang BELUM dijawab → record opsi yang benar (yang dipilih HC) yang terhapus; teks/kebenaran opsi tersisa utuh (tak ter-relabel/tergeser). [OPTEDIT-01]
+2. HC menghapus opsi yang SUDAH dijawab peserta (posisi MANAPUN, termasuk tengah) → ditolak dengan pesan ramah; jawaban peserta tidak berubah. [OPTEDIT-02]
+3. HC mengedit teks/kebenaran opsi yang sudah dijawab → jawaban peserta tetap merujuk opsi yang sama secara semantik di Results/grading/PDF (match by Id, bukan posisi). [OPTEDIT-03]
+4. Konversi soal MC/MA→Essay + penyusutan opsi pada soal terjawab tetap ditolak tanpa error 500 (regression-lock 999.14, guard D-418-02 tetap berlaku). [OPTEDIT-04]
+5. CreateQuestion (soal baru) + edit soal belum-dijawab + import Excel tetap berfungsi normal; integration test controller-level mereproduksi relabel-senyap lalu membuktikan diblokir + Playwright UAT real-browser form authoring PASS. [OPTEDIT-05 + VRF-01]
+
+### Progress
+
+| # | Phase | Goal | Requirements | Success Criteria | Status |
+|---|-------|------|--------------|------------------|--------|
+| 420 | EditQuestion Identity-Based Option Editing | Upsert opsi posisional → identity-based (no silent relabel) | OPTEDIT-01..05, VRF-01 | 5 | ⬜ Not started |
+
+**Coverage:** 6/6 REQ mapped (Phase 420 = OPTEDIT-01..05 + VRF-01), 0 orphan, 0 duplikat.
 
 <details>
 <summary>✅ v32.6 Section + Scoped Shuffle + Pagination + Opsi Dinamis (Phases 415-419 + 415.1) — SHIPPED 2026-06-24</summary>
@@ -67,7 +99,7 @@
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
-### Phase 999.16: Defensive guard struktur Section saat LinkPrePost (BACKLOG, LOW, defensive — dropped dari 419 2026-06-24)
+### Phase 999.16: Defensive guard struktur Section saat LinkPrePost — 🅿️ PERMANENT-DEFER (2026-06-24, verified no-op: `InjectQuestionSpec` tak punya `SectionId` → inject all-Lainnya → guard tak akan nyala; promote hanya bila muncul surface LinkPrePost non-inject)
 
 **Goal:** [Captured dari eksekusi Phase 419, 2026-06-24] Guard hard-block menaut Pre↔Post (Phase 397) bila KEDUA sisi punya Section nyata dan struktur (count per SectionNumber) berbeda — reuse `Helpers/SectionStructureComparer.MismatchedSections` + pola `CMPController.StartExam:1094-1119` (`guardAnySections`). Skip bila salah satu sisi all-Lainnya.
 
@@ -84,7 +116,7 @@ Plans:
 
 ---
 
-### Phase 999.13: M5 — Section re-guard StartExam tak cek drift di resume path (BACKLOG, MED, deferred from 415 re-check)
+### Phase 999.13: M5 — Section re-guard StartExam tak cek drift di resume path — 🅿️ PERMANENT-DEFER (2026-06-24, verified benign: soal di-pin `ShuffledQuestionIds`, Section cuma display/pagination null-safe; worst case re-pagination kosmetik, no grading/crash)
 
 **Goal:** [Captured dari /gsd-validate-phase 415 re-check, 2026-06-23] Re-guard struktur Section di `CMPController.StartExam` (`:1067`) hanya berjalan di jalur first-build (`assignment == null`). Worker yang resume (assignment sudah ada) melewati guard tanpa cek Section-drift. Keputusan user (2026-06-23): **backlog** — bukan fix sekarang.
 
@@ -101,7 +133,7 @@ Plans:
 
 ---
 
-### Phase 999.14: EditQuestion hapus opsi soal SUDAH-DIJAWAB → FK Restrict 500 (BACKLOG, MED, pre-existing, found 415 re-check round-3)
+### Phase 999.14: EditQuestion hapus opsi soal SUDAH-DIJAWAB → FK Restrict 500 — ❌ DROPPED (2026-06-24, verified closed by Phase 418 guard D-418-02; regression-locked di v32.9 Phase 420)
 
 **Goal:** [Captured dari re-check round-3 Phase 415, 2026-06-23] `EditQuestion` menghapus `PackageOption` (konversi MC/MA→Essay `RemoveRange(q.Options)` ~AAC:8019, atau penyusutan opsi 4→3 `Remove(slot)` ~8049) dengan `SaveChangesAsync` TANPA guard. Bila ada `PackageUserResponse.PackageOptionId` yang mereferensikan opsi itu (FK `PackageUserResponse→PackageOption` = Restrict, `ApplicationDbContext.cs:561`), SaveChanges melempar `DbUpdateException` → 500 mentah. Pre-existing (BUKAN diperkenalkan 415); kelas sama dgn hazard H4 tapi di jalur hapus-opsi EditQuestion, bukan sync.
 
@@ -118,7 +150,7 @@ Plans:
 
 ---
 
-### Phase 999.15: Edit soal: hapus opsi-tengah yang sudah dijawab me-relabel jawaban peserta secara senyap (upsert posisional) (BACKLOG, MED, pre-existing, found 418 review WR-01)
+### Phase 999.15: Edit soal: hapus opsi-tengah yang sudah dijawab me-relabel jawaban peserta secara senyap (upsert posisional) — ✅ PROMOTED → v32.9 Phase 420 (2026-06-24, verified reproduces on main)
 
 **Goal:** [Captured dari review Phase 418, 2026-06-24] Loop upsert `EditQuestion` (`AssessmentAdminController.cs:8120-8153`) memetakan input ke opsi existing BERDASARKAN POSISI (`existing[i]`, OrderBy Id), mempertahankan `PackageOption.Id` per posisi. Saat HC menghapus opsi di TENGAH (mis. A,B,C,D → hapus B → form kirim 3 baris "A","C","D"), opsi di bawahnya geser naik posisi: record Id opsi B bertahan tapi teksnya di-UPDATE jadi "C", record C jadi "D", dan HANYA opsi terakhir (D) yang benar-benar di-Remove. Guard edit-shrink D-418-02 (`:8030-8069`) hanya menambahkan slot EKOR ke `removedOptionIds`, sehingga bila peserta sudah menjawab opsi B, guard TIDAK menyala (Id B selamat). Jawaban tercatat peserta yang dulu menunjuk "B" kini diam-diam menunjuk opsi berteks "C" → makna jawaban berubah senyap.
 
@@ -136,7 +168,7 @@ Plans:
 
 ---
 
-### Phase 999.9: Label residu "Backfill/Restore" di UI BulkBackfill — kosmetik (BACKLOG)
+### Phase 999.9: Label residu "Backfill/Restore" di UI BulkBackfill — kosmetik — ❌ DROPPED (2026-06-24, verified no-op: view BulkBackfill + label di-hard-remove Phase 396 `74f266bf`, 0 source match)
 
 **Goal:** [Captured Phase 368 UAT, 2026-06-13] Heading/breadcrumb/h2/card-label BulkBackfill sudah jadi "Bulk Import Nilai (Excel)" (shipped 368-02 #27), TAPI masih ada wording lama "Backfill"/"Restore" di 3 tempat. Polish ringan kosmetik label-only (no logic).
 
@@ -156,7 +188,7 @@ Plans:
 
 ---
 
-### Phase 999.5: Test-hardening Coach×Coachee — AF-3 graduate e2e + AF-6 race (PARTIAL PROMOTED -> v25.0 Phase 365, 2026-06-10)
+### Phase 999.5: Test-hardening Coach×Coachee — AF-3 graduate e2e + AF-6 race — ❌ DROPPED (2026-06-24, verified stale: Phase 365 sudah ship `MarkMappingCompletedTests.cs` cover AF-3 graduate + AF-6 race; sisa cuma harness 2-parallel rapuh yang di-deprioritaskan)
 
 **Promoted:** 2026-06-10 -> Phase 365, scope opsi (b) xUnit `MarkMappingCompletedTests` SAJA (ortogonal 363 T3 — verified). **TETAP BACKLOG:** varian (a) e2e Playwright re-assign-after-graduate + race harness AF-6 fixture Tahun-2+ — keduanya bersinggungan jalur T3 (`CoachCoacheeMappingAssign` :516-528), tunggu 363 selesai.
 

@@ -42,7 +42,11 @@ Requirements milestone v32.9. Tiap REQ map ke satu fase roadmap (fase mulai 420)
 
 | REQ | Phase | Status |
 |-----|-------|--------|
-| OPTEDIT-01..05 | TBD (roadmap) | pending |
-| VRF-01 | TBD (roadmap) | pending |
+| OPTEDIT-01 | Phase 420 | pending |
+| OPTEDIT-02 | Phase 420 | pending |
+| OPTEDIT-03 | Phase 420 | pending |
+| OPTEDIT-04 | Phase 420 | pending |
+| OPTEDIT-05 | Phase 420 | pending |
+| VRF-01 | Phase 420 | pending |
 
-_(Diisi oleh roadmapper saat ROADMAP.md dibuat.)_
+**Coverage:** 6/6 REQ mapped ke Phase 420, 0 orphan, 0 duplikat.
