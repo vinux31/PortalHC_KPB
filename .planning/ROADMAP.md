@@ -111,7 +111,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 426. Audit-Log EditOrganizationUnit (AUDIT-01) | 1/1 | Complete   | 2026-06-24 |
-| 427. Exam Token-Gate Server-Authoritative (EXSEC-01) | 0/? | Not started | - |
+| 427. Exam Token-Gate Server-Authoritative (EXSEC-01) | 1/1 | Complete   | 2026-06-24 |
 | 428. StartExam Write-on-GET Idempotency (EXSEC-02) | 0/? | Not started | - |
 
 </details>

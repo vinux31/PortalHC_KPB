@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v32.8
 milestone_name: Exam Security & Audit Hardening
 status: verifying
-stopped_at: Completed 426-01-PLAN.md
-last_updated: "2026-06-24T13:04:39.168Z"
+stopped_at: Completed 427-01-PLAN.md
+last_updated: "2026-06-24T13:46:44.798Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 15
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
   percent: 100
 ---
 
@@ -21,29 +21,31 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 426 — Audit-Log EditOrganizationUnit
+**Current focus:** Phase 427 ✅ EXECUTED (token gate server-authoritative) → next Phase 428
 
 ## Current Position
 
 Milestone: **v32.8 Exam Security & Audit Hardening** — 🚧 STARTED 2026-06-24 (branch ITHandoff)
-Phase: 426 (Audit-Log EditOrganizationUnit) — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
-Last activity: 2026-06-24
+Phase: 427 (Exam Token-Gate Server-Authoritative) — ✅ EXECUTED (3/3 tasks, ready for verification)
+Plan: 1 of 1 complete
+Status: Phase 427 executed — ready for verification (`/gsd-verify-phase 427` atau lanjut Phase 428)
+Last activity: 2026-06-24 -- Phase 427 plan 01 executed (EXSEC-01)
+
+**Phase 427 executed (EXSEC-01, KEYSTONE, migration=TRUE):** kolom `AssessmentSession.TokenVerifiedAt` + migration `AddTokenVerifiedAt` (applied DB lokal `HcPortalDB_Dev`, sqlcmd COL_LENGTH=8) · VerifyToken stamp UtcNow+persist (D-03) · StartExam gate baca kolom ganti TempData.Peek, guard StartedAt==null utuh (D-02, SC#4) · RetakeService reset null single-source (D-01) · semua TempData token dihapus (grep `TokenVerified_` Controllers/+Services/ = 0). Commits `5e585e99` (model+migration), `bc1dbb63` (gate/stamp/reset), `f3ccf380` (5 test T1-T5 real-SQL). TokenVerifiedAtTests 5/5 + suite non-Integration 544/0/2. NOT pushed.
 
 **Predecessor v32.7 ✅ CLOSED 2026-06-24** (audit PASSED 41/41 in-scope, tag lokal). v32.1 + v32.3 + v32.4 + v32.7 semua CLOSED di ITHandoff (deploy bundle bersama). Tag lokal masing-masing. NOT pushed.
 
 ## Next Action
 
-**Roadmap v32.8 → `/gsd-plan-phase 426`.** Scope terkunci (3 fase, user-confirmed 2026-06-24):
+**Phase 427 ✅ EXECUTED → verify lalu `/gsd-plan-phase 428`** (atau `/gsd-verify-phase 427` dulu). Scope v32.8 (3 fase, user-confirmed 2026-06-24):
 
-- **426** Audit-Log EditOrganizationUnit (999.11) — `OrganizationController.cs`, migration=FALSE, file-disjoint.
-- **427** Exam Token-Gate Server-Authoritative (999.13) — `CMPController.cs`+`AssessmentSession.cs`+migration, **migration=TRUE** (`AddTokenVerifiedAt`). KEYSTONE.
-- **428** StartExam Write-on-GET Idempotency (999.14) — `CMPController.cs`, migration=FALSE. Sekuensial setelah 427 (sama-sama edit `StartExam`).
+- **426** Audit-Log EditOrganizationUnit (999.11) — `OrganizationController.cs`, migration=FALSE, file-disjoint. ✅ EXECUTED.
+- **427** Exam Token-Gate Server-Authoritative (999.13) — `CMPController.cs`+`AssessmentSession.cs`+migration, **migration=TRUE** (`AddTokenVerifiedAt`). KEYSTONE. ✅ EXECUTED (3/3 tasks).
+- **428** StartExam Write-on-GET Idempotency (999.14) — `CMPController.cs`, migration=FALSE. Sekuensial setelah 427 (sama-sama edit `StartExam`). ⏳ NEXT.
 
 **⚠ Merge risk (overlap check, verified git):** `StartExam` = zona konflik PASTI vs main (ITHandoff GRDF-01 ph424 vs main Section/ScopedShuffle ph415-417 + guard ph409). 427/428 nambah lapisan → saat merge pertahankan KEDUA, GRDF-01 setelah cek-Completed sebelum token-gate. `AddTokenVerifiedAt` stamp setelah semua migrasi kedua branch + regen snapshot. 999.9 DROP (main 396-05 hapus BulkBackfill, NOT-ancestor ITHandoff).
 
-**Deploy bundle (user-owned):** v32.1 + v32.3 + v32.4 + v32.7 → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` + Fase 405 retake cols + **Fase 422 `AddPackageNumberUniqueIndex`**; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`). v32.7 migration=TRUE HANYA Phase 422; 420/421/423/424/425=FALSE.
+**Deploy bundle (user-owned):** v32.1 + v32.3 + v32.4 + v32.7 + v32.8 → 1 push `origin/ITHandoff` → notify IT **migration=TRUE** (Fase 399 `AddUserUnitsTable` + Fase 405 retake cols + **Fase 422 `AddPackageNumberUniqueIndex`** + **Fase 427 `AddTokenVerifiedAt`**; carry lama 360 `PendingProtonBypass` + 372 `ShuffleToggles`). v32.7 migration=TRUE HANYA Phase 422; v32.8 migration=TRUE HANYA Phase 427 (426/428=FALSE).
 
 **v32.0** CLOSED manual 2026-06-19 di branch `main` (lihat MEMORY `project_v32_0_close_deferred`).
 
@@ -141,6 +143,6 @@ Backlog tracked: 999.9 · 999.11 · 999.12 · 999.13 (FLOW-08 token server-auth)
 
 Last activity: 2026-06-23
 
-Stopped at: Completed 426-01-PLAN.md
+Stopped at: Completed 427-01-PLAN.md
 
 Next action: **`/gsd-discuss-phase 421`** (Retake Lifecycle Hardening; RTH-01..05; RTK-LOGIC-02 🔴 retake dead-end). Phase 420 done. Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.
