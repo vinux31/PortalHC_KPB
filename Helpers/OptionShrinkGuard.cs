@@ -30,6 +30,7 @@ namespace HcPortal.Helpers
         public static IReadOnlyList<int> FindBlockedOptionIds(
             IEnumerable<int> removedOptionIds,
             IEnumerable<int> answeredOptionIds)
-            => removedOptionIds.Intersect(answeredOptionIds).Distinct().ToList();
+            // Intersect sudah set-semantics (mengembalikan elemen distinct) — tak perlu .Distinct() lagi (IN-01).
+            => removedOptionIds.Intersect(answeredOptionIds).ToList();
     }
 }
