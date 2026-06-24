@@ -4,6 +4,41 @@
 
 ---
 
+## Milestone: v32.7 — Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
+
+**Shipped:** 2026-06-24 (local; NOT pushed — bundle dengan v32.1+v32.3+v32.4)
+**Phases:** 6 (420-425) | **Plans:** 19 | **REQ:** 41/41 in-scope (GRDF-06 covered v32.5) | **migration:** TRUE hanya Phase 422
+
+### What Was Built
+Tutup ~60 temuan audit Pre/Post (2026-06-22, 4 HIGH): (420) form persistensi field + UX Pre-Post scope-explicit; (421) retake lifecycle hardening (cooldown non-destruktif); (422) SamePackage & shuffle integrity (unique index PackageNumber); (423) certificate issuance satu-helper anti-double; (424) grading de-dup + gating Pre→Post (FLOW-04); (425) cosmetic/tech-debt (timer satu-sumber, ControllerGuards, RESERVED dead-field). Audit milestone PASSED, integration checker SOUND (E2E Pre/Post lifecycle utuh).
+
+### What Worked
+- **Pure-helper kill-drift pattern** (carry dari 422→425): `ExamTimeRules`/`CertIssuanceRules`/`PrePostPairing`/`ManualEntryRules`/`ControllerGuards` — logika testable diekstrak EF-free, di-test xUnit, lalu di-wire ke call-site. Parity test sebelum refactor call-site = nol regresi (timer 4 situs, JSON shape byte-identik).
+- **Integration checker akhir milestone** menangkap konsistensi cross-phase (11 helper wired, 0 reimplemented, 0 orphaned) yang per-phase verify tak lihat.
+- **3-source cross-ref audit** menangkap REQUIREMENTS traceability stale (FORM-07..11, SHFX, GRDF marked Pending walau selesai) → direkonsiliasi sebelum close.
+
+### What Was Inefficient
+- **2 executor crash mid-finalize** (422-02, 425-02): API connection closed setelah commit task tapi sebelum SUMMARY/tracking → orchestrator recovery manual (verify diff+build+test, commit, tulis SUMMARY). Lesson: spot-check (git log + SUMMARY exist) WAJIB saat agent return hilang.
+- **plan-checker lewatkan file overlap** (425 Plan 01 & 03 sama-sama sentuh `AddManualAssessment.cshtml`) — ketahuan saat execute intra-wave overlap check → fallback sequential. Plan-checker klaim "file eksklusif" salah.
+- **420/421 tak punya VERIFICATION.md** (milestone-autopilot path pakai validate+UAT) → audit milestone harus treat sebagai partial-by-artifact (verifikasi fungsional ada, artefak absen).
+
+### Patterns Established
+- Pure-rule + Wave-0 parity/shape test SEBELUM wire consumer (TDD untuk refactor non-destruktif).
+- Non-blocking warning `TempData["Warning"]` SETELAH gate `if(!ModelState.IsValid)` (CLN-02) — bukan `AddModelError` (memblokir).
+- Guard-helper selektif (subset representatif) bukan sweep penuh — batasi blast radius (CLN-05 D-04).
+- RESERVED XML-doc untuk dead-field (alternatif drop kolom — nol-risiko skema di fase cleanup).
+
+### Key Lessons
+- **Orchestrator recovery** untuk executor crash: jangan blind-commit; verify diff (situs benar + constraint dihormati) → build → full suite → baru commit + tulis SUMMARY.
+- **Intra-wave file-overlap check** di execute-phase adalah safety-net nyata terhadap plan-checker yang salah-klaim eksklusivitas.
+- **Defer ≠ backlog otomatis**: item ditolak by-design (RESERVED, DTO minimal) cukup di audit; hanya deferred-pending (FLOW-08/FLOW-10) yang layak jadi 999.x.
+
+### Cost Observations
+- Model mix: planner/executor/researcher opus; checker/verifier/security/integration sonnet.
+- 2 executor crash → recovery overhead. Sequential execution (file-overlap) bukan parallel worktree (.NET + Windows + OneDrive contention).
+
+---
+
 ## Milestone: v32.3 — Akun Multi-Unit (1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial
 
 **Shipped:** 2026-06-21 (local; NOT pushed — bundle dengan v32.1)
