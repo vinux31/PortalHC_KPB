@@ -4,7 +4,10 @@
     ViewData["Title"] = "Exam In Progress";
     int questionsPerPage = 10;  // Default desktop; mobile override via ViewBag
     if (ViewBag.QuestionsPerPage != null) { questionsPerPage = (int)ViewBag.QuestionsPerPage; }
-    int totalPages = (int)Math.Ceiling((double)Model.TotalQuestions / questionsPerPage);
+    // Phase 417 PAG-01/02: pagination section-aware — group by PageNumber (controller-computed, single source of truth).
+    var pageGroups = Model.Questions.GroupBy(q => q.PageNumber).OrderBy(g => g.Key).ToList();
+    int totalPages = pageGroups.Count > 0 ? pageGroups.Count : 1;   // Pitfall 2: bukan Ceiling(N/perPage)
+    bool hasSections = Model.Questions.Any(q => q.SectionNumber != null);
 }
 
 <a href="#mainContent" class="skip-link">Lewati ke konten utama</a>
@@ -81,19 +84,28 @@ else
                         <input type="hidden" id="ans_@q.QuestionId" name="answers[@q.QuestionId]" value="" />
                     }
 
-                    <!-- Pages: groups of 10 questions -->
-                    @for (int page = 0; page < totalPages; page++)
+                    <!-- Pages: section-aware grouping by computed PageNumber (Phase 417 PAG-01/02) -->
+                    @foreach (var pg in pageGroups)
                     {
-                        var pageQuestions = Model.Questions
-                            .Skip(page * questionsPerPage)
-                            .Take(questionsPerPage)
-                            .ToList();
+                        var page = pg.Key;
+                        var pageQuestions = pg.ToList();
 
                         <div class="exam-page" id="page_@(page)"
                              style="display: @(page == 0 ? "block" : "none")">
 
                             @foreach (var q in pageQuestions)
                             {
+                                @* Phase 417 IC-1/IC-2: header Section (text-only) hanya bila assessment ber-section *@
+                                @if (hasSections && (q.IsSectionStart || q.IsSectionContinuation))
+                                {
+                                    <div class="text-primary fw-semibold border-bottom pb-1 mb-2">
+                                        @q.SectionName
+                                        @if (q.IsSectionContinuation)
+                                        {
+                                            <span class="text-muted small fw-normal">(lanjutan)</span>
+                                        }
+                                    </div>
+                                }
                                 var qtype = q.QuestionType ?? "MultipleChoice";
                                 <div class="card shadow-sm mb-3 border-0" id="qcard_@q.QuestionId">
                                     <div class="card-body p-3">
@@ -462,21 +474,29 @@ else
     let answeredQuestions = new Set(); // tracks which question IDs have been answered
 
     // Mapping: page index -> array of question IDs on that page
+    // Phase 417 (Pitfall 1): SATU sumber kebenaran dari q.PageNumber (controller-computed), bukan Skip/Take naif.
     const pageQuestionIds = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-        Enumerable.Range(0, totalPages).Select(p =>
-            Model.Questions.Skip(p * questionsPerPage).Take(questionsPerPage)
-                .Select(q => q.QuestionId).ToList()
-        ).ToList()
+        Model.Questions.GroupBy(q => q.PageNumber).OrderBy(g => g.Key)
+            .Select(g => g.Select(q => q.QuestionId).ToList()).ToList()
     ));
 
     // Flat data structure for all questions (for navigation panel)
+    // Phase 417: pageNumber dari q.PageNumber yang sama (anti-drift) + sectionName untuk grouping navigator.
     const allQuestionsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-        Model.Questions.Select((q, index) => new {
+        Model.Questions.Select(q => new {
             questionId = q.QuestionId,
-            pageNumber = index / questionsPerPage,  // zero-based page index
-            displayNumber = q.DisplayNumber
+            pageNumber = q.PageNumber,
+            displayNumber = q.DisplayNumber,
+            sectionName = q.SectionName
         }).ToList()
     ));
+
+    // Phase 417 (RESEARCH OQ#2): page -> sectionName (O(1) lookup indikator halaman). Sumber sama (q.PageNumber).
+    const pageSectionMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.Questions.GroupBy(q => q.PageNumber).OrderBy(g => g.Key)
+            .Select(g => g.First().SectionName).ToList()
+    ));
+    const HAS_SECTIONS = @Json.Serialize(hasSections);
 
     // -------- Timer — wall clock anchor (D-07 drift fix) --------
     var submitted = false; // guard flag untuk mencegah double submit (Pitfall 4)
