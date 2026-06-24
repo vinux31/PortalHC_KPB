@@ -15,7 +15,13 @@ Bukan cakupan fase ini: dedupe scoring & gating Pre→Post (Phase 424), penamaan
 ## Implementation Decisions
 
 ### Cakupan helper (CERT-01)
-- **D-01:** `ShouldIssueCertificate` jadi **SATU gate kelayakan cert untuk SEMUA jalur**: `GradingService.GradeAndCompleteAsync` (:287) + `GradingService.RecomputeAfterEssayGradingAsync` (:520) + jalur manual `AddManualAssessment`. Manual **berhenti hardcode** `GenerateCertificate=true` (FLD-5.2-02) dan tunduk aturan helper yang sama. Helper konsisten menolak `AssessmentType == "PreTest"` di semua kasus (FLD-5.2-10). Saat ini hanya jalur :520 yang cek PreTest; :287 tidak — divergensi ini ditutup.
+- **D-01:** `ShouldIssueCertificate` jadi **SATU gate kelayakan cert untuk SEMUA jalur**. **Koreksi pasca-research (`423-RESEARCH.md` `d99d55f4`): ada 4 site, bukan 3** (`RecomputeAfterEssayGradingAsync` di draft awal TIDAK ADA — keliru):
+  1. `Services/GradingService.cs` `GradeAndCompleteAsync:287` — **TANPA cek PreTest** (ditutup helper)
+  2. `Services/GradingService.cs` `RegradeAfterEditAsync:520` — sudah cek PreTest (diseragamkan ke helper)
+  3. `Controllers/AssessmentAdminController.cs` `FinalizeEssayGrading:3887` — jalur essay-finalize HC, **TANPA cek PreTest**
+  4. `Controllers/TrainingAdminController.cs` `AddManualAssessment:759` — **hardcode `GenerateCertificate=true`**, no PreTest, no try/catch
+  Manual **berhenti hardcode** `GenerateCertificate=true` (FLD-5.2-02) dan tunduk aturan helper sama. Helper konsisten menolak `AssessmentType == "PreTest"` di semua kasus (FLD-5.2-10).
+- **D-10 (resolusi open-Q A1 dari research — auto-decided, non-destruktif):** Aturan derivasi/penolakan ValidUntil (D-04/D-05) **hanya berlaku utk CertificateType kanonik** "Permanent"/"Annual"/"3-Year". CertificateType manual non-kanonik (mis. "Kompetensi"/"Profesi"/"Pelatihan") → **ValidUntil dipakai apa adanya dari input HC** (TANPA derivasi, TANPA penolakan) — jaga fleksibilitas entry manual & hindari perluasan scope. ⚠️ Bila HC ingin aturan berbeda utk type non-kanonik, flag saat review.
 
 ### Penomoran cert (CERT-03 atomik + CERT-04 namespace)
 - **D-02 (namespace):** Nomor cert manual tetap **free-text** tapi **divalidasi TIDAK boleh menyerupai format auto** `KPB/{seq}/{ROMAN}/{YEAR}` (regex/format check); insert manual dibungkus `try/catch DbUpdateException` (pakai `CertNumberHelper.IsDuplicateKeyException`) → **pesan error ramah** saat kolisi (bukan 500). TIDAK mengubah tampilan nomor cert yang sudah tercetak (tanpa prefix baru).
