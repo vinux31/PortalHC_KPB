@@ -1354,6 +1354,40 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
+### Phase 999.13: FLOW-08 — Token exam server-authoritative (kolom TokenVerifiedAt) (BACKLOG)
+
+**Goal:** [Captured Phase 425 D-03 defer, 2026-06-24] Token gate auto-submit ujian saat ini pakai `TempData.Peek` (FLOW-08) — bukan server-authoritative. Usul: kolom `TokenVerifiedAt` di sesi untuk verifikasi token sisi-server yang persisten (tahan terhadap manipulasi TempData/round-trip). **Hardening, BUKAN bug** — by-design + sudah dimitigasi (impersonation guard aktif). Di-defer dari Phase 425 (fase cleanup low-risk) karena butuh **migration + ubah-perilaku** = risiko regresi tinggi.
+
+**Context:**
+- Sumber: `425-CONTEXT.md` `<deferred>` (D-03) + `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (FLOW-08) + `v32.7-MILESTONE-AUDIT.md` tech_debt + `425-SECURITY.md` AR-425-01 (accepted risk).
+- Situs: token gate `CMPController.cs` (`TempData.Peek`, sekitar SubmitExam auto-submit path — re-grep `AutoSubmitToken` / `TempData.Peek` sebelum plan; line drift ITHandoff).
+- Implikasi: migration=TRUE (kolom baru `TokenVerifiedAt`). Verifikasi paritas perilaku token existing + impersonation guard tetap.
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
+### Phase 999.14: FLOW-10 — Write-on-GET StartExam side-effect refactor (Upcoming→Open) (BACKLOG)
+
+**Goal:** [Captured Phase 425 D-03 defer, 2026-06-24] GET `StartExam` melakukan side-effect mutasi status (Upcoming→Open) — write-on-GET (FLOW-10), melanggar idempotensi GET. Usul: pindah/amankan side-effect ke jalur POST atau guarded transition. **Dimitigasi** (impersonation guard) — di-defer dari Phase 425 karena ubah-perilaku di fase cleanup = risiko regresi.
+
+**Context:**
+- Sumber: `425-CONTEXT.md` `<deferred>` (D-03) + audit FLOW-10 + `v32.7-MILESTONE-AUDIT.md` tech_debt + `425-SECURITY.md` AR-425-01 (accepted risk).
+- Situs: blok GET `StartExam` di `CMPController.cs` (re-grep `StartExam` + transition Upcoming→Open sebelum plan; line drift ITHandoff). Integration checker v32.7 konfirmasi blok GET StartExam TIDAK disentuh Phase 425 (utuh).
+- Implikasi: hati-hati gating Pre→Post (GRDF-01/Phase 424) yang juga gate di StartExam — jangan ganggu. Kemungkinan migration=FALSE (refactor logic), TBD plan.
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.12: One-time cleanup ~45 sesi test/audit legacy di HcPortalDB_Dev lokal (PROMOTED from todo 2026-06-11, BACKLOG)
 
 **Goal:** [Captured 2026-06-11, promoted from pending todo saat close v32.3 2026-06-21] HcPortalDB_Dev lokal penuh ±45 sesi assessment bekas test/audit fase lama (Legacy Exam, Timer Expired, Repro, UAT v14, ojt v1.9/1.10/14.2, Multi Worker, MATRIX_TEST, dll) yang TAMPIL di default view sejak Phase 370 hapus window 7-hari. Rekap HC perlu bersih. **DB LOKAL saja** (Dev 10.55.3.3 = jalur IT, jangan edit langsung).
