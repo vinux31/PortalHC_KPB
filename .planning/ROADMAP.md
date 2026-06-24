@@ -84,40 +84,6 @@ Plans:
 
 ---
 
-### Phase 999.11: WR-01 PendingGrading edit-guard gap di EditAssessment (BACKLOG, LOW, pre-existing)
-
-**Goal:** [Captured dari adversarial re-check v32.0, 2026-06-17 — ref `.planning/v32.0-MILESTONE-AUDIT.md`] Guard pure-edit di `Controllers/AssessmentAdminController.cs:1998` cuma blokir `Status == Completed`, BUKAN `PendingGrading`. Pure-edit (NewUserIds kosong) pada assessment yg sesi representatifnya `PendingGrading` (essay menunggu nilai, di-set `GradingService.cs:220`) lolos guard → admin bisa ubah Title/Schedule/Duration/PassPercentage saat grading masih berjalan.
-
-**Context:**
-- Pre-exists Phase 391 (gap sama sejak string-literal lama `"Completed"`); BUKAN regresi v32.0. Jalur penambahan-peserta (target v32.0) TAK terdampak.
-- Sibling WR-01 review-finding: WR-02 sudah di-fix (commit `e5edb09a`), WR-01 belum (tak ada `391-REVIEW-FIX.md`). Sumber: `391-REVIEW.md` (issues_found, 0 critical).
-- Fix: ganti cek `== Completed` dgn helper `AssessmentConstants.IsAssessmentSubmitted(status)` (cover `Completed || PendingGrading`) + regression test lock "pure-edit PendingGrading DITOLAK". Wajib `dotnet build` + `dotnet test` + `dotnet run` gate (CLAUDE.md Develop Workflow). 0 migration. Off-theme dari v32.5.
-
-**Requirements:** TBD
-**Plans:** 3/3 plans complete
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
----
-
-### Phase 999.12: Regression test 391 — ganti replica tautologis dgn WebApplicationFactory (BACKLOG, MED, test-infra)
-
-**Goal:** [Captured dari adversarial re-check v32.0, 2026-06-17 — ref `.planning/v32.0-MILESTONE-AUDIT.md`] `HcPortal.Tests/FlexibleParticipantAddTests.cs` tak pernah panggil controller (no `WebApplicationFactory`) — fact (a)/(d) tautologis utk klaim "add berhasil / tak terblokir" (seed sesi via EF langsung, bypass guard L1998). Helper test `WindowAllowsAddition` TANPA padanan produksi → fact (d) = `Assert.True(true)`. Replica drift dari produksi (tak set `AssessmentType`, pakai literal bukan `model.*`) → tak deteksi bug `AssessmentType`-NULL yg justru muncul di Dev (fixed `34f102b0`).
-
-**Context:**
-- BUKAN bug produksi — perilaku produksi benar (build+fast 347/347 + integration 4/4 GREEN, guard statically-verified, human-UAT cover e2e, fact b/c genuine). Murni penguatan test agar regresi guard/window tertangkap.
-- Pola replica systemic (sama di `ShufflePropagationTests` Phase 372) — pertimbangkan sweep test-infra lebih luas.
-- Fix: integration test berbasis `WebApplicationFactory` yg benar-benar drive `EditAssessment` lewat controller; hapus helper fiktif `WindowAllowsAddition`. 0 migration. Off-theme dari v32.5. **Catatan v32.5:** Phase 413 menambah `FlexibleParticipantRemoveTests` — pertimbangkan bundle penguatan ini bila menyentuh file yang sama.
-
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
----
-
 ### Phase 999.13: M5 — Section re-guard StartExam tak cek drift di resume path (BACKLOG, MED, deferred from 415 re-check)
 
 **Goal:** [Captured dari /gsd-validate-phase 415 re-check, 2026-06-23] Re-guard struktur Section di `CMPController.StartExam` (`:1067`) hanya berjalan di jalur first-build (`assignment == null`). Worker yang resume (assignment sudah ada) melewati guard tanpa cek Section-drift. Keputusan user (2026-06-23): **backlog** — bukan fix sekarang.
@@ -170,57 +136,6 @@ Plans:
 
 ---
 
-### Phase 999.7: e2e exam-taking — migrasi 10 create flow ke wizard 4-langkah (PROMOTED -> v28.0 Phase 379, 2026-06-14)
-
-**Goal:** [Captured Phase 364, 2026-06-12] `exam-taking.spec.ts` Flow A–J semua `test.fixme` — flat-form create usang. `/Admin/CreateAssessment` kini wizard 4-langkah (`1.Kategori`→`2.Peserta[disabled]`→`3.Settings`→`4.Konfirmasi`); worker checkbox `display:none` di step 2. Title sudah prefixed `Pre Test ` (REST-06 comply) tapi flow tak bisa jalan tanpa navigasi wizard.
-
-**Context:**
-- Bukti: snapshot A1 @5277 2026-06-12 (Plan 364-01/02). Pola benar ada di `tests/e2e/helpers/examTypes.ts` `createAssessmentViaWizard` (exam-types pakai ini → restored).
-- Scope: rewrite 10 create flow exam-taking pakai wizard-nav. Per-flow beda config (Token/ForceClose/Package/Proton-T3-interview/Multi-worker/Timer). Flow E Proton T3 PLUS risiko drift v25.0 (358-363) — re-check form interview/Tahun-3.
-- Env: app WAJIB jalan `lpc:` shared-memory conn override sampai SQLBrowser lokal dibenahi (lihat 364-03-SUMMARY).
-- Harness: pin `workers: 1` di `tests/playwright.config.ts` (multi-file default 2 worker = pecah isolasi DB shared).
-
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
----
-
-### Phase 999.8: Bug essay finalize — session.Score=0 padahal sudah dinilai (PROMOTED -> v28.0 Phase 376, 2026-06-14)
-
-**Goal:** [Captured Phase 364, 2026-06-12] Finalize grading essay-only TIDAK mengagregasi skor manual ke `AssessmentSessions.Score`. exam-types L6 `test.fixme`: HC nilai essay 80 + finalize (L5 PASS, badge "Sudah Dinilai") tapi `Score`=0. MA auto-grade (K5) tulis kolom yang sama = 100 OK → spesifik jalur essay.
-
-**Context:**
-- Bukti: `exam-types.spec.ts` L6 (FLOW L) single-worker run 2026-06-12. M5 (mixed MC+MA+essay) PASS single-worker (essay 30 ter-hitung) — jadi inkonsistensi essay-only vs mixed perlu didiagnosa.
-- Suspect: `GradingService` finalize path / hook Phase 358 (Proton completion). Produksi TIDAK diubah di Phase 364 (D-06).
-
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
----
-
-### Phase 999.6: Bug Impersonate — identitas impersonated tidak dipakai query worker surfaces (PROMOTED -> v28.0 Phase 377, 2026-06-14)
-
-**Goal:** [Captured for future planning] Impersonate "view as user X" menampilkan data milik admin asli, bukan user yang di-impersonate — banner "Anda melihat sebagai X" menyesatkan.
-
-**Context:**
-- Bukti live 2026-06-10 @5277: impersonate Iwan → `/CMP/Records` tampil 2 assessment online MILIK ADMIN (AssessmentSessions Id 157 + 66, UserId admin@pertamina.com), Training Manual=0 padahal Iwan punya 3 TrainingRecords. `CMPController.Records:481` pakai `GetCurrentUserRoleLevelAsync()` → resolve user asli, bukan identitas impersonated.
-- Kemungkinan menimpa semua surface ber-`GetCurrentUserRoleLevelAsync`/`_userManager.GetUserAsync(User)` — perlu audit cakupan (Records, Assessment, Home progress, dst).
-- Ditemukan saat brainstorm delete Input Records (lihat spec delete-input-records full-cascade).
-
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
----
-
 ### Phase 999.9: Label residu "Backfill/Restore" di UI BulkBackfill — kosmetik (BACKLOG)
 
 **Goal:** [Captured Phase 368 UAT, 2026-06-13] Heading/breadcrumb/h2/card-label BulkBackfill sudah jadi "Bulk Import Nilai (Excel)" (shipped 368-02 #27), TAPI masih ada wording lama "Backfill"/"Restore" di 3 tempat. Polish ringan kosmetik label-only (no logic).
@@ -241,55 +156,6 @@ Plans:
 
 ---
 
-### Phase 999.10: CMP CertificationManagement orphaned route → 500 view-not-found (PROMOTED -> v28.0 Phase 378, 2026-06-14)
-
-**Goal:** [Captured Phase 368 UAT, 2026-06-13] `GET /CMP/CertificationManagement` (direct-URL) → **500 "view 'CertificationManagement' was not found"**. `Views/CMP/CertificationManagement.cshtml` tidak ada (hanya `Views/CDP/CertificationManagement.cshtml`). Action `CMPController.CertificationManagement` = duplikat orphaned ("dipindah dari CDP" per komentar L3760); entry point asli `Views/CMP/Index.cshtml:98` route ke **CDP**, bukan CMP.
-
-**Context:**
-- Bukti UAT browser @5277 2026-06-13 (368-04-SUMMARY temuan #2). PRE-EXISTING — BUKAN regresi Phase 368: perubahan #25 = 1 baris LINQ (`BuildParentNameLookup`), `git diff` 368 = 0 `.cshtml` disentuh; view-not-found tak mungkin disebabkan LINQ. Callsite #25 di CMP tetap ter-eksekusi (capai `return View` tanpa ArgumentException).
-- Path nyata CDP CertificationManagement render OK (8 sertifikat, no 500) — dedup #25 terbukti jalan.
-- Opsi fix: (a) hapus action `CMPController.CertificationManagement` + helper rows orphaned bila benar-benar dead, ATAU (b) ubah jadi `RedirectToAction("CertificationManagement","CDP")`, ATAU (c) tambah view CMP bila memang mau dua entry point. Pilih saat planning — audit dulu apakah ada link/test lain yang menunjuk route CMP.
-
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
----
-
-### Phase 999.3: Cascade Image File Cleanup — orphan gambar saat hapus assessment/group (PROMOTED -> v25.0 Phase 366, 2026-06-10)
-
-**Promoted:** 2026-06-10 -> Phase 366 (dir `999.3-*` di-rename `366-*`). Scope dikoreksi hasil verifikasi adversarial: TIDAK ada helper ref-count produksi (Phase 353 pilih inline 3x — `353-01-PLAN.md:174-175`); Phase 366 ekstrak helper baru dulu. Line drift: Delete* kini :2184/:2372/:2558 (bukan L2069/L2257/L2443).
-
-**Goal:** Hapus file gambar fisik yang orphan saat cascade delete besar menghapus session→paket→soal→opsi. 3 endpoint: `DeleteAssessment` (`AssessmentAdminController.cs` L2069), `DeleteAssessmentGroup` (L2257), `DeletePrePostGroup` (L2443). Saat ini cascade hapus DB tapi biarkan file gambar di disk.
-
-**Context:**
-- Ditemukan saat audit ulang discuss Phase 353 (2026-06-08). Defer dari Phase 353 D-12 (teritori cascade besar Phase 323/325/328/335, tx kompleks — gabung ke 353 membengkakkan scope).
-- Severity **rendah**: dampak = sampah disk (orphan file), BUKAN data corruption / bukan gambar rusak di UI.
-- Reuse helper **reference-count D-10** dari Phase 353 (hapus fisik hanya kalau path tak dipakai baris lain) + pola atomic delete Phase 333 (kumpul path sebelum tx, File.Delete post-commit, inner try/catch warn-only). Nuance: saat DeletePrePostGroup hapus Pre+Post bersamaan, ref-count harus sadar "semua referensi dalam batch ikut terhapus" → file aman dihapus.
-- Depends: **Phase 353** (helper ref-count + pola harus eksis dulu).
-
-**Requirements:** TBD — estimasi S-M (3 endpoint audit-style). Spec acuan: `.planning/phases/353-admin-backend-gambar-crud-sync-atomic-delete/353-CONTEXT.md` bagian `<deferred>`.
-
----
-
-### Phase 999.4: Restore baseline regresi e2e exam — update judul spec lama comply validator naming v20 (PROMOTED -> v25.0 Phase 364, 2026-06-10)
-
-**Promoted:** 2026-06-10 -> Phase 364. Verifikasi 2026-06-10: validator kini `AssessmentAdminController.cs:869-877` (regex :872, case-SENSITIVE; catatan lama 866-874 stale); fix per-flow (flow mode PrePostTest mis. `[318-P]` exempt validator); waspadai auto-pair Phase 338 (:7111) saat judul jadi "Pre Test ...".
-
-**Goal:** Spec e2e exam lama (`tests/e2e/exam-taking.spec.ts`, `tests/e2e/exam-types.spec.ts`) gagal di pembuatan assessment sehingga tak bisa dipakai sebagai baseline regresi. Update judul assessment yang dibuat spec agar comply validator naming-convention v20.0.
-
-**Context:**
-- Ditemukan saat gate Phase 355 (2026-06-09): `exam-taking.spec.ts` test A1 (HC create assessment) gagal — judul `"Legacy Exam …"` / `"[317-…]"` ditolak validator.
-- Root cause: **Phase 339 REST-06** (`AssessmentAdminController.cs:866-874`) — assessment non-PrePostTest WAJIB judul match `^(Pre|Post)\s*Test\s+.+$` (mis. "Pre Test OJT GAST Cilacap"). Validator ditambah v20.0; spec lama (v16.0) belum di-update → patah sejak v20.
-- **BUKAN regresi Phase 355** (zero production code diubah; 355 = test-only). Selama ini spec exam lama tak di-run sebagai gate.
-- Bukti non-regresi 355 diganti: `tests/e2e/image-in-assessment.spec.ts` jalankan soal MC **tanpa gambar** end-to-end + `dotnet test` 131/131.
-
-**Requirements:** TBD — estimasi S (ganti `uniqueTitle('Legacy Exam')` → pola `Pre Test {track} {lokasi} {uniq}` di helper/spec; cek tak ada cascade ke assertion judul). Acuan: `.planning/phases/355-test-uat/355-03-SUMMARY.md` Deviasi 2.
-
----
-
 ### Phase 999.5: Test-hardening Coach×Coachee — AF-3 graduate e2e + AF-6 race (PARTIAL PROMOTED -> v25.0 Phase 365, 2026-06-10)
 
 **Promoted:** 2026-06-10 -> Phase 365, scope opsi (b) xUnit `MarkMappingCompletedTests` SAJA (ortogonal 363 T3 — verified). **TETAP BACKLOG:** varian (a) e2e Playwright re-assign-after-graduate + race harness AF-6 fixture Tahun-2+ — keduanya bersinggungan jalur T3 (`CoachCoacheeMappingAssign` :516-528), tunggu 363 selesai.
@@ -303,26 +169,6 @@ Plans:
 - Opsional Wave-0 dari `356-VALIDATION.md` (MarkMappingCompletedTests + AF-7 parity regression test) juga belum dibuat (ditandai "opsional" sejak plan).
 
 **Requirements:** TBD — estimasi S-M. Acuan: `.planning/phases/356-audit-fix-assign-coach-coachee-pastikan-fungsi-assign-benar-/356-05-SUMMARY.md` (Temuan 4) + `356-VALIDATION.md` Wave-0 opsional. Rekomendasi mulai dari (b) xUnit AF-3 integration (nilai tinggi, effort rendah).
-
----
-
-### Phase 999.2: CMP/Records Team View search extend ke Assessment title (PROMOTED -> v23.0 Phase 350, 2026-06-05)
-
-**Goal:** Search Team View di `CMP/Records` (`searchScope`="Keduanya") ikut mencocokkan judul **assessment**, bukan hanya Nama/NIP + judul Training. User cari nama assessment (mis. "ojt v14.2") → saat ini 0 worker meski worker punya assessment itu.
-
-**Context:**
-- Ditemukan saat UAT Phase 349 (2026-06-05): search "ojt v14.2" (assessment title) di `CMP/Records` Team View "Keduanya" → "Showing 0 workers".
-- Root cause: `WorkerDataService.GetWorkersInSection` (`Services/WorkerDataService.cs:401-417`) — scope "Keduanya" = union Nama/NIP **OR Training.Judul**, TIDAK termasuk Assessment judul. Desain REC-06 D-07 (Phase 346) sengaja scope Training-only.
-- BUKAN regresi Phase 349 (page Phase 345-347; commit 349 tak sentuh CMPController/GetWorkersInSection).
-
-**Requirements:** TBD (perlu keputusan: extend "Keduanya" jadi Nama/NIP + Training + Assessment, ATAU tambah scope "Assessment" eksplisit di dropdown Lingkup; cek dampak Export Assessment/Training + badge count per-worker tetap utuh per D-07).
-
-**Effort estimate:** S (1 predicate cabang di GetWorkersInSection + opsi dropdown Lingkup + test)
-
-**Plans:** 0 plans
-
-Plans:
-- [x] PROMOTED 2026-06-05 -> v23.0 SF-01/SF-02/SF-06 (Phase 350). Decision: extend scope + dropdown Lingkup jujur + export parity; preserve REC-06 D-07. See spec 2026-06-05-cmp-records-search-filter-audit.md.
 
 ---
 
