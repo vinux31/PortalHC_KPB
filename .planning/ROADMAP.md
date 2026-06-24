@@ -60,7 +60,7 @@
 | 416. Scoped Shuffle (Acak per-Section) | 0/3 | 3/3 | Complete    | 2026-06-23 |
 | 417. Section Pagination | 0/3 | 3/3 | Complete   | 2026-06-24 |
 | 418. Opsi Jawaban Dinamis 2–6 | 0/4 | 4/4 | Complete   | 2026-06-24 |
-| 419. Export Label Section + Polish + Test/UAT | 0/? | 1/4 | In Progress|  |
+| 419. Export Label Section + Polish + Test/UAT | 0/? | 2/4 | In Progress|  |
 
 **Dependency DAG:** 415 (keystone) → 416 → 417 ; 415 → 418 (workstream agak terpisah, sequential anti-konflik file) ; (415,416,417,418) → 419.
 **Catatan sekuensial (file-overlap):** 416 dan 418 sama-sama menyentuh authoring/`StartExam.cshtml`/import → jalankan **berurutan, bukan paralel** (mirror v32.5/v32.2). 417 & 418 sama-sama edit `StartExam.cshtml` → jangan paralel.
@@ -175,7 +175,7 @@ Plans:
   3. Playwright real-browser UAT membuktikan alur Section+shuffle+pagination+opsi-dinamis berfungsi runtime (lesson 354: Razor/JS/SignalR WAJIB UAT browser), dan audit milestone PASSED dengan 20/20 REQ ter-cover + interaksi lintas-milestone (Inject v32.2, LinkPrePost 397, Add/Remove v32.5) koheren.
 **Plans**: 4 plans (wave 1->2->3->4; file-overlap `AssessmentAdminController.cs` antara Plan 02/04 = sequential). **[D-02 / Plan 03 DI-DROP → backlog 999.16 (2026-06-24): guard no-op untuk inject all-Lainnya — lihat catatan File-overlap]**
 - [x] 419-01-PLAN.md — Wave-0 xUnit RED (ExportSectionLabel + SectionEtWarning positif) + 4 skeleton e2e (PAG-04/D-03/D-04) [wave 1]
-- [ ] 419-02-PLAN.md — PAG-04 export label: Excel band-header `AddDetailPerSoalSheet` + PDF heading `GeneratePerPesertaPdf` + 2 eager-load `.Include(q=>q.Section)` (Pitfall 1) [wave 2]
+- [x] 419-02-PLAN.md — PAG-04 export label: Excel band-header `AddDetailPerSoalSheet` + PDF heading `GeneratePerPesertaPdf` + 2 eager-load `.Include(q=>q.Section)` (Pitfall 1) [wave 2]
 - [ ] 419-04-PLAN.md — D-03 re-spec predikat ET-warning lintas-sibling (pool ET vs K=min, group by SectionNumber IN-01, non-blocking; tutup DEF-416-01) [wave 3]
 - [ ] 419-05-PLAN.md — Isi 4 e2e UAT + full suite hijau + checkpoint UAT live @5277 (4 interaksi D-04) + cleanup D-06 (SEED snapshot/restore) + audit-readiness 20/20 REQ [wave 4, autonomous:false]
 **Migration**: FALSE.
