@@ -3866,13 +3866,14 @@ namespace HcPortal.Controllers
 
             // 3. Update session: Completed + final score + IsPassed (T-298-16 replay guard via WHERE clause)
             // D-06 / D-07 — capture rowsAffected, gate semua side-effect (audit + cert + notif)
+            var completedAtSync = DateTime.UtcNow;
             var rowsAffected = await _context.AssessmentSessions
                 .Where(s => s.Id == sessionId && s.Status == AssessmentConstants.AssessmentStatus.PendingGrading)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(r => r.Score, finalPercentage)
                     .SetProperty(r => r.Status, AssessmentConstants.AssessmentStatus.Completed)
                     .SetProperty(r => r.IsPassed, isPassed)
-                    .SetProperty(r => r.CompletedAt, DateTime.UtcNow));
+                    .SetProperty(r => r.CompletedAt, completedAtSync));
 
             if (rowsAffected == 0)
             {
@@ -3898,6 +3899,14 @@ namespace HcPortal.Controllers
                     nomorSertifikat = current?.NomorSertifikat
                 });
             }
+
+            // Phase 423 CR-01 fix: ExecuteUpdateAsync TIDAK refresh objek `session` in-memory (EF tracker).
+            // Tanpa sinkron ini, gate CertIssuanceRules.ShouldIssueCertificate(session) baca session.IsPassed
+            // STALE (null saat PendingGrading) → cert tak pernah terbit dari jalur essay-finalize. Paritas SITE 1/2.
+            session.IsPassed = isPassed;
+            session.Score = finalPercentage;
+            session.Status = AssessmentConstants.AssessmentStatus.Completed;
+            session.CompletedAt = completedAtSync;
 
             // Phase 324 D-02: TrainingRecord auto-create removed dari FinalizeEssayGrading path.
             // Konsisten dengan GradingService.GradeAndCompleteAsync (D-01).

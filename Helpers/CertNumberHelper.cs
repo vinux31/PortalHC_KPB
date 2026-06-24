@@ -64,8 +64,10 @@ namespace HcPortal.Helpers
                         .Where(s => s.Id == sessionId && s.NomorSertifikat == null)
                         .ExecuteUpdateAsync(s => s.SetProperty(r => r.NomorSertifikat, nomor));
                     if (updated > 0) return true;
-                    // updated == 0 -> sudah terisi oleh proses lain (idempotent). Anggap sukses.
-                    return true;
+                    // WR-01: updated == 0 bisa (a) sudah ber-NomorSertifikat (idempotent OK) atau
+                    // (b) sessionId tidak ada (anomali). Konfirmasi via re-query → true HANYA bila cert benar terisi.
+                    return await context.AssessmentSessions
+                        .AnyAsync(s => s.Id == sessionId && s.NomorSertifikat != null);
                 }
                 catch (DbUpdateException ex) when (attempts < maxAttempts && IsDuplicateKeyException(ex))
                 {

@@ -718,7 +718,7 @@ namespace HcPortal.Controllers
                 foreach (var wc in model.WorkerCerts!)
                 {
                     if (CertIssuanceRules.ResemblesAutoCertFormat(wc.NomorSertifikat))
-                        ModelState.AddModelError("", $"Nomor sertifikat manual untuk pekerja {wc.UserId} tidak boleh menyerupai format otomatis (KPB/NNN/ROMAN/TAHUN).");
+                        ModelState.AddModelError("", $"Nomor sertifikat manual '{wc.NomorSertifikat}' tidak boleh menyerupai format otomatis (KPB/NNN/ROMAN/TAHUN).");
                 }
             }
 
