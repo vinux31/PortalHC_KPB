@@ -307,6 +307,25 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
             await tx.CommitAsync();   // NEW 403 (D-04): commit transaksi cascade
 
+            // AUDIT-01 (Phase 426): mirror DeleteOrganizationUnit audit. Only-on-change (D-01),
+            // single combined row (D-02), raw parent IDs (D-03). Swallow-on-failure.
+            if (oldName != name.Trim() || oldParentId != parentId)
+            {
+                try
+                {
+                    var currentUser = await _userManager.GetUserAsync(User);
+                    var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                        ? (currentUser?.FullName ?? "Unknown")
+                        : $"{currentUser.NIP} - {currentUser.FullName}";
+                    await _auditLog.LogAsync(currentUser?.Id ?? "", actorName, "EditOrganizationUnit",
+                        $"Edited organization unit '{oldName}'→'{name.Trim()}' [ID={unit.Id}] " +
+                        $"parent {(oldParentId?.ToString() ?? "null")}→{(parentId?.ToString() ?? "null")} " +
+                        $"(cascade: {cascadedUsers} users, {cascadedMappings} mappings, {cascadedUserUnits} UserUnits)",
+                        unit.Id, "OrganizationUnit");
+                }
+                catch { /* audit log failure tidak block response */ }
+            }
+
             var msg = (cascadedUsers > 0 || cascadedMappings > 0 || cascadedUserUnits > 0)
                 ? $"Unit berhasil diperbarui. {cascadedUsers} user, {cascadedMappings} mapping, dan {cascadedUserUnits} keanggotaan unit terupdate."
                 : "Unit berhasil diperbarui.";
