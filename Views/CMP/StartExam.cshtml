@@ -237,6 +237,8 @@ else
                             <i class="bi bi-layout-sidebar-reverse"></i>
                         </button>
                     </div>
+                    @* Phase 417 IC-5: indikator halaman ber-Section (diisi JS updatePageIndicator) *@
+                    <div class="mb-2"><span id="pageSectionIndicator" class="text-muted small"></span></div>
                     <div id="questionPanel" class="card shadow-sm">
                         <div class="card-body py-2 px-2">
                             <div id="panelNumbers" class="d-flex flex-wrap gap-2">
@@ -252,6 +254,8 @@ else
 
 <!-- Mobile Sticky Footer (D-07) — hidden di desktop via d-lg-none -->
 <div id="mobileFooter" class="d-lg-none">
+    @* Phase 417 IC-5: indikator halaman ber-Section (mobile, diisi JS updatePageIndicator) *@
+    <div class="text-center mb-1"><span id="pageSectionIndicatorMobile" class="text-muted small"></span></div>
     <div class="d-flex justify-content-between align-items-center gap-2">
         <button type="button" class="btn btn-outline-secondary flex-fill"
                 id="mobilePrevBtn" onclick="changePage(currentPage - 1)">
@@ -841,6 +845,32 @@ else
         toast.show();
     }
 
+    // Phase 417 D-417-06 / IC-6: toast INFORMATIONAL resume (reuse mekanisme #resumeToastContainer + bootstrap.Toast).
+    // XSS-safe: pesan via textContent, bukan innerHTML.
+    function showResumeInfoToast(message) {
+        let toastContainer = document.getElementById('resumeToastContainer');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'resumeToastContainer';
+            toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '1100';
+            document.body.appendChild(toastContainer);
+        }
+        const toastId = 'resumeInfoToast';
+        const toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-bg-info border-0" role="alert" aria-live="polite" aria-atomic="true" data-bs-autohide="true" data-bs-delay="6000">' +
+            '<div class="d-flex"><div class="toast-body fw-semibold"></div>' +
+            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div></div>';
+        toastContainer.innerHTML = toastHtml;
+        // XSS-safe: bangun isi via textContent + node, bukan innerHTML.
+        var body = toastContainer.querySelector('#' + toastId + ' .toast-body');
+        var icon = document.createElement('i');
+        icon.className = 'bi bi-info-circle-fill me-2';
+        body.appendChild(icon);
+        body.appendChild(document.createTextNode(message));
+        const toastEl = document.getElementById(toastId);
+        new bootstrap.Toast(toastEl).show();
+    }
+
     // -------- Session progress save (elapsed time + current page) --------
     function saveSessionProgress() {
         const token = document.querySelector('input[name="__RequestVerificationToken"]');
@@ -1113,46 +1143,73 @@ else
         panel.style.display = panelVisible ? 'block' : 'none';
     }
 
-    function updatePanel() {
-        const container = document.getElementById('panelNumbers');
-        container.innerHTML = '';
+    // Phase 417 D-417-03: label grup Section (full-width, tak konsumsi sel grid badge).
+    function appendSectionLabel(container, name) {
+        var lbl = document.createElement('div');
+        lbl.className = 'small text-muted fw-bold mt-2 mb-1';
+        lbl.style.gridColumn = '1 / -1';          // baris penuh di grid 7-kolom
+        lbl.textContent = name || 'Lainnya';       // XSS-safe (HC-controlled)
+        container.appendChild(lbl);
+    }
 
-        // Render all questions from allQuestionsData
+    // Phase 417: render badge ke satu container (desktop/drawer) + label grup per-Section bila HAS_SECTIONS.
+    function renderBadges(container, isDrawer) {
+        container.innerHTML = '';
+        var lastSection;          // undefined sentinel — pasti != q.sectionName pertama
+        var firstRendered = false;
         allQuestionsData.forEach(function(q) {
-            const btn = document.createElement('div');
-            const answered = answeredQuestions.has(String(q.questionId));
+            if (HAS_SECTIONS && (!firstRendered || q.sectionName !== lastSection)) {
+                appendSectionLabel(container, q.sectionName);
+                lastSection = q.sectionName;
+            }
+            firstRendered = true;
+            var btn = document.createElement('div');
+            var answered = answeredQuestions.has(String(q.questionId));
             btn.className = 'badge rounded-pill ' + (answered ? 'bg-success' : 'bg-secondary');
-            btn.style.cssText = 'font-size:0.85rem; padding:6px 10px; cursor:pointer;';
+            if (isDrawer) {
+                btn.style.cssText = 'font-size:0.85rem; padding:6px 10px; cursor:pointer; min-width:36px; width:36px; height:32px; display:flex; align-items:center; justify-content:center;';
+            } else {
+                btn.style.cssText = 'font-size:0.85rem; padding:6px 10px; cursor:pointer;';
+            }
             btn.innerText = q.displayNumber;
-            // Store data for navigation
             btn.dataset.questionId = q.questionId;
             btn.dataset.pageNumber = q.pageNumber;
-            // Add click handler for navigation
             btn.addEventListener('click', function() {
+                if (isDrawer) {
+                    var drawerEl = document.getElementById('questionNavDrawer');
+                    var drawer = bootstrap.Offcanvas.getInstance(drawerEl);
+                    if (drawer) drawer.hide();
+                }
                 jumpToQuestion(q.questionId, q.pageNumber);
             });
             container.appendChild(btn);
         });
+    }
+
+    function updatePanel() {
+        const container = document.getElementById('panelNumbers');
+        renderBadges(container, false);
 
         // Sync ke mobile drawer (D-02)
         var drawerNumbers = document.getElementById('drawerNumbers');
         if (drawerNumbers) {
-            drawerNumbers.innerHTML = '';
-            allQuestionsData.forEach(function(q) {
-                var dbtn = document.createElement('div');
-                var answered = answeredQuestions.has(String(q.questionId));
-                dbtn.className = 'badge rounded-pill ' + (answered ? 'bg-success' : 'bg-secondary');
-                dbtn.style.cssText = 'font-size:0.85rem; padding:6px 10px; cursor:pointer; min-width:36px; width:36px; height:32px; display:flex; align-items:center; justify-content:center;';
-                dbtn.innerText = q.displayNumber;
-                dbtn.addEventListener('click', function() {
-                    var drawerEl = document.getElementById('questionNavDrawer');
-                    var drawer = bootstrap.Offcanvas.getInstance(drawerEl);
-                    if (drawer) drawer.hide();
-                    jumpToQuestion(q.questionId, q.pageNumber);
-                });
-                drawerNumbers.appendChild(dbtn);
-            });
+            renderBadges(drawerNumbers, true);
         }
+
+        updatePageIndicator();
+    }
+
+    // Phase 417 IC-5 / D-417-04: indikator "NamaSection — Halaman n/total"; tanpa Section → "Halaman n/total".
+    function updatePageIndicator() {
+        var human = currentPage + 1;
+        var secName = HAS_SECTIONS ? (pageSectionMap[currentPage] || 'Lainnya') : null;
+        var text = secName
+            ? (secName + ' — Halaman ' + human + '/' + TOTAL_PAGES)
+            : ('Halaman ' + human + '/' + TOTAL_PAGES);
+        ['pageSectionIndicator', 'pageSectionIndicatorMobile'].forEach(function(elId) {
+            var el = document.getElementById(elId);
+            if (el) el.textContent = text;   // XSS-safe
+        });
     }
 
     function updateMobileNavButtons() {
@@ -1252,10 +1309,24 @@ else
 
         document.getElementById('resumeConfirmBtn').addEventListener('click', function() {
             resumeModal.hide();
-            currentPage = 0;
+            // Phase 417 PAG-03 / Pitfall 5: mendarat di RESUME_PAGE terhitung (server sudah clamp), bukan hardcode 0.
+            var targetPage = (typeof RESUME_PAGE === 'number' && RESUME_PAGE >= 0 && RESUME_PAGE < TOTAL_PAGES) ? RESUME_PAGE : 0;
+            // Razor default tampilkan page_0; sembunyikan dulu bila resume ke halaman lain.
+            if (targetPage !== 0) {
+                var p0 = document.getElementById('page_0');
+                if (p0) p0.style.display = 'none';
+            }
+            currentPage = targetPage;
             document.getElementById('page_' + currentPage).style.display = 'block';
             updatePanel();
+            updateMobileNavButtons();
             window.scrollTo(0, 0);
+            // D-417-06: toast informatif saat resume mendarat di halaman > 0.
+            if (currentPage > 0) {
+                var firstQid = pageQuestionIds[currentPage] && pageQuestionIds[currentPage][0];
+                var num = getDisplayNumForQuestion(firstQid);
+                showResumeInfoToast('Lanjut dari soal no. ' + num + '.');
+            }
         });
     } else {
         // Normal start or resume from page 0: just render panel
