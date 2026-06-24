@@ -742,6 +742,19 @@ namespace HcPortal.Controllers
                 }
             }
 
+            // Phase 425 CLN-02 (D-05 / FLD-5.2-04,05): cross-validate IsPassed vs (Score >= PassPercentage).
+            // Non-blocking — TETAP simpan (HC boleh override sengaja untuk entri historis), TIDAK auto-override
+            // nilai, TIDAK blokir. Score nullable: null => skip (PassStatusMismatch return false). Pesan HANYA
+            // numerik (Score, PassPercentage) + teks statis (XSS-safe; Razor auto-encode di view tujuan).
+            // Analog TempData["Success"] (non-blocking). JANGAN ModelState.AddModelError / return di sini.
+            if (ManualEntryRules.PassStatusMismatch(model.Score, model.PassPercentage, model.IsPassed))
+            {
+                TempData["Warning"] = model.IsPassed
+                    ? $"Ditandai Lulus walau Score {model.Score} < Pass {model.PassPercentage}%. Tersimpan apa adanya (override HC)."
+                    : $"Ditandai Tidak Lulus walau Score {model.Score} >= Pass {model.PassPercentage}%. Tersimpan apa adanya.";
+                // TIDAK return — lanjut ke build session + SaveChanges.
+            }
+
             var currentUserId = (await _userManager.GetUserAsync(User))?.Id;
 
             foreach (var wc in model.WorkerCerts!)
