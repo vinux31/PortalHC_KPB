@@ -14,7 +14,9 @@ namespace HcPortal.Models
         [ForeignKey("AssessmentSessionId")]
         public virtual AssessmentSession AssessmentSession { get; set; } = null!;
 
-        // FK to the package assigned to this user (Restrict — don't cascade-delete assignments when package deleted)
+        // SENTINEL (PA-05): bukan "paket aktual" peserta — ini paket PERTAMA (seed) yang dipilih saat
+        // build assignment (CMPController.cs:1087-1093). Soal aktual ditentukan oleh ShuffledQuestionIds
+        // (bisa lintas paket). FK Restrict — assignment tak ikut terhapus saat package dihapus.
         public int AssessmentPackageId { get; set; }
         [ForeignKey("AssessmentPackageId")]
         public virtual AssessmentPackage AssessmentPackage { get; set; } = null!;
