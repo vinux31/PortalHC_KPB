@@ -56,9 +56,9 @@ namespace HcPortal.Helpers
             var ws = workbook.Worksheets.Add("Detail Per Soal");
             // Order field = stable sort key (AssessmentPackage.cs L38 comment)
             // Phase 419 PAG-04: urutan kolom soal Section-aware (canonical, mirror ShuffleEngine/SectionPaginator 416/417).
-            // Soal tanpa Section (SectionNumber null) -> grup "Lainnya" terakhir (int.MaxValue).
+            // Soal tanpa Section (SectionNumber null) -> grup "Lainnya" terakhir (SectionExportLayout.OrderKey = int.MaxValue).
             var sortedQuestions = questions
-                .OrderBy(q => q.Section?.SectionNumber ?? int.MaxValue)
+                .OrderBy(q => SectionExportLayout.OrderKey(q.Section?.SectionNumber))
                 .ThenBy(q => q.Order)
                 .ThenBy(q => q.Id)
                 .ToList();
@@ -76,12 +76,12 @@ namespace HcPortal.Helpers
                 int qIdx = 0;
                 foreach (var grp in sortedQuestions
                     .GroupBy(q => q.Section?.SectionNumber)
-                    .OrderBy(g => g.Key ?? int.MaxValue))
+                    .OrderBy(g => SectionExportLayout.OrderKey(g.Key)))
                 {
                     int count = grp.Count();
                     int startCol = 4 + 2 * qIdx;             // kolom 1-3 = No/Nama/NIP (tanpa band)
                     int endCol = startCol + 2 * count - 1;   // tiap soal = 2 kolom (Jawaban + Benar?)
-                    var label = grp.Key.HasValue ? $"Section {grp.Key}: {grp.First().Section?.Name}" : "Lainnya";
+                    var label = SectionExportLayout.Label(grp.Key, grp.First().Section?.Name);
                     ws.Cell(bandRow, startCol).Value = label;
                     var band = ws.Range(bandRow, startCol, bandRow, endCol);
                     band.Merge();
@@ -142,7 +142,10 @@ namespace HcPortal.Helpers
                 rowIdx++;
             }
 
-            ws.Columns().AdjustToContents();
+            // Phase 419 PAG-04 (review fix #8): auto-fit dari headerRow ke bawah — LEWATKAN band row.
+            // Label band "Section {n}: {Nama}" yang panjang tersimpan hanya di sel kolom-awal grup; bila ikut
+            // di-auto-fit, kolom "Jawaban" soal pertama tiap Section melebar tak proporsional. headerRow=1 (legacy) = identik.
+            ws.Columns().AdjustToContents(headerRow);
             ws.SheetView.FreezeRows(anySection ? 2 : 1);
         }
 

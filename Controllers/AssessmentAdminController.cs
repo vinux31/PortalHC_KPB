@@ -5543,9 +5543,14 @@ namespace HcPortal.Controllers
                 var sessionPackage = sessionPackageMap.FirstOrDefault(x => x.AssessmentSessionId == session.Id);
                 if (sessionPackage != null)
                 {
+                    // Phase 419 PAG-04 (review fix #1): per-peserta Excel "Detail Jawaban" kini Section-aware
+                    // (OrderKey, Order, Id) — paritas dgn PDF + sheet agregat. Sebelumnya OrderBy(Id) saja → "Soal N"
+                    // di sheet ini ≠ nomor soal di PDF/agregat (mis-atribusi saat cross-cek jawaban).
                     var sessionQuestions = allQuestions
                         .Where(q => q.AssessmentPackageId == sessionPackage.AssessmentPackageId)
-                        .OrderBy(q => q.Id)
+                        .OrderBy(q => SectionExportLayout.OrderKey(q.Section?.SectionNumber))
+                        .ThenBy(q => q.Order)
+                        .ThenBy(q => q.Id)
                         .ToList();
                     var sessionResp = allResponses.Where(r => r.AssessmentSessionId == session.Id).ToList();
 
@@ -5566,8 +5571,23 @@ namespace HcPortal.Controllers
                     currentRow++;
 
                     int no = 1;
-                    foreach (var q in sessionQuestions)
+                    // Phase 419 PAG-04 (review fix #1): heading "Section {n}: {Nama}" antar grup soal (paritas PDF + agregat).
+                    // anySectionDetail gate → backward-compat: tanpa Section sama sekali = output legacy (tanpa heading).
+                    bool anySectionDetail = sessionQuestions.Any(q => q.Section != null);
+                    foreach (var grp in sessionQuestions
+                        .GroupBy(q => q.Section?.SectionNumber)
+                        .OrderBy(g => SectionExportLayout.OrderKey(g.Key)))
                     {
+                        if (anySectionDetail)
+                        {
+                            ws.Cell(currentRow, 1).Value = SectionExportLayout.Label(grp.Key, grp.First().Section?.Name);
+                            ws.Cell(currentRow, 1).Style.Font.Bold = true;
+                            ws.Range(currentRow, 1, currentRow, 6).Merge();
+                            ws.Range(currentRow, 1, currentRow, 6).Style.Fill.BackgroundColor = XLColor.LightGray;
+                            currentRow++;
+                        }
+                        foreach (var q in grp)
+                        {
                         string tipe = q.QuestionType ?? "MultipleChoice";
 
                         if (tipe == "Essay")
@@ -5621,7 +5641,8 @@ namespace HcPortal.Controllers
                         ws.Cell(currentRow, 5).Value = correctText;
                         ws.Cell(currentRow, 6).Value = correct ? "✓" : "✗";
                         currentRow++;
-                    }
+                        } // foreach q in grp
+                    } // foreach grp (Section) — Phase 419 review fix #1
                 }
             }
 
@@ -5733,7 +5754,7 @@ namespace HcPortal.Controllers
                 .ToList();
             var sessionQuestions = allQuestions
                 .Where(q => sessionPkgIds.Contains(q.AssessmentPackageId))
-                .OrderBy(q => q.Section?.SectionNumber ?? int.MaxValue).ThenBy(q => q.Order).ThenBy(q => q.Id)   // Phase 419 PAG-04 Section-aware
+                .OrderBy(q => SectionExportLayout.OrderKey(q.Section?.SectionNumber)).ThenBy(q => q.Order).ThenBy(q => q.Id)   // Phase 419 PAG-04 Section-aware
                 .ToList();
 
             return QuestPDF.Fluent.Document.Create(document =>
@@ -5820,14 +5841,16 @@ namespace HcPortal.Controllers
                             int qNum = 1;
                             foreach (var grp in sessionQuestions
                                 .GroupBy(sq => sq.Section?.SectionNumber)
-                                .OrderBy(g => g.Key ?? int.MaxValue))
+                                .OrderBy(g => SectionExportLayout.OrderKey(g.Key)))
                             {
                                 if (anySection)
                                 {
-                                    var sectionLabel = grp.Key.HasValue ? $"Section {grp.Key}: {grp.First().Section?.Name}" : "Lainnya";
+                                    var sectionLabel = SectionExportLayout.Label(grp.Key, grp.First().Section?.Name);
                                     col.Item().PaddingTop(6).Text(sectionLabel).Bold().FontSize(12).FontColor(QuestPDF.Helpers.Colors.Blue.Darken2);
                                 }
-                                foreach (var q in grp.OrderBy(sq => sq.Order).ThenBy(sq => sq.Id))
+                                // Phase 419 review fix #6: hapus OrderBy(Order).ThenBy(Id) redundan — sessionQuestions
+                                // sudah terurut (OrderKey, Order, Id) di atas & GroupBy menjaga urutan sumber dalam grup.
+                                foreach (var q in grp)
                                 {
                                 // Phase 386 PXF-05 (F-17 D-09/D-10) — label + answer cell via shared display helpers
                                 // untuk SEMUA tipe soal. MA kini di-label all-or-nothing (SetEquals via IsQuestionCorrect)
@@ -7682,42 +7705,63 @@ namespace HcPortal.Controllers
             ViewBag.Questions = pkg.Questions.OrderBy(q => q.Order).ToList();
             ViewBag.Sections = sections;
 
-            // Phase 419 D-03 / DEF-416-01 / IN-01: peringatan cakupan Elemen Teknis (ET) per-Section, NON-BLOCKING.
-            // Re-spec lintas paket-saudara (sibling). Predikat LAMA (DistinctEt > K dalam 1 paket) tak pernah fire —
-            // tiap PackageQuestion = 1 ET → distinct ET <= jumlah soal. Sekarang: DistinctEt = distinct ET pool soal
-            // SectionNumber=N LINTAS sibling; K = min(count soal SectionNumber=N antar paket yang PUNYA N) = kuota yang
-            // dipresentasikan ke peserta. Fire bila DistinctEt > K (sebagian ET tak terjamin muncul). Group by
-            // SectionNumber (IN-01, BUKAN SectionId — sibling beda Id sama nomor). Soal "Lainnya" (Section null) di-skip.
+            // Phase 419 D-03 / DEF-416-01 / IN-01 (+ code-review 419 fixes #3/#4/#7): peringatan cakupan ET per-Section,
+            // NON-BLOCKING. Re-spec lintas paket-saudara (sibling). Predikat LAMA (DistinctEt > K dalam 1 paket) tak
+            // pernah fire — tiap PackageQuestion = 1 ET → distinct ET <= jumlah soal. Sekarang: DistinctEt = distinct ET
+            // pool soal SectionNumber=N LINTAS sibling; K = min(DISTINCT ET per-paket SectionNumber=N antar paket yang
+            // MEN-DEFINISIKAN Section N) = ragam ET worst-case yang dilihat 1 peserta. Fire bila DistinctEt > K (sebagian ET
+            // tak terjamin muncul). Group by SectionNumber (IN-01, BUKAN SectionId). Soal "Lainnya" (Section null) di-skip.
             // TIDAK memblokir (ViewBag sinyal saja — D-416-03 load-bearing tak berubah).
-            // Projeksi langsung (anonymous, NO-track) supaya SectionNumber/Name di-resolve via DB join — TIDAK bergantung
-            // pada nav fixup entitas pkg.Questions yang sudah ter-track dari query di atas (yang TANPA .Include Section).
+            // FIX #3: K dihitung atas paket PENDEFINISI (punya row AssessmentPackageSection N) — paket yang mendefinisikan
+            //   N tapi tak isi soal → kuota 0 → warning fire (sebelumnya .Where(c>0) menyembunyikan cakupan nol).
+            // FIX #4: hanya tampilkan warning untuk SectionNumber yang ADA di paket ini (scope halaman) — bukan section
+            //   yang cuma ada di sibling (membingungkan karena tak muncul di tabel paket ini).
+            // FIX #7: pre-group siblingQ SEKALI (dict) — hindari enumerasi berulang per SectionNumber.
+            // Projeksi langsung (anonymous, NO-track) supaya di-resolve via DB join — TIDAK bergantung nav fixup entitas
+            // pkg.Questions yang sudah ter-track dari query di atas (yang TANPA .Include Section).
             var siblingQ = await _context.PackageQuestions
                 .Where(q => q.AssessmentPackage.AssessmentSessionId == pkg.AssessmentSessionId && q.SectionId != null)
-                .Select(q => new { q.AssessmentPackageId, q.ElemenTeknis, SectionNumber = q.Section!.SectionNumber, SectionName = q.Section!.Name })
+                .Select(q => new { q.AssessmentPackageId, q.ElemenTeknis, SectionNumber = q.Section!.SectionNumber })
                 .ToListAsync();
-            var siblingSectionNumbers = siblingQ
-                .Select(x => x.SectionNumber)
-                .Distinct()
-                .OrderBy(n => n)
-                .ToList();
-            ViewBag.SectionEtWarnings = siblingSectionNumbers.Select(n =>
+            var siblingSections = await _context.AssessmentPackageSections
+                .Where(s => s.AssessmentPackage.AssessmentSessionId == pkg.AssessmentSessionId)
+                .Select(s => new { s.AssessmentPackageId, s.SectionNumber, s.Name })
+                .ToListAsync();
+
+            // Pre-group sekali (FIX #7).
+            var distinctEtBySection = siblingQ
+                .Where(x => !string.IsNullOrWhiteSpace(x.ElemenTeknis))
+                .GroupBy(x => x.SectionNumber)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.ElemenTeknis!).Distinct().Count());
+            // K-per-paket = jumlah ET DISTINCT (non-kosong) yang bisa dipresentasikan ke peserta paket itu pada Section n.
+            // BUKAN raw count soal: paket dgn ET berulang/blank meng-overstate kuota → false-negative (warning gagal fire
+            // padahal peserta paket itu cuma lihat sedikit ragam ET). Review-419 verify lens menangkap ini.
+            var distinctEtBySectionPkg = siblingQ
+                .Where(x => !string.IsNullOrWhiteSpace(x.ElemenTeknis))
+                .GroupBy(x => (x.SectionNumber, x.AssessmentPackageId))
+                .ToDictionary(g => g.Key, g => g.Select(x => x.ElemenTeknis!).Distinct().Count());
+
+            var warnings = new List<SectionEtWarning>();
+            foreach (var n in sections.Select(s => s.SectionNumber).Distinct().OrderBy(x => x))   // FIX #4: section paket ini saja
             {
-                // K = min(count soal SectionNumber=n) lintas paket yang PUNYA Section n (kuota dipresentasikan).
-                int k = siblingQ
-                    .GroupBy(x => x.AssessmentPackageId)
-                    .Select(g => g.Count(x => x.SectionNumber == n))
-                    .Where(c => c > 0)
-                    .DefaultIfEmpty(0)
-                    .Min();
-                // DistinctEt = distinct ET (non-kosong) pool soal SectionNumber=n lintas SEMUA sibling.
-                int distinctEt = siblingQ
-                    .Where(x => x.SectionNumber == n && !string.IsNullOrWhiteSpace(x.ElemenTeknis))
-                    .Select(x => x.ElemenTeknis!)
+                var definingPkgIds = siblingSections
+                    .Where(s => s.SectionNumber == n)
+                    .Select(s => s.AssessmentPackageId)
                     .Distinct()
-                    .Count();
-                var name = siblingQ.First(x => x.SectionNumber == n).SectionName;
-                return new SectionEtWarning(n, name, k, distinctEt);
-            }).Where(w => w.DistinctEt > w.K).ToList();
+                    .ToList();
+                if (definingPkgIds.Count == 0) continue;
+                // K = min DISTINCT-ET-per-paket lintas paket PENDEFINISI = ragam ET worst-case yang dilihat 1 peserta.
+                // 0 bila paket mendefinisikan Section n tapi tak punya soal ber-ET di n (preserve FIX #3 → warning fire).
+                int k = definingPkgIds.Min(pid => distinctEtBySectionPkg.TryGetValue((n, pid), out var c) ? c : 0);
+                int distinctEt = distinctEtBySection.TryGetValue(n, out var de) ? de : 0;
+                if (distinctEt > k)
+                {
+                    // Nama dari section paket INI (deterministik + sama dgn yang admin lihat di tabel — review fix #2).
+                    var name = sections.First(s => s.SectionNumber == n).Name;
+                    warnings.Add(new SectionEtWarning(n, name, k, distinctEt));
+                }
+            }
+            ViewBag.SectionEtWarnings = warnings;
 
             return View();
         }

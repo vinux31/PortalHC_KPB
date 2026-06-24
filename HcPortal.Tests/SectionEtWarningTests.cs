@@ -173,4 +173,25 @@ public class SectionEtWarningTests : IClassFixture<SectionFixture>
 
         Assert.DoesNotContain(WarningsFrom(ctrl), w => w.SectionNumber == 1);
     }
+
+    // REGRESSION (code-review 419 verify lens): sibling dgn ET BERULANG (3x ET-A). Pool distinct lintas-sibling =
+    // {A,B,C}=3. K LAMA (raw count soal) = min(3,3)=3 → 3>3 FALSE → warning gagal fire (false-negative) walau peserta
+    // paket-2 cuma pernah lihat ET-A. K BENAR (distinct-ET per-paket) = min(3,1)=1 → 3>1 → fire. Mengunci fix unit-mismatch.
+    [Fact]
+    public async Task RepeatedEtInSibling_Fires()
+    {
+        int pkg1Id;
+        await using (var seed = NewCtx())
+        {
+            var sid = await SeedAssessmentAsync(seed);
+            pkg1Id = await AddPackageWithEtAsync(seed, sid, 1, 1, "Sec1", new[] { "ET-A", "ET-B", "ET-C" });
+            await AddPackageWithEtAsync(seed, sid, 2, 1, "Sec1", new[] { "ET-A", "ET-A", "ET-A" });
+        }
+
+        await using var ctx = NewCtx();
+        var ctrl = MakeController(ctx);
+        await ctrl.ManagePackageQuestions(pkg1Id);
+
+        Assert.Contains(WarningsFrom(ctrl), w => w.SectionNumber == 1);
+    }
 }
