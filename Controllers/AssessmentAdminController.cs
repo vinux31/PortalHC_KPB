@@ -6376,6 +6376,11 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetAllSectionsNewPage(int packageId)
         {
+            // Parity dgn CreateSection/EditSection/DeleteSection (audit v32.6 L2): verifikasi paket ada
+            // sebelum mutasi — endpoint sudah RBAC+antiforgery, tapi guard existence cegah aksi pada packageId asing/ngawur.
+            var pkg = await _context.AssessmentPackages.FirstOrDefaultAsync(p => p.Id == packageId);
+            if (pkg == null) return NotFound();
+
             var sections = await _context.AssessmentPackageSections
                 .Where(s => s.AssessmentPackageId == packageId)
                 .ToListAsync();
