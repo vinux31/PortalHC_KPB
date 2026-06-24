@@ -142,7 +142,7 @@
 **Plans:** 3 plans (3 waves — sekuensial by file-overlap: helper/scorer → CMPController → AssessmentAdminController + UAT)
 - [x] 424-01-PLAN.md — Wave 1 [KEYSTONE]: Wave-0 parity-lock + pure helpers PrePostPairing & ExamTimeRules (NEW) + promosikan AssessmentScoreAggregator jadi single-scorer + konvergensi 3 jalur dedupe last-write-wins (GRDF-02 / D-06/D-07) [migration=FALSE]
 - [x] 424-02-PLAN.md — Wave 2: CMPController — gate gating Pre→Post StartExam (GRDF-01) + pairing terfilter UserId (GRDF-03) + clamp ExtraTime :469 (GRDF-05) + essay kosong on-time reject (GRDF-07) + real-SQL gate/essay tests; depends 01 [migration=FALSE]
-- [ ] 424-03-PLAN.md — Wave 3 [autonomous=false]: AssessmentAdminController — matikan auto-link judul Standard forward-only (GRDF-04/D-08) + konfirmasi export Durasi Aktual (GRDF-05) + checkpoint UAT live @5270 (gating/essay/export/forward-only/smoke); depends 01+02 [migration=FALSE]
+- [x] 424-03-PLAN.md — Wave 3 [autonomous=false]: AssessmentAdminController — matikan auto-link judul Standard forward-only (GRDF-04/D-08) + konfirmasi export Durasi Aktual (GRDF-05) + checkpoint UAT live @5270 (gating/essay/export/forward-only/smoke); depends 01+02 [migration=FALSE]
 **UI hint:** yes
 
 ### Phase 425: Cosmetic / Naming / Tech-Debt Cleanup
@@ -168,7 +168,7 @@
 | 421. Retake Lifecycle Hardening (RTH-01..05) | 3/3 | Complete   | 2026-06-23 |
 | 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 3/3 | Complete   | 2026-06-23 |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 3/3 | Complete    | 2026-06-24 |
-| 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..05,07) | 2/3 | In Progress|  |
+| 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..05,07) | 3/3 | Complete   | 2026-06-24 |
 | 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 0/TBD | Not started | - |
 
 </details>
