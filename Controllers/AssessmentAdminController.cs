@@ -5543,106 +5543,13 @@ namespace HcPortal.Controllers
                 var sessionPackage = sessionPackageMap.FirstOrDefault(x => x.AssessmentSessionId == session.Id);
                 if (sessionPackage != null)
                 {
-                    // Phase 419 PAG-04 (review fix #1): per-peserta Excel "Detail Jawaban" kini Section-aware
-                    // (OrderKey, Order, Id) — paritas dgn PDF + sheet agregat. Sebelumnya OrderBy(Id) saja → "Soal N"
-                    // di sheet ini ≠ nomor soal di PDF/agregat (mis-atribusi saat cross-cek jawaban).
+                    // Phase 419 PAG-04 (review fix #1): tabel "Detail Jawaban" Section-aware diekstrak ke helper
+                    // ExcelExportHelper.AddPerPesertaDetailJawaban (bisa di-unit-test; helper urutkan canonical sendiri).
                     var sessionQuestions = allQuestions
                         .Where(q => q.AssessmentPackageId == sessionPackage.AssessmentPackageId)
-                        .OrderBy(q => SectionExportLayout.OrderKey(q.Section?.SectionNumber))
-                        .ThenBy(q => q.Order)
-                        .ThenBy(q => q.Id)
                         .ToList();
                     var sessionResp = allResponses.Where(r => r.AssessmentSessionId == session.Id).ToList();
-
-                    ws.Cell(currentRow, 1).Value = "Detail Jawaban";
-                    ws.Cell(currentRow, 1).Style.Font.Bold = true;
-                    ws.Range(currentRow, 1, currentRow, 6).Merge();
-                    currentRow++;
-
-                    // Table header
-                    ws.Cell(currentRow, 1).Value = "No";
-                    ws.Cell(currentRow, 2).Value = "Soal";
-                    ws.Cell(currentRow, 3).Value = "Tipe";
-                    ws.Cell(currentRow, 4).Value = "Jawaban Peserta";
-                    ws.Cell(currentRow, 5).Value = "Jawaban Benar";
-                    ws.Cell(currentRow, 6).Value = "Status";
-                    ws.Range(currentRow, 1, currentRow, 6).Style.Font.Bold = true;
-                    ws.Range(currentRow, 1, currentRow, 6).Style.Fill.BackgroundColor = XLColor.LightBlue;
-                    currentRow++;
-
-                    int no = 1;
-                    // Phase 419 PAG-04 (review fix #1): heading "Section {n}: {Nama}" antar grup soal (paritas PDF + agregat).
-                    // anySectionDetail gate → backward-compat: tanpa Section sama sekali = output legacy (tanpa heading).
-                    bool anySectionDetail = sessionQuestions.Any(q => q.Section != null);
-                    foreach (var grp in sessionQuestions
-                        .GroupBy(q => q.Section?.SectionNumber)
-                        .OrderBy(g => SectionExportLayout.OrderKey(g.Key)))
-                    {
-                        if (anySectionDetail)
-                        {
-                            ws.Cell(currentRow, 1).Value = SectionExportLayout.Label(grp.Key, grp.First().Section?.Name);
-                            ws.Cell(currentRow, 1).Style.Font.Bold = true;
-                            ws.Range(currentRow, 1, currentRow, 6).Merge();
-                            ws.Range(currentRow, 1, currentRow, 6).Style.Fill.BackgroundColor = XLColor.LightGray;
-                            currentRow++;
-                        }
-                        foreach (var q in grp)
-                        {
-                        string tipe = q.QuestionType ?? "MultipleChoice";
-
-                        if (tipe == "Essay")
-                        {
-                            // PXF-09: tampilkan jawaban teks peserta + skor essay (bukan placeholder "—").
-                            var essayResp = sessionResp.FirstOrDefault(r => r.PackageQuestionId == q.Id);
-                            ws.Cell(currentRow, 1).Value = no++;
-                            ws.Cell(currentRow, 2).Value = q.QuestionText;
-                            ws.Cell(currentRow, 3).Value = "Essay";
-                            ws.Cell(currentRow, 4).Value = string.IsNullOrWhiteSpace(essayResp?.TextAnswer) ? "Tidak dijawab" : essayResp.TextAnswer;
-                            ws.Cell(currentRow, 5).Value = "—"; // essay: tidak ada "jawaban benar" deterministik
-                            ws.Cell(currentRow, 6).Value = essayResp?.EssayScore.HasValue == true
-                                ? $"Skor: {essayResp.EssayScore}/{q.ScoreValue}"
-                                : "Belum dinilai";
-                            currentRow++;
-                            continue;
-                        }
-
-                        var responses = sessionResp.Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue).ToList();
-                        string jawabanText;
-                        bool correct;
-
-                        if (!responses.Any())
-                        {
-                            // Soal tanpa response (Abandoned skip soal) — REQ EXP-03
-                            jawabanText = "Tidak dijawab";
-                            correct = false;
-                        }
-                        else if (tipe == "MultipleChoice")
-                        {
-                            var optId = responses.First().PackageOptionId!.Value;
-                            var opt = q.Options.FirstOrDefault(o => o.Id == optId);
-                            jawabanText = opt?.OptionText ?? "—";
-                            correct = opt?.IsCorrect == true;
-                        }
-                        else // MultipleAnswer
-                        {
-                            var selectedIds = responses.Select(r => r.PackageOptionId!.Value).ToHashSet();
-                            jawabanText = string.Join(", ",
-                                q.Options.Where(o => selectedIds.Contains(o.Id)).Select(o => o.OptionText));
-                            var correctIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
-                            correct = selectedIds.SetEquals(correctIds);
-                        }
-
-                        string correctText = string.Join(", ", q.Options.Where(o => o.IsCorrect).Select(o => o.OptionText));
-
-                        ws.Cell(currentRow, 1).Value = no++;
-                        ws.Cell(currentRow, 2).Value = q.QuestionText;
-                        ws.Cell(currentRow, 3).Value = tipe == "MultipleChoice" ? "SA" : "MA";
-                        ws.Cell(currentRow, 4).Value = jawabanText;
-                        ws.Cell(currentRow, 5).Value = correctText;
-                        ws.Cell(currentRow, 6).Value = correct ? "✓" : "✗";
-                        currentRow++;
-                        } // foreach q in grp
-                    } // foreach grp (Section) — Phase 419 review fix #1
+                    currentRow = ExcelExportHelper.AddPerPesertaDetailJawaban(ws, currentRow, sessionQuestions, sessionResp);
                 }
             }
 

@@ -157,4 +157,61 @@ public class ExportSectionLabelTests : IClassFixture<SectionFixture>
         Assert.Equal("Nama", ws.Cell(1, 2).GetString());
         Assert.Equal("NIP", ws.Cell(1, 3).GetString());
     }
+
+    // === Phase 419 review fix #1: tabel per-peserta "Detail Jawaban" (ExcelExportHelper.AddPerPesertaDetailJawaban) ===
+
+    private static List<PackageQuestion> LoadQuestions(ApplicationDbContext ctx, int packageId)
+        => ctx.PackageQuestions.Where(q => q.AssessmentPackageId == packageId)
+            .Include(q => q.Options).Include(q => q.Section).ToList();
+
+    // Heading "Section {n}: {Nama}" / "Lainnya" di kolom-1, urut atas->bawah (= urut Section).
+    private static List<string> PerPesertaSectionHeadingsTopDown(IXLWorksheet ws)
+        => ws.CellsUsed()
+            .Where(c => c.Address.ColumnNumber == 1
+                        && (Regex.IsMatch(c.GetString(), @"^Section \d+:") || c.GetString() == "Lainnya"))
+            .OrderBy(c => c.Address.RowNumber)
+            .Select(c => c.GetString())
+            .ToList();
+
+    // RED-intent: helper LAMA OrderBy(Id)/Order → tanpa heading / urut salah. GREEN: heading per grup urut
+    // (Section 1, Section 2, Lainnya) top->down. Seed sengaja Order Section-2 dulu → de-tautology vs flat-by-Order.
+    [Fact]
+    public async Task PerPesertaDetail_RendersSectionHeadingsInOrder()
+    {
+        int packageId;
+        await using (var seed = NewCtx())
+            (_, packageId) = await SeedPackageAsync(seed, new (int?, string?, int)[]
+            {
+                (2, "Sec2", 2), (1, "Sec1", 3), (null, null, 1)
+            });
+
+        await using var ctx = NewCtx();
+        var wb = new XLWorkbook();
+        var ws = wb.Worksheets.Add("Peserta");
+        ExcelExportHelper.AddPerPesertaDetailJawaban(ws, 1, LoadQuestions(ctx, packageId), new List<PackageUserResponse>());
+
+        Assert.Equal(new[] { "Section 1: Sec1", "Section 2: Sec2", "Lainnya" }, PerPesertaSectionHeadingsTopDown(ws));
+    }
+
+    // Backward-compat: tanpa Section → tak ada heading; "Detail Jawaban" + "No" tetap; return baris berikutnya > start.
+    [Fact]
+    public async Task PerPesertaDetail_NoSection_BackwardCompat()
+    {
+        int packageId;
+        await using (var seed = NewCtx())
+            (_, packageId) = await SeedPackageAsync(seed, new (int?, string?, int)[]
+            {
+                (null, null, 3)
+            });
+
+        await using var ctx = NewCtx();
+        var wb = new XLWorkbook();
+        var ws = wb.Worksheets.Add("Peserta");
+        int next = ExcelExportHelper.AddPerPesertaDetailJawaban(ws, 1, LoadQuestions(ctx, packageId), new List<PackageUserResponse>());
+
+        Assert.Empty(PerPesertaSectionHeadingsTopDown(ws));
+        Assert.Equal("Detail Jawaban", ws.Cell(1, 1).GetString());
+        Assert.Equal("No", ws.Cell(2, 1).GetString());
+        Assert.True(next > 1);
+    }
 }

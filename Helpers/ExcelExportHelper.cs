@@ -150,6 +150,117 @@ namespace HcPortal.Helpers
         }
 
         /// <summary>
+        /// Phase 419 PAG-04 (review fix #1): tabel "Detail Jawaban" per-peserta (REQ EXP-03) di sheet per-peserta.
+        /// Section-aware — heading "Section {n}: {Nama}" antar grup soal (paritas GeneratePerPesertaPdf + sheet
+        /// agregat "Detail Per Soal"). Urut soal canonical (SectionExportLayout.OrderKey, Order, Id). Tanpa Section
+        /// sama sekali → tak ada heading (backward-compat). Diekstrak dari AssessmentAdminController supaya bisa
+        /// di-unit-test langsung. Mengembalikan baris berikutnya (setelah tabel) agar pemanggil lanjut.
+        /// </summary>
+        public static int AddPerPesertaDetailJawaban(
+            IXLWorksheet ws,
+            int startRow,
+            List<PackageQuestion> sessionQuestions,
+            List<PackageUserResponse> sessionResp)
+        {
+            int currentRow = startRow;
+            var sorted = sessionQuestions
+                .OrderBy(q => SectionExportLayout.OrderKey(q.Section?.SectionNumber))
+                .ThenBy(q => q.Order)
+                .ThenBy(q => q.Id)
+                .ToList();
+
+            ws.Cell(currentRow, 1).Value = "Detail Jawaban";
+            ws.Cell(currentRow, 1).Style.Font.Bold = true;
+            ws.Range(currentRow, 1, currentRow, 6).Merge();
+            currentRow++;
+
+            // Table header
+            ws.Cell(currentRow, 1).Value = "No";
+            ws.Cell(currentRow, 2).Value = "Soal";
+            ws.Cell(currentRow, 3).Value = "Tipe";
+            ws.Cell(currentRow, 4).Value = "Jawaban Peserta";
+            ws.Cell(currentRow, 5).Value = "Jawaban Benar";
+            ws.Cell(currentRow, 6).Value = "Status";
+            ws.Range(currentRow, 1, currentRow, 6).Style.Font.Bold = true;
+            ws.Range(currentRow, 1, currentRow, 6).Style.Fill.BackgroundColor = XLColor.LightBlue;
+            currentRow++;
+
+            int no = 1;
+            // heading "Section {n}: {Nama}" antar grup; anySectionDetail gate = backward-compat (tanpa Section = legacy).
+            bool anySectionDetail = sorted.Any(q => q.Section != null);
+            foreach (var grp in sorted
+                .GroupBy(q => q.Section?.SectionNumber)
+                .OrderBy(g => SectionExportLayout.OrderKey(g.Key)))
+            {
+                if (anySectionDetail)
+                {
+                    ws.Cell(currentRow, 1).Value = SectionExportLayout.Label(grp.Key, grp.First().Section?.Name);
+                    ws.Cell(currentRow, 1).Style.Font.Bold = true;
+                    ws.Range(currentRow, 1, currentRow, 6).Merge();
+                    ws.Range(currentRow, 1, currentRow, 6).Style.Fill.BackgroundColor = XLColor.LightGray;
+                    currentRow++;
+                }
+                foreach (var q in grp)
+                {
+                    string tipe = q.QuestionType ?? "MultipleChoice";
+
+                    if (tipe == "Essay")
+                    {
+                        // PXF-09: tampilkan jawaban teks peserta + skor essay (bukan placeholder "—").
+                        var essayResp = sessionResp.FirstOrDefault(r => r.PackageQuestionId == q.Id);
+                        ws.Cell(currentRow, 1).Value = no++;
+                        ws.Cell(currentRow, 2).Value = q.QuestionText;
+                        ws.Cell(currentRow, 3).Value = "Essay";
+                        ws.Cell(currentRow, 4).Value = string.IsNullOrWhiteSpace(essayResp?.TextAnswer) ? "Tidak dijawab" : essayResp.TextAnswer;
+                        ws.Cell(currentRow, 5).Value = "—"; // essay: tidak ada "jawaban benar" deterministik
+                        ws.Cell(currentRow, 6).Value = essayResp?.EssayScore.HasValue == true
+                            ? $"Skor: {essayResp.EssayScore}/{q.ScoreValue}"
+                            : "Belum dinilai";
+                        currentRow++;
+                        continue;
+                    }
+
+                    var responses = sessionResp.Where(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue).ToList();
+                    string jawabanText;
+                    bool correct;
+
+                    if (!responses.Any())
+                    {
+                        // Soal tanpa response (Abandoned skip soal) — REQ EXP-03
+                        jawabanText = "Tidak dijawab";
+                        correct = false;
+                    }
+                    else if (tipe == "MultipleChoice")
+                    {
+                        var optId = responses.First().PackageOptionId!.Value;
+                        var opt = q.Options.FirstOrDefault(o => o.Id == optId);
+                        jawabanText = opt?.OptionText ?? "—";
+                        correct = opt?.IsCorrect == true;
+                    }
+                    else // MultipleAnswer
+                    {
+                        var selectedIds = responses.Select(r => r.PackageOptionId!.Value).ToHashSet();
+                        jawabanText = string.Join(", ",
+                            q.Options.Where(o => selectedIds.Contains(o.Id)).Select(o => o.OptionText));
+                        var correctIds = q.Options.Where(o => o.IsCorrect).Select(o => o.Id).ToHashSet();
+                        correct = selectedIds.SetEquals(correctIds);
+                    }
+
+                    string correctText = string.Join(", ", q.Options.Where(o => o.IsCorrect).Select(o => o.OptionText));
+
+                    ws.Cell(currentRow, 1).Value = no++;
+                    ws.Cell(currentRow, 2).Value = q.QuestionText;
+                    ws.Cell(currentRow, 3).Value = tipe == "MultipleChoice" ? "SA" : "MA";
+                    ws.Cell(currentRow, 4).Value = jawabanText;
+                    ws.Cell(currentRow, 5).Value = correctText;
+                    ws.Cell(currentRow, 6).Value = correct ? "✓" : "✗";
+                    currentRow++;
+                }
+            }
+            return currentRow;
+        }
+
+        /// <summary>
         /// Phase 338 CIL-05 (D-03 AMENDED): Sheet "Elemen Teknis" — matrix peserta x elemen.
         /// Header dinamis berdasarkan distinct ElemenTeknis. 1 row per peserta.
         /// Score = CorrectCount/QuestionCount*100 percentage (model: CorrectCount int + QuestionCount int).
