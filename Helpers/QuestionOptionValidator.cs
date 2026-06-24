@@ -26,6 +26,11 @@ namespace HcPortal.Helpers
             if (filled < 2)
                 return (false, $"{QuestionTypeLabels.Short(type)} membutuhkan minimal 2 opsi jawaban yang berisi teks.");
 
+            // Phase 418 OPT-03: batas atas opsi dinamis. Form authoring satu-satunya jalur yang bisa
+            // kirim >6 (defense-in-depth — import path 415 struktural max-6 via 6 kolom Excel).
+            if (filled > 6)
+                return (false, "Maksimal 6 opsi per soal.");
+
             for (int i = 0; i < texts.Length && i < corrects.Length; i++)
                 if (corrects[i] && string.IsNullOrWhiteSpace(texts[i]))
                     return (false, $"Opsi yang ditandai sebagai jawaban benar harus berisi teks ({QuestionTypeLabels.Short(type)}).");
