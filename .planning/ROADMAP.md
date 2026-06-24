@@ -158,7 +158,7 @@
 **Plans:** 4 plans
 Plans:
 - [x] 425-01-PLAN.md — Wave 1: CLN-01+CLN-03 label/doc/XML-doc selaras (AssessmentPhase RESERVED, Status 7-nilai, ValidUntil [Display], LinkedSessionId koreksi PA-04, AssessmentPackageId sentinel) [migration=FALSE]
-- [ ] 425-02-PLAN.md — Wave 1: CLN-04 konsolidasi 4 situs timer CMPController → ExamTimeRules.AllowedExamSeconds + parity test (FLOW-08/FLOW-10 DEFER) [migration=FALSE]
+- [x] 425-02-PLAN.md — Wave 1: CLN-04 konsolidasi 4 situs timer CMPController → ExamTimeRules.AllowedExamSeconds + parity test (FLOW-08/FLOW-10 DEFER) [migration=FALSE]
 - [ ] 425-03-PLAN.md — Wave 1: CLN-02 ManualEntryRules.PassStatusMismatch (pure) + warning non-blocking AddManualAssessment (TETAP simpan, CSRF/authz utuh) [migration=FALSE]
 - [ ] 425-04-PLAN.md — Wave 1: CLN-05 ControllerGuards.JsonFail (shape byte-identik) + apply subset SubmitEssayScore [migration=FALSE]
 **UI hint:** no
@@ -174,7 +174,7 @@ Plans:
 | 422. SamePackage & Shuffle Integrity (SHFX-01..07) | 3/3 | Complete   | 2026-06-23 |
 | 423. Certificate Issuance Consistency (CERT-01..07) | 3/3 | Complete    | 2026-06-24 |
 | 424. Grading De-dup + Flow/Linking + Gating Pre→Post (GRDF-01..05,07) | 3/3 | Complete   | 2026-06-24 |
-| 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 1/4 | In Progress|  |
+| 425. Cosmetic / Naming / Tech-Debt Cleanup (CLN-01..05) | 2/4 | In Progress|  |
 
 </details>
 
