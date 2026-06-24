@@ -27,9 +27,9 @@ Requirements milestone v32.6. Tiap REQ map ke satu fase roadmap (fase mulai 415)
 
 ### Section Pagination (PAG)
 
-- [ ] **PAG-01**: Default tampilan ujian = 10 soal/halaman mengalir, dengan header Section saat berganti Section.
-- [ ] **PAG-02**: Section ber-"Mulai Halaman Baru" dimulai di halaman baru; Section panjang otomatis terpecah per 10 soal.
-- [ ] **PAG-03**: Resume ujian (LastActivePage) tetap mengarah ke halaman yang benar saat pagination Section aktif.
+- [x] **PAG-01**: Default tampilan ujian = 10 soal/halaman mengalir, dengan header Section saat berganti Section.
+- [x] **PAG-02**: Section ber-"Mulai Halaman Baru" dimulai di halaman baru; Section panjang otomatis terpecah per 10 soal.
+- [x] **PAG-03**: Resume ujian (LastActivePage) tetap mengarah ke halaman yang benar saat pagination Section aktif.
 - [ ] **PAG-04**: Export per-soal (Excel/PDF) menampilkan label/header Section.
 
 ### Dynamic Options (OPT)
@@ -86,9 +86,9 @@ Tiap REQ v1 dipetakan ke tepat satu fase (roadmap v32.6, fase 415-419). Status a
 | SHF-02 | Phase 416 | Complete |
 | SHF-03 | Phase 416 | Complete |
 | SHF-04 | Phase 416 | Complete |
-| PAG-01 | Phase 417 | Pending |
-| PAG-02 | Phase 417 | Pending |
-| PAG-03 | Phase 417 | Pending |
+| PAG-01 | Phase 417 | Complete |
+| PAG-02 | Phase 417 | Complete |
+| PAG-03 | Phase 417 | Complete |
 | OPT-01 | Phase 418 | Pending |
 | OPT-02 | Phase 418 | Pending |
 | OPT-03 | Phase 418 | Pending |
