@@ -3688,16 +3688,16 @@ namespace HcPortal.Controllers
             //    Completed → divergen Score/IsPassed yang memberi PDF lisensi resmi. Cermin FinalizeEssayGrading:3591.
             var session = await _context.AssessmentSessions.FindAsync(sessionId);
             if (session == null)
-                return Json(new { success = false, message = "Session tidak ditemukan" });
+                return this.JsonFail("Session tidak ditemukan");
             if (session.Status != AssessmentConstants.AssessmentStatus.PendingGrading)
-                return Json(new { success = false, message = "Penilaian hanya bisa dilakukan saat status Menunggu Penilaian." });
+                return this.JsonFail("Penilaian hanya bisa dilakukan saat status Menunggu Penilaian.");
 
             // 2. Load question + validasi skor range (T-298-13) — WAJIB sebelum upsert agar skor invalid tak pernah membuat baris.
             var question = await _context.PackageQuestions.FindAsync(questionId);
             if (question == null)
-                return Json(new { success = false, message = "Soal tidak ditemukan" });
+                return this.JsonFail("Soal tidak ditemukan");
             if (score < 0 || score > question.ScoreValue)
-                return Json(new { success = false, message = $"Skor harus antara 0 dan {question.ScoreValue}" });
+                return this.JsonFail($"Skor harus antara 0 dan {question.ScoreValue}");
 
             // 2a. PXF-06 anti-tamper: edit skor essay pasca-finalize SUDAH ditolak oleh status-guard Phase 386 D-08
             //     di atas (`Status != PendingGrading` → reject), sehingga guard `Status == Completed` eksplisit
@@ -3706,13 +3706,13 @@ namespace HcPortal.Controllers
             // 2b. WR-01 (386-REVIEW) — questionId WAJIB tipe Essay. Tanpa ini upsert bisa membuat baris EssayScore
             //     pada soal MC/MA (korupsi skor: aggregator menjumlah EssayScore via case Essay).
             if (question.QuestionType != "Essay")
-                return Json(new { success = false, message = "Soal ini bukan tipe Essay." });
+                return this.JsonFail("Soal ini bukan tipe Essay.");
             // 2c. WR-02 (386-REVIEW) — questionId WAJIB milik sesi ini (cross-session tampering guard). Rantai nav
             //     terverifikasi: PackageQuestion.AssessmentPackage.AssessmentSessionId == sessionId.
             var ownsQuestion = await _context.PackageQuestions
                 .AnyAsync(q => q.Id == questionId && q.AssessmentPackage.AssessmentSessionId == sessionId);
             if (!ownsQuestion)
-                return Json(new { success = false, message = "Soal bukan milik sesi ini." });
+                return this.JsonFail("Soal bukan milik sesi ini.");
 
             // 3. UPSERT (Phase 386 PXF-04 D-08) — baris essay kosong tak ada → buat baru (TextAnswer null) lalu skor;
             //    mengganti dead-end "Jawaban tidak ditemukan" agar HC tetap bisa menilai essay yang dikosongkan peserta.
