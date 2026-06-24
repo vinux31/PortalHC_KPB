@@ -173,14 +173,13 @@ Plans:
   1. Export per-soal (Excel/PDF) menampilkan label/header Section ("Section {n}: {Nama}") yang konsisten lintas-peserta, dengan huruf opsi A–F dinamis.
   2. Suite test baru (unit `BuildSectionQuestionAssignment` isolasi-section + validasi mismatch/dual-format/fingerprint + Playwright pagination/opsi-5–6/resume) hijau dan test lama tetap hijau (kompatibel-mundur = Section kosong).
   3. Playwright real-browser UAT membuktikan alur Section+shuffle+pagination+opsi-dinamis berfungsi runtime (lesson 354: Razor/JS/SignalR WAJIB UAT browser), dan audit milestone PASSED dengan 20/20 REQ ter-cover + interaksi lintas-milestone (Inject v32.2, LinkPrePost 397, Add/Remove v32.5) koheren.
-**Plans**: 5 plans (wave 1->2(02 dan 03 paralel)->3->4; file-overlap `AssessmentAdminController.cs` antara Plan 02/04 = sequential)
-- [ ] 419-01-PLAN.md — Wave-0 xUnit RED (ExportSectionLabel + LinkPrePostSectionGuard + SectionEtWarning positif) + 4 skeleton e2e (PAG-04/D-02/D-03/D-04) [wave 1]
+**Plans**: 4 plans (wave 1->2->3->4; file-overlap `AssessmentAdminController.cs` antara Plan 02/04 = sequential). **[D-02 / Plan 03 DI-DROP → backlog 999.16 (2026-06-24): guard no-op untuk inject all-Lainnya — lihat catatan File-overlap]**
+- [ ] 419-01-PLAN.md — Wave-0 xUnit RED (ExportSectionLabel + SectionEtWarning positif) + 4 skeleton e2e (PAG-04/D-03/D-04) [wave 1]
 - [ ] 419-02-PLAN.md — PAG-04 export label: Excel band-header `AddDetailPerSoalSheet` + PDF heading `GeneratePerPesertaPdf` + 2 eager-load `.Include(q=>q.Section)` (Pitfall 1) [wave 2]
-- [ ] 419-03-PLAN.md — D-02 guard LinkPrePost × Section di `InjectAssessmentService` (reuse SectionStructureComparer, skip-on-all-Lainnya, reject-all server-authoritative) [wave 2]
 - [ ] 419-04-PLAN.md — D-03 re-spec predikat ET-warning lintas-sibling (pool ET vs K=min, group by SectionNumber IN-01, non-blocking; tutup DEF-416-01) [wave 3]
 - [ ] 419-05-PLAN.md — Isi 4 e2e UAT + full suite hijau + checkpoint UAT live @5277 (4 interaksi D-04) + cleanup D-06 (SEED snapshot/restore) + audit-readiness 20/20 REQ [wave 4, autonomous:false]
 **Migration**: FALSE.
-**File-overlap (final; sequential setelah semua fitur)**: `ExcelExportHelper`/`AddDetailPerSoalSheet` + `GeneratePerPesertaPdf` (label Section), `SyncPackagesToPost`/`CopyPackagesFromPre` (audit ulang SEMUA pemicu sync salin Section+opsi), monitoring label. Interaksi LinkPrePost (Phase 397): struktur Section harus identik Pre↔Post (blok link bila beda).
+**File-overlap (final; sequential setelah semua fitur)**: `ExcelExportHelper`/`AddDetailPerSoalSheet` + `GeneratePerPesertaPdf` (label Section), `SyncPackagesToPost`/`CopyPackagesFromPre` (audit ulang SEMUA pemicu sync salin Section+opsi), monitoring label. Interaksi LinkPrePost (Phase 397): guard struktur Section **DI-DROP ke backlog 999.16** (2026-06-24, eksekusi 419) — `InjectQuestionSpec` tak punya SectionId → paket inject SELALU all-Lainnya → keputusan skip-on-all-Lainnya bikin guard no-op; tak ada surface LinkPrePost non-inject. Audit SEC-06 sync (struktur Section ter-clone Pre→Post) TETAP dilakukan di Plan 05.
 **Carry-over dari Phase 416 (keputusan user 2026-06-23):** fix **DEF-416-01 / WR-01** — predikat ET-coverage warning `DistinctEt > K` (`AssessmentAdminController.cs:7680`) tak pernah menyala untuk data single-package (dead-nicety, non-blocking). Re-spec ke pool ET lintas paket-saudara vs `K = min(count Section antar sibling)` + selaraskan grouping warning `SectionId`→`SectionNumber` (IN-01) + test positif. Ref: `.planning/phases/416-scoped-shuffle-acak-per-section/deferred-items.md`.
 
 <details>
@@ -200,6 +199,23 @@ Plans:
 ## Backlog
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
+
+### Phase 999.16: Defensive guard struktur Section saat LinkPrePost (BACKLOG, LOW, defensive — dropped dari 419 2026-06-24)
+
+**Goal:** [Captured dari eksekusi Phase 419, 2026-06-24] Guard hard-block menaut Pre↔Post (Phase 397) bila KEDUA sisi punya Section nyata dan struktur (count per SectionNumber) berbeda — reuse `Helpers/SectionStructureComparer.MismatchedSections` + pola `CMPController.StartExam:1094-1119` (`guardAnySections`). Skip bila salah satu sisi all-Lainnya.
+
+**Context:**
+- DI-DROP dari Phase 419 (semula D-02). Alasan: satu-satunya surface LinkPrePost = jalur inject (Phase 397), dan `Models/InjectAssessmentDtos.cs` `InjectQuestionSpec` TIDAK punya `SectionId` → paket buatan `InjectAssessmentService.InjectBatchAsync` SELALU all-Lainnya. Dengan keputusan user **skip-on-all-Lainnya**, guard menjadi **no-op** untuk satu-satunya surface yang ada → kode mati / tak teramati. Tak ada RED test bermakna.
+- Logika perbandingan struktur SUDAH ADA & teruji (`SectionStructureComparer` + `SectionMismatchGuardTests` untuk StartExam re-guard SEC-04). Sync Pre→Post (SEC-06) sudah deep-clone Section → struktur identik by-construction.
+- **Promosikan HANYA bila** muncul surface LinkPrePost non-inject yang menaut dua room ber-Section yang di-author independen (mis. fitur "link dua room online existing"). Saat itu guard ini baru reachable & bernilai. 0 migration.
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
 
 ### Phase 999.11: WR-01 PendingGrading edit-guard gap di EditAssessment (BACKLOG, LOW, pre-existing)
 
