@@ -4,14 +4,14 @@ milestone: v32.7
 milestone_name: Perbaikan Menyeluruh Sistem Pre-Test/Post-Test
 status: executing
 stopped_at: Phase 424 context gathered
-last_updated: "2026-06-24T04:03:18.598Z"
-last_activity: 2026-06-24
+last_updated: "2026-06-24T06:08:56.254Z"
+last_activity: 2026-06-24 -- Phase 424 execution started
 progress:
   total_phases: 39
   completed_phases: 4
-  total_plans: 12
+  total_plans: 15
   completed_plans: 12
-  percent: 100
+  percent: 80
 ---
 
 # Project State: Portal HC KPB
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 423 — Certificate Issuance Consistency
+**Current focus:** Phase 424 — Grading De-dup + Flow/Linking + Gating Pre→Post
 
 ## Current Position
 
 Milestone: **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — 🚧 STARTED 2026-06-22 (branch ITHandoff)
-Phase: 424
-Plan: Not started
-Status: Executing Phase 423
-Last activity: 2026-06-24
+Phase: 424 (Grading De-dup + Flow/Linking + Gating Pre→Post) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 424
+Last activity: 2026-06-24 -- Phase 424 execution started
 
 **Predecessor v32.4 Ujian Ulang — ✅ CLOSED 2026-06-22** (audit PASSED 14/14; tag lokal `v32.4`; migration=TRUE Fase 405; NOT pushed). v32.1+v32.3+v32.4 closed di ITHandoff (deploy bundle). v32.7 menyusul di bundle yang sama.
 
