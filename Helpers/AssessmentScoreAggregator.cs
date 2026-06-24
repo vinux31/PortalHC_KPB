@@ -16,6 +16,11 @@ namespace HcPortal.Helpers
     /// the <c>RecomputeEssayScores</c> repair endpoint (Plan 03), so the two cannot diverge — kill-drift
     /// pattern (Phase 363/365).
     ///
+    /// Phase 424 GRDF-02: pemilihan MC kini DEDUPE last-write-wins (response dgn SubmittedAt terbaru), konvergen
+    /// dengan jalur grading kanonik (<c>GradingService.GradeAndCompleteAsync</c>) dan
+    /// <c>ComputeScoreAndETInternalAsync</c> — jadikan klaim "single source of truth" benar untuk MC/MA/Essay.
+    /// MA TIDAK ter-dedupe (dibaca penuh multi-row, all-or-nothing — Pitfall 3). Formula pct tetap LOCKED (D-04).
+    ///
     /// Math is ported VERBATIM from the previous inline block at FinalizeEssayGrading (L3535-3564).
     /// Formula D-04 LOCKED: <c>percentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0</c>;
     /// <c>isPassed = percentage >= passPercentage</c>. maxScore==0 → percentage 0, never throws (D-05).
@@ -29,6 +34,13 @@ namespace HcPortal.Helpers
             int passPercentage)
         {
             var respList = responses as IList<PackageUserResponse> ?? responses.ToList();
+            // Phase 424 GRDF-02 (D-06): dedupe last-write-wins per soal MC/single-answer — PORT VERBATIM dari
+            // GradingService.cs:87-90 (kanonik PATH 1). Ganti FirstOrDefault non-deterministik → response FINAL
+            // (SubmittedAt terbaru). MA dibaca penuh (multi-row) → JANGAN masuk dedupe ini (Pitfall 3).
+            var finalByQuestion = respList
+                .Where(r => r.PackageOptionId.HasValue)
+                .GroupBy(r => r.PackageQuestionId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.SubmittedAt).First());
             int totalScore = 0, maxScore = 0;
             foreach (var q in questions)
             {
@@ -36,7 +48,7 @@ namespace HcPortal.Helpers
                 switch (q.QuestionType ?? "MultipleChoice")
                 {
                     case "MultipleChoice":
-                        var mcResp = respList.FirstOrDefault(r => r.PackageQuestionId == q.Id && r.PackageOptionId.HasValue);
+                        var mcResp = finalByQuestion.TryGetValue(q.Id, out var fr) ? fr : null;
                         if (mcResp != null)
                         {
                             var opt = q.Options.FirstOrDefault(o => o.Id == mcResp.PackageOptionId!.Value);

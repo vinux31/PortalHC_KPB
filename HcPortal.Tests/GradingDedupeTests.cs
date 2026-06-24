@@ -288,4 +288,43 @@ public class GradingDedupeTests : IClassFixture<GradingDedupeFixture>
         Assert.Equal(100, graded!.Score);            // MA all-or-nothing utuh
         Assert.Equal(graded.Score, agg.Percentage);  // PATH 1 == PATH 3 (MA tak ter-dedupe di kedua path)
     }
+
+    // ---- Phase 424 GRDF-02: PATH 2 (ComputeScoreAndETInternalAsync via PreviewScoreAsync) MC >1 response →
+    // last-write-wins (konvergen ke PATH 1), bukan mcSel.First() arbitrer. Override kosong → jalur DB. ----
+    [Fact]
+    public async Task PreviewScore_Mc_MultiResponse_PicksLatestSubmittedAt()
+    {
+        await using var ctx = NewCtx();
+        var userId = await SeedUserAsync(ctx);
+        var session = new AssessmentSession
+        {
+            UserId = userId, Title = "MC Preview", Category = "IHT", Status = S.InProgress, AccessToken = "",
+            Schedule = new DateTime(2026, 2, 1), PassPercentage = 70, GenerateCertificate = false
+        };
+        ctx.AssessmentSessions.Add(session);
+        await ctx.SaveChangesAsync();
+        var pkg = new AssessmentPackage { AssessmentSessionId = session.Id, PackageName = "P", PackageNumber = 1 };
+        ctx.AssessmentPackages.Add(pkg);
+        await ctx.SaveChangesAsync();
+        var q = new PackageQuestion { AssessmentPackageId = pkg.Id, QuestionType = "MultipleChoice", ScoreValue = 100, Order = 1, QuestionText = "Pilih A." };
+        ctx.PackageQuestions.Add(q);
+        await ctx.SaveChangesAsync();
+        var optA = new PackageOption { PackageQuestionId = q.Id, OptionText = "A", IsCorrect = true };
+        var optB = new PackageOption { PackageQuestionId = q.Id, OptionText = "B", IsCorrect = false };
+        ctx.PackageOptions.AddRange(optA, optB);
+        await ctx.SaveChangesAsync();
+        var t0 = new DateTime(2026, 2, 1, 8, 0, 0, DateTimeKind.Utc);
+        ctx.PackageUserResponses.Add(new PackageUserResponse
+        { AssessmentSessionId = session.Id, PackageQuestionId = q.Id, PackageOptionId = optB.Id, SubmittedAt = t0 });            // basi salah
+        ctx.PackageUserResponses.Add(new PackageUserResponse
+        { AssessmentSessionId = session.Id, PackageQuestionId = q.Id, PackageOptionId = optA.Id, SubmittedAt = t0.AddSeconds(10) }); // FINAL benar
+        ctx.UserPackageAssignments.Add(new UserPackageAssignment
+        { AssessmentSessionId = session.Id, AssessmentPackageId = pkg.Id, UserId = userId, ShuffledQuestionIds = JsonSerializer.Serialize(new List<int> { q.Id }) });
+        await ctx.SaveChangesAsync();
+
+        var svc = NewGradingService(ctx);
+        var (pct, passed) = await svc.PreviewScoreAsync(session, new Dictionary<int, List<int>>());
+        Assert.Equal(100, pct);   // FINAL benar → 100 (last-write-wins); mcSel.First() basi → 0
+        Assert.True(passed);
+    }
 }

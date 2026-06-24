@@ -399,6 +399,20 @@ namespace HcPortal.Services
                     .ToHashSet();
             }
 
+            // Phase 424 GRDF-02 (D-06): opsi MC FINAL per soal — override (admin edit) jadi sumber kebenaran;
+            // selain itu dedupe last-write-wins by SubmittedAt (konvergen ke kanonik PATH 1, ganti seleksi
+            // arbitrer HashSet non-deterministik / GRD-03). MA TETAP pakai SelectedOptions penuh (multi-row, Pitfall 3).
+            int? FinalMcOption(int qId)
+            {
+                if (overrideAnswers != null && overrideAnswers.TryGetValue(qId, out var ov))
+                    return ov.Count > 0 ? ov[0] : (int?)null;            // override = jawaban final (admin edit)
+                var fr = dbResponses
+                    .Where(r => r.PackageQuestionId == qId && r.PackageOptionId.HasValue)
+                    .OrderByDescending(r => r.SubmittedAt)
+                    .FirstOrDefault();
+                return fr?.PackageOptionId;
+            }
+
             int totalScore = 0, maxScore = 0;
             foreach (var qId in shuffledIds)
             {
@@ -408,11 +422,10 @@ namespace HcPortal.Services
                 switch (q.QuestionType ?? "MultipleChoice")
                 {
                     case "MultipleChoice":
-                        var mcSel = SelectedOptions(qId);
-                        if (mcSel.Count > 0)
+                        var mcFinal = FinalMcOption(qId);
+                        if (mcFinal.HasValue)
                         {
-                            var optId = mcSel.First();
-                            var opt = q.Options.FirstOrDefault(o => o.Id == optId);
+                            var opt = q.Options.FirstOrDefault(o => o.Id == mcFinal.Value);
                             if (opt?.IsCorrect == true) totalScore += q.ScoreValue;
                         }
                         break;
@@ -442,10 +455,10 @@ namespace HcPortal.Services
                     switch (q.QuestionType ?? "MultipleChoice")
                     {
                         case "MultipleChoice":
-                            var mcSel = SelectedOptions(q.Id);
-                            if (mcSel.Count > 0)
+                            var etMcFinal = FinalMcOption(q.Id);
+                            if (etMcFinal.HasValue)
                             {
-                                var opt = q.Options.FirstOrDefault(o => o.Id == mcSel.First());
+                                var opt = q.Options.FirstOrDefault(o => o.Id == etMcFinal.Value);
                                 if (opt?.IsCorrect == true) etCorrect++;
                             }
                             break;
