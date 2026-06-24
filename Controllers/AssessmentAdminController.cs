@@ -873,19 +873,12 @@ namespace HcPortal.Controllers
             // Remove single UserId from validation since we use UserIds list
             ModelState.Remove("UserId");
 
-            // Phase 338 REST-06 (336-NAMING-CONVENTION-SPEC): Auto-pair LinkedGroupId via title pattern
-            // Hanya untuk standard mode (non PrePost). PrePost mode generate own GroupId di logic existing.
-            if (CreationMode != "PrePostTest"
-                && model.LinkedGroupId == null
-                && !string.IsNullOrEmpty(model.Title))
-            {
-                var counterpartId = await TryAutoDetectCounterpartGroup(model.Title, model.Category);
-                if (counterpartId.HasValue)
-                {
-                    model.LinkedGroupId = counterpartId.Value;
-                    TempData["Info"] = $"Auto-paired LinkedGroupId={counterpartId.Value} berdasarkan title pattern '{model.Title}' (336-NAMING-CONVENTION).";
-                }
-            }
+            // GRDF-04 (FLOW-03 / D-08): auto-pair LinkedGroupId via pola judul (Phase 338 REST-06) DINONAKTIFKAN
+            // forward-only untuk mode Standard. Assessment Standard TIDAK lagi mendapat link Pre/Post SEMU dari
+            // kemiripan judul ("Pre Test X" / "Post Test X") — link semu menyesatkan grading/analytics & gate
+            // Pre→Post (GRDF-01 hanya percaya link eksplisit). Baris Standard LAMA ber-LinkedGroupId semu TIDAK
+            // disentuh (non-destruktif). Pemasangan Pre/Post resmi tetap via mode PrePostTest (generate GroupId
+            // sendiri di logic existing). Helper TryAutoDetectCounterpartGroup kini tak dipanggil (dead, disimpan utk histori).
 
             // Handle Token Validation
             if (model.IsTokenRequired)
@@ -7657,11 +7650,25 @@ namespace HcPortal.Controllers
         }
 
         /// <summary>
+        /// Phase 424 GRDF-04 — apakah judul mengikuti pola Pre/Post-Test ("{Pre|Post}[ ]Test {rest}", case-insensitive).
+        /// Pure, EF-free, unit-testable. Pola ini DULU memicu auto-pair LinkedGroupId untuk Standard (Phase 338 REST-06);
+        /// kini auto-pair DINONAKTIFKAN forward-only (D-08) — sentinel mendokumentasikan pola yang tak lagi diterapkan otomatis.
+        /// </summary>
+        public static bool LooksLikePrePostTitle(string? title)
+            => !string.IsNullOrWhiteSpace(title)
+               && System.Text.RegularExpressions.Regex.IsMatch(
+                    title.Trim(),
+                    @"^(?:Pre|Post)\s*Test\s+.+$",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        /// <summary>
         /// Phase 338 REST-06 (336-NAMING-CONVENTION-SPEC.md): Auto-detect counterpart Pre/Post group
         /// berdasarkan title pattern `{Pre|Post}Test {rest}`. Return LinkedGroupId existing counterpart bila ada.
+        /// GRDF-04 (D-08): KINI TAK DIPANGGIL (forward-only disable di CreateAssessment) — dead, disimpan utk histori.
         /// </summary>
         private async Task<int?> TryAutoDetectCounterpartGroup(string title, string? category)
         {
+            if (!LooksLikePrePostTitle(title)) return null;     // GRDF-04 sentinel (pola dipakai bersama LooksLikePrePostTitle)
             // Pattern: "PreTest OJT GAST GTO SRU di Unit RU IV Cilacap" atau "Pre Test OJT GAST..."
             var match = System.Text.RegularExpressions.Regex.Match(
                 title.Trim(),
