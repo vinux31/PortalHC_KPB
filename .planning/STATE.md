@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v32.8
 milestone_name: Exam Security & Audit Hardening
-status: v32.8 STARTED 2026-06-24 — defining requirements (3 REQ, fase 426-428)
-stopped_at: Milestone v32.8 init; next = roadmap then /gsd-plan-phase 426
+status: v32.8 STARTED 2026-06-24 — roadmap created (3 REQ, fase 426-428); ready_to_plan
+stopped_at: Roadmap v32.8 created (ROADMAP.md + REQUIREMENTS.md traceability 3/3); next = /gsd-plan-phase 426
 last_updated: "2026-06-24T12:00:00.000Z"
 last_activity: 2026-06-24
 progress:
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.8 Exam Security & Audit Hardening — defining requirements (fase 426-428)
+**Current focus:** v32.8 Exam Security & Audit Hardening — roadmap created (fase 426-428); next /gsd-plan-phase 426
 
 ## Current Position
 
 Milestone: **v32.8 Exam Security & Audit Hardening** — 🚧 STARTED 2026-06-24 (branch ITHandoff)
-Phase: Not started (defining requirements → roadmap)
+Phase: Not started (roadmap created → planning). NEXT `/gsd-plan-phase 426`
 Plan: —
-Status: Defining requirements (3 REQ: AUDIT-01/426 · EXSEC-01/427 migration=TRUE · EXSEC-02/428). Diturunkan backlog 999.11/999.13/999.14 + overlap check vs main (999.9 DROP superseded, 999.12 ops-aside).
-Last activity: 2026-06-24 — Milestone v32.8 started
+Status: Roadmap created — 3 REQ mapped 1:1 (AUDIT-01/426 migration=FALSE · EXSEC-01/427 **migration=TRUE** `AddTokenVerifiedAt` KEYSTONE · EXSEC-02/428 migration=FALSE, depends 427). Coverage 3/3, 0 orphan. 426 file-disjoint (independen); 427→428 sekuensial wajib (shared `StartExam`). Diturunkan backlog 999.11/999.13/999.14 + overlap check vs main (999.9 DROP superseded, 999.12 ops-aside).
+Last activity: 2026-06-24 — Roadmap v32.8 created (ROADMAP.md Phases 426-428 + Progress Table; backlog 999.11/999.13/999.14 ditandai PROMOTED -> v32.8)
 
 **Predecessor v32.7 ✅ CLOSED 2026-06-24** (audit PASSED 41/41 in-scope, tag lokal). v32.1 + v32.3 + v32.4 + v32.7 semua CLOSED di ITHandoff (deploy bundle bersama). Tag lokal masing-masing. NOT pushed.
 

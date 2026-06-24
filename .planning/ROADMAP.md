@@ -34,8 +34,86 @@
 - ✅ **v32.3 Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial** — Phases 399-404 (shipped local + audited PASSED + closed 2026-06-21, 24/24 REQ MU-01..07/PSU-01..05,07/CXU-01..05/ORG-01,02/QA-01..04; **migration=TRUE** [UserUnits junction, Fase 399]; +INT-01 fix 404.1; branch ITHandoff, NOT pushed [close bareng v32.1]) — [archive](milestones/v32.3-ROADMAP.md) — [audit](milestones/v32.3-MILESTONE-AUDIT.md) — [spec](../docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md)
 - ✅ **v32.4 Ujian Ulang (Attempt/Retake Assessment)** — Phases 405-408 (shipped local + audited PASSED + closed 2026-06-22, 14/14 REQ RTK-01..14; migration=TRUE [AssessmentSession retake cols + AssessmentAttemptResponseArchive, Fase 405]; branch ITHandoff, NOT pushed) — [archive](milestones/v32.4-ROADMAP.md) — [audit](milestones/v32.4-MILESTONE-AUDIT.md) — [spec](../docs/superpowers/specs/2026-06-19-attempt-retake-assessment-design.md)
 - ✅ **v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test** — Phases 420-425 (shipped local + audited PASSED + closed 2026-06-24, 41/41 in-scope REQ FORM/RTH/SHFX/CERT/GRDF/CLN [GRDF-06 covered v32.5]; integration SOUND; **migration=TRUE hanya Phase 422** [`AddPackageNumberUniqueIndex`]; branch ITHandoff, NOT pushed [bundle dgn v32.1+v32.3+v32.4]) — [archive](milestones/v32.7-ROADMAP.md) — [requirements](milestones/v32.7-REQUIREMENTS.md) — [audit](milestones/v32.7-MILESTONE-AUDIT.md)
+- 🚧 **v32.8 Exam Security & Audit Hardening** — Phases 426-428 (roadmap created 2026-06-24, 3/3 REQ AUDIT-01 + EXSEC-01/02; **migration=TRUE hanya Phase 427** [`AddTokenVerifiedAt`]; branch ITHandoff, bundle deploy v32.1+v32.3+v32.4+v32.7+v32.8). Sumber: backlog 999.11/999.13/999.14 + cross-branch overlap check vs `main`.
 
 ## Phases
+
+<details open>
+<summary>🚧 v32.8 Exam Security & Audit Hardening (Phases 426-428) — ROADMAP created 2026-06-24 (3/3 REQ AUDIT-01 + EXSEC-01/02, migration=TRUE [Phase 427 only]) — NEXT `/gsd-plan-phase 426`</summary>
+
+**Status:** Roadmap created 2026-06-24. Scope LOCKED (user-confirmed) — 3 REQ → 3 fase, 1:1 mapping. Belum di-plan (`/gsd-plan-phase 426` berikutnya; 426 file-disjoint bisa duluan/paralel, 427→428 sekuensial wajib).
+**Sumber:** Backlog 999.11 (AUDIT-01) + 999.13/FLOW-08 (EXSEC-01) + 999.14/FLOW-10 (EXSEC-02) — defer Phase 425 D-03 + Phase 403 review. Cross-branch overlap check vs `main` (2026-06-24, verified git): 999.9 DROP (SUPERSEDED — main Phase 396-05 sudah hard-remove BulkBackfill); 999.12 ops-aside (cleanup DB lokal, no code).
+**Requirements:** `.planning/REQUIREMENTS.md` (AUDIT-01 → 426 · EXSEC-01 → 427 · EXSEC-02 → 428 — traceability 100%, AUTHORITATIVE).
+**Goal:** Tutup 3 tech-debt keamanan/audit ujian — audit-trail rename/reparent unit (AUDIT-01), token ujian server-authoritative via kolom DB (EXSEC-01), idempotensi write-on-GET StartExam (EXSEC-02). Diturunkan dari backlog 999.x, BUKAN re-derive scope.
+**Granularity:** standard (config). 3 fase (426-428) — mapping fase→REQ LOCKED (1 REQ/fase), bukan re-derive.
+**Migration:** **TRUE hanya di Phase 427** (`AddTokenVerifiedAt` — kolom `DateTime? null` aditif, zero-downtime, no backfill; guard `StartedAt==null` bypass sesi InProgress lama). **Phase 426=FALSE, 428=FALSE.** Notify IT migration=TRUE Phase 427 saat promosi (bundle dgn v32.1+v32.3+v32.4+v32.7 — branch ITHandoff: 1 push origin/ITHandoff + notify IT).
+**Phase numbering (PENTING):** v32.8 mulai **426** (lanjut dari v32.7 yang berakhir di 425). Branch `main` pakai 409-419 (v32.5/v32.6); branch ITHandoff pakai 399-404 (v32.3) + 420-425 (v32.7); backlog 999.x. Gunakan tepat: 426, 427, 428 (hindari integer collision saat bundle deploy).
+**Urutan eksekusi:** **426 file-disjoint (independen — bisa duluan/paralel).** **427 → 428 SEKUENSIAL WAJIB** (sama-sama edit `StartExam` di `CMPController.cs` — 427 dulu [migration+token], commit, lalu 428 rebase di atasnya).
+**Verifikasi lokal (CLAUDE.md Develop Workflow):** tiap fase wajib gate `dotnet build` + `dotnet run` (**localhost:5270** di branch ITHandoff — bukan 5277; hindari tabrakan worktree main) + cek DB lokal (SQLEXPRESS, `sqlcmd -C -I`) + Playwright bila ada UI sebelum commit. Phase 427 = migration WAJIB `dotnet ef database update` + verifikasi kolom hadir. ❌ tidak ada edit di Dev/Prod. Semua → 1 push origin/ITHandoff → notify IT (commit hash + migration=TRUE Phase 427).
+
+**⚠️ Merge-Risk Notes (ITHandoff ↔ main — wajib saat rekonsiliasi, BUKAN fase; dari REQUIREMENTS.md §Merge-Risk):**
+- **R-1 `StartExam` (`CMPController.cs`) = zona konflik PASTI.** ITHandoff-only: GRDF-01 Pre→Post gate (ph424), token re-arm ResetExam, retake. main-only: guard `IsParticipantRemoved` (ph409), Section drift re-guard (ph415), `BuildSectionAwareOptionShuffle`+`Include q.Section` (ph416), `ComputePages` (ph417). Saat merge: **pertahankan KEDUA; GRDF-01 ditempatkan SETELAH cek Completed, SEBELUM token-gate**. Refactor EXSEC-02 dikerjakan di atas metode hasil-merge (patch by-line ITHandoff tak apply bersih).
+- **R-2 rantai migrasi divergen** (snapshot model divergen sejak `AddShuffleTogglesToAssessmentSession` 20260613095102). `AddTokenVerifiedAt` (EXSEC-01): timestamp > semua migrasi kedua branch; regen `ApplicationDbContextModelSnapshot.cs`; jangan edit migrasi lama. Kolom nullable aditif → zero-downtime, no backfill.
+- **R-3 internal 427↔428** (sama-sama `StartExam`): sekuensial — 427 dulu (migration+token), commit, lalu 428 rebase di atasnya.
+
+### Phases
+
+- [ ] **Phase 426: Audit-Log EditOrganizationUnit (AUDIT-01)** — `EditOrganizationUnit` (rename/reparent unit) menulis `AuditLog` (mirror pola `DeleteOrganizationUnit`), termasuk actor NIP/nama, oldName→newName, oldParentId→parentId, dan cascade counts (cascadedUsers/cascadedMappings/cascadedUserUnits). Blok `try/catch _auditLog.LogAsync` aditif SETELAH `tx.CommitAsync()`, swallow-on-failure (tak memblokir respons). Domain: `Controllers/OrganizationController.cs` (terisolasi, file-disjoint dari CMPController). migration=FALSE.
+- [ ] **Phase 427: Exam Token-Gate Server-Authoritative (EXSEC-01)** 🔑 KEYSTONE — verifikasi token ujian server-authoritative via kolom `AssessmentSession.TokenVerifiedAt` menggantikan `TempData.Peek`; tulis stamp di `VerifyToken`, baca di gate `StartExam`, reset `=null` di `ResetExam` (retake re-arm gate konsisten). Domain: `Controllers/CMPController.cs` + `Models/AssessmentSession.cs` + `Migrations/`. **migration=TRUE** (`AddTokenVerifiedAt`, `DateTime? null` aditif). Sequential-before 428 (shared `StartExam`).
+- [ ] **Phase 428: StartExam Write-on-GET Idempotency (EXSEC-02)** — `StartExam` GET tidak melakukan mutasi status (idempotensi GET); side-effect transisi `Upcoming→Open` dipindah/diamankan ke jalur POST atau guarded, TANPA mengganggu gate GRDF-01 (Pre→Post, ph424) dan time-gate yang tetap berjalan di GET. Domain: `Controllers/CMPController.cs` (`StartExam`). migration=FALSE. **Depends on: Phase 427** (sama-sama edit `StartExam` — rebase di atas 427).
+
+### Phase Details
+
+### Phase 426: Audit-Log EditOrganizationUnit
+**Goal:** Setiap admin/HC yang me-rename atau me-reparent unit organisasi via `EditOrganizationUnit` meninggalkan jejak audit yang dapat ditelusuri — siapa, perubahan apa (nama lama→baru, parent lama→baru), dan dampak cascade-nya — menutup asimetri pre-existing di mana `DeleteOrganizationUnit` menulis audit tetapi `EditOrganizationUnit` tidak.
+**Depends on:** Tidak ada (file-disjoint dari CMPController — `OrganizationController.cs` terisolasi; bisa dikerjakan duluan atau paralel dengan 427/428).
+**Migration:** false (blok audit aditif setelah commit transaksi existing; tidak ada schema/kolom/write DB baru — `AuditLog` table sudah ada).
+**Requirements:** AUDIT-01
+**Success Criteria** (what must be TRUE):
+  1. HC/Admin me-rename atau me-reparent unit lewat `EditOrganizationUnit` → tercatat satu baris `AuditLog` dengan ActionType `EditOrganizationUnit`, actor (NIP/nama) yang benar, dan ringkasan oldName→newName + oldParentId→parentId. *(AUDIT-01)*
+  2. Baris audit menyertakan cascade counts (cascadedUsers / cascadedMappings / cascadedUserUnits) selaras pola `DeleteOrganizationUnit`. *(AUDIT-01)*
+  3. Audit ditulis SETELAH `tx.CommitAsync()` dan bersifat swallow-on-failure — kegagalan menulis audit TIDAK memblokir/menggagalkan respons sukses edit unit. *(AUDIT-01)*
+  4. Edit unit yang valid tetap berhasil (cascade UserUnits-aware ph403 tak berubah perilakunya); authz/CSRF existing tetap utuh (perubahan murni aditif-traceability, BUKAN security/perilaku).
+**Plans:** TBD
+**UI hint:** no
+
+### Phase 427: Exam Token-Gate Server-Authoritative
+**Goal:** Verifikasi token masuk ujian menjadi server-authoritative dan persisten — disimpan di kolom DB `AssessmentSession.TokenVerifiedAt` alih-alih `TempData.Peek` (yang rapuh terhadap manipulasi/round-trip), dan di-reset saat retake/`ResetExam` agar gate token konsisten "minta ulang" pada percobaan baru.
+**Depends on:** Tidak ada dependency fase lain untuk start (keystone milestone), TAPI sequential-before 428 (sama-sama edit `StartExam` di `CMPController.cs` — 428 rebase di atas 427).
+**Migration:** **TRUE** — `AddTokenVerifiedAt`: kolom `DateTime? TokenVerifiedAt` (nullable) di `AssessmentSession`. Aditif zero-downtime, no backfill (null = belum verifikasi; guard `StartedAt==null` bypass sesi InProgress lama). R-2: timestamp migrasi > semua migrasi kedua branch + regen `ApplicationDbContextModelSnapshot.cs`; jangan edit migrasi lama.
+**Requirements:** EXSEC-01
+**Success Criteria** (what must be TRUE):
+  1. Gate masuk ujian di `StartExam` membaca status verifikasi token dari kolom `AssessmentSession.TokenVerifiedAt` (server-authoritative persisten), BUKAN dari `TempData.Peek`. *(EXSEC-01)*
+  2. Endpoint `VerifyToken` yang sukses men-stamp `TokenVerifiedAt = DateTime.UtcNow` (persist ke DB), sehingga verifikasi bertahan lintas round-trip/sesi tanpa bergantung TempData. *(EXSEC-01)*
+  3. Retake / `ResetExam` me-reset `TokenVerifiedAt = null` → gate token re-arm: percobaan ulang wajib verifikasi token lagi (tidak mewarisi verifikasi attempt sebelumnya). *(EXSEC-01)*
+  4. Migration `AddTokenVerifiedAt` applied di DB lokal (kolom hadir, verifikasi `sqlcmd -C -I`); sesi InProgress lama (token sudah lewat TempData) tidak terkunci — paritas perilaku token + impersonation guard existing terjaga. *(EXSEC-01)*
+**Plans:** TBD
+**UI hint:** no
+
+### Phase 428: StartExam Write-on-GET Idempotency
+**Goal:** Permintaan GET `StartExam` menjadi idempoten — tidak lagi melakukan side-effect mutasi status `Upcoming→Open` yang di-persist saat GET (melanggar idempotensi GET); transisi status dipindah/diamankan ke jalur POST atau guarded transition, tanpa mengganggu gating Pre→Post (GRDF-01) dan time-gate yang tetap berjalan di GET.
+**Depends on:** Phase 427 (sekuensial WAJIB — sama-sama mengedit `StartExam` di `CMPController.cs`; dikerjakan di atas metode hasil-427, patch by-line tak apply bersih bila terbalik).
+**Migration:** false (refactor penempatan side-effect; tidak ada schema/write DB baru).
+**Requirements:** EXSEC-02
+**Success Criteria** (what must be TRUE):
+  1. GET `StartExam` tidak lagi mem-persist mutasi status `Upcoming→Open` ke DB (tidak ada `SaveChangesAsync` write-on-GET untuk transisi status). *(EXSEC-02)*
+  2. Transisi `Upcoming→Open` terjadi via jalur POST atau guarded transition (idempotensi GET dipulihkan). *(EXSEC-02)*
+  3. Gate GRDF-01 (Post butuh Pre Completed, ph424) dan time-gate StartExam tetap berfungsi di GET (tidak ter-degradasi oleh refactor). *(EXSEC-02)*
+  4. Worker yang membuka ujian yang sudah waktunya tetap dapat memulai ujian dengan benar (alur exam-taking utuh end-to-end); impersonation guard existing tetap read-only. *(EXSEC-02)*
+**Plans:** TBD
+**UI hint:** no
+
+**v32.8 mapped: 3/3 ✓ (AUDIT-01 → 426 · EXSEC-01 → 427 · EXSEC-02 → 428) — Orphans: 0 — Duplicates: 0 — migration=TRUE Phase 427 only (426/428=FALSE). Urutan: 426 file-disjoint (independen); 427 → 428 SEKUENSIAL WAJIB (shared StartExam di CMPController.cs). ⚠️ R-1 StartExam = zona konflik PASTI vs main — pertahankan KEDUA saat merge (GRDF-01 setelah cek-Completed sebelum token-gate); R-2 AddTokenVerifiedAt stamp setelah semua migrasi kedua branch + regen snapshot.**
+
+### Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 426. Audit-Log EditOrganizationUnit (AUDIT-01) | 0/? | Not started | - |
+| 427. Exam Token-Gate Server-Authoritative (EXSEC-01) | 0/? | Not started | - |
+| 428. StartExam Write-on-GET Idempotency (EXSEC-02) | 0/? | Not started | - |
+
+</details>
 
 <details>
 <summary>✅ v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test (Phases 420-425) — SHIPPED local + audited PASSED + closed 2026-06-24 (41/41 in-scope REQ, integration SOUND, migration=TRUE Phase 422 only) — <a href="milestones/v32.7-ROADMAP.md">archive</a> — <a href="milestones/v32.7-MILESTONE-AUDIT.md">audit</a></summary>
@@ -1354,7 +1432,7 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
-### Phase 999.13: FLOW-08 — Token exam server-authoritative (kolom TokenVerifiedAt) (BACKLOG)
+### Phase 999.13: FLOW-08 — Token exam server-authoritative (kolom TokenVerifiedAt) (PROMOTED -> v32.8 Phase 427 / EXSEC-01, 2026-06-24)
 
 **Goal:** [Captured Phase 425 D-03 defer, 2026-06-24] Token gate auto-submit ujian saat ini pakai `TempData.Peek` (FLOW-08) — bukan server-authoritative. Usul: kolom `TokenVerifiedAt` di sesi untuk verifikasi token sisi-server yang persisten (tahan terhadap manipulasi TempData/round-trip). **Hardening, BUKAN bug** — by-design + sudah dimitigasi (impersonation guard aktif). Di-defer dari Phase 425 (fase cleanup low-risk) karena butuh **migration + ubah-perilaku** = risiko regresi tinggi.
 
@@ -1371,7 +1449,7 @@ Plans:
 
 ---
 
-### Phase 999.14: FLOW-10 — Write-on-GET StartExam side-effect refactor (Upcoming→Open) (BACKLOG)
+### Phase 999.14: FLOW-10 — Write-on-GET StartExam side-effect refactor (Upcoming→Open) (PROMOTED -> v32.8 Phase 428 / EXSEC-02, 2026-06-24)
 
 **Goal:** [Captured Phase 425 D-03 defer, 2026-06-24] GET `StartExam` melakukan side-effect mutasi status (Upcoming→Open) — write-on-GET (FLOW-10), melanggar idempotensi GET. Usul: pindah/amankan side-effect ke jalur POST atau guarded transition. **Dimitigasi** (impersonation guard) — di-defer dari Phase 425 karena ubah-perilaku di fase cleanup = risiko regresi.
 
@@ -1405,7 +1483,7 @@ Plans:
 
 ---
 
-### Phase 999.11: Audit trail EditOrganizationUnit cascade (rename/reparent) — gap traceability (BACKLOG)
+### Phase 999.11: Audit trail EditOrganizationUnit cascade (rename/reparent) — gap traceability (PROMOTED -> v32.8 Phase 426 / AUDIT-01, 2026-06-24)
 
 **Goal:** [Captured Phase 403 review/verify, 2026-06-19] `EditOrganizationUnit` TIDAK menulis `AuditLog` padahal `DeleteOrganizationUnit` menulis (asimetri pre-existing). Phase 403 memperlebar cascade ke junction `UserUnits` (incl baris IsActive=false) → mutasi admin-only rename/reparent unit tak ter-trace.
 
