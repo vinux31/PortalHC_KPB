@@ -134,7 +134,7 @@ else
                                             <p class="text-muted small mb-2">Pilih semua yang benar</p>
                                             <div class="list-group">
                                                 @{
-                                                    string[] letters = { "A", "B", "C", "D" };
+                                                    string[] letters = { "A", "B", "C", "D", "E", "F" };
                                                     var optShuffle = ViewBag.OptionShuffle as Dictionary<int, List<int>>;
                                                     var qOptions = (optShuffle != null && optShuffle.ContainsKey(q.QuestionId))
                                                         ? optShuffle[q.QuestionId].Select(oid => q.Options.FirstOrDefault(o => o.OptionId == oid)).Where(o => o != null).ToList()
@@ -167,7 +167,7 @@ else
                                             <!-- Radio MC (existing pattern) -->
                                             <div class="list-group">
                                                 @{
-                                                    string[] letters = { "A", "B", "C", "D" };
+                                                    string[] letters = { "A", "B", "C", "D", "E", "F" };
                                                     var optShuffle = ViewBag.OptionShuffle as Dictionary<int, List<int>>;
                                                     var qOptions = (optShuffle != null && optShuffle.ContainsKey(q.QuestionId))
                                                         ? optShuffle[q.QuestionId].Select(oid => q.Options.FirstOrDefault(o => o.OptionId == oid)).Where(o => o != null).ToList()

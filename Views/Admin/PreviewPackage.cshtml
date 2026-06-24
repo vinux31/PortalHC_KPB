@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Preview Package";
-    string[] letters = { "A", "B", "C", "D", "E" };
+    string[] letters = { "A", "B", "C", "D", "E", "F" };
 }
 
 <!-- PREVIEW MODE banner -->
@@ -59,7 +59,7 @@
                                        disabled
                                        @(option.IsCorrect ? "checked" : "") />
                                 <label class="form-check-label @(option.IsCorrect ? "text-success fw-semibold" : "")">
-                                    <span class="me-1">@letters[optIdx % letters.Length].</span>
+                                    <span class="me-1">@(optIdx < letters.Length ? letters[optIdx] : (optIdx + 1).ToString()).</span>
                                     @option.OptionText
                                     @if (option.IsCorrect)
                                     {

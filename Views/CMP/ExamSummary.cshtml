@@ -54,7 +54,7 @@
                                     @item.QuestionText
                                 </span>
                                 @await Html.PartialAsync("_QuestionImage", new { ImagePath = item.ImagePath, ImageAlt = item.ImageAlt, Cap = 240 })
-                                @{ string[] letters = { "A", "B", "C", "D" }; }
+                                @{ string[] letters = { "A", "B", "C", "D", "E", "F" }; }
                                 @for (int oi = 0; oi < item.OptionImages.Count; oi++)
                                 {
                                     var optImg = item.OptionImages[oi];
