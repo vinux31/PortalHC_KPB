@@ -1,9 +1,9 @@
 ---
 phase: 426
 slug: audit-log-editorganizationunit
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: compliant
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-24
 ---
 
@@ -38,8 +38,8 @@ created: 2026-06-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 426-01-01 | 01 | 1 | AUDIT-01 | — | Audit row written only on actual change; raw parent IDs; single combined row | unit | `dotnet test HcPortal.Tests --filter "FullyQualifiedName~OrganizationControllerTests"` | ❌ W0 (new tests) | ⬜ pending |
-| 426-01-02 | 01 | 1 | AUDIT-01 | — | Audit failure (null userManager) swallowed — edit response not blocked | unit | same | ✅ (reuses existing factory) | ⬜ pending |
+| 426-01-01 | 01 | 1 | AUDIT-01 | — | Audit row written only on actual change; raw parent IDs; single combined row | unit | `dotnet test HcPortal.Tests --filter "FullyQualifiedName~OrganizationControllerTests"` | ✅ T1-T4 | ✅ green |
+| 426-01-02 | 01 | 1 | AUDIT-01 | — | Audit failure (null userManager) swallowed — edit response not blocked | unit | same | ✅ T5 | ✅ green |
 
 ---
 
@@ -68,11 +68,23 @@ created: 2026-06-24
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (5 new test cases)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (5 new test cases T1-T5)
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-06-24
+
+---
+
+## Validation Audit 2026-06-24
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+State A audit: AUDIT-01 fully COVERED by T1-T5 (no MISSING/PARTIAL gaps). `dotnet test --filter "FullyQualifiedName~OrganizationControllerTests"` → 19/19 green (5 new T1-T5 + 14 existing regression). Full non-Integration suite 544/0/2. No test generation needed. nyquist_compliant: true.
