@@ -1,5 +1,17 @@
 # Milestones
 
+## v32.8 Exam Security & Audit Hardening (Shipped: 2026-06-25)
+
+**Phases completed:** 3 phases, 3 plans, 7 tasks
+
+**Key accomplishments:**
+
+- Jejak `AuditLog` ActionType="EditOrganizationUnit" aditif post-commit pada rename/reparent unit organisasi — mirror `DeleteOrganizationUnit`, guarded only-on-change, swallow-on-failure, dengan cascade counts di Description. Menutup asimetri traceability pre-existing (Delete ber-audit, Edit tidak).
+- Token verifikasi masuk ujian kini server-authoritative & persisten via kolom `AssessmentSession.TokenVerifiedAt` (DateTime? nullable) — stamp saat VerifyToken sukses, dibaca di gate StartExam (ganti TempData.Peek), reset null single-source di RetakeService; migration AddTokenVerifiedAt applied.
+- GET CMP/StartExam(id) jadi idempoten — blok persist `Upcoming->Open` (Status="Open"+SaveChangesAsync) dihapus, diganti effective-status by-schedule in-memory (`Status=="Upcoming" && Schedule > nowWib`); 6 test real-SQL membuktikan idempotensi + regresi seluruh gate (time-gate/GRDF-01/token-gate 427) tetap memblok.
+
+---
+
 ## v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test (Shipped: 2026-06-24)
 
 **Phases completed:** 6 phases (420-425), 19 plans · **41/41 in-scope REQ** (FORM-01..11 · RTH-01..05 · SHFX-01..07 · CERT-01..07 · GRDF-01..05,07 · CLN-01..05; GRDF-06 covered by v32.5 merge) · audit PASSED, integration SOUND · **migration=TRUE hanya Phase 422** (`AddPackageNumberUniqueIndex`); 420/421/423/424/425=FALSE · branch ITHandoff, **NOT pushed** (deploy bundle dgn v32.1+v32.3+v32.4). Sumber: audit Pre/Post 2026-06-22 (~60 temuan, 4 HIGH).
