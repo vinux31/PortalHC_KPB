@@ -919,20 +919,14 @@ namespace HcPortal.Controllers
             if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
                 return Forbid();
 
-            // Auto-transition: Upcoming → Open when scheduled date+time has arrived in WIB (persisted to DB)
-            if (assessment.Status == "Upcoming" && assessment.Schedule <= DateTime.UtcNow.AddHours(7))
-            {
-                // Phase 377 (Pitfall 3 / T-377-09): write-on-GET guard — JANGAN tulis DB saat impersonasi (read-only invariant).
-                if (!_impersonationService.IsImpersonating())
-                {
-                    assessment.Status = "Open";
-                    assessment.UpdatedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-                }
-            }
+            // EXSEC-02 (Phase 428): effective-status by-schedule — GET idempoten, TIDAK persist transisi Upcoming→Open.
+            // Mirror pola lobby Assessment (:245-251, display-only). Transisi status aktual hanya saat
+            // worker mulai (justStarted → InProgress write di bawah).
+            var nowWib = DateTime.UtcNow.AddHours(7);
 
-            // Time gate: block access if assessment is still Upcoming (scheduled time not yet reached)
-            if (assessment.Status == "Upcoming")
+            // Time gate: blok HANYA bila benar-benar belum waktunya (Upcoming & jadwal di masa depan).
+            // Upcoming yang waktunya SUDAH tiba → diperlakukan openable (tak diblok), tanpa menulis DB.
+            if (assessment.Status == "Upcoming" && assessment.Schedule > nowWib)
             {
                 TempData["Error"] = "Ujian belum dibuka. Silakan kembali setelah waktu ujian dimulai.";
                 return RedirectToAction("Assessment");
