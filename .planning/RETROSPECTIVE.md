@@ -4,6 +4,36 @@
 
 ---
 
+## Milestone: v32.9 — EditQuestion Option-Edit Data Integrity (Identity-Based)
+
+**Shipped:** 2026-06-25 (local, NOT pushed) | **Phases:** 1 (420) | **Plans:** 3 | **migration:** FALSE
+
+### What Was Built
+Mengganti mekanisme upsert opsi jawaban di `EditQuestion` POST dari **posisional** (`existing[i]` OrderBy Id) menjadi **identity-based** (match `PackageOption` by stable `Id`). Carrier `OptionInput.Id` (hidden per baris form) + anti-tamper fail-closed pre-mutation + set-difference guard `existingIds.Except(keptIds)` + UPDATE/REMOVE/ADD by Id. Menutup backlog 999.15: hapus opsi tengah pada soal terjawab tak lagi me-relabel jawaban peserta secara senyap; guard answered-option menyala untuk delete posisi MANAPUN; regression-lock 999.14 (FK-Restrict 500) tetap.
+
+### What Worked
+- **Bug-driven milestone, scope-tight.** Sumber = 1 backlog item terverifikasi reproduces-on-main (7-agen verify workflow), bukan spec spekulatif. 1 fase / 3 plan / 6 REQ — tidak over-scoped.
+- **Integration-checker pada milestone 1-fase difokuskan ke DoD nyata** (integritas lintas-surface), bukan wiring antar-fase yang degenerate. Membuktikan semua surface scoring/display JOIN by `PackageOptionId` (bukan posisi) → fix UPDATE-by-Id otomatis aman.
+- **Locked-context dihormati:** in-code note `AAC:8027-8035` (upsert posisional di-LOCK D-418-02) → fix ubah MEKANISME, bukan perketat threshold guard. Discuss-phase menangkap ini sebelum plan.
+- **Playwright real-browser UAT menutup gap yang controller-test tak bisa jangkau** (lesson 354): hidden-Id survive JS reletter, clone-reset gotcha §2c. 3/3 PASS DB-verified.
+
+### What Was Inefficient
+- **VERIFICATION.md ditulis sebelum UAT** → status `human_needed` (5/6) padahal kerja selesai; harus di-resolve manual saat close (UAT 3/3 sudah ada). Verifier idealnya re-run setelah Plan 03 UAT, atau status verifikasi nunggu UAT.
+- **audit-open false-positive** "UAT gap" untuk fase yang sudah passed/0-pending — noise saat close gate.
+
+### Patterns Established
+- **Identity-based upsert carrier pattern:** hidden `Id` per baris authoring form + anti-tamper server-side (`submittedId ∈ existingIds`, reject duplikat) + set-difference guard SEBELUM mutasi + clone-reset hapus Id (cegah baris baru warisi Id). Template untuk authoring form lain yang punya child-record editable.
+- **Code-reviewer CR menangkap test-yang-lolos-secara-accidental:** CR-01 = test null-Id yang lolos via Count/text tapi diam-diam mass-recreate. Tambah Id-stability assert mengunci UPDATE-in-place. Test hijau ≠ kontrak terkunci.
+
+### Key Lessons
+- Saat mengubah mekanisme penyimpanan yang di-LOCK spec, ubah MEKANISME-nya (identity match), jangan tambal gejala (perketat guard threshold) — gejala bocor di permukaan lain (delete tengah vs ekor).
+- `PackageUserResponse` tanpa text-snapshot aman SELAMA edit UPDATE-by-Id (bukan relabel). Audit lintas-surface wajib saat menyentuh authoring opsi.
+
+### Cost Observations
+- Single phase, full gate-set (discuss→plan→execute→review+fix→secure→validate→UAT). Suite 702/702, 3 plan commits + docs. Efficient: bug terverifikasi dulu (no wasted exploration).
+
+---
+
 ## Milestone: v32.6 — Section + Scoped Shuffle + Pagination + Opsi Dinamis
 
 **Shipped:** 2026-06-24 (local, NOT pushed) | **Phases:** 6 (415-419 + 415.1) | **Plans:** 20 | **Tasks:** 41
