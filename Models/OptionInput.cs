@@ -11,11 +11,23 @@ namespace HcPortal.Models
     /// options[i].Image (file), options[i].ImageAlt, options[i].RemoveImage.
     ///
     /// KEAMANAN (T-418-06 mass-assignment): properti di-whitelist EKSPLISIT.
-    /// JANGAN tambah properti Id — Id PackageOption ditentukan SERVER (preserve via existing[i]),
-    /// tidak boleh disuplai client.
+    /// Phase 420 (D-01) menambah properti Id (carrier identity) — TIDAK melanggar T-418-06:
+    /// Id client-supplied DIVALIDASI server-side (Id ∈ q.Options) sebelum dipakai; forged Id ditolak.
     /// </summary>
     public class OptionInput
     {
+        /// <summary>
+        /// Phase 420 (D-01) — carrier identity opsi existing. Di-bind dari hidden input
+        /// options[i].Id. Null = baris opsi BARU (ADD). Non-null = match record PackageOption
+        /// existing untuk UPDATE/REMOVE by stable Id (BUKAN posisi).
+        ///
+        /// KEAMANAN (revisi T-418-06): Id KINI disuplai client (wajib untuk identity-matching),
+        /// TAPI server WAJIB memvalidasi setiap Id non-null ∈ q.Options soal ini SEBELUM dipakai
+        /// (lihat EditQuestion POST anti-tamper). Id asing/forged → tolak seluruh edit (fail-closed).
+        /// Ini menetralkan mass-assignment/IDOR via validasi eksplisit, BUKAN via melarang properti.
+        /// </summary>
+        public int? Id { get; set; }
+
         /// <summary>Teks opsi. Kosong/whitespace = baris diabaikan (mirror aturan import "kosong diabaikan").</summary>
         public string? Text { get; set; }
 

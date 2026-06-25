@@ -7907,6 +7907,7 @@ namespace HcPortal.Controllers
                     imageAlt = q.ImageAlt,
                     options = q.Options.OrderBy(o => o.Id).Select(o => new
                     {
+                        id = o.Id,                 // Phase 420: carrier identity untuk hidden options[i].Id
                         optionText = o.OptionText,
                         isCorrect = o.IsCorrect,
                         imagePath = o.ImagePath, // D-06 / IMG-07: prefill thumbnail opsi
@@ -8019,58 +8020,71 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
-            // GUARD EDIT-SHRINK (D-418-02, tutup hazard 999.14) — SETELAH validator lulus, SEBELUM mutasi/SaveChanges.
-            // Aturan "opsi mana yang dihapus" HARUS identik dengan loop upsert di bawah (kill-drift, plan-check #4):
-            // opsi existing pada posisi i (OrderBy Id) dihapus bila i >= keep ATAU options[i].Text kosong;
-            // konversi ke Essay menghapus SEMUA opsi.
-            //
-            // BATASAN DIKENAL (WR-01, review 418 — pre-existing, MED, lihat backlog 999.15):
-            // Guard ini hanya menangkap penghapusan opsi dari SLOT EKOR (i >= keep). Karena upsert di bawah
-            // bersifat POSISIONAL (preserve PackageOption.Id by posisi OrderBy Id, RESEARCH Pattern 2), menghapus
-            // opsi di TENGAH membuat opsi-opsi di bawahnya GESER NAIK posisi: record Id-nya bertahan tapi TEKS-nya
-            // di-relabel — sehingga jawaban peserta yang menunjuk opsi tengah TIDAK terdeteksi sebagai "dihapus"
-            // dan guard TIDAK menyala. Akibatnya makna jawaban peserta bisa berubah senyap (grading per Id tetap
-            // konsisten teknis, tapi teks opsi-nya beda). Ini sudah ada sejak soal 4-opsi, BUKAN bug 418, dan
-            // BUKAN crash (FK-Restrict 500 tetap tertutup). Fix penuh = editing opsi berbasis IDENTITAS (bukan posisi),
-            // sebuah keputusan produk di luar scope 418. JANGAN perketat tanpa konfirmasi D-418-02 (upsert posisional dikunci spec).
+            // ============================================================================================
+            // Phase 420 (D-01..D-04) — IDENTITY-BASED option editing (ganti upsert POSISIONAL Phase 418).
+            // Match baris input ke PackageOption existing by stable Id (BUKAN posisi). Menutup 999.15:
+            // hapus opsi TENGAH pada soal terjawab kini terdeteksi (Id hilang dari submit) → guard menyala,
+            // bukan me-relabel senyap. removedOptionIds dihitung set-difference-by-Id; guard + upsert pakai
+            // himpunan yang SAMA (kill-drift). Regression-lock 999.14: hapus opsi terjawab tetap diblok pre-
+            // SaveChanges (no FK-Restrict 500). D-418-02 (guard answered-option) DIPERTAHANKAN, hanya cara
+            // hitung removedOptionIds yang berubah (posisi → identity).
+            // ============================================================================================
+            var existing   = q.Options.OrderBy(o => o.Id).ToList();
+            var existingIds = existing.Select(o => o.Id).ToHashSet();
+
+            // (D-01a) ANTI-TAMPER — fail-closed SEBELUM mutasi apa pun. Id non-null harus ∈ opsi soal ini.
+            var submittedIds = options.Where(o => o.Id.HasValue).Select(o => o.Id!.Value).ToList();
+            if (submittedIds.Any(id => !existingIds.Contains(id)))
             {
-                var existingForGuard = q.Options.OrderBy(o => o.Id).ToList();
-                int keep = Math.Min(options.Count(o => !string.IsNullOrWhiteSpace(o.Text)), 6);
-                var removedOptionIds = new List<int>();
-                if (questionType == "Essay")
+                TempData["Error"] = "Opsi yang diubah tidak valid untuk soal ini.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+            if (submittedIds.Count != submittedIds.Distinct().Count())
+            {
+                TempData["Error"] = "Opsi duplikat terdeteksi.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
+            // kept = opsi existing yang Id-nya muncul di baris submit DENGAN teks tak-kosong (akan di-UPDATE).
+            var keptIds = options
+                .Where(o => o.Id.HasValue && !string.IsNullOrWhiteSpace(o.Text))
+                .Select(o => o.Id!.Value)
+                .ToHashSet();
+            // newRows = baris Id-null + teks terisi (akan di-ADD).
+            var newRows = options.Where(o => !o.Id.HasValue && !string.IsNullOrWhiteSpace(o.Text)).ToList();
+
+            // (D-01c) removedOptionIds = set-difference by Id (Essay = SEMUA existing). KILL-DRIFT: guard + upsert pakai set ini.
+            var removedOptionIds = (questionType == "Essay")
+                ? existingIds.ToList()
+                : existingIds.Except(keptIds).ToList();
+
+            // GUARD answered-option (D-418-02 dipertahankan; D-03 answered = SEMUA response apa pun status sesi).
+            if (removedOptionIds.Count > 0)
+            {
+                var answered = await _context.PackageUserResponses
+                    .Where(r => r.PackageOptionId.HasValue && removedOptionIds.Contains(r.PackageOptionId.Value))
+                    .Select(r => r.PackageOptionId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+                var blocked = OptionShrinkGuard.FindBlockedOptionIds(removedOptionIds, answered); // signature LOCKED
+                if (blocked.Count > 0)
                 {
-                    removedOptionIds.AddRange(existingForGuard.Select(o => o.Id));
-                }
-                else
-                {
-                    for (int i = 0; i < existingForGuard.Count; i++)
-                    {
-                        bool stillFilled = i < options.Count && !string.IsNullOrWhiteSpace(options[i].Text);
-                        if (i >= keep || !stillFilled)
-                            removedOptionIds.Add(existingForGuard[i].Id);
-                    }
-                }
-                if (removedOptionIds.Count > 0)
-                {
-                    var answered = await _context.PackageUserResponses
-                        .Where(r => r.PackageOptionId.HasValue && removedOptionIds.Contains(r.PackageOptionId.Value))
-                        .Select(r => r.PackageOptionId!.Value)
-                        .Distinct()
-                        .ToListAsync();
-                    var blocked = OptionShrinkGuard.FindBlockedOptionIds(removedOptionIds, answered);
-                    if (blocked.Count > 0)
-                    {
-                        // Huruf opsi terblok (posisi di existingForGuard, OrderBy Id) untuk pesan jelas (UI-SPEC C5).
-                        string[] letters = { "A", "B", "C", "D", "E", "F" };
-                        var blockedLetters = blocked
-                            .Select(id => existingForGuard.FindIndex(o => o.Id == id))
-                            .Where(idx => idx >= 0)
-                            .OrderBy(idx => idx)
-                            .Select(idx => idx < letters.Length ? letters[idx] : (idx + 1).ToString());
-                        var label = string.Join(", ", blockedLetters);
-                        TempData["Error"] = $"Opsi \"{label}\" sudah dijawab peserta dan tidak bisa dihapus. Batalkan perubahan atau pertahankan opsi ini.";
-                        return RedirectToAction("ManagePackageQuestions", new { packageId });
-                    }
+                    // (D-04) Huruf dari URUTAN TERSIMPAN (posisi di existing, OrderBy Id) + cuplikan teks
+                    // (opsi terblok mungkin sudah HILANG dari form karena baru dihapus HC).
+                    string[] letters = { "A", "B", "C", "D", "E", "F" };
+                    var parts = blocked
+                        .Select(id => existing.FindIndex(o => o.Id == id))
+                        .Where(idx => idx >= 0)
+                        .OrderBy(idx => idx)
+                        .Select(idx =>
+                        {
+                            var letter = idx < letters.Length ? letters[idx] : (idx + 1).ToString();
+                            var text = existing[idx].OptionText ?? "";
+                            var snippet = text.Length > 40 ? text.Substring(0, 40) + "…" : text;
+                            return $"\"{letter}\" (\"{snippet}\")";
+                        });
+                    TempData["Error"] = $"Opsi {string.Join("; ", parts)} sudah dijawab peserta dan tidak bisa dihapus. Batalkan perubahan atau pertahankan opsi ini.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
                 }
             }
 
@@ -8107,10 +8121,11 @@ namespace HcPortal.Controllers
                 q.ImageAlt = TruncateAlt(questionImageAlt, 255);
             }
 
-            // OQ1: UPDATE-IN-PLACE opsi (jangan RemoveRange membabi-buta → preserve Id + ImagePath).
+            // Phase 420: UPSERT IDENTITY. Match by Id (existing dari blok guard di atas, OrderBy o.Id).
             if (questionType == "Essay")
             {
-                // Essay tidak punya opsi: hapus semua opsi existing + delete-candidate gambarnya.
+                // Essay tak punya opsi: hapus SEMUA opsi existing + delete-candidate gambarnya.
+                // Aman FK-Restrict: sudah lolos guard (removedOptionIds = semua existing → blocked jika terjawab).
                 foreach (var oldOpt in q.Options.ToList())
                 {
                     if (!string.IsNullOrEmpty(oldOpt.ImagePath)) imagePathsToDelete.Add(oldOpt.ImagePath!);
@@ -8120,42 +8135,30 @@ namespace HcPortal.Controllers
             }
             else
             {
-                // Phase 418: loop upsert opsi dinamis A–F (≤6), preserve Id + gambar (4-cabang: update/remove/add/skip).
-                // Urutan SAMA dengan GET JSON (OrderBy o.Id). Aturan "dihapus" IDENTIK dengan guard edit-shrink di atas
-                // (kill-drift): posisi i dihapus bila i >= keep ATAU options[i].Text kosong.
-                var existing = q.Options.OrderBy(o => o.Id).ToList();
-                int keep = Math.Min(options.Count(o => !string.IsNullOrWhiteSpace(o.Text)), 6);
-                int bound = Math.Max(keep, existing.Count);
-
-                for (int i = 0; i < bound; i++)
+                // UPDATE / REMOVE existing by Id.
+                foreach (var o in existing)
                 {
-                    var inp = i < options.Count ? options[i] : null;
-                    var hasText = inp != null && !string.IsNullOrWhiteSpace(inp.Text) && i < keep;
-                    var slot = i < existing.Count ? existing[i] : null;
-
-                    if (slot != null && hasText)
+                    if (keptIds.Contains(o.Id))
                     {
-                        // UPDATE in-place: text + correct; gambar preserve kecuali image-intent.
-                        slot.OptionText = inp!.Text!.Trim();
-                        slot.IsCorrect = inp.IsCorrect;
-                        await ApplyOptionImageIntent(slot, inp.Image, inp.ImageAlt, inp.RemoveImage, packageId, imagePathsToDelete);
+                        var row = options.First(r => r.Id == o.Id);
+                        o.OptionText = row.Text!.Trim();
+                        o.IsCorrect  = row.IsCorrect;
+                        await ApplyOptionImageIntent(o, row.Image, row.ImageAlt, row.RemoveImage, packageId, imagePathsToDelete);
                     }
-                    else if (slot != null && !hasText)
+                    else
                     {
-                        // Opsi dihapus (shrink atau posisi kosong): remove + delete-candidate gambar.
-                        // Aman dari FK-Restrict — sudah lolos guard edit-shrink (D-418-02).
-                        if (!string.IsNullOrEmpty(slot.ImagePath)) imagePathsToDelete.Add(slot.ImagePath!);
-                        _context.PackageOptions.Remove(slot);
-                        q.Options.Remove(slot);
+                        // Id tak ada di keptIds → REMOVE (sudah lolos guard, aman FK-Restrict).
+                        if (!string.IsNullOrEmpty(o.ImagePath)) imagePathsToDelete.Add(o.ImagePath!);
+                        _context.PackageOptions.Remove(o);
+                        q.Options.Remove(o);
                     }
-                    else if (slot == null && hasText)
-                    {
-                        // Opsi baru di posisi i (mis. 4→5/6): ADD.
-                        var newOpt = new PackageOption { OptionText = inp!.Text!.Trim(), IsCorrect = inp.IsCorrect };
-                        await ApplyOptionImageIntent(newOpt, inp.Image, inp.ImageAlt, inp.RemoveImage, packageId, imagePathsToDelete);
-                        q.Options.Add(newOpt);
-                    }
-                    // slot == null && !hasText → skip (opsi tidak ada & tidak diisi)
+                }
+                // ADD baris baru (Id null + teks).
+                foreach (var row in newRows)
+                {
+                    var n = new PackageOption { OptionText = row.Text!.Trim(), IsCorrect = row.IsCorrect };
+                    await ApplyOptionImageIntent(n, row.Image, row.ImageAlt, row.RemoveImage, packageId, imagePathsToDelete);
+                    q.Options.Add(n);
                 }
             }
 
