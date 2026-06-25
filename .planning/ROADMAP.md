@@ -42,7 +42,7 @@
 
 ### Phases
 
-- [ ] **Phase 420: EditQuestion Identity-Based Option Editing** — Upsert opsi posisional → identity-based (no silent relabel); OPTEDIT-01..05 + VRF-01. migration=FALSE.
+- [x] **Phase 420: EditQuestion Identity-Based Option Editing** — Upsert opsi posisional → identity-based (no silent relabel); OPTEDIT-01..05 + VRF-01. migration=FALSE. ✅ completed 2026-06-25 (suite 702/702, Playwright UAT 3/3)
 
 ### Phase Details
 
@@ -65,7 +65,7 @@
 
 | # | Phase | Goal | Requirements | Success Criteria | Status |
 |---|-------|------|--------------|------------------|--------|
-| 420 | EditQuestion Identity-Based Option Editing | Upsert opsi posisional → identity-based (no silent relabel) | OPTEDIT-01..05, VRF-01 | 5 | ⬜ Not started |
+| 420 | EditQuestion Identity-Based Option Editing | Upsert opsi posisional → identity-based (no silent relabel) | OPTEDIT-01..05, VRF-01 | 5 | ✅ Done (2026-06-25) |
 
 **Coverage:** 6/6 REQ mapped (Phase 420 = OPTEDIT-01..05 + VRF-01), 0 orphan, 0 duplikat.
 
