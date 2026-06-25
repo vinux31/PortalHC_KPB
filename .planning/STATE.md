@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.9
 milestone_name: EditQuestion Option-Edit Data Integrity (Identity-Based)
-status: planning
+status: executing
 stopped_at: Phase 420 context gathered
-last_updated: "2026-06-25T00:08:42.990Z"
-last_activity: 2026-06-24 — Milestone v32.9 roadmap created (1 fase)
+last_updated: "2026-06-25T00:56:15.270Z"
+last_activity: 2026-06-25 -- Phase 420 planning complete
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -26,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: 420 — EditQuestion Identity-Based Option Editing (not started)
 Plan: —
-Status: Ready to plan
-Last activity: 2026-06-24 — Milestone v32.9 roadmap created (1 fase)
+Status: Ready to execute
+Last activity: 2026-06-25 -- Phase 420 planning complete
 
 Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** — hapus/edit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap. Ganti upsert opsi POSISIONAL di `AssessmentAdminController.cs` EditQuestion POST menjadi **IDENTITY-based** (match baris input ke `PackageOption` existing by stable `Id`, bukan posisi) → hapus opsi tengah membuang record yang BENAR + guard answered-option (D-418-02) menyala untuk delete posisi MANAPUN. **migration=FALSE**. Branch main. Fase mulai **420** (lanjut dari 419).
 
