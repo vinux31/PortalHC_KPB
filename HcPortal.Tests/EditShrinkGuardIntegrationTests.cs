@@ -212,7 +212,8 @@ public class EditShrinkGuardIntegrationTests : IClassFixture<SectionFixture>
             var actor = await ctx.Users.FindAsync(actorId);
             var ctrl = MakeController(ctx, actor!, "EditQuestion");
 
-            // Shrink 4→3: kosongkan teks opsi B (index 1) → B ditandai dihapus. A benar (correctIndex=0).
+            // Phase 420 identity contract: hapus opsi TENGAH B (optionIds[1], answered) dengan MENGHILANGKAN
+            // baris B dari submit; kirim A,C,D DENGAN Id. B ∉ submit → removedOptionIds={B} → B answered → BLOCKED.
             // Record.ExceptionAsync menjamin TIDAK ada DbUpdateException / 500 (guard memblok pre-SaveChanges).
             IActionResult? res = null;
             var ex = await Record.ExceptionAsync(async () =>
@@ -222,10 +223,9 @@ public class EditShrinkGuardIntegrationTests : IClassFixture<SectionFixture>
                     null, null, false,
                     new List<OptionInput>
                     {
-                        new OptionInput { Text = "A" },
-                        new OptionInput { Text = "" },    // B dikosongkan → ditandai dihapus (tapi sudah dijawab)
-                        new OptionInput { Text = "C" },
-                        new OptionInput { Text = "D" },
+                        new OptionInput { Id = optionIds[0], Text = "A" },
+                        new OptionInput { Id = optionIds[2], Text = "C" },   // B (optionIds[1]) DIOMIT → removed candidate
+                        new OptionInput { Id = optionIds[3], Text = "D" },
                     },
                     correctIndex: 0,
                     sectionId: null);
@@ -292,9 +292,9 @@ public class EditShrinkGuardIntegrationTests : IClassFixture<SectionFixture>
                     null, null, false,
                     new List<OptionInput>
                     {
-                        new OptionInput { Text = "A" },
-                        new OptionInput { Text = "B" },
-                        new OptionInput { Text = "C" },   // hanya 3 opsi → D (index 3) di luar keep → dihapus
+                        new OptionInput { Id = optionIds[0], Text = "A" },
+                        new OptionInput { Id = optionIds[1], Text = "B" },
+                        new OptionInput { Id = optionIds[2], Text = "C" },   // D (optionIds[3]) DIOMIT → removed (unanswered → boleh)
                     },
                     correctIndex: 0,
                     sectionId: null);
@@ -315,6 +315,286 @@ public class EditShrinkGuardIntegrationTests : IClassFixture<SectionFixture>
             Assert.Equal(new[] { "A", "B", "C" }, q.Options.OrderBy(o => o.Id).Select(o => o.OptionText).ToArray());
             // Response peserta ke opsi A (tak dihapus) tetap ada.
             Assert.True(await verify.PackageUserResponses.AnyAsync(r => r.PackageOptionId == optionIds[0]));
+        }
+    }
+
+    // ============================ Phase 420 — IDENTITY-BASED option editing ============================
+    // Membuktikan upsert identity (match by stable Id, BUKAN posisi): hapus opsi TENGAH terjawab terdeteksi
+    // (Id hilang dari submit) → guard menyala, BUKAN me-relabel senyap (bug 999.15). Plus regression-lock
+    // 999.14 (no FK-Restrict 500), anti-tamper (Id asing/duplikat fail-closed), edit-by-Id, add-option.
+
+    // #1 (OPTEDIT-01): hapus opsi TENGAH B pada soal BELUM dijawab (answered=A) → sukses; opsi tersisa
+    // A,C,D dengan Id+teks UTUH (C tetap "C", BUKAN ter-relabel jadi "B"). Kebalikan bug 999.15.
+    [Fact]
+    public async Task IdentityEdit_MiddleDelete_Unanswered_NoRelabel_Succeeds()
+    {
+        int packageId, sessionId, questionId; string actorId; List<int> optionIds;
+        await using (var seed = NewCtx())
+        {
+            (sessionId, packageId) = await SeedSessionPackageAsync(seed, "ID-noRelabel");
+            (questionId, optionIds, _) = await SeedFourOptionQuestionAsync(seed, sessionId, packageId);
+            actorId = (await SeedActorAsync(seed)).Id;
+            seed.PackageUserResponses.Add(new PackageUserResponse
+            {
+                AssessmentSessionId = sessionId, PackageQuestionId = questionId,
+                PackageOptionId = optionIds[0], SubmittedAt = DateTime.UtcNow   // jawab A (BUKAN B yang dihapus)
+            });
+            await seed.SaveChangesAsync();
+        }
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "EditQuestion");
+            IActionResult? res = null;
+            var ex = await Record.ExceptionAsync(async () =>
+            {
+                res = await ctrl.EditQuestion(
+                    questionId, packageId, "Soal 4 opsi", "MultipleChoice", 10, "K3", null, 2000,
+                    null, null, false,
+                    new List<OptionInput>
+                    {
+                        new OptionInput { Id = optionIds[0], Text = "A" },
+                        new OptionInput { Id = optionIds[2], Text = "C" },   // B (optionIds[1]) DIOMIT (unanswered → boleh)
+                        new OptionInput { Id = optionIds[3], Text = "D" },
+                    },
+                    correctIndex: 0, sectionId: null);
+            });
+            Assert.Null(ex);
+            Assert.IsType<RedirectToActionResult>(res);
+            Assert.True(string.IsNullOrWhiteSpace(ctrl.TempData["Error"] as string));   // sukses
+        }
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.Include(x => x.Options).SingleAsync(x => x.Id == questionId);
+            Assert.Equal(3, q.Options.Count);
+            Assert.DoesNotContain(q.Options, o => o.Id == optionIds[1]);   // B benar-benar dihapus
+            // Opsi tersisa Id [0,2,3] teks ["A","C","D"] — C (optionIds[2]) TIDAK ter-relabel jadi "B".
+            Assert.Equal(new[] { "A", "C", "D" }, q.Options.OrderBy(o => o.Id).Select(o => o.OptionText).ToArray());
+            Assert.Equal("C", q.Options.Single(o => o.Id == optionIds[2]).OptionText);
+        }
+    }
+
+    // #2 (OPTEDIT-03): edit teks+kebenaran opsi yang SUDAH dijawab (B) → UPDATE record by Id; jawaban
+    // peserta tetap merujuk PackageOptionId yang sama (identitas semantik utuh).
+    [Fact]
+    public async Task IdentityEdit_EditAnsweredOption_TextAndCorrectness_UpdatesById()
+    {
+        int packageId, sessionId, questionId; string actorId; List<int> optionIds;
+        await using (var seed = NewCtx())
+        {
+            (sessionId, packageId) = await SeedSessionPackageAsync(seed, "ID-editAnswered");
+            (questionId, optionIds, _) = await SeedFourOptionQuestionAsync(seed, sessionId, packageId);
+            actorId = (await SeedActorAsync(seed)).Id;
+            seed.PackageUserResponses.Add(new PackageUserResponse
+            {
+                AssessmentSessionId = sessionId, PackageQuestionId = questionId,
+                PackageOptionId = optionIds[1], SubmittedAt = DateTime.UtcNow   // jawab B
+            });
+            await seed.SaveChangesAsync();
+        }
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "EditQuestion");
+            IActionResult? res = null;
+            var ex = await Record.ExceptionAsync(async () =>
+            {
+                res = await ctrl.EditQuestion(
+                    questionId, packageId, "Soal 4 opsi", "MultipleChoice", 10, "K3", null, 2000,
+                    null, null, false,
+                    new List<OptionInput>
+                    {
+                        new OptionInput { Id = optionIds[0], Text = "A" },
+                        new OptionInput { Id = optionIds[1], Text = "B-rev" },   // edit teks B + jadikan benar
+                        new OptionInput { Id = optionIds[2], Text = "C" },
+                        new OptionInput { Id = optionIds[3], Text = "D" },
+                    },
+                    correctIndex: 1, sectionId: null);   // B benar
+            });
+            Assert.Null(ex);
+            Assert.IsType<RedirectToActionResult>(res);
+            Assert.True(string.IsNullOrWhiteSpace(ctrl.TempData["Error"] as string));
+        }
+        await using (var verify = NewCtx())
+        {
+            var b = await verify.PackageOptions.SingleAsync(o => o.Id == optionIds[1]);
+            Assert.Equal("B-rev", b.OptionText);
+            Assert.True(b.IsCorrect);
+            // Response peserta tetap merujuk opsi yang SAMA (Id stabil) — identitas semantik utuh.
+            Assert.True(await verify.PackageUserResponses.AnyAsync(r => r.PackageOptionId == optionIds[1]));
+        }
+    }
+
+    // #3 (OPTEDIT-04a / 999.14): konversi soal terjawab MC→Essay → removedOptionIds=SEMUA → guard menyala
+    // → diblokir TANPA DbUpdateException 500; soal tetap MC, response utuh.
+    [Fact]
+    public async Task IdentityEdit_ConvertAnsweredMcToEssay_Blocked_NoException()
+    {
+        int packageId, sessionId, questionId; string actorId; List<int> optionIds;
+        await using (var seed = NewCtx())
+        {
+            (sessionId, packageId) = await SeedSessionPackageAsync(seed, "ID-mcToEssay");
+            (questionId, optionIds, _) = await SeedFourOptionQuestionAsync(seed, sessionId, packageId);
+            actorId = (await SeedActorAsync(seed)).Id;
+            seed.PackageUserResponses.Add(new PackageUserResponse
+            {
+                AssessmentSessionId = sessionId, PackageQuestionId = questionId,
+                PackageOptionId = optionIds[1], SubmittedAt = DateTime.UtcNow
+            });
+            await seed.SaveChangesAsync();
+        }
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "EditQuestion");
+            IActionResult? res = null;
+            var ex = await Record.ExceptionAsync(async () =>
+            {
+                res = await ctrl.EditQuestion(
+                    questionId, packageId, "Soal jadi Essay", "Essay", 10, "K3", "kunci jawaban essay", 2000,
+                    null, null, false,
+                    new List<OptionInput>(),   // Essay: tak ada opsi → removedOptionIds = semua existing
+                    correctIndex: null, sectionId: null);
+            });
+            Assert.Null(ex);   // no FK-Restrict 500
+            Assert.IsType<RedirectToActionResult>(res);
+            Assert.Contains("sudah dijawab", ctrl.TempData["Error"] as string ?? "");
+        }
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.Include(x => x.Options).SingleAsync(x => x.Id == questionId);
+            Assert.Equal("MultipleChoice", q.QuestionType);   // TIDAK terkonversi
+            Assert.Equal(4, q.Options.Count);
+            Assert.True(await verify.PackageUserResponses.AnyAsync(r => r.PackageOptionId == optionIds[1]));
+        }
+    }
+
+    // #4 (T-420-01 / D-01a): OptionId asing (milik soal/paket lain) → seluruh edit ditolak fail-closed; 0 mutasi.
+    [Fact]
+    public async Task IdentityEdit_AntiTamper_ForeignOptionId_Rejected_NoMutation()
+    {
+        int packageId, sessionId, questionId; string actorId; List<int> optionIds;
+        int otherPackageId, otherSessionId; List<int> otherOptionIds;
+        await using (var seed = NewCtx())
+        {
+            (sessionId, packageId) = await SeedSessionPackageAsync(seed, "ID-tamper-A");
+            (questionId, optionIds, _) = await SeedFourOptionQuestionAsync(seed, sessionId, packageId);
+            (otherSessionId, otherPackageId) = await SeedSessionPackageAsync(seed, "ID-tamper-B");
+            (_, otherOptionIds, _) = await SeedFourOptionQuestionAsync(seed, otherSessionId, otherPackageId);
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "EditQuestion");
+            IActionResult? res = null;
+            var ex = await Record.ExceptionAsync(async () =>
+            {
+                res = await ctrl.EditQuestion(
+                    questionId, packageId, "Soal 4 opsi", "MultipleChoice", 10, "K3", null, 2000,
+                    null, null, false,
+                    new List<OptionInput>
+                    {
+                        new OptionInput { Id = optionIds[0], Text = "A" },
+                        new OptionInput { Id = optionIds[1], Text = "B" },
+                        new OptionInput { Id = optionIds[2], Text = "C" },
+                        new OptionInput { Id = otherOptionIds[0], Text = "X" },   // Id ASING (opsi soal lain)
+                    },
+                    correctIndex: 0, sectionId: null);
+            });
+            Assert.Null(ex);
+            Assert.IsType<RedirectToActionResult>(res);
+            Assert.Contains("tidak valid", ctrl.TempData["Error"] as string ?? "");
+        }
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.Include(x => x.Options).SingleAsync(x => x.Id == questionId);
+            Assert.Equal(4, q.Options.Count);   // 0 mutasi
+            Assert.Equal(new[] { "A", "B", "C", "D" }, q.Options.OrderBy(o => o.Id).Select(o => o.OptionText).ToArray());
+        }
+    }
+
+    // #5 (OPTEDIT-05): tambah opsi baru (Id null) → di-ADD; opsi A (Id stabil) TIDAK ter-overwrite.
+    [Fact]
+    public async Task IdentityEdit_AddOption_NullId_Adds_NotOverwriteExisting()
+    {
+        int packageId, sessionId, questionId; string actorId; List<int> optionIds;
+        await using (var seed = NewCtx())
+        {
+            (sessionId, packageId) = await SeedSessionPackageAsync(seed, "ID-addOpt");
+            (questionId, optionIds, _) = await SeedFourOptionQuestionAsync(seed, sessionId, packageId);
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "EditQuestion");
+            IActionResult? res = null;
+            var ex = await Record.ExceptionAsync(async () =>
+            {
+                res = await ctrl.EditQuestion(
+                    questionId, packageId, "Soal 4 opsi", "MultipleChoice", 10, "K3", null, 2000,
+                    null, null, false,
+                    new List<OptionInput>
+                    {
+                        new OptionInput { Id = optionIds[0], Text = "A" },
+                        new OptionInput { Id = optionIds[1], Text = "B" },
+                        new OptionInput { Id = optionIds[2], Text = "C" },
+                        new OptionInput { Id = optionIds[3], Text = "D" },
+                        new OptionInput { Text = "E" },   // Id null → opsi BARU
+                    },
+                    correctIndex: 0, sectionId: null);
+            });
+            Assert.Null(ex);
+            Assert.True(string.IsNullOrWhiteSpace(ctrl.TempData["Error"] as string));
+        }
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.Include(x => x.Options).SingleAsync(x => x.Id == questionId);
+            Assert.Equal(5, q.Options.Count);
+            Assert.Equal("A", q.Options.Single(o => o.Id == optionIds[0]).OptionText);   // A tak ter-overwrite
+            Assert.Contains(q.Options, o => o.OptionText == "E");
+        }
+    }
+
+    // #6 (T-420-02): Id duplikat dalam submit → ditolak fail-closed; 0 mutasi.
+    [Fact]
+    public async Task IdentityEdit_DuplicateSubmittedId_Rejected()
+    {
+        int packageId, sessionId, questionId; string actorId; List<int> optionIds;
+        await using (var seed = NewCtx())
+        {
+            (sessionId, packageId) = await SeedSessionPackageAsync(seed, "ID-dupId");
+            (questionId, optionIds, _) = await SeedFourOptionQuestionAsync(seed, sessionId, packageId);
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "EditQuestion");
+            IActionResult? res = null;
+            var ex = await Record.ExceptionAsync(async () =>
+            {
+                res = await ctrl.EditQuestion(
+                    questionId, packageId, "Soal 4 opsi", "MultipleChoice", 10, "K3", null, 2000,
+                    null, null, false,
+                    new List<OptionInput>
+                    {
+                        new OptionInput { Id = optionIds[0], Text = "A" },
+                        new OptionInput { Id = optionIds[0], Text = "A-dup" },   // Id duplikat
+                        new OptionInput { Id = optionIds[2], Text = "C" },
+                        new OptionInput { Id = optionIds[3], Text = "D" },
+                    },
+                    correctIndex: 0, sectionId: null);
+            });
+            Assert.Null(ex);
+            Assert.Contains("duplikat", ctrl.TempData["Error"] as string ?? "");
+        }
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.Include(x => x.Options).SingleAsync(x => x.Id == questionId);
+            Assert.Equal(4, q.Options.Count);
+            Assert.Equal(new[] { "A", "B", "C", "D" }, q.Options.OrderBy(o => o.Id).Select(o => o.OptionText).ToArray());
         }
     }
 }
