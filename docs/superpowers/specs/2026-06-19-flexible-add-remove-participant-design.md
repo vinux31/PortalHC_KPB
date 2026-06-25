@@ -7,7 +7,7 @@
 
 ## Latar Belakang & Tujuan
 
-Admin/HC butuh fleksibilitas menambah **dan** menghapus peserta assessment **walaupun ujian sedang berlangsung** (ada sesi InProgress di batch yang sama), langsung dari layar Monitoring tempat mereka mengawasi ujian live.
+Admin/HC butuh fleksibilitas menambah **dan** menghapus peserta pada assessment **kapan saja** — baik batch yang **belum ada progres** peserta maupun yang **sedang berjalan** (ada sesi InProgress di batch yang sama) — langsung dari layar Monitoring tempat mereka mengawasi ujian live. Desain hybrid menangani kedua state: peserta belum-mulai → hapus bersih; peserta sedang-mengerjakan/selesai → soft-remove + force-kick.
 
 ### Model data (existing)
 - Tiap peserta = **satu baris** `AssessmentSession` (FK `UserId`).
