@@ -507,22 +507,24 @@ namespace HcPortal.Controllers
                         .Select(a => new { a.Id, a.CoacheeId })
                         .ToListAsync();
 
-                    // Resolve unit per assignment: AssignmentUnit from active mapping, fallback to User.Unit
+                    // PSU-01/PSU-05 (INT-01 / Phase 404.1): resolve unit per assignment from AssignmentUnit ONLY
+                    // (active mapping). NO User.Unit fallback — ambiguous for multi-unit. Empty AssignmentUnit →
+                    // skip + audit-warn (never silently scope a new deliverable to the coachee's primary unit).
                     var assignmentCoacheeIds = activeAssignments.Select(a => a.CoacheeId).Distinct().ToList();
                     var mappingUnits = await _context.CoachCoacheeMappings
                         .Where(m => m.IsActive && assignmentCoacheeIds.Contains(m.CoacheeId))
                         .Select(m => new { m.CoacheeId, m.AssignmentUnit })
                         .ToListAsync();
-                    var userUnits = await _context.Users
-                        .Where(u => assignmentCoacheeIds.Contains(u.Id))
-                        .Select(u => new { u.Id, u.Unit })
-                        .ToDictionaryAsync(u => u.Id, u => u.Unit);
 
                     // Filter to assignments whose resolved unit matches the deliverable's unit
                     var matchingAssignments = activeAssignments.Where(a =>
                     {
-                        var resolvedUnit = (mappingUnits.FirstOrDefault(m => m.CoacheeId == a.CoacheeId)?.AssignmentUnit
-                                            ?? userUnits.GetValueOrDefault(a.CoacheeId))?.Trim() ?? "";
+                        var resolvedUnit = mappingUnits.FirstOrDefault(m => m.CoacheeId == a.CoacheeId)?.AssignmentUnit?.Trim() ?? "";
+                        if (string.IsNullOrWhiteSpace(resolvedUnit))
+                        {
+                            _logger.LogWarning("Phase-129 auto-sync: coachee {CoacheeId} di-skip — AssignmentUnit kosong; tidak fallback ke User.Unit primary (PSU-01/PSU-05).", a.CoacheeId);
+                            return false;
+                        }
                         return resolvedUnit == unit.Trim();
                     }).ToList();
 
@@ -1514,7 +1516,13 @@ namespace HcPortal.Controllers
                         where a.IsActive
                         select new { a, u, t };
             if (!string.IsNullOrWhiteSpace(bagian)) query = query.Where(x => x.u.Section == bagian);
-            if (!string.IsNullOrWhiteSpace(unit)) query = query.Where(x => x.u.Unit == unit);
+            // Phase 401 (PSU-02): filter unit berbasis AssignmentUnit (active mapping coachee), bukan scalar User.Unit primary.
+            if (!string.IsNullOrWhiteSpace(unit))
+            {
+                var unitTrim = unit.Trim();
+                query = query.Where(x => _context.CoachCoacheeMappings
+                    .Any(m => m.IsActive && m.CoacheeId == x.a.CoacheeId && m.AssignmentUnit == unitTrim));
+            }
             if (trackId.HasValue) query = query.Where(x => x.a.ProtonTrackId == trackId.Value);
 
             var rows = await query
@@ -1640,6 +1648,23 @@ namespace HcPortal.Controllers
             var validModes = new[] { "CL-A", "CL-B(a)", "CL-B(b)", "CL-C" };
             if (!validModes.Contains(req.Mode))
                 return Json(new { success = false, message = "Mode tidak valid." });
+
+            // Phase 401 (PSU-03): TargetUnit harus ∈ worker.UserUnits aktif (jaga Invariant #4 — jangan orphan AssignmentUnit)
+            // + valid di org-tree. Server-authoritative; jangan percaya payload client (mass-assignment guard).
+            var worker = await _context.Users.Where(u => u.Id == req.CoacheeId)
+                .Select(u => new { u.Section }).FirstOrDefaultAsync();
+            if (worker == null)
+                return Json(new { success = false, message = "Worker tidak ditemukan." });
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+            bool inOrgTree = !string.IsNullOrWhiteSpace(worker.Section)
+                && sectionUnitsDict.TryGetValue(worker.Section!.Trim(), out var validUnits)
+                && validUnits.Contains(req.TargetUnit.Trim());
+            if (!inOrgTree)
+                return Json(new { success = false, message = "Unit tujuan tidak valid di data organisasi aktif." });
+            bool inUserUnits = await CoachMappingController.ValidateAssignmentUnitInUserUnits(
+                _context, req.CoacheeId, req.TargetUnit);
+            if (!inUserUnits)
+                return Json(new { success = false, message = "Unit tujuan bukan anggota Unit aktif worker — tambahkan unit ke worker dulu." });
 
             var bypassReq = new BypassRequest(req.CoacheeId, req.SourceProtonTrackId,
                 req.TargetProtonTrackId, req.TargetUnit, req.TargetCoachId, req.Reason,

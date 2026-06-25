@@ -92,6 +92,94 @@
 
 - **Phase 391 — Penambahan Peserta Fleksibel saat Ujian Berjalan (PART-01..04):** HC dapat menambah peserta baru ke assessment yang sedang berjalan (peserta lain `InProgress`) tanpa diblokir; tutup edge guard `Completed` agar tak salah-blokir selama window ujian terbuka; notice informatif; regression test (penambahan-saat-InProgress berhasil, peserta baru ber-status siap-mulai Open/Upcoming per jadwal BUKAN warisi induk [D-01], sesi/jawaban existing tak ter-overwrite). 0 migration.
 - **Phase 392 — Perbaikan CreateWorker + Audit Field (WRKR-01..03):** buka kunci field Nama/Email (`readonly` saat AD mode) agar bisa diketik di semua environment + `type="email"` + validation inline field organisasi; Playwright-verify semua field + create pekerja end-to-end sukses. View-only (controller/model tak diubah). 0 migration.
+## v32.8 Exam Security & Audit Hardening (Shipped: 2026-06-25)
+
+**Phases completed:** 3 phases, 3 plans, 7 tasks
+
+**Key accomplishments:**
+
+- Jejak `AuditLog` ActionType="EditOrganizationUnit" aditif post-commit pada rename/reparent unit organisasi — mirror `DeleteOrganizationUnit`, guarded only-on-change, swallow-on-failure, dengan cascade counts di Description. Menutup asimetri traceability pre-existing (Delete ber-audit, Edit tidak).
+- Token verifikasi masuk ujian kini server-authoritative & persisten via kolom `AssessmentSession.TokenVerifiedAt` (DateTime? nullable) — stamp saat VerifyToken sukses, dibaca di gate StartExam (ganti TempData.Peek), reset null single-source di RetakeService; migration AddTokenVerifiedAt applied.
+- GET CMP/StartExam(id) jadi idempoten — blok persist `Upcoming->Open` (Status="Open"+SaveChangesAsync) dihapus, diganti effective-status by-schedule in-memory (`Status=="Upcoming" && Schedule > nowWib`); 6 test real-SQL membuktikan idempotensi + regresi seluruh gate (time-gate/GRDF-01/token-gate 427) tetap memblok.
+
+---
+
+## v32.7 Perbaikan Menyeluruh Sistem Pre-Test/Post-Test (Shipped: 2026-06-24)
+
+**Phases completed:** 6 phases (420-425), 19 plans · **41/41 in-scope REQ** (FORM-01..11 · RTH-01..05 · SHFX-01..07 · CERT-01..07 · GRDF-01..05,07 · CLN-01..05; GRDF-06 covered by v32.5 merge) · audit PASSED, integration SOUND · **migration=TRUE hanya Phase 422** (`AddPackageNumberUniqueIndex`); 420/421/423/424/425=FALSE · branch ITHandoff, **NOT pushed** (deploy bundle dgn v32.1+v32.3+v32.4). Sumber: audit Pre/Post 2026-06-22 (~60 temuan, 4 HIGH).
+
+**Key accomplishments:**
+
+- **Phase 420 — Form Create/Edit persistensi + UX Pre-Post:** tutup pola "field dirender tapi tak tersimpan" (shuffle/retake/ValidUntil di Create+Edit), guard `Status==Completed` group-aware (tolak edit sesi/grup Completed), redirect Edit entry-manual ke form yang benar, redesign layout Pre-Post scope-explicit + rename `CreationMode`.
+- **Phase 421 — Retake lifecycle hardening:** cooldown via ExamWindow non-destruktif (RTK-LOGIC-02, tolak retake tanpa hapus sesi), reset HC hapus NomorSertifikat, counting attempt konsisten cap-vs-warning, guard hapus peserta Abandoned/ber-riwayat, warning MaxAttempts retroaktif.
+- **Phase 422 — SamePackage & Shuffle integrity (migration=TRUE):** PackageNumber unik+deterministik (`AddPackageNumberUniqueIndex` dedup ROW_NUMBER), sync Import Excel Pre→Post, lock SamePackage server-side, peserta baru warisi SamePackage, peringatan shuffle satu-sumber.
+- **Phase 423 — Certificate issuance consistency:** satu helper `ShouldIssueCertificate` tolak Pre-Test semua jalur grading-time, ValidUntil wajib saat issue non-Pre, nomor seq atomik anti-race, anti double-cert non-bypassable.
+- **Phase 424 — Grading de-dup + flow/gating:** gating Pre-wajib-Completed sebelum Post StartExam (FLOW-04, keputusan bisnis a), scorer per-soal pure fn + dedupe seragam, pairing satu sumber kebenaran UserId-filter, no link semu Standard, ElapsedSeconds hitung ExtraTime, essay kosong ditolak server-side.
+- **Phase 425 — Cosmetic/tech-debt cleanup:** label/XML-doc selaras (RESERVED AssessmentPhase, Status 7-nilai, [Display] ValidUntil), manual entry cross-validate non-blocking (`ManualEntryRules`), timer satu-sumber `ExamTimeRules.AllowedExamSeconds` (4 situs), `ControllerGuards.JsonFail`.
+
+**Known deferred at close:** (1) 4 item D-01/D-03/D-04 Phase 425 — FLOW-08 token server-auth + FLOW-10 write-on-GET dijadikan backlog 999.13/999.14; DROP AssessmentPhase + DTO refactor ditolak by-design. (2) 3 item UAT 0-pending (422/423 status passed; 424 terdokumentasi tak bisa live-drive → ditutup automated test 8/8) — acknowledged benign.
+
+---
+
+## v32.4 Ujian Ulang (Attempt/Retake Assessment) (Shipped: 2026-06-22)
+
+**Phases completed:** 4 phases (405-408), 12 plans, 29 tasks · **14/14 REQ (RTK-01..14)** · audit PASSED · migration=TRUE (Fase 405 `AddRetakeColumnsAndArchive`); 406/407/408=FALSE · branch ITHandoff, NOT pushed.
+
+**Key accomplishments:**
+
+- **405 Backend Core (RTK-01..04/06/07/13):** model data retake (3 kolom `AssessmentSession` + tabel `AssessmentAttemptResponseArchive`) + `RetakeRules` (pure eligibility) + `RetakeArchiveBuilder` (pure snapshot) + `RetakeService.ExecuteAsync` (claim-atomik→snapshot→archive→reset→clear-token→audit) + refactor `ResetAssessment` HC→delegasi + endpoint `UpdateRetakeSettings` sibling-propagation. verify 7/7, secure 17/17, suite 598/0/2. migration=TRUE.
+- Pure RiwayatUnifier helper (archived + live current attempt unified, newest-first, strict AttemptHistoryId grouping) + lazy-AJAX RiwayatPercobaan GET endpoint (RBAC Admin/HC) + @-encoded _RiwayatPercobaan.cshtml accordion+per-soal partial with tri-state verdict — all backend the HC drill-down modal needs except the trigger/modal-shell (Plan 03).
+- "Ujian Ulang" config card in ManagePackages (mirror shuffle, no-lock, toggle-driven disclosure of MaxAttempts/cooldown, non-blocking warning, hide for Pre-Test/Manual) plus native asp-for binding in CreateAssessment Step 3 and EditAssessment — all runtime-verified by 6 green Playwright scenarios @5270.
+- Per-peserta 'Riwayat Percobaan' dropdown trigger + ONE shared Bootstrap modal-lg-scrollable + appUrl-prefixed lazy-fetch JS that drops the 406-01 _RiwayatPercobaan partial into the modal body (title via .textContent XSS-safe), runtime-verified @5270 by a 5-scenario Playwright spec (open/per-soal/current/pending/xss) — closing RTK-08's interactive path. migration=FALSE.
+- Pure leak-safe `RetakeReviewMode` tier resolver (`ResolveReviewMode`, A1: pending==failed selama attempt-sisa) di RetakeRules + 7 field retake/tier di AssessmentResultsViewModel + IsCurrentAttempt di AllWorkersHistoryRow, dikunci 6 unit test truth-table. 0 migration.
+- Action POST `CMP/RetakeExam(id)` worker self-service (antiforgery + ownership Forbid IDOR + server-authoritative `CanRetakeAsync` re-check + `ExecuteAsync` + token-clear + redirect StartExam, cermin HC `ResetAssessment`) + DI `RetakeService` ke `CMPController` + `Results` mengisi 7 VM field retake/tier (tier via `assessment.IsPassed` bool? — Pitfall 5) + riwayat pekerja via `RiwayatUnifier`, dikunci 3 endpoint test RTK-09. 0 migration.
+- Rakit seluruh UI sisi-pekerja di `Views/CMP/Results.cshtml`: tier feedback 3-state `@switch(Model.RetakeMode)` LEAK-SAFE (`ShowWrongFlagsOnly` menahan kunci jawaban selama retake masih mungkin — tak render `list-group-item-success`/"(Jawaban Benar)"/`CorrectAnswer`), retake control (tombol "Ujian Ulang"/counter/cooldown countdown disabled→enable/lock cap-habis), modal konfirmasi ber-antiforgery POST `RetakeExam`, countdown JS guard-safe (lesson 413); partial baru `_RiwayatPekerja.cshtml` ter-gate (worker delta "Tidak Lulus"/"Jawaban Saya" + `ViewData[HideDetail]` ScoreOnly); + Playwright smoke `retake-worker-407.spec.ts` 6 skenario leak-safety @5270. 0 migration.
+- xUnit real-SQL integration test proving the v32.4 capstone invariant: a failed session that is retaken (reset) then re-graded-lulus issues EXACTLY 1 NomorSertifikat (anti-double-cert guard ter-bukti) in canonical format KPB/{seq:D3}/{RomanMonth}/{year}.
+- Playwright lifecycle real-browser RTK-14 (`retake-lifecycle-408.spec.ts`) + seed `[RETAKE408]` yang membuktikan alur retake penuh dari KEGAGALAN sampai TERBITNYA SERTIFIKAT — leak-safe pra-retake, modal antiforgery, StartExam, jawab benar, LULUS + Nomor Sertifikat — artefak siap; live UAT gate dijalankan orchestrator @5270.
+
+---
+
+## v32.3 Akun Multi-Unit (1 Bagian) (Shipped: 2026-06-21)
+
+**Phases completed:** 10 phases, 21 plans, 45 tasks
+
+**Key accomplishments:**
+
+- Tabel junction `UserUnits` (filtered-unique 1-primary/user) + migration `AddUserUnitsTable` dengan backfill idempotent 1 primary-row/pekerja, diterapkan + diverifikasi di DB lokal SQLEXPRESS; 7 test scaffold Wave 0 mendefinisikan kontrak MU-01..07.
+- Write-through terpusat `SyncUserUnitsAsync` (junction UserUnits + mirror `ApplicationUser.Unit` + audit set-diff) di-wire ke WorkerController Create/Edit/Import; validasi Unit∈Bagian tiap write; MU-07 guard asimetris (PTA aktif hard-block / coach-mapping aktif confirm→auto-deactivate atomic); Import pipe multi-unit + Export primary-first comma-join; 6 test logic Wave 0 hijau (19 fakta); round-trip 2-unit terverifikasi di SQL Server lokal (mirror MATCH + filtered-unique enforce).
+- Widget multi-select Unit (`initSectionUnitMultiCascade` — checkbox-list + radio Utama per baris, state machine UI-SPEC §A 8-state) di-render client-side dari `ViewBag.SectionUnitsJson` (no AJAX) di CreateWorker/EditWorker; Bagian tetap single `<select>`; MU-07 confirm modal (coach-mapping aktif → re-prompt; PROTON aktif → error merah hard-block); EditWorker GET pre-fill `Units`/`PrimaryUnit` dari junction untuk round-trip; runtime Playwright 9/9 hijau (round-trip 2-unit Create→Edit + default-primary D-02 + promote-on-uncheck + a11y) — DB di-snapshot+RESTORE (baseline UserUnits=6).
+- Display SEMUA unit pekerja (primary ditandai badge hijau+bintang+"Utama", primary-first ordering) di 5 surface HTML (Profile/Settings/WorkerDetail/ManageWorkers/Home) + `_PSign` cetak all-units primary-first comma-join (D-07 LOCKED) + Excel export primary-first (399-02); VM (Profile/Settings/PSign/DashboardHome) diperluas Units/PrimaryUnit, AccountController inject ApplicationDbContext BARU + populate dari UserUnits; spec Playwright multiunit-display-399 8/8 hijau headless (incl _PSign + Excel verifikasi otomatis), DB restore baseline (UserUnits=6).
+- Filter unit listing pekerja diubah dari scalar `u.Unit == unitFilter` (hanya primary) menjadi keanggotaan set-aware via correlated EXISTS terhadap junction `UserUnits`, sehingga pekerja anggota >1 unit dalam 1 Bagian muncul di tiap unit-nya — dengan kolom Unit kontekstual D-02 dan dedup rollup Bagian by-construction (tanpa `.Distinct()`).
+- Shipped the single-source `ValidateAssignmentUnitInUserUnits` testable seam + 5 RED test scaffolds — the contract every Wave-1/2 plan (401-02..06) implements against.
+- Dropped the ambiguous `?? User.Unit` fallback from both CoachMappingController PROTON resolvers and wired the D-03 hybrid audit channel — eligibility/cert can no longer be issued against a primary-resolved (wrong) unit.
+- Hardened the AssessmentAdminController cert-issuing eligibility gate — empty AssignmentUnit now BLOCKs session/cert issuance (no primary-resolved unit) and persists a ProtonUnitUnresolved AuditLog.
+- Swapped CDP coachee-scope from scalar User.Unit to AssignmentUnit at 4 filter sites + 2 defensive resolvers — a coachee assigned at a non-primary unit now appears under the correct unit, never the primary mirror.
+- BypassList now scopes by AssignmentUnit and BypassSave rejects a TargetUnit the worker doesn't own — closing the orphan-AssignmentUnit hole where a client payload could break Invariant #4.
+- Status:
+- Status:
+- Status:
+- Status:
+- [Regression-guard, not a defect] Test 5 hijau sejak RED
+- [Scope addition, additive] Pure-edge scenario ditambahkan
+- Disposable SQL-real `MultiUnitSqlFixture` (MigrateAsync full chain incl 399 AddUserUnitsTable + canonical {X,Y}/coach/PROTON seed) + live single-active anchor that closes the 402 carry.
+- QA-03 single-active proven on real SQL across all write-paths: mapping (DbUpdateException, covers Assign/Edit/Import/Reactivate via the shared filtered-unique index) + reactivate-without-deactivate replication + PTA bypass T1@X→T2@Y (COUNT == 1, cert histori preserved).
+- QA-04 unit-membership invariants proven SQL-real (AssignmentUnit∈UserUnits via production helper, B-06 cross-unit no-skip via production bootstrap, ProtonKompetensi/deliverable 1:1 + one-primary UserUnits via DbUpdateException) + the 3 residual migration-399 backfill stubs implemented and passing.
+- Milestone-closing browser UAT (PROTON sequential cross-unit T1@X→T2@Y, cert histori intact, coach multi-unit view) PASS 3/3 @5270 + IT handoff HTML (migration=TRUE Fase 399) + D1=b limitation note.
+
+---
+
+## v32.1 Perbaikan Teks & Desain (Shipped: 2026-06-18)
+
+**Phases completed:** 4 phases (388-390 + 390.1), 7 plans — **0 migration, 0 backend** (pure UI/teks 3 surface). Audit PASSED 7/7 REQ.
+
+**Key accomplishments:**
+
+- LBL-03: label "Batas Nilai Kelulusan" (bukan "Nilai Kelulusan") di kartu ringkasan `Views/CMP/Results.cshtml`; nilai persen tak berubah.
+- DSN-01/02/03 (Phase 389, risk tertinggi): redesign `CoachCoacheeMapping` → accordion card per coach (avatar inisial + nama + section + badge beban warna-ikut-threshold) + toolbar diseragamkan + hapus dead-`onclick` "Tambah Mapping". Behavior parity (modal/AJAX/collapse) terjaga.
+- DSN-04/05 (Phase 388): `CoachWorkload` polish — filter bar + section "Saran Penyeimbangan" dibungkus card konsisten + hapus inline magic-number font-size + spacing.
+- DSN-06 (Phase 390): Test & UAT behavior parity penutup — semua aksi existing (assign/edit/nonaktif/graduated/hapus/reactivate/import/export) lolos Playwright + UAT browser.
+- DSN-07 (Phase 390.1): import-button auto-enable via DOMContentLoaded fix (V-18 PASS runtime, verify 4/4, SECURED 2/2).
+- Verifikasi: gsd-verifier 389-VERIFICATION 5/5, audit milestone PASSED (7/7 REQ + DSN-07 bonus, integration 12/12 wired, nyquist all-compliant). Known deferred at close: 44 artifact (43 quick-task lama selesai + 1 todo cleanup DB lokal) — lihat STATE.md Deferred Items.
 
 ---
 

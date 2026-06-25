@@ -36,6 +36,21 @@ namespace HcPortal.Models
         [Display(Name = "Unit")]
         public string? Unit { get; set; }
 
+        // Phase 399 (MU-01/02) — multi-unit dalam 1 Bagian. Section TETAP scalar (invariant #1).
+        /// <summary>Daftar unit pekerja (≥0). Bind dari checkbox-list name="Units".</summary>
+        [Display(Name = "Unit Penugasan")]
+        public List<string> Units { get; set; } = new();
+
+        /// <summary>Unit utama (mirror ke ApplicationUser.Unit). Bind dari radio name="PrimaryUnit".</summary>
+        [Display(Name = "Unit Utama")]
+        public string? PrimaryUnit { get; set; }
+
+        /// <summary>MU-07 round-trip — operator menyetujui nonaktifkan mapping coach saat hapus unit.</summary>
+        public bool ConfirmedDeactivate { get; set; }
+
+        /// <summary>MU-07 display — daftar mapping coach yang akan terdampak (dinonaktifkan) bila lanjut.</summary>
+        public List<string> ImpactedMappings { get; set; } = new();
+
         [Display(Name = "Directorate")]
         [StringLength(100)]
         public string? Directorate { get; set; }

@@ -39,6 +39,7 @@ namespace HcPortal.Controllers
         private readonly IWorkerDataService _workerDataService;
         private readonly GradingService _gradingService;
         private readonly ImpersonationService _impersonationService;
+        private readonly RetakeService _retakeService;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
@@ -54,7 +55,8 @@ namespace HcPortal.Controllers
             IServiceScopeFactory scopeFactory,
             IWorkerDataService workerDataService,
             GradingService gradingService,
-            ImpersonationService impersonationService)
+            ImpersonationService impersonationService,
+            RetakeService retakeService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -70,6 +72,7 @@ namespace HcPortal.Controllers
             _workerDataService = workerDataService;
             _gradingService = gradingService;
             _impersonationService = impersonationService;
+            _retakeService = retakeService;
         }
 
         public IActionResult Index()
@@ -292,6 +295,7 @@ namespace HcPortal.Controllers
             {
                 var completedPreSessions = await _context.AssessmentSessions
                     .Where(s => s.AssessmentType == "PreTest"
+                        && s.UserId == userId                  // GRDF-03 (FLOW-01 fix): hanya Pre milik peserta ini — cegah cross-user pairing
                         && s.LinkedGroupId.HasValue
                         && postGroupIds.Contains(s.LinkedGroupId.Value)
                         && s.Status == "Completed")
@@ -471,8 +475,9 @@ namespace HcPortal.Controllers
             // Clamp 2: tidak boleh mundur (monotonically increasing)
             clampedElapsed = Math.Max(clampedElapsed, session.ElapsedSeconds);
 
-            // Clamp 3: tidak boleh melebihi durasi total
-            clampedElapsed = Math.Min(clampedElapsed, session.DurationMinutes * 60);
+            // Clamp 3: tidak boleh melebihi durasi total + ExtraTimeMinutes (GRDF-05/FLOW-02 — root fix
+            // under-report export "Durasi Aktual"; sebelumnya over-clamp tanpa ExtraTime).
+            clampedElapsed = Math.Min(clampedElapsed, ExamTimeRules.AllowedExamSeconds(session.DurationMinutes, session.ExtraTimeMinutes));
 
             // Atomic update of elapsed time and last active page
             var updated = await _context.AssessmentSessions
@@ -889,8 +894,9 @@ namespace HcPortal.Controllers
 
             if (!assessment.IsTokenRequired)
             {
-                // If token not required, just success
-                TempData[$"TokenVerified_{assessment.Id}"] = true;
+                // If token not required, just success.
+                // EXSEC-01 (D-03): JANGAN stamp TokenVerifiedAt — gate StartExam hanya cek kolom saat IsTokenRequired==true,
+                // jadi null tetap benar secara semantik untuk sesi tanpa token.
                 return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
             }
 
@@ -901,7 +907,9 @@ namespace HcPortal.Controllers
             }
 
             // Token Valid -> Redirect to Exam
-            TempData[$"TokenVerified_{assessment.Id}"] = true;
+            // EXSEC-01 (D-03): server-authoritative — stamp persist, gantikan TempData.
+            assessment.TokenVerifiedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
             return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
         }
 
@@ -927,20 +935,14 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Assessment");
             }
 
-            // Auto-transition: Upcoming → Open when scheduled date+time has arrived in WIB (persisted to DB)
-            if (assessment.Status == "Upcoming" && assessment.Schedule <= DateTime.UtcNow.AddHours(7))
-            {
-                // Phase 377 (Pitfall 3 / T-377-09): write-on-GET guard — JANGAN tulis DB saat impersonasi (read-only invariant).
-                if (!_impersonationService.IsImpersonating())
-                {
-                    assessment.Status = "Open";
-                    assessment.UpdatedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
-                }
-            }
+            // EXSEC-02 (Phase 428): effective-status by-schedule — GET idempoten, TIDAK persist transisi Upcoming→Open.
+            // Mirror pola lobby Assessment (:245-251, display-only). Transisi status aktual hanya saat
+            // worker mulai (justStarted → InProgress write di bawah).
+            var nowWib = DateTime.UtcNow.AddHours(7);
 
-            // Time gate: block access if assessment is still Upcoming (scheduled time not yet reached)
-            if (assessment.Status == "Upcoming")
+            // Time gate: blok HANYA bila benar-benar belum waktunya (Upcoming & jadwal di masa depan).
+            // Upcoming yang waktunya SUDAH tiba → diperlakukan openable (tak diblok), tanpa menulis DB.
+            if (assessment.Status == "Upcoming" && assessment.Schedule > nowWib)
             {
                 TempData["Error"] = "Ujian belum dibuka. Silakan kembali setelah waktu ujian dimulai.";
                 return RedirectToAction("Assessment");
@@ -952,13 +954,27 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Assessment");
             }
 
+            // GRDF-01 (FLOW-04, keputusan bisnis a): Post-Test tak boleh dimulai bila pasangan Pre-nya ADA
+            // tapi belum Completed. Worker-only — Admin/HC bypass (monitoring/impersonate), konsisten token gate.
+            // Penempatan: SETELAH cek Completed (reload Post selesai tak ke-gate), SEBELUM StartedAt write (no write-on-GET sesi terblok).
+            if (assessment.UserId == user.Id)
+            {
+                var pairedPre = await PrePostPairing.FindPairedPreAsync(_context, assessment);
+                if (pairedPre != null && pairedPre.Status != "Completed")   // D-01: Completed saja, BUKAN IsPassed
+                {
+                    TempData["Error"] = "Selesaikan Pre-Test dulu sebelum mulai Post-Test.";
+                    return RedirectToAction("Assessment");
+                }
+                // pairedPre == null (orphan / Standard / Pre milik user lain) → lewat (D-02 non-destruktif).
+            }
+
             // Enforce token requirement — workers must verify token via Assessment lobby first (SEC-01)
             // HC and Admin bypass: they are not exam takers; they may access StartExam for debugging/monitoring
             // InProgress sessions bypass: token was checked on first entry; reload must not block the worker
             if (assessment.IsTokenRequired && assessment.UserId == user.Id && assessment.StartedAt == null)
             {
-                var tokenVerified = TempData.Peek($"TokenVerified_{id}");
-                if (tokenVerified == null)
+                // EXSEC-01 (D-02): gate server-authoritative dari kolom, bukan TempData.Peek.
+                if (assessment.TokenVerifiedAt == null)
                 {
                     TempData["Error"] = "Ujian ini membutuhkan token akses. Silakan masukkan token terlebih dahulu.";
                     return RedirectToAction("Assessment");
@@ -1263,7 +1279,7 @@ namespace HcPortal.Controllers
 
                 // Resume state: set ViewBag flags for frontend
                 bool isResume = !justStarted;
-                int durationSeconds = (assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0)) * 60;
+                int durationSeconds = ExamTimeRules.AllowedExamSeconds(assessment.DurationMinutes, assessment.ExtraTimeMinutes);
                 int elapsedSec = assessment.ElapsedSeconds;
 
                 // Server-authoritative: cross-check DB elapsed dengan wall-clock elapsed sejak StartedAt
@@ -1635,7 +1651,7 @@ namespace HcPortal.Controllers
             if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
             {
                 var elapsed = (DateTime.UtcNow - assessment.StartedAt.Value).TotalSeconds;
-                var allowed = (assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0)) * 60;
+                var allowed = ExamTimeRules.AllowedExamSeconds(assessment.DurationMinutes, assessment.ExtraTimeMinutes);
                 timerExpired = elapsed >= allowed;
             }
 
@@ -1720,7 +1736,7 @@ namespace HcPortal.Controllers
             if (assessment.StartedAt.HasValue && assessment.DurationMinutes > 0)
             {
                 var elapsed = (DateTime.UtcNow - assessment.StartedAt.Value).TotalSeconds;
-                var allowed = (assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0)) * 60;
+                var allowed = ExamTimeRules.AllowedExamSeconds(assessment.DurationMinutes, assessment.ExtraTimeMinutes);
                 serverTimerExpired = elapsed >= allowed;
             }
 
@@ -1731,22 +1747,32 @@ namespace HcPortal.Controllers
                 if (pkgAssign != null)
                 {
                     var shuffledQIds = pkgAssign.GetShuffledQuestionIds();
-                    int totalQuestions = shuffledQIds.Count;
-                    // Count from form answers (MC) + DB responses for Essay/MA not in form
-                    int formAnswered = answers.Count(a => a.Value > 0);
-                    var dbResponses = await _context.PackageUserResponses
+
+                    // GRDF-07 (VAL-03): soal Essay dianggap "terjawab" HANYA bila TextAnswer non-kosong (server-
+                    // authoritative), bukan sekadar baris response ada. MC/MA: response ber-opsi di DB atau jawaban form.
+                    var qTypeById = await _context.PackageQuestions
+                        .Where(q => shuffledQIds.Contains(q.Id))
+                        .Select(q => new { q.Id, q.QuestionType })
+                        .ToDictionaryAsync(q => q.Id, q => q.QuestionType ?? "MultipleChoice");
+                    var dbResp = await _context.PackageUserResponses
                         .Where(r => r.AssessmentSessionId == id && shuffledQIds.Contains(r.PackageQuestionId))
-                        .Select(r => r.PackageQuestionId)
-                        .Distinct()
+                        .Select(r => new { r.PackageQuestionId, HasOption = r.PackageOptionId.HasValue, r.TextAnswer })
                         .ToListAsync();
-                    // Merge: questions answered in form OR in DB
-                    var allAnsweredQIds = new HashSet<int>(answers.Where(a => a.Value > 0).Select(a => a.Key));
-                    foreach (var qId in dbResponses) allAnsweredQIds.Add(qId);
-                    int answeredCount = allAnsweredQIds.Count;
-                    if (totalQuestions > 0 && answeredCount < totalQuestions)
+
+                    var formAnswered = new HashSet<int>(answers.Where(a => a.Value > 0).Select(a => a.Key));
+                    var completion = EvaluateOnTimeCompletion(
+                        shuffledQIds,
+                        qTypeById,
+                        formAnswered,
+                        dbResp.Select(r => (r.PackageQuestionId, r.HasOption, r.TextAnswer)).ToList());
+
+                    if (completion.Blocked)
                     {
-                        int unanswered = totalQuestions - answeredCount;
-                        TempData["Error"] = $"Masih ada {unanswered} soal yang belum dijawab. Jawab semua soal terlebih dahulu.";
+                        // Pesan ramah, server-authoritative (client flushEssay non-otoritatif — lesson Phase 413).
+                        // TIDAK membocorkan kunci/jawaban benar (V5).
+                        TempData["Error"] = completion.EmptyEssay
+                            ? "Isi semua jawaban essay terlebih dahulu sebelum submit."
+                            : $"Masih ada {completion.Unanswered} soal yang belum dijawab. Jawab semua soal terlebih dahulu.";
                         return RedirectToAction("ExamSummary", new { id });
                     }
                 }
@@ -2569,7 +2595,99 @@ namespace HcPortal.Controllers
                 }
             }
 
+            // === v32.4 RTK-09/10/12/13 (Phase 407): flag retake/tier + riwayat pekerja ke VM ===
+            // View (407-03) hanya MERENDER; eligibility/tier dihitung server (leak-safety = keputusan server).
+            // (a) Flag retake/tier — mirror counting RetakeService.CanRetakeAsync :237-242.
+            //     Tier pakai assessment.IsPassed (bool?), BUKAN viewModel.IsPassed (bool) — Pitfall 5.
+            // v32.7 RTH-03 (D-05): satu sumber counting era-retake snapshot-presence (kill-drift).
+            int eraRetakeArchives = await RetakeCountingRules.CountForUserAsync(
+                _context, assessment.UserId, assessment.Title, assessment.Category);
+            int currentAttempt = eraRetakeArchives + 1;
+            // v32.7 RTH-01 (Pitfall 1 & 2): masa ujian tutup → retake MUSTAHIL. +7h WIB byte-identik StartExam:956.
+            bool windowClosed = assessment.ExamWindowCloseDate.HasValue
+                && DateTime.UtcNow.AddHours(7) > assessment.ExamWindowCloseDate.Value;
+            ViewBag.WindowClosed = windowClosed;
+            // attemptsRemaining utk TIER = "retake mungkin secara prinsip" (abaikan cooldown timing):
+            // AllowRetake ON, tipe tak dikecualikan (PreTest/Manual via ShouldHideRetakeToggle), attempt belum habis.
+            // WAJIB sertakan AllowRetake + ShouldHideRetakeToggle → assessment non-retake → kunci boleh tampil (ShowFullReview).
+            // RTH-01 Pitfall 2: window tutup → attemptsRemaining=false → ResolveReviewMode buka full review (retake mustahil).
+            bool attemptsRemaining = assessment.AllowRetake
+                && !RetakeRules.ShouldHideRetakeToggle(assessment.AssessmentType, assessment.IsManualEntry)
+                && currentAttempt < assessment.MaxAttempts
+                && !windowClosed;
+            viewModel.CurrentAttempt = currentAttempt;
+            viewModel.MaxAttempts = assessment.MaxAttempts;
+            viewModel.CanRetake = await _retakeService.CanRetakeAsync(assessment.Id);
+            viewModel.RetakeMode = RetakeRules.ResolveReviewMode(assessment.AllowAnswerReview, assessment.IsPassed, attemptsRemaining);
+            viewModel.CooldownUntilUtc = (assessment.AllowRetake && assessment.RetakeCooldownHours > 0 && assessment.CompletedAt.HasValue)
+                ? assessment.CompletedAt.Value.AddHours(assessment.RetakeCooldownHours) : (DateTime?)null;
+            viewModel.IsCapReached = assessment.IsPassed == false && assessment.AllowRetake && currentAttempt >= assessment.MaxAttempts;
+            // WR-01 fix (RTK-10): tombol cooldown-disabled HARUS tampil saat masa jeda belum lewat.
+            // CanRetake (CanRetakeAsync) bernilai FALSE selama cooldown, jadi countdown tak boleh digate olehnya.
+            // IsInCooldown = layak-ulang-abaikan-cooldown (gagal + attempt-sisa) DAN cooldown masih aktif.
+            viewModel.IsInCooldown = attemptsRemaining && assessment.IsPassed == false
+                && viewModel.CooldownUntilUtc.HasValue && viewModel.CooldownUntilUtc > DateTime.UtcNow
+                && !windowClosed;   // v32.7 RTH-01 Pitfall 1: window tutup → JANGAN tampilkan countdown cooldown (dead-end UX)
+
+            // (b) Riwayat load — cermin verbatim RiwayatPercobaan :3493-3522 (reuse RetakeArchiveBuilder + RiwayatUnifier).
+            var histories = await _context.AssessmentAttemptHistory
+                .Where(h => h.UserId == assessment.UserId && h.Title == assessment.Title && h.Category == assessment.Category)
+                .OrderByDescending(h => h.AttemptNumber).ToListAsync();
+            var histIds = histories.Select(h => h.Id).ToList();
+            var archiveRows = await _context.AssessmentAttemptResponseArchives
+                .Where(a => histIds.Contains(a.AttemptHistoryId)).ToListAsync();
+            var currentRows = new List<AssessmentAttemptResponseArchive>();
+            if (assessment.Status == "Completed")
+            {
+                var assign = await _context.UserPackageAssignments.FirstOrDefaultAsync(a => a.AssessmentSessionId == assessment.Id);
+                var qids = assign?.GetShuffledQuestionIds() ?? new List<int>();
+                if (qids.Count > 0)
+                {
+                    var qs = await _context.PackageQuestions.Include(q => q.Options).Where(q => qids.Contains(q.Id)).ToListAsync();
+                    var resp = await _context.PackageUserResponses.Where(r => r.AssessmentSessionId == assessment.Id).ToListAsync();
+                    if (qs.Count > 0) currentRows = RetakeArchiveBuilder.Build(0, qs, resp);
+                }
+            }
+            viewModel.RiwayatAttempts = RiwayatUnifier.Build(assessment, histories, archiveRows, currentRows);
+
             return View(viewModel);
+        }
+
+        // --- UJIAN ULANG (worker self-service) ---
+        // v32.4 RTK-09 (Phase 407): pekerja men-trigger retake-nya sendiri dari halaman Hasil.
+        // Cermin baris-per-baris HC ResetAssessment (AssessmentAdminController :4244-4327); beda:
+        // actor = worker (effective user, impersonation-aware), guard = ownership Forbid + server-authoritative
+        // CanRetakeAsync re-check (countdown JS BUKAN gate — D-01), redirect = StartExam (HC redirect ke Monitoring).
+        [HttpPost]
+        [ValidateAntiForgeryToken]                 // RTK-09 CSRF (class-level [Authorize] sudah :25)
+        public async Task<IActionResult> RetakeExam(int id)
+        {
+            var assessment = await _context.AssessmentSessions.FirstOrDefaultAsync(a => a.Id == id);
+            if (assessment == null) return NotFound();
+
+            var (user, _) = await GetCurrentUserRoleLevelAsync();   // effective user (impersonation-aware) — idiom :909
+            if (user == null) return Challenge();
+            if (assessment.UserId != user.Id) return Forbid();      // RTK-09 ownership — IDOR guard (worker self-service only)
+
+            // Server-authoritative re-check (D-01): countdown/disable JS hanya UX, server otoritatif atas cooldown/cap.
+            if (!await _retakeService.CanRetakeAsync(id))
+            {
+                TempData["Error"] = "Ujian ulang tidak bisa dijalankan saat ini. Coba muat ulang halaman atau hubungi HC.";
+                return RedirectToAction("Results", new { id });
+            }
+
+            // actorName format mirror ResetAssessment :4298.
+            var actorName = string.IsNullOrWhiteSpace(user.NIP) ? (user.FullName ?? "Unknown") : $"{user.NIP} - {user.FullName}";
+            var rs = await _retakeService.ExecuteAsync(id, user.Id, actorName, "RetakeAssessment", "worker_retake");
+            if (!rs.Success)
+            {
+                TempData["Error"] = rs.Error ?? "Gagal menjalankan ujian ulang.";
+                return RedirectToAction("Results", new { id });
+            }
+
+            // EXSEC-01 (D-01): token gate re-arm kini server-authoritative — TokenVerifiedAt di-reset null
+            // di dalam RetakeService.ExecuteAsync (single source). Tak ada TempData token untuk dibersihkan.
+            return RedirectToAction("StartExam", new { id });       // spec re-entry target
         }
 
         #region Helper Methods
@@ -4593,6 +4711,45 @@ namespace HcPortal.Controllers
         /// Bila grading gagal (DB hiccup), token TIDAK dikonsumsi → retry aman (tak permanent-reject).
         /// </summary>
         public static bool ShouldConsumeAutoSubmitToken(bool gradingSucceeded) => gradingSucceeded;
+
+        /// <summary>Hasil evaluasi kelengkapan submit on-time (GRDF-07).</summary>
+        public readonly record struct OnTimeCompletionResult(bool Blocked, bool EmptyEssay, int Unanswered);
+
+        /// <summary>
+        /// Phase 424 GRDF-07 (VAL-03) — keputusan blokir submit on-time: soal Essay "terjawab" HANYA bila
+        /// TextAnswer non-kosong (server-authoritative, bukan baris-ada); MC/MA terjawab via jawaban form
+        /// (PackageOptionId>0) atau response ber-opsi di DB. Pure, EF-free, unit-testable (pola
+        /// ShouldEnforceSubmitTimer). HANYA dipakai di cabang on-time (!serverTimerExpired) — jalur timeout
+        /// TIDAK memakai ini (D-04/PXF-04: timeout + essay kosong tetap finalize PendingGrading).
+        /// </summary>
+        public static OnTimeCompletionResult EvaluateOnTimeCompletion(
+            IReadOnlyCollection<int> shuffledQuestionIds,
+            IReadOnlyDictionary<int, string> questionTypeById,
+            ISet<int> formAnsweredQuestionIds,
+            IReadOnlyCollection<(int questionId, bool hasOption, string? textAnswer)> dbResponses)
+        {
+            var answered = new HashSet<int>(formAnsweredQuestionIds);
+            bool emptyEssay = false;
+            foreach (var qId in shuffledQuestionIds)
+            {
+                var type = questionTypeById.TryGetValue(qId, out var t) ? (t ?? "MultipleChoice") : "MultipleChoice";
+                if (type == "Essay")
+                {
+                    bool filled = dbResponses.Any(r => r.questionId == qId && !string.IsNullOrWhiteSpace(r.textAnswer));
+                    if (filled) answered.Add(qId);
+                    else emptyEssay = true;                          // essay kosong → belum terjawab
+                }
+                else if (dbResponses.Any(r => r.questionId == qId && r.hasOption))
+                {
+                    answered.Add(qId);                              // MC/MA terjawab via response ber-opsi di DB
+                }
+            }
+            int total = shuffledQuestionIds.Count;
+            int answeredCount = shuffledQuestionIds.Count(qId => answered.Contains(qId));
+            int unanswered = Math.Max(0, total - answeredCount);
+            bool blocked = total > 0 && answeredCount < total;
+            return new OnTimeCompletionResult(blocked, emptyEssay, unanswered);
+        }
         // ================================================================================
 
         private async Task<IActionResult?> EnsureCanSubmitExamAsync(
@@ -4615,9 +4772,9 @@ namespace HcPortal.Controllers
             // Phase 313 WR-02 fix: gunakan satuan dan operator yang konsisten — detik integer, ≥.
             // Selaras dengan ExamSummary GET dan SubmitExam awal.
             var elapsed = DateTime.UtcNow - assessment.StartedAt.Value;
-            int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0);
+            int allowedMinutes = assessment.DurationMinutes + (assessment.ExtraTimeMinutes ?? 0); // dipakai WriteSubmitBlockedAuditAsync (audit menit)
             double elapsedSec = elapsed.TotalSeconds;
-            double allowedSec = allowedMinutes * 60.0;
+            double allowedSec = ExamTimeRules.AllowedExamSeconds(assessment.DurationMinutes, assessment.ExtraTimeMinutes); // CLN-04: int->double, identik allowedMinutes*60.0
             double graceLimitSec = allowedSec + 120.0; // 2-minute grace untuk network latency (existing tier-2)
 
             // Phase 313 CR-01 fix: server-side token validation menggantikan trust client `isAutoSubmit`.

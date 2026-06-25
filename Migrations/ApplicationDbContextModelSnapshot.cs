@@ -210,6 +210,43 @@ namespace HcPortal.Migrations
                     b.ToTable("AssessmentAttemptHistory");
                 });
 
+            modelBuilder.Entity("HcPortal.Models.AssessmentAttemptResponseArchive", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AnswerText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ArchivedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("AttemptHistoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AwardedScore")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PackageQuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("QuestionText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttemptHistoryId");
+
+                    b.ToTable("AssessmentAttemptResponseArchives");
+                });
+
             modelBuilder.Entity("HcPortal.Models.AssessmentCategory", b =>
                 {
                     b.Property<int>("Id")
@@ -357,6 +394,10 @@ namespace HcPortal.Migrations
 
                     b.HasIndex("AssessmentSessionId");
 
+                    b.HasIndex("AssessmentSessionId", "PackageNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AssessmentPackages_SessionId_PackageNumber_Unique");
+
                     b.ToTable("AssessmentPackages");
                 });
 
@@ -407,6 +448,9 @@ namespace HcPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
+
+                    b.Property<bool>("AllowRetake")
+                        .HasColumnType("bit");
 
                     b.Property<string>("AssessmentPhase")
                         .HasColumnType("nvarchar(max)");
@@ -481,6 +525,9 @@ namespace HcPortal.Migrations
                     b.Property<string>("ManualSertifikatUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("MaxAttempts")
+                        .HasColumnType("int");
+
                     b.Property<string>("NomorSertifikat")
                         .HasColumnType("nvarchar(450)");
 
@@ -512,6 +559,9 @@ namespace HcPortal.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("RenewsTrainingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RetakeCooldownHours")
                         .HasColumnType("int");
 
                     b.Property<bool>("SamePackage")
@@ -550,6 +600,9 @@ namespace HcPortal.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("TokenVerifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -2114,6 +2167,43 @@ namespace HcPortal.Migrations
                     b.ToTable("UserPackageAssignments");
                 });
 
+            modelBuilder.Entity("HcPortal.Models.UserUnit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserUnits_UserId_PrimaryUnique")
+                        .HasFilter("[IsPrimary] = 1");
+
+                    b.HasIndex("UserId", "Unit")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserUnits_UserId_Unit_Unique");
+
+                    b.ToTable("UserUnits");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -2267,6 +2357,17 @@ namespace HcPortal.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HcPortal.Models.AssessmentAttemptResponseArchive", b =>
+                {
+                    b.HasOne("HcPortal.Models.AssessmentAttemptHistory", "AttemptHistory")
+                        .WithMany()
+                        .HasForeignKey("AttemptHistoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AttemptHistory");
                 });
 
             modelBuilder.Entity("HcPortal.Models.AssessmentCategory", b =>
@@ -2605,6 +2706,17 @@ namespace HcPortal.Migrations
                     b.Navigation("AssessmentPackage");
 
                     b.Navigation("AssessmentSession");
+                });
+
+            modelBuilder.Entity("HcPortal.Models.UserUnit", b =>
+                {
+                    b.HasOne("HcPortal.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

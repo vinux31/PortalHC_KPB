@@ -20,7 +20,8 @@ export const selectors = {
   // Phase 308 — PrePost Wizard Validation Fix (D-13 selectors per CONTEXT)
   // Form ID correction per RESEARCH: '#createAssessmentForm' (BUKAN '#createForm' yang ada di CONTEXT.md)
   createForm: '#createAssessmentForm',
-  assessmentTypeInput: '#assessmentTypeInput',
+  // FORM-10 (Phase 420): DOM id di-rename assessmentTypeInput -> creationMode (penanda mode Standard/PrePostTest).
+  assessmentTypeInput: '#creationMode',
   statusFieldWrapper: '#statusFieldWrapper',
   statusSelect: '#Status',
   submitBtn: '#createAssessmentForm button[type="submit"]',
@@ -44,7 +45,8 @@ export const wizardSelectors = {
   // Step 1 fields
   category: '#Category',
   title: '#Title',
-  assessmentType: '#assessmentTypeInput',
+  // FORM-10 (Phase 420): DOM id di-rename assessmentTypeInput -> creationMode.
+  assessmentType: '#creationMode',
 
   // Step 2 fields
   userContainer: '#userCheckboxContainer',
@@ -93,7 +95,7 @@ export const extraTimeSelectors = {
 // ============================================================
 // Phase 318 Plan 03 — PrePostTest wizard fields
 // Source: Views/Admin/CreateAssessment.cshtml lines 411-465 (verified 2026-05-12)
-// Behavior: select #assessmentTypeInput='PrePostTest' → change event → #ppt-jadwal-section show
+// Behavior: select #creationMode='PrePostTest' → change event → #ppt-jadwal-section show
 // ============================================================
 export const prePostWizardSelectors = {
   jadwalSection: '#ppt-jadwal-section',

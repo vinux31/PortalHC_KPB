@@ -21,6 +21,10 @@ Status website terdiri dari **3 environment** dengan pemegang yang berbeda:
 
 > ⚠️ **Catatan istilah "dev" (hindari ambigu):** `http://localhost:5277` = tier **Lokal**, walau runtime-nya `ASPNETCORE_ENVIRONMENT=Development`. Tier **Development** = server IT `10.55.3.3`, mesin beda. **Jangan tulis "dev localhost:5277"** — pakai **"Lokal"** untuk `5277` dan **"Dev"** untuk `10.55.3.3`.
 
+> 🔀 **Port lokal per-branch (KHUSUS branch `ITHandoff`):** Branch `ITHandoff` di-check-out di dir `...\Desktop\PortalHC_KPB-ITHandoff`, sedangkan branch `main` di-check-out di worktree sibling `...\Desktop\PortalHC_KPB`. Biar dua worktree bisa jalan paralel tanpa tabrakan port, **`ITHandoff` pakai `http://localhost:5270`** dan **`main` tetap `http://localhost:5277`**. Di branch `ITHandoff`, `Properties/launchSettings.json` sengaja di-set ke `5270`.
+>
+> ⚠️ **Saat merge `ITHandoff` → `main`:** perubahan port `5270` di `launchSettings.json` **JANGAN ikut ke `main`** (main tetap `5277`). Git bisa membawa `5270` ke `main` secara senyap (tanpa konflik) — jadi saat finalize merge, kembalikan dengan: `git checkout main -- Properties/launchSettings.json`. Note pengingat juga tertanam di key `_ithandoff_note` dalam file itu.
+
 ---
 
 ## 2. Aturan Utama (Golden Rules)

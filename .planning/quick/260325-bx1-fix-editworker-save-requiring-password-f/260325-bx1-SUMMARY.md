@@ -1,3 +1,7 @@
+---
+status: complete
+---
+
 # Quick Task 260325-bx1: Fix EditWorker Save Requiring Password Fields
 
 **Status:** Complete

@@ -31,6 +31,9 @@ namespace HcPortal.Data
         public DbSet<ActionItem> ActionItems { get; set; }
         public DbSet<CoachCoacheeMapping> CoachCoacheeMappings { get; set; }
 
+        // Multi-Unit pekerja (v32.3 Phase 399 — MU-05; junction + primary-mirror)
+        public DbSet<UserUnit> UserUnits { get; set; }
+
         // Proton Deliverable Tracking (Phase 5)
         public DbSet<ProtonKompetensi> ProtonKompetensiList { get; set; }
         public DbSet<ProtonSubKompetensi> ProtonSubKompetensiList { get; set; }
@@ -64,6 +67,9 @@ namespace HcPortal.Data
 
         // Attempt History — Phase 46
         public DbSet<AssessmentAttemptHistory> AssessmentAttemptHistory { get; set; }
+
+        // Attempt Response Archive (snapshot per-soal) — v32.4 RTK-02
+        public DbSet<AssessmentAttemptResponseArchive> AssessmentAttemptResponseArchives { get; set; } = null!;
 
         // Deliverable Status History — Phase 117
         public DbSet<DeliverableStatusHistory> DeliverableStatusHistories { get; set; }
@@ -338,6 +344,39 @@ namespace HcPortal.Data
                 entity.HasIndex(m => new { m.CoachId, m.CoacheeId });
             });
 
+            // UserUnit configuration (v32.3 Phase 399 — junction multi-unit + primary-mirror)
+            builder.Entity<UserUnit>(entity =>
+            {
+                entity.HasOne(uu => uu.User)
+                      .WithMany()
+                      .HasForeignKey(uu => uu.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Tepat 1 primary per user (invariant #3) — idiom identik IX_CoachCoacheeMappings_CoacheeId_ActiveUnique.
+                // Index ini juga melayani lookup non-unique by UserId (EF dedup index UserId polos).
+                entity.HasIndex(uu => uu.UserId)
+                      .IsUnique()
+                      .HasFilter("[IsPrimary] = 1")
+                      .HasDatabaseName("IX_UserUnits_UserId_PrimaryUnique");
+
+                // Cegah duplikat unit/user (rekomendasi low-cost)
+                entity.HasIndex(uu => new { uu.UserId, uu.Unit })
+                      .IsUnique()
+                      .HasDatabaseName("IX_UserUnits_UserId_Unit_Unique");
+            });
+
+            // AssessmentPackage configuration (v32.7 Phase 422 SHFX-05/D-02 — PackageNumber unik per session)
+            builder.Entity<AssessmentPackage>(entity =>
+            {
+                // Jaring pengaman DB-level: cegah (AssessmentSessionId, PackageNumber) duplikat.
+                // PackageNumber = int NON-nullable -> PLAIN unique, TANPA filter (Pitfall 2).
+                // App-level prevention = CreatePackage MAX+1 + ThenBy(Id). Migration AddPackageNumberUniqueIndex
+                // dedup ROW_NUMBER renumber baris lama SEBELUM CreateIndex (Pitfall 1).
+                entity.HasIndex(p => new { p.AssessmentSessionId, p.PackageNumber })
+                      .IsUnique()
+                      .HasDatabaseName("IX_AssessmentPackages_SessionId_PackageNumber_Unique");
+            });
+
             // Proton Deliverable Tracking configuration (Phase 5)
 
             // ProtonTrack entity configuration (Phase 33)
@@ -586,6 +625,17 @@ namespace HcPortal.Data
                 entity.HasIndex(h => h.UserId);
                 entity.HasIndex(h => new { h.UserId, h.Title });
                 entity.Property(h => h.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // ========== Attempt Response Archive (v32.4 RTK-02) ==========
+            // Snapshot per-soal per attempt; cascade dari AttemptHistory.
+            builder.Entity<AssessmentAttemptResponseArchive>(entity =>
+            {
+                entity.HasIndex(e => e.AttemptHistoryId);
+                entity.HasOne(e => e.AttemptHistory)
+                      .WithMany()
+                      .HasForeignKey(e => e.AttemptHistoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ========== Deliverable Status History (Phase 117) ==========

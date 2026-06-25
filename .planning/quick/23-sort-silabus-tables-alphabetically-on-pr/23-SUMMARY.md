@@ -1,4 +1,5 @@
 ---
+status: complete
 phase: quick-23
 plan: "01"
 one_liner: "Sort silabus tables alphabetically by name on ProtonData and PlanIdp pages"

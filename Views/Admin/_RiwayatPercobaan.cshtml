@@ -1,0 +1,103 @@
+@model List<HcPortal.Models.RiwayatAttemptViewModel>
+@*
+    v32.4 Phase 406 RTK-08 — PartialView Riwayat Percobaan HC.
+    Accordion per-attempt (terbaru dulu — sudah diurutkan unifier) + tabel per-soal.
+    XSS (D-02): SEMUA konten user (QuestionText/AnswerText) di-render via Razor @ default-encode (auto HTML-escape).
+    Tri-state IsCorrect: true=✓ Benar, false=✗ Salah, null=— Menunggu penilaian (essay pending).
+    TANPA answer-KEY — hanya jawaban peserta (AnswerText) + verdict glyph + skor per-soal.
+*@
+@if (Model == null || !Model.Any())
+{
+    <div class="text-muted text-center py-4">Belum ada riwayat percobaan.</div>
+    return;
+}
+
+<div class="accordion" id="riwayatAccordion">
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        var attempt = Model[i];
+        var panelId = $"att-{i}";
+        var isFirst = i == 0;
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button @(isFirst ? "" : "collapsed")" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#@panelId"
+                        aria-expanded="@(isFirst ? "true" : "false")" aria-controls="@panelId">
+                    Percobaan ke-@attempt.AttemptNumber: @(attempt.ScorePercent.HasValue ? attempt.ScorePercent.Value.ToString() : "—")% —
+                    @if (attempt.IsPassed == true)
+                    {
+                        <span class="badge text-bg-success ms-2">Lulus</span>
+                    }
+                    else if (attempt.IsPassed == false)
+                    {
+                        <span class="badge text-bg-danger ms-2">Gagal</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark ms-2">Menunggu Penilaian</span>
+                    }
+                    <span class="text-muted small ms-2">@(attempt.CompletedAt.HasValue ? attempt.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") : "—")</span>
+                    @if (attempt.IsCurrent)
+                    {
+                        <span class="badge bg-info ms-2">Percobaan saat ini</span>
+                    }
+                </button>
+            </h2>
+            <div id="@panelId" class="accordion-collapse collapse @(isFirst ? "show" : "")" data-bs-parent="#riwayatAccordion">
+                <div class="accordion-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:48px;">No</th>
+                                    <th>Soal</th>
+                                    <th>Jawaban Peserta</th>
+                                    <th class="text-center" style="width:90px;">Status</th>
+                                    <th class="text-end" style="width:80px;">Skor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (attempt.Rows == null || !attempt.Rows.Any())
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-muted text-center py-3">Tidak ada rincian jawaban tersimpan untuk percobaan ini.</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @for (int r = 0; r < attempt.Rows.Count; r++)
+                                    {
+                                        var row = attempt.Rows[r];
+                                        <tr>
+                                            <td>@(r + 1)</td>
+                                            <td>@row.QuestionText</td>
+                                            <td>@(string.IsNullOrEmpty(row.AnswerText) ? "—" : row.AnswerText)</td>
+                                            <td class="text-center">
+                                                @if (row.IsCorrect == true)
+                                                {
+                                                    <i class="bi bi-check-circle-fill text-success" title="Benar"></i>
+                                                    <span class="visually-hidden">Benar</span>
+                                                }
+                                                else if (row.IsCorrect == false)
+                                                {
+                                                    <i class="bi bi-x-circle-fill text-danger" title="Salah"></i>
+                                                    <span class="visually-hidden">Salah</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted" title="Menunggu penilaian">—</span>
+                                                    <span class="visually-hidden">Menunggu</span>
+                                                }
+                                            </td>
+                                            <td class="text-end">@row.AwardedScore</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

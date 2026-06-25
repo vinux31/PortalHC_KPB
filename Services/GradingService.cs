@@ -46,7 +46,7 @@ namespace HcPortal.Services
         /// 3. Update session (race-condition-safe via ExecuteUpdateAsync + status guard)
         /// 4. Update PackageAssignment.IsCompleted
         /// 5. Buat TrainingRecord (dengan duplicate guard)
-        /// 6. Generate NomorSertifikat jika session.GenerateCertificate && isPassed (retry 3x)
+        /// 6. Generate NomorSertifikat via CertIssuanceRules.ShouldIssueCertificate gate (Phase 423 CERT-01) + TryAssignNextSeqAsync
         /// 7. Kirim notifikasi grup completion
         ///
         /// PENTING: Method ini selalu grade dari DB (bukan dari form POST) — per RESEARCH.md anti-pattern.
@@ -251,6 +251,7 @@ namespace HcPortal.Services
             // STAT-01 (D-02): guard diperluas dari `!= "Completed"` ke terminal/non-resurrectable set.
             // Tanpa ini sesi Abandoned/Cancelled/PendingGrading bisa di-resurrect jadi Completed-lulus + cert.
             // rowsAffected==0 → return false (branch di bawah, SUDAH ADA — kini juga tangkap resurrection blocked).
+            var completedAtSync = DateTime.UtcNow;
             var rowsAffected = await _context.AssessmentSessions
                 .Where(s => s.Id == session.Id
                     && s.Status != S.Completed && s.Status != S.Abandoned
@@ -260,7 +261,7 @@ namespace HcPortal.Services
                     .SetProperty(r => r.Status, S.Completed)
                     .SetProperty(r => r.Progress, 100)
                     .SetProperty(r => r.IsPassed, isPassed)
-                    .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
+                    .SetProperty(r => r.CompletedAt, completedAtSync)
                 );
 
             if (rowsAffected == 0)
@@ -271,6 +272,18 @@ namespace HcPortal.Services
                     session.Id);
                 return false;
             }
+
+            // Phase 423 (Rule 1 - Bug fix): ExecuteUpdateAsync di atas adalah bulk-update yang BYPASS change
+            // tracker → objek `session` in-memory TETAP nilai lama (IsPassed/Status/Score/CompletedAt).
+            // Gate cert CertIssuanceRules.ShouldIssueCertificate(session) membaca `session.IsPassed`, dan
+            // DeriveValidUntil membaca `session.CompletedAt` → tanpa sinkronisasi ini, sesi yang BARU lulus
+            // (skor dihitung saat ini) tak pernah lolos gate (session.IsPassed masih false) → cert tak terbit.
+            // Sinkron in-memory ke nilai yang BARU saja ditulis ke DB (identik dgn ExecuteUpdateAsync di atas).
+            session.Score = finalPercentage;
+            session.Status = S.Completed;
+            session.Progress = 100;
+            session.IsPassed = isPassed;
+            session.CompletedAt = completedAtSync;
 
             // ---- 4. Update PackageAssignment.IsCompleted ----
             await _context.UserPackageAssignments
@@ -283,38 +296,49 @@ namespace HcPortal.Services
             // (re-add 2026-04-10) - original removal di 79284609 (2026-03-18).
 
             // ---- 6. Generate NomorSertifikat (jika applicable) ----
-            // Kondisi: session.GenerateCertificate && isPassed (T-296-03: retry 3x + WHERE NomorSertifikat == null)
-            if (session.GenerateCertificate && isPassed)
+            // Phase 423 CERT-01 (SITE 1): gate kelayakan cert TUNGGAL via CertIssuanceRules.ShouldIssueCertificate
+            // (tolak PreTest + wajib GenerateCertificate && lulus). Loop seq terkonsolidasi -> TryAssignNextSeqAsync (CERT-03).
+            if (CertIssuanceRules.ShouldIssueCertificate(session))
             {
                 var certNow = DateTime.Now;
-                int certYear = certNow.Year;
-                int certAttempts = 0;
-                const int maxCertAttempts = 3;
-                bool certSaved = false;
+                bool certSaved = await CertNumberHelper.TryAssignNextSeqAsync(_context, session.Id, certNow);
 
-                while (!certSaved && certAttempts < maxCertAttempts)
+                if (certSaved)
                 {
-                    certAttempts++;
-                    try
+                    // CERT-02/06: derive ValidUntil dari CompletedAt utk CertificateType kanonik (Permanent->null/Annual->+1y/3-Year->+3y).
+                    var validUntil = CertIssuanceRules.DeriveValidUntil(session.CertificateType, session.CompletedAt);
+                    if (validUntil != null)
                     {
-                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
                         await _context.AssessmentSessions
-                            .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
-                            .ExecuteUpdateAsync(s => s
-                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
-                            );
-                        certSaved = true;
-                    }
-                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
-                    {
-                        // Retry dengan sequence baru (T-296-03)
+                            .Where(s => s.Id == session.Id)
+                            .ExecuteUpdateAsync(s => s.SetProperty(r => r.ValidUntil, (DateOnly?)validUntil));
                     }
                 }
-
-                if (!certSaved)
+                else
                 {
-                    _logger.LogError("Failed to generate certificate number for SessionId={SessionId} after {MaxAttempts} attempts due to repeated collisions.",
-                        session.Id, maxCertAttempts);
+                    // CERT-03 (D-03): seq gagal setelah retry. NON-DESTRUKTIF — sesi tetap Completed/IsPassed (JANGAN rollback).
+                    // Stamp UpdatedAt + log + audit "CertIssuanceFailed" -> predikat queryable utk HC:
+                    // (IsPassed==true && GenerateCertificate && AssessmentType!=PreTest && NomorSertifikat==null).
+                    _logger.LogError("Cert gagal terbit SessionId={SessionId} setelah retry — sesi tetap Completed (non-destruktif), tandai HC.", session.Id);
+                    await _context.AssessmentSessions
+                        .Where(s => s.Id == session.Id)
+                        .ExecuteUpdateAsync(s => s.SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
+                    try
+                    {
+                        // Audit best-effort via _context (GradingService tak inject AuditLogService — hindari ubah ctor/DI).
+                        _context.AuditLogs.Add(new AuditLog
+                        {
+                            ActorUserId = "system",
+                            ActorName = "Sistem (Grading)",
+                            ActionType = "CertIssuanceFailed",
+                            Description = $"Nomor sertifikat gagal terbit (auto-grade) utk SessionId={session.Id} setelah retry — tandai HC untuk terbit/retry manual.",
+                            TargetId = session.Id,
+                            TargetType = "AssessmentSession",
+                            CreatedAt = DateTime.UtcNow
+                        });
+                        await _context.SaveChangesAsync();
+                    }
+                    catch { /* audit best-effort: jangan blok lifecycle worker */ }
                 }
             }
 
@@ -375,6 +399,20 @@ namespace HcPortal.Services
                     .ToHashSet();
             }
 
+            // Phase 424 GRDF-02 (D-06): opsi MC FINAL per soal — override (admin edit) jadi sumber kebenaran;
+            // selain itu dedupe last-write-wins by SubmittedAt (konvergen ke kanonik PATH 1, ganti seleksi
+            // arbitrer HashSet non-deterministik / GRD-03). MA TETAP pakai SelectedOptions penuh (multi-row, Pitfall 3).
+            int? FinalMcOption(int qId)
+            {
+                if (overrideAnswers != null && overrideAnswers.TryGetValue(qId, out var ov))
+                    return ov.Count > 0 ? ov[0] : (int?)null;            // override = jawaban final (admin edit)
+                var fr = dbResponses
+                    .Where(r => r.PackageQuestionId == qId && r.PackageOptionId.HasValue)
+                    .OrderByDescending(r => r.SubmittedAt)
+                    .FirstOrDefault();
+                return fr?.PackageOptionId;
+            }
+
             int totalScore = 0, maxScore = 0;
             foreach (var qId in shuffledIds)
             {
@@ -384,11 +422,10 @@ namespace HcPortal.Services
                 switch (q.QuestionType ?? "MultipleChoice")
                 {
                     case "MultipleChoice":
-                        var mcSel = SelectedOptions(qId);
-                        if (mcSel.Count > 0)
+                        var mcFinal = FinalMcOption(qId);
+                        if (mcFinal.HasValue)
                         {
-                            var optId = mcSel.First();
-                            var opt = q.Options.FirstOrDefault(o => o.Id == optId);
+                            var opt = q.Options.FirstOrDefault(o => o.Id == mcFinal.Value);
                             if (opt?.IsCorrect == true) totalScore += q.ScoreValue;
                         }
                         break;
@@ -418,10 +455,10 @@ namespace HcPortal.Services
                     switch (q.QuestionType ?? "MultipleChoice")
                     {
                         case "MultipleChoice":
-                            var mcSel = SelectedOptions(q.Id);
-                            if (mcSel.Count > 0)
+                            var etMcFinal = FinalMcOption(q.Id);
+                            if (etMcFinal.HasValue)
                             {
-                                var opt = q.Options.FirstOrDefault(o => o.Id == mcSel.First());
+                                var opt = q.Options.FirstOrDefault(o => o.Id == etMcFinal.Value);
                                 if (opt?.IsCorrect == true) etCorrect++;
                             }
                             break;
@@ -487,6 +524,13 @@ namespace HcPortal.Services
                 throw new InvalidOperationException("Session bukan dalam status Completed saat re-grade.");
             }
 
+            // Phase 423 (Rule 1 - Bug fix): ExecuteUpdateAsync BYPASS change tracker → sinkron in-memory
+            // `session.IsPassed`/`Score` ke nilai baru. Cabang Fail->Pass di bawah memanggil
+            // CertIssuanceRules.ShouldIssueCertificate(session) yang membaca session.IsPassed — tanpa sinkron
+            // ini ia masih oldIsPassed (false) → cert tak pernah terbit walau flip Fail->Pass.
+            session.Score = newPct;
+            session.IsPassed = isPassed;
+
             await _context.SaveChangesAsync();
 
             // 5. Cascade sertifikat + TrainingRecord (only when flip)
@@ -517,37 +561,47 @@ namespace HcPortal.Services
             else if (!wasPassed && isPassed)
             {
                 // Fail -> Pass: generate sertifikat (Phase 324 D-03: TR cascade removed)
-                if (session.GenerateCertificate && session.AssessmentType != "PreTest")
+                // Phase 423 CERT-01 (SITE 2): seragamkan gate ke CertIssuanceRules.ShouldIssueCertificate
+                // (cabang ini sudah flip Fail->Pass jadi IsPassed==true). Loop seq -> TryAssignNextSeqAsync (CERT-03).
+                if (CertIssuanceRules.ShouldIssueCertificate(session))
                 {
                     var certNow = DateTime.Now;
-                    int certYear = certNow.Year;
-                    int certAttempts = 0;
-                    const int maxCertAttempts = 3;
-                    bool certSaved = false;
-                    while (!certSaved && certAttempts < maxCertAttempts)
+                    bool certSaved = await CertNumberHelper.TryAssignNextSeqAsync(_context, session.Id, certNow);
+
+                    if (certSaved)
                     {
-                        certAttempts++;
-                        try
+                        // CERT-02/06 (D-10): ValidUntil derive dari CompletedAt utk CertificateType kanonik (paritas SITE 1).
+                        var validUntil = CertIssuanceRules.DeriveValidUntil(session.CertificateType, session.CompletedAt);
+                        if (validUntil != null)
                         {
-                            var nextSeq = await HcPortal.Helpers.CertNumberHelper.GetNextSeqAsync(_context, certYear);
-                            var nomor = HcPortal.Helpers.CertNumberHelper.Build(nextSeq, certNow);
-                            // T6/D-10: ValidUntil mengikuti setup sesi HC (paritas GradeAndCompleteAsync) — TIDAK di-hardcode di sini.
-                            var updated = await _context.AssessmentSessions
-                                .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
-                                .ExecuteUpdateAsync(s => s
-                                    .SetProperty(r => r.NomorSertifikat, nomor));
-                            if (updated > 0) certSaved = true;
-                        }
-                        catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && HcPortal.Helpers.CertNumberHelper.IsDuplicateKeyException(ex))
-                        {
-                            // Retry dengan sequence baru
+                            await _context.AssessmentSessions
+                                .Where(s => s.Id == session.Id)
+                                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ValidUntil, (DateOnly?)validUntil));
                         }
                     }
-
-                    if (!certSaved)
+                    else
                     {
-                        _logger.LogError("RegradeAfterEditAsync: failed generate cert for session {SessionId} after {N} attempts",
-                            session.Id, maxCertAttempts);
+                        // CERT-03 non-destruktif: stamp UpdatedAt + audit (predikat sinyal HC, paritas SITE 1).
+                        _logger.LogError("RegradeAfterEditAsync: cert gagal terbit session {SessionId} setelah retry — sesi tetap Completed (non-destruktif), tandai HC.",
+                            session.Id);
+                        await _context.AssessmentSessions
+                            .Where(s => s.Id == session.Id)
+                            .ExecuteUpdateAsync(s => s.SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
+                        try
+                        {
+                            _context.AuditLogs.Add(new AuditLog
+                            {
+                                ActorUserId = "system",
+                                ActorName = "Sistem (Regrade)",
+                                ActionType = "CertIssuanceFailed",
+                                Description = $"Nomor sertifikat gagal terbit (re-grade Fail->Pass) utk SessionId={session.Id} setelah retry — tandai HC.",
+                                TargetId = session.Id,
+                                TargetType = "AssessmentSession",
+                                CreatedAt = DateTime.UtcNow
+                            });
+                            await _context.SaveChangesAsync();
+                        }
+                        catch { /* audit best-effort */ }
                     }
                 }
 

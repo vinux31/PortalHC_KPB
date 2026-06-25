@@ -14,7 +14,7 @@
 @* Phase 415 SEC-05: template baris soal (reuse markup existing) untuk daftar dikelompokkan per Section. *@
 @{
     Func<PackageQuestion, Microsoft.AspNetCore.Mvc.Razor.HelperResult> questionRow = @<text>
-        @{ var qtype = item.QuestionType ?? "MultipleChoice"; }
+        @{ var qtype = item.QuestionType ?? "MultipleChoice"; bool locked = ViewBag.IsSamePackageLocked == true; }
         <tr>
             <td class="text-muted">@item.Order</td>
             <td>
@@ -31,18 +31,30 @@
                     <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1" onclick="loadPreview(@item.Id)" title="Preview">
                         <i class="bi bi-eye"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-primary btn-sm py-0 px-1" onclick="loadEditForm(@item.Id)" title="Edit">
-                        <i class="bi bi-pencil"></i>
+                    @* v32.7 Phase 422 D-07: Edit/Hapus disable saat terkunci (paket-sama, SyncToLinkedPostIfSamePackage). Preview tetap aktif. *@
+                    <button type="button" class="btn btn-outline-primary btn-sm py-0 px-1" onclick="loadEditForm(@item.Id)"
+                            title="@(locked ? "Terkunci: edit soal di sesi Pre-Test." : "Edit")" @(locked ? "disabled" : "")>
+                        <i class="bi @(locked ? "bi-lock-fill" : "bi-pencil")"></i>
                     </button>
-                    <form asp-action="DeleteQuestion" asp-controller="AssessmentAdmin" method="post" class="d-inline"
-                          onsubmit="return confirm('Hapus soal ini?')">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="questionId" value="@item.Id" />
-                        <input type="hidden" name="packageId" value="@ViewBag.PackageId" />
-                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Hapus">
+                    @if (locked)
+                    {
+                        <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1"
+                                title="Terkunci: edit soal di sesi Pre-Test." disabled>
                             <i class="bi bi-trash"></i>
                         </button>
-                    </form>
+                    }
+                    else
+                    {
+                        <form asp-action="DeleteQuestion" asp-controller="AssessmentAdmin" method="post" class="d-inline"
+                              onsubmit="return confirm('Hapus soal ini?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="questionId" value="@item.Id" />
+                            <input type="hidden" name="packageId" value="@ViewBag.PackageId" />
+                            <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1" title="Hapus">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    }
                 </div>
             </td>
         </tr>
@@ -249,6 +261,25 @@
             </div>
         </div>
     </div>
+    @* v32.7 Phase 422 D-07/SHFX-03: lock banner friendly-disable (mirror ManagePackages :29-44).
+       Server SUDAH hard-reject Create/Edit/DeleteQuestion saat terkunci (Wave 2) — banner+disable = UX layer. *@
+    @{ bool isLocked = ViewBag.IsSamePackageLocked == true; }
+    @if (isLocked)
+    {
+        <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+            <i class="bi bi-lock-fill me-2 fs-5"></i>
+            <div>
+                <strong>Paket soal disinkronkan dari Pre-Test.</strong>
+                Perubahan soal hanya bisa dilakukan di sesi Pre-Test. Paket di halaman ini otomatis terupdate.
+                @if (ViewBag.PreSessionId != null)
+                {
+                    <a asp-action="ManagePackages" asp-route-assessmentId="@ViewBag.PreSessionId" class="alert-link ms-2">
+                        <i class="bi bi-arrow-right me-1"></i>Buka Pre-Test
+                    </a>
+                }
+            </div>
+        </div>
+    }
 
     <div class="row g-4">
         <!-- Left: Daftar soal -->
@@ -319,6 +350,20 @@
 
         <!-- Right: Form create/edit soal -->
         <div class="col-lg-5">
+            @if (isLocked)
+            {
+                @* v32.7 Phase 422 D-07: form tambah/edit soal disembunyikan saat terkunci (paket-sama).
+                   Server hard-reject CreateQuestion/EditQuestion (Wave 2); ini UX layer agar HC tak salah input. *@
+                <div class="card shadow-sm">
+                    <div class="card-body text-center text-muted py-5">
+                        <i class="bi bi-lock-fill fs-2 d-block mb-2"></i>
+                        <p class="mb-1"><strong>Paket terkunci (paket-sama).</strong></p>
+                        <p class="mb-0">Edit soal harus dilakukan di sesi Pre-Test.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
             <div class="card shadow-sm" id="questionFormCard">
                 <div class="card-header bg-light">
                     <span class="fw-semibold" id="formTitle">Tambah Soal Baru</span>
@@ -489,6 +534,7 @@
                     </form>
                 </div>
             </div>
+            }
         </div>
     </div>
 </div>

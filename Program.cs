@@ -62,6 +62,9 @@ builder.Services.AddScoped<HcPortal.Services.ProtonCompletionService>();
 // Proton bypass service — Phase 360 PBYP-02: orkestrator Bypass Tahun (DI satu arah, tanpa GradingService)
 builder.Services.AddScoped<HcPortal.Services.ProtonBypassService>();
 
+// v32.4 — retake engine (shared HC reset + worker self-service)
+builder.Services.AddScoped<HcPortal.Services.RetakeService>();
+
 // Impersonation service — Phase 283
 builder.Services.AddScoped<HcPortal.Services.ImpersonationService>();
 builder.Services.AddHttpContextAccessor();

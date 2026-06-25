@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using HcPortal.Data;
 using HcPortal.Models;
 using HcPortal.Services;
 using Microsoft.Extensions.Configuration;
@@ -16,19 +18,22 @@ namespace HcPortal.Controllers
         private readonly IAuthService _authService;
         private readonly IConfiguration _config;
         private readonly ILogger<AccountController> _logger;
+        private readonly ApplicationDbContext _context;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IAuthService authService,
             IConfiguration config,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _authService = authService;
             _config = config;
             _logger = logger;
+            _context = context;
         }
 
         // 1. Tampilkan Halaman Login (GET)
@@ -146,6 +151,17 @@ namespace HcPortal.Controllers
 
             var roles = await _userManager.GetRolesAsync(user);
 
+            // Multi-unit (MU-03): muat SEMUA unit pekerja, primary-first. Scalar Unit dipertahankan (mirror).
+            var userUnits = await _context.UserUnits
+                .Where(uu => uu.UserId == user.Id)
+                .ToListAsync();
+            var primaryUnit = userUnits.FirstOrDefault(x => x.IsPrimary)?.Unit;
+            var unitNames = userUnits
+                .OrderByDescending(x => x.Unit == primaryUnit)
+                .ThenBy(x => x.Unit)
+                .Select(x => x.Unit)
+                .ToList();
+
             var model = new ProfileViewModel
             {
                 FullName = user.FullName,
@@ -156,13 +172,17 @@ namespace HcPortal.Controllers
                 Directorate = user.Directorate,
                 Section = user.Section,
                 Unit = user.Unit,
+                Units = unitNames,
+                PrimaryUnit = primaryUnit,
                 Role = roles.FirstOrDefault() ?? "No Role",
                 RoleLevel = user.RoleLevel,
                 PSign = new PSignViewModel
                 {
                     FullName = user.FullName,
                     Position = user.Position,
-                    Unit = user.Unit
+                    Unit = user.Unit,
+                    Units = unitNames,
+                    PrimaryUnit = primaryUnit
                 }
             };
 
@@ -180,6 +200,17 @@ namespace HcPortal.Controllers
 
             var roles = await _userManager.GetRolesAsync(user);
 
+            // Multi-unit (MU-03): muat SEMUA unit pekerja, primary-first. Scalar Unit dipertahankan (mirror).
+            var userUnits = await _context.UserUnits
+                .Where(uu => uu.UserId == user.Id)
+                .ToListAsync();
+            var primaryUnit = userUnits.FirstOrDefault(x => x.IsPrimary)?.Unit;
+            var unitNames = userUnits
+                .OrderByDescending(x => x.Unit == primaryUnit)
+                .ThenBy(x => x.Unit)
+                .Select(x => x.Unit)
+                .ToList();
+
             var model = new SettingsViewModel
             {
                 EditProfile = new EditProfileViewModel
@@ -194,11 +225,15 @@ namespace HcPortal.Controllers
                 Section = user.Section,
                 Directorate = user.Directorate,
                 Unit = user.Unit,
+                Units = unitNames,
+                PrimaryUnit = primaryUnit,
                 PSign = new PSignViewModel
                 {
                     FullName = user.FullName,
                     Position = user.Position,
-                    Unit = user.Unit
+                    Unit = user.Unit,
+                    Units = unitNames,
+                    PrimaryUnit = primaryUnit
                 }
             };
 

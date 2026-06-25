@@ -251,8 +251,16 @@ namespace HcPortal.Services
             if (!string.IsNullOrEmpty(section))
                 usersQuery = usersQuery.Where(u => u.Section == section);
 
+            // Phase 400 (MU-06 D-01/D-03): filter unit SET-AWARE terhadap junction UserUnits (Phase 399).
+            // Correlated subquery → SQL EXISTS (1 baris/pekerja, no fan-out, dedup by-construction).
+            // PITFALL #1 (RUJUKAN KANONIK — IN-02): WAJIB pakai _context.UserUnits, BUKAN u.UserUnits.
+            //   Relasi UserUnit→ApplicationUser dikonfigurasi via .WithMany() TANPA argumen, jadi nav-property
+            //   ApplicationUser.UserUnits SENGAJA tidak ada (menghindari EF tracking/migration overhead).
+            //   Menulis u.UserUnits.Any(...) → compile error CS1061. Pola ini berlaku di semua titik filter unit
+            //   (ManageWorkers + ExportWorkers di WorkerController.cs merujuk catatan ini).
             if (!string.IsNullOrEmpty(unitFilter))
-                usersQuery = usersQuery.Where(u => u.Unit == unitFilter);
+                usersQuery = usersQuery.Where(u =>
+                    _context.UserUnits.Any(uu => uu.UserId == u.Id && uu.Unit == unitFilter && uu.IsActive));
 
             // REC-06 D-07: SQL name pre-narrow untuk scope "Nama".
             // "Training"/"Keduanya" di-handle post-load (union) supaya tidak buang training-only match.
@@ -269,6 +277,21 @@ namespace HcPortal.Services
 
             var users = await usersQuery.AsNoTracking().ToListAsync();
             var userIds = users.Select(u => u.Id).ToList();
+
+            // Phase 400 (MU-06 D-02/D-04): batch-load semua unit AKTIF per pekerja (primary-first), no N+1,
+            // utk kolom Unit kontekstual. Active-only (D-03). Pola CMP-25 (trainingsByUser/sessionsByUser).
+            // NOTE (WR-01): userIds berasal dari users yang sudah difilter IsActive (baris 247).
+            // Oleh karena itu tidak perlu menambahkan filter .IsActive pada ApplicationUser di sini.
+            // Jika caller berubah (misal: hilangkan filter IsActive di usersQuery), perhatikan bahwa
+            // unit milik pekerja tidak aktif bisa ikut ter-load — coupling implisit ini disengaja.
+            var unitsByUser = (await _context.UserUnits
+                    .Where(uu => userIds.Contains(uu.UserId) && uu.IsActive)
+                    .ToListAsync())
+                .GroupBy(uu => uu.UserId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.OrderByDescending(x => x.IsPrimary).ThenBy(x => x.Unit)
+                          .Select(x => x.Unit).ToList());
 
             bool hasDateFilter = dateFrom.HasValue || dateTo.HasValue;
 
@@ -344,7 +367,12 @@ namespace HcPortal.Services
                     NIP = user.NIP,
                     Position = user.Position ?? "Staff",
                     Section = user.Section ?? "",
-                    Unit = user.Unit ?? "",
+                    // Phase 400 (MU-06 D-02/D-05): kolom Unit kontekstual.
+                    Unit = !string.IsNullOrEmpty(unitFilter)
+                        ? unitFilter                                                       // D-02 filtered → matched unit
+                        : (unitsByUser.TryGetValue(user.Id, out var uList) && uList.Count > 0
+                            ? string.Join(", ", uList)                                     // D-02 unfiltered → all-active primary-first
+                            : (user.Unit ?? "")),                                          // D-05 fallback (legacy/0-unit; view `?? "---"` guard null)
                     TotalTrainings = totalTrainings,
                     CompletedTrainings = completedTrainings,
                     PendingTrainings = pendingTrainings,

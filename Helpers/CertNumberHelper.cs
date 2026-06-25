@@ -40,5 +40,42 @@ namespace HcPortal.Helpers
                 || ex.InnerException?.Message.Contains("2601") == true
                 || ex.InnerException?.Message.Contains("2627") == true;
         }
+
+        /// <summary>
+        /// CERT-03 (D-03) — assign NomorSertifikat atomik: retry+jitter di atas filtered unique index
+        /// IX_AssessmentSessions_NomorSertifikat_Unique. Race-safe (WHERE NomorSertifikat==null + ExecuteUpdateAsync).
+        /// Return true bila cert tersimpan; false bila gagal setelah semua attempt (caller WAJIB non-destruktif:
+        /// sesi sudah Completed/IsPassed sebelum cert -> JANGAN rollback, tandai utk HC). Loop dikonsolidasi
+        /// dari 3 site grading-time (kill-drift). Tanpa schema baru (migration=FALSE).
+        /// </summary>
+        public static async Task<bool> TryAssignNextSeqAsync(
+            ApplicationDbContext context, int sessionId, DateTime certNow, int maxAttempts = 8)
+        {
+            int certYear = certNow.Year;
+            int attempts = 0;
+            while (attempts < maxAttempts)
+            {
+                attempts++;
+                try
+                {
+                    var nextSeq = await GetNextSeqAsync(context, certYear);
+                    var nomor = Build(nextSeq, certNow);
+                    var updated = await context.AssessmentSessions
+                        .Where(s => s.Id == sessionId && s.NomorSertifikat == null)
+                        .ExecuteUpdateAsync(s => s.SetProperty(r => r.NomorSertifikat, nomor));
+                    if (updated > 0) return true;
+                    // WR-01: updated == 0 bisa (a) sudah ber-NomorSertifikat (idempotent OK) atau
+                    // (b) sessionId tidak ada (anomali). Konfirmasi via re-query → true HANYA bila cert benar terisi.
+                    return await context.AssessmentSessions
+                        .AnyAsync(s => s.Id == sessionId && s.NomorSertifikat != null);
+                }
+                catch (DbUpdateException ex) when (attempts < maxAttempts && IsDuplicateKeyException(ex))
+                {
+                    // D-03 jitter: kurangi thundering-herd MAX+1 saat finalize burst.
+                    await Task.Delay(Random.Shared.Next(10, 60));
+                }
+            }
+            return false;   // gagal setelah maxAttempts — caller tandai non-destruktif (Wave 2).
+        }
     }
 }

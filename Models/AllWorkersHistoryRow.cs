@@ -37,4 +37,8 @@ public class AllWorkersHistoryRow
     // AssessmentAttemptHistory.Id yang BUKAN AssessmentSession.Id — drill-down N/A untuk archived).
     // Training branch tetap null (training tidak punya session concept).
     public int? SessionId { get; set; }
+
+    // RTK-12 (Phase 407): tandai baris percobaan aktif saat ini untuk badge "Percobaan saat ini".
+    // Mirror RiwayatAttemptViewModel.IsCurrent — set true hanya untuk current Completed branch.
+    public bool IsCurrentAttempt { get; set; }
 }

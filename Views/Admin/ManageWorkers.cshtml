@@ -4,6 +4,9 @@
     ViewData["Title"] = "Manajemen Pekerja";
     var userRolesDict = ViewBag.UserRoles as Dictionary<string, string> ?? new Dictionary<string, string>();
     var showInactive = (bool)(ViewBag.ShowInactive ?? false);
+    // MU-03: dict semua unit per pekerja (di-populate WorkerController Plan 02) untuk display multi-unit di cell.
+    var userUnitsDict = ViewBag.UserUnitsDict as Dictionary<string, HcPortal.Controllers.WorkerController.WorkerUnitsView>
+                        ?? new Dictionary<string, HcPortal.Controllers.WorkerController.WorkerUnitsView>();
 }
 
 <div class="container-fluid px-4 py-4">
@@ -259,7 +262,34 @@
                                     <td class="p-3">@(user.NIP ?? "-")</td>
                                     <td class="p-3"><small>@(user.Position ?? "-")</small></td>
                                     <td class="p-3"><small>@(user.Section ?? "-")</small></td>
-                                    <td class="p-3"><small class="text-muted">@(user.Unit ?? "-")</small></td>
+                                    <td class="p-3">
+                                        @* MU-03: tampil SEMUA unit (primary ditandai), density small, fallback "-" (D-09) *@
+                                        @{
+                                            userUnitsDict.TryGetValue(user.Id, out var uuv);
+                                            var cellUnits = uuv?.Units;
+                                            var cellPrimary = uuv?.PrimaryUnit;
+                                        }
+                                        @if (cellUnits != null && cellUnits.Any())
+                                        {
+                                            @foreach (var u in cellUnits.OrderByDescending(x => x == cellPrimary).ThenBy(x => x))
+                                            {
+                                                if (u == cellPrimary)
+                                                {
+                                                    <span class="badge bg-success bg-opacity-10 text-success me-1">
+                                                        <i class="bi bi-star-fill me-1" aria-hidden="true"></i><small>@u</small> <span class="visually-hidden">(Utama)</span>Utama
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary bg-opacity-25 text-dark me-1"><small>@u</small></span>
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">-</small>
+                                        }
+                                    </td>
                                     <td class="p-3 text-center">
                                         <span class="badge @roleBadgeClass" style="min-width: 80px;">@role</span>
                                     </td>

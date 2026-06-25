@@ -17,7 +17,9 @@ namespace HcPortal.Models
 
         public DateTime Schedule { get; set; }
         public int DurationMinutes { get; set; }
-        public string Status { get; set; } = "";   // "Open", "Upcoming", "Completed"
+        public string Status { get; set; } = "";
+        // Nilai kanonik (lihat AssessmentConstants.AssessmentStatus): Open, Upcoming, Completed,
+        // "Menunggu Penilaian" (PendingGrading), InProgress, Cancelled, Abandoned (7 status).
 
         // New Visualization Props
         public int Progress { get; set; } = 0; // 0 - 100
@@ -40,6 +42,18 @@ namespace HcPortal.Models
 
         [Display(Name = "Acak Pilihan Jawaban")]
         public bool ShuffleOptions { get; set; } = true;
+
+        // ===== v32.4 Retake config (mirror Shuffle pattern) =====
+        [Display(Name = "Izinkan Ujian Ulang")]
+        public bool AllowRetake { get; set; } = false;
+
+        [Range(1, 5)]
+        [Display(Name = "Maksimal Percobaan")]
+        public int MaxAttempts { get; set; } = 2;
+
+        [Range(0, 168)] // 0 = tanpa jeda; cap 1 minggu
+        [Display(Name = "Jeda Ujian Ulang (jam)")]
+        public int RetakeCooldownHours { get; set; } = 24;
 
         public bool? IsPassed { get; set; }
         public DateTime? CompletedAt { get; set; }
@@ -69,6 +83,7 @@ namespace HcPortal.Models
         /// Only relevant when GenerateCertificate = true.
         /// Phase 327 — DateOnly migrasi P04 (eliminasi tz drift permanen).
         /// </summary>
+        [Display(Name = "Berlaku Sampai")]   // CLN-01 (FLD-5.2-06): satu sumber label; selaraskan cshtml ke istilah ini
         public DateOnly? ValidUntil { get; set; }
 
         /// <summary>
@@ -88,6 +103,13 @@ namespace HcPortal.Models
         /// Token hanya mengontrol akses masuk, bukan identitas peserta (identity ditangani ASP.NET Core Identity).
         /// </summary>
         public string AccessToken { get; set; } = "";
+
+        /// <summary>
+        /// EXSEC-01 (Phase 427): timestamp server-authoritative saat token ujian terverifikasi (VerifyToken).
+        /// null = belum verifikasi. Di-reset null saat retake/reset (RetakeService.ExecuteAsync) → gate re-arm.
+        /// Menggantikan TempData token gate yang rapuh round-trip.
+        /// </summary>
+        public DateTime? TokenVerifiedAt { get; set; }
 
         // Audit fields
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -125,14 +147,18 @@ namespace HcPortal.Models
         /// <summary>
         /// FK ke AssessmentSession lain yang di-renew oleh session ini.
         /// Nullable. Hanya salah satu dari RenewsSessionId/RenewsTrainingId yang boleh diisi.
-        /// ON DELETE SET NULL — jika sertifikat asal dihapus, FK jadi NULL.
+        /// CATATAN (PA-04): FK dikonfigurasi DeleteBehavior.NoAction (BUKAN ON DELETE SET NULL —
+        /// SQL Server memblokir SET NULL pada cross-FK siklus). Null-clear saat sertifikat asal
+        /// dihapus dilakukan di level aplikasi (ApplicationDbContext.cs:243-246).
         /// </summary>
         public int? RenewsSessionId { get; set; }
 
         /// <summary>
         /// FK ke TrainingRecord yang di-renew oleh session ini.
         /// Nullable. Hanya salah satu dari RenewsSessionId/RenewsTrainingId yang boleh diisi.
-        /// ON DELETE SET NULL — jika sertifikat asal dihapus, FK jadi NULL.
+        /// CATATAN (PA-04): FK dikonfigurasi DeleteBehavior.NoAction (BUKAN ON DELETE SET NULL —
+        /// SQL Server memblokir SET NULL pada cross-FK siklus). Null-clear saat sertifikat asal
+        /// dihapus dilakukan di level aplikasi (ApplicationDbContext.cs:248-251).
         /// </summary>
         public int? RenewsTrainingId { get; set; }
 
@@ -163,13 +189,18 @@ namespace HcPortal.Models
 
         // ===== v14.0 Assessment Enhancement columns =====
         /// <summary>
-        /// Tipe assessment: 'PreTest', 'PostTest', null = tidak ditentukan (backward compat).
+        /// Tipe assessment (kolom DB): 'PreTest', 'PostTest', 'Standard', 'Manual', atau null = tidak ditentukan (backward compat).
         /// Digunakan untuk linking pre-post test pair dan grading logic.
+        /// Catatan (FORM-10): JANGAN rancukan dengan penanda mode form 'CreationMode' (Standard/PrePostTest)
+        /// — yang itu hanya parameter input wizard Create, bukan kolom tersimpan.
         /// </summary>
         public string? AssessmentType { get; set; }
 
         /// <summary>
-        /// Fase assessment dalam siklus: 'Phase1', 'Phase2', dll. Null = tidak ada fase.
+        /// RESERVED — tidak dipakai. Dideklarasikan di v14 (AddAssessmentV14Columns) untuk konsep
+        /// 'Phase1'/'Phase2' yang TIDAK PERNAH diimplementasikan. Linking Pre/Post nyata bertumpu pada
+        /// AssessmentType + LinkedGroupId + LinkedSessionId. 0 referensi di app (FLOW-06). Dipertahankan
+        /// di skema (kolom nullable, aman) untuk hindari migration destruktif. Jangan baca/tulis.
         /// </summary>
         public string? AssessmentPhase { get; set; }
 
@@ -181,7 +212,8 @@ namespace HcPortal.Models
 
         /// <summary>
         /// FK ke AssessmentSession lain yang terhubung (misal: PreTest terhubung ke PostTest-nya).
-        /// ON DELETE SET NULL — jika session pasangan dihapus, FK jadi NULL.
+        /// CATATAN (PA-04): TIDAK ada FK cascade terkonfigurasi di DB. Null-clear saat pasangan
+        /// dihapus dilakukan di level aplikasi — RecordCascadeDeleteService.cs:235-237 (Delta #8).
         /// </summary>
         public int? LinkedSessionId { get; set; }
 

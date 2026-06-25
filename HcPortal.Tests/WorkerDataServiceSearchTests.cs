@@ -191,4 +191,101 @@ public class WorkerDataServiceSearchTests
                   .Select(w => w.WorkerId).ToList();
         Assert.Contains("u1", ids);
     }
+
+    // ── MU-06 set-aware + kontekstual ──────────────────────────────────────────
+    // Phase 400 (MU-06): filter unit set-aware terhadap junction UserUnits (Phase 399),
+    // bukan scalar u.Unit==unitFilter (primary saja). Kolom Unit kontekstual (D-02),
+    // active-only (D-03), dedup by-construction (D-01), fallback user.Unit (D-05).
+    // Helper User() hardcode Unit="U1" (:33) → WAJIB override u.Unit per test multi-unit
+    // agar mirror cocok dgn primary UserUnit (caveat 400-PATTERNS.md §test).
+
+    [Fact]
+    public async Task MultiUnitWorker_AppearsInBothUnitFilters_SetAware()
+    {
+        var svc = MakeService(out var ctx);
+        var u = User("u1", "Budi", "A"); u.Unit = "UnitX";   // mirror primary
+        ctx.Users.Add(u);
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "UnitX", IsPrimary = true,  IsActive = true },
+            new UserUnit { UserId = "u1", Unit = "UnitY", IsPrimary = false, IsActive = true });
+        await ctx.SaveChangesAsync();
+
+        Assert.Single(await svc.GetWorkersInSection("A", unitFilter: "UnitX"));  // muncul di X (primary)
+        Assert.Single(await svc.GetWorkersInSection("A", unitFilter: "UnitY"));  // muncul di Y (set-aware, SC#1)
+        Assert.Single(await svc.GetWorkersInSection("A"));                       // 1 baris tanpa filter (dedup, SC#2)
+    }
+
+    [Fact]
+    public async Task MultiUnitWorker_SingleRow_NoFilter()
+    {
+        var svc = MakeService(out var ctx);
+        var u = User("u1", "Budi", "A"); u.Unit = "UnitX";
+        ctx.Users.Add(u);
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "UnitX", IsPrimary = true,  IsActive = true },
+            new UserUnit { UserId = "u1", Unit = "UnitY", IsPrimary = false, IsActive = true });
+        await ctx.SaveChangesAsync();
+
+        var result = await svc.GetWorkersInSection("A");   // tanpa filter
+        Assert.Single(result);                             // dedup eksplisit (SC#2) — 1 baris, bukan 2
+    }
+
+    [Fact]
+    public async Task InactiveUnit_ExcludedFromFilter_D03()
+    {
+        var svc = MakeService(out var ctx);
+        var u = User("u1", "Budi", "A"); u.Unit = "UnitX";
+        ctx.Users.Add(u);
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "UnitX", IsPrimary = true,  IsActive = true },
+            new UserUnit { UserId = "u1", Unit = "UnitY", IsPrimary = false, IsActive = false }); // deactivated (MU-07)
+        await ctx.SaveChangesAsync();
+
+        Assert.Empty(await svc.GetWorkersInSection("A", unitFilter: "UnitY"));   // tak muncul (inactive, D-03)
+        Assert.Single(await svc.GetWorkersInSection("A", unitFilter: "UnitX"));  // unit aktif tetap muncul
+    }
+
+    [Fact]
+    public async Task UnfilteredColumn_AllActiveUnits_PrimaryFirst_D02()
+    {
+        var svc = MakeService(out var ctx);
+        var u = User("u1", "Budi", "A"); u.Unit = "UnitY";   // primary = Y
+        ctx.Users.Add(u);
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "UnitX", IsPrimary = false, IsActive = true },
+            new UserUnit { UserId = "u1", Unit = "UnitY", IsPrimary = true,  IsActive = true });
+        await ctx.SaveChangesAsync();
+
+        var r = await svc.GetWorkersInSection("A");          // tanpa filter
+        Assert.Equal("UnitY, UnitX", r[0].Unit);             // primary-first comma-join (D-02)
+    }
+
+    [Fact]
+    public async Task FilteredColumn_ShowsUnitFilter_D02()
+    {
+        var svc = MakeService(out var ctx);
+        var u = User("u1", "Budi", "A"); u.Unit = "UnitX";
+        ctx.Users.Add(u);
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "UnitX", IsPrimary = true,  IsActive = true },
+            new UserUnit { UserId = "u1", Unit = "UnitY", IsPrimary = false, IsActive = true });
+        await ctx.SaveChangesAsync();
+
+        var r = await svc.GetWorkersInSection("A", unitFilter: "UnitY");
+        Assert.Equal("UnitY", r[0].Unit);                    // filtered → matched unit (D-02)
+    }
+
+    [Fact]
+    public async Task ZeroUnit_Fallback_D05()
+    {
+        var svc = MakeService(out var ctx);
+        var u = User("u1", "Budi", "A"); u.Unit = "Legacy";  // legacy: 0 baris UserUnits aktif
+        ctx.Users.Add(u);
+        // sengaja TIDAK seed UserUnits → fallback ke user.Unit (D-05)
+        await ctx.SaveChangesAsync();
+
+        var r = await svc.GetWorkersInSection("A");           // tanpa filter
+        Assert.Single(r);
+        Assert.Equal("Legacy", r[0].Unit);                   // fallback user.Unit (D-05; view `?? "---"` guard null)
+    }
 }

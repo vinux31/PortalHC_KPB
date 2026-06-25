@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Paket v32.3 — Akun Multi-Unit (1 Bagian)</title>
+<style>
+  :root{
+    --ink:#1a2233; --muted:#5b6678; --line:#e4e8ef; --bg:#f6f8fb; --card:#fff;
+    --green:#1a8a52; --green-bg:#e7f6ee; --amber:#9a6a00; --amber-bg:#fbf2dc;
+    --blue:#1f5fa8; --blue-bg:#e8f0fa; --red:#b3261e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 64px}
+  header.top{background:linear-gradient(135deg,#16335c,#1f5fa8);color:#fff;border-radius:16px;padding:32px 28px;box-shadow:0 8px 28px rgba(22,51,92,.18)}
+  header.top .tag{display:inline-block;background:rgba(255,255,255,.18);padding:4px 12px;border-radius:999px;font-size:13px;letter-spacing:.5px;margin-bottom:12px}
+  header.top h1{margin:0 0 6px;font-size:26px;line-height:1.25}
+  header.top p{margin:0;opacity:.92;font-size:15px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font-size:13.5px;opacity:.95}
+  .meta b{font-weight:600}
+  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-top:20px;box-shadow:0 1px 3px rgba(20,30,50,.04)}
+  h2{font-size:19px;margin:0 0 14px;display:flex;align-items:center;gap:9px}
+  h2 .ic{font-size:20px}
+  h3{font-size:15.5px;margin:18px 0 6px;color:var(--ink)}
+  p{margin:8px 0}
+  .lead{font-size:16px;color:var(--ink)}
+  .muted{color:var(--muted)}
+  .verdict{border:2px solid var(--green);background:var(--green-bg);border-radius:14px;padding:22px 24px}
+  .verdict .big{font-size:21px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .verdict ul{margin:10px 0 0;padding-left:20px}
+  .verdict li{margin:5px 0}
+  .badge{display:inline-block;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px}
+  .b-green{background:var(--green-bg);color:var(--green)}
+  .b-amber{background:var(--amber-bg);color:var(--amber)}
+  .b-blue{background:var(--blue-bg);color:var(--blue)}
+  .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:8px}
+  .fix{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:10px;padding:14px 16px;background:#fcfdff}
+  .fix .t{font-weight:600;margin-bottom:3px}
+  .fix .d{font-size:14.5px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f2f5f9;font-weight:600;font-size:13.5px}
+  .note{border:1px solid var(--amber);background:var(--amber-bg);border-radius:12px;padding:16px 18px;margin-top:8px}
+  .note h3{margin-top:0;color:var(--amber)}
+  .db{border:1px solid var(--blue);background:var(--blue-bg);border-radius:12px;padding:16px 18px;margin-top:8px}
+  .db h3{margin-top:0;color:var(--blue)}
+  .check{color:var(--green);font-weight:700}
+  .dot{color:var(--amber);font-weight:700}
+  footer{margin-top:28px;text-align:center;color:var(--muted);font-size:13px}
+  .kv{font-size:14px}
+  .kv b{display:inline-block;min-width:150px;color:var(--muted);font-weight:600}
+  code{background:#eef2f7;padding:1px 6px;border-radius:5px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <span class="tag">PORTAL HC KPB · RINGKASAN UNTUK TIM IT</span>
+    <h1>Akun Multi-Unit (1 Bagian) — Paket v32.3</h1>
+    <p>Pekerja &gt;1 Unit dalam 1 Bagian + coaching cross-unit + PROTON sekuensial</p>
+    <div class="meta">
+      <span><b>Tanggal laporan:</b> 21 Juni 2026</span>
+      <span><b>Status:</b> Selesai &amp; teruji di komputer lokal</span>
+      <span><b>Jumlah fase:</b> 6 (399–404)</span>
+      <span><b>Perlu ubah database:</b> YA — migration Fase 399 (AddUserUnits + backfill)</span>
+    </div>
+  </header>
+
+  <!-- VERDICT -->
+  <section class="verdict" aria-label="Kesimpulan utama">
+    <div class="big"><span>✅</span> Selesai &amp; teruji lokal — pekerja kini bisa punya lebih dari satu Unit dalam satu Bagian.</div>
+    <p class="muted" style="margin-top:4px">Yang sudah terbukti berjalan (uji otomatis + uji langsung di browser komputer lokal):</p>
+    <ul>
+      <li><span class="check">✓</span> <b>Akun multi-unit</b> — satu pekerja bisa terdaftar di beberapa Unit (semuanya dalam satu Bagian), dengan satu Unit ditandai sebagai <b>Unit Utama</b>.</li>
+      <li><span class="check">✓</span> <b>Coaching lintas-unit</b> — satu coach bisa membimbing coachee dari beberapa Unit, selama masih dalam satu Bagian.</li>
+      <li><span class="check">✓</span> <b>PROTON sekuensial</b> — pekerja menjalani PROTON Tahun&nbsp;1 di Unit&nbsp;X, lalu Tahun&nbsp;2 di Unit&nbsp;Y; sertifikat tiap tahun tersimpan utuh sebagai riwayat (tidak hilang).</li>
+      <li><span class="check">✓</span> <b>Aturan keamanan data terjaga</b> — sistem hanya mengizinkan 1 coaching aktif per coachee, 1 Unit Utama per pekerja, dan penugasan Unit yang benar-benar dimiliki pekerja (diuji langsung di database SQL Server asli).</li>
+    </ul>
+    <p class="muted" style="margin-bottom:0;font-size:13.5px">Catatan jujur: paket ini <b>mengubah database</b> (menambah tabel keanggotaan unit). Detail langkah pemasangan ada di bawah.</p>
+  </section>
+
+  <!-- APA INI -->
+  <section>
+    <h2><span class="ic">📌</span> Apa isi paket ini?</h2>
+    <p class="lead">Paket v32.3 menambahkan kemampuan <b>satu pekerja terdaftar di lebih dari satu Unit</b> (selama masih dalam satu Bagian). Sebelumnya, satu pekerja hanya bisa menempel di satu Unit. Ini dibutuhkan agar coaching dan PROTON bisa berjalan lintas-unit dalam satu Bagian.</p>
+    <p class="muted">Dikerjakan dalam 6 fase berurutan (399 sampai 404). Fase 399 menyiapkan fondasi database; fase berikutnya membuat fitur memakai fondasi itu; fase 404 menguji semuanya di SQL Server asli + uji browser.</p>
+  </section>
+
+  <!-- YANG BERUBAH -->
+  <section>
+    <h2><span class="ic">✨</span> Yang berubah (untuk pengguna)</h2>
+    <div class="grid">
+      <div class="fix"><div class="t">👥 Pekerja bisa banyak Unit</div><div class="d">Saat menambah/mengedit akun pekerja, Admin/HC dapat memilih beberapa Unit (dalam satu Bagian) dan menandai satu sebagai Unit Utama. Semua unit pekerja tampil di profil, daftar pekerja, dan cetak.</div></div>
+      <div class="fix"><div class="t">🧑‍🏫 Coaching lintas-unit dalam 1 Bagian</div><div class="d">Saat memetakan coach ke coachee, daftar coachee yang bisa dipilih = seluruh coachee Bagian itu (bukan hanya satu unit). Lintas-Bagian tetap ditolak oleh server.</div></div>
+      <div class="fix"><div class="t">📈 PROTON sekuensial Tahun 1 → Tahun 2 antar-unit</div><div class="d">Pekerja menyelesaikan PROTON di satu Unit lalu lanjut ke Unit lain di tahun berikutnya. Hanya satu penugasan PROTON aktif pada satu waktu; riwayat unit sebelumnya tetap tersimpan.</div></div>
+      <div class="fix"><div class="t">🗂️ Daftar &amp; rollup sadar multi-unit</div><div class="d">Pekerja multi-unit muncul di tiap unit-nya pada daftar keanggotaan, sementara rekap tingkat Bagian tidak menghitung pekerja ganda.</div></div>
+      <div class="fix"><div class="t">🏢 Penjaga struktur organisasi</div><div class="d">Saat unit di-rename/pindah/hapus, sistem menjaga keanggotaan pekerja tetap konsisten dan memblok pemindahan unit yang akan memecah keanggotaan ke lebih dari satu Bagian.</div></div>
+    </div>
+  </section>
+
+  <!-- BUKTI -->
+  <section>
+    <h2><span class="ic">🔬</span> Bukti pengujian</h2>
+    <p>Karena aturan keamanan data (1 coaching aktif, 1 Unit Utama, penugasan unit valid) hanya bisa dibuktikan di database SQL Server <i>asli</i> (bukan database tiruan di memori), fase 404 menjalankan uji langsung di SQL Server.</p>
+    <table>
+      <thead><tr><th>Jenis pengujian</th><th>Hasil</th><th>Arti</th></tr></thead>
+      <tbody>
+        <tr><td>Uji otomatis (seluruh suite)</td><td><span class="badge b-green">562 lulus / 0 gagal</span></td><td>Semua aturan program berjalan benar; tidak ada yang rusak (tidak ada regresi).</td></tr>
+        <tr><td>Uji invariant di SQL Server asli</td><td><span class="badge b-green">LULUS</span></td><td>1 coaching aktif/coachee, 1 Unit Utama/pekerja, penugasan unit ∈ keanggotaan pekerja, anti-dobel PROTON — semua dijaga oleh database.</td></tr>
+        <tr><td>Uji migration Fase 399 di SQL asli</td><td><span class="badge b-green">LULUS</span></td><td>Tabel keanggotaan unit + backfill (1 Unit Utama/pekerja) terpasang bersih lewat jalur migration resmi.</td></tr>
+        <tr><td>Uji langsung di browser — PROTON sekuensial lintas-unit</td><td><span class="badge b-amber">UAT lokal</span></td><td>Alur paling berisiko (Tahun 1 @ Unit X → Tahun 2 @ Unit Y) diverifikasi langsung di komputer lokal.</td></tr>
+        <tr><td>Pemeriksaan keamanan (coaching cross-unit)</td><td><span class="badge b-green">aman</span></td><td>Tidak ada celah kebocoran data antar-coach / antar-Bagian.</td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="font-size:13.5px">Semua uji yang melibatkan data hanya di komputer lokal; database lokal dikembalikan ke kondisi semula setelah uji (tidak meninggalkan data sampah).</p>
+  </section>
+
+  <!-- DATABASE -->
+  <section>
+    <h2><span class="ic">🗄️</span> Perubahan database (PENTING)</h2>
+    <div class="db">
+      <h3>Paket ini MENGUBAH database — Fase 399</h3>
+      <p style="margin-top:4px">Fase 399 menambahkan tabel baru <code>UserUnits</code> (keanggotaan unit pekerja) beserta:</p>
+      <ul>
+        <li>Index unik agar tiap pekerja punya <b>tepat 1 Unit Utama</b> dan tidak ada duplikat unit per pekerja.</li>
+        <li><b>Backfill</b> idempotent: setiap pekerja lama yang sudah punya Unit otomatis mendapat 1 baris Unit Utama. Pekerja tanpa Unit → 0 baris. Aman dijalankan ulang (tidak menggandakan).</li>
+      </ul>
+      <p style="margin-bottom:0"><code>Users.Unit</code> lama tetap dipertahankan sebagai cermin Unit Utama (kompatibel dengan layar-layar lama).</p>
+    </div>
+  </section>
+
+  <!-- D1=b -->
+  <section>
+    <h2><span class="ic">⚠️</span> Yang perlu diperhatikan (batasan sadar-desain)</h2>
+    <div class="note">
+      <h3>Atribusi sertifikat/laporan agregat ke Unit Utama (keputusan D1=b)</h3>
+      <p style="margin-top:4px">Laporan agregat sertifikat/analitik mengatribusikan hasil ke <b>Unit Utama</b> pekerja (<code>Users.Unit</code>), bukan per-unit penuh. Ini keputusan desain milestone yang sengaja diambil agar tidak perlu kolom database tambahan.</p>
+      <p><b>Penting:</b> sertifikat per-tahun (per-track) <b>tetap tersimpan utuh sebagai riwayat</b> — Tahun 1 dan Tahun 2 hidup sebagai 2 penugasan terpisah; yang menggunakan Unit Utama hanya laporan <i>agregat</i>. Sertifikat tidak hilang.</p>
+      <p style="margin-bottom:0">Konsekuensi: sebuah sertifikat yang diperoleh di Unit Y bisa muncul di laporan agregat Unit X (Unit Utama). Bila compliance per-unit penuh dibutuhkan, itu pekerjaan lanjutan (kolom unit-saat-terbit + backfill — ditangguhkan di REQUIREMENTS). Detail: <code>docs/milestone-v32.3-batasan-d1b.md</code>.</p>
+    </div>
+  </section>
+
+  <!-- STATUS -->
+  <section>
+    <h2><span class="ic">🧭</span> Status &amp; langkah berikutnya</h2>
+    <p class="kv"><b>Hasil pemeriksaan akhir:</b> <span class="badge b-green">LULUS</span> — fase 399–404 selesai &amp; teruji lokal.</p>
+    <p class="kv"><b>Uji otomatis:</b> <span class="badge b-green">562 lulus / 0 gagal / 2 lewati</span></p>
+    <p class="kv"><b>Perubahan database:</b> <span class="badge b-blue">YA — Fase 399 (AddUserUnits)</span></p>
+    <h3>Langkah berikutnya (oleh Tim IT)</h3>
+    <ol>
+      <li>Pasang kode terbaru (fase 399–404) ke server Development (10.55.3.3 / <code>/KPB-PortalHC</code>).</li>
+      <li><b>Jalankan migration database</b> — Fase 399 <code>AddUserUnits</code> (tabel junction keanggotaan unit + backfill 1 Unit Utama/pekerja). Aman dijalankan ulang (idempotent).</li>
+      <li>Verifikasi alur <b>PROTON sekuensial lintas-unit</b> (Tahun 1 @ Unit X → Tahun 2 @ Unit Y) + <b>coach multi-unit</b> melihat semua coachee-nya dalam Bagian.</li>
+    </ol>
+    <p class="muted" style="font-size:13.5px">Catatan teknis untuk IT: kode siap di branch <code>ITHandoff</code>, commit <code>[COMMIT_HASH]</code> (diisi saat push), <b>flag migration = TRUE (Fase 399)</b>. Belum di-<i>push</i> — menunggu keputusan. Paket ini juga membawa v32.1 (redesign UI coach) yang migration = FALSE.</p>
+  </section>
+
+  <footer>
+    Portal HC KPB — Laporan otomatis penutupan paket v32.3 · disusun 21 Juni 2026<br>
+    Disusun untuk Tim IT (bahasa non-teknis). Rincian teknis lengkap ada di <code>.planning/</code> &amp; dokumen spesifikasi internal.
+  </footer>
+
+</div>
+</body>
+</html>

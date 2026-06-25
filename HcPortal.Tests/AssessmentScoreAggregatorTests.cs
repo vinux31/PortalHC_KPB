@@ -153,6 +153,43 @@ public class AssessmentScoreAggregatorTests
         Assert.Equal(0, r.Percentage);
     }
 
+    // ============================================================================
+    // Phase 424 GRDF-02 (D-06) — MC dedupe last-write-wins: saat >1 response untuk soal MC sama
+    // (opsi beda, SubmittedAt beda) → pilih FINAL (terbaru), BUKAN FirstOrDefault arbitrer.
+    // ============================================================================
+    private static PackageUserResponse RespAt(int qId, int optId, System.DateTime submittedAt) =>
+        new PackageUserResponse { PackageQuestionId = qId, PackageOptionId = optId, SubmittedAt = submittedAt };
+
+    [Fact] // basi(salah) lebih awal, FINAL(benar) lebih akhir → 100
+    public void MultipleChoice_MultiResponse_PicksLatestSubmittedAt()
+    {
+        var q = Q(1, "MultipleChoice", 100, (10, true), (11, false));
+        var t0 = new System.DateTime(2026, 2, 1, 8, 0, 0, System.DateTimeKind.Utc);
+        var responses = new[] { RespAt(1, 11, t0), RespAt(1, 10, t0.AddSeconds(10)) };
+        var r = AssessmentScoreAggregator.Compute(new[] { q }, responses, passPercentage: 70);
+        Assert.Equal(100, r.Percentage);   // FINAL benar → 100; FirstOrDefault basi → 0
+    }
+
+    [Fact] // FINAL(benar) muncul DULU di list, basi(salah) SubmittedAt lebih awal → tetap pilih FINAL (bukan urutan list)
+    public void MultipleChoice_MultiResponse_OrderIndependent()
+    {
+        var q = Q(1, "MultipleChoice", 100, (10, true), (11, false));
+        var t0 = new System.DateTime(2026, 2, 1, 8, 0, 0, System.DateTimeKind.Utc);
+        var responses = new[] { RespAt(1, 10, t0.AddSeconds(10)), RespAt(1, 11, t0) };
+        var r = AssessmentScoreAggregator.Compute(new[] { q }, responses, passPercentage: 70);
+        Assert.Equal(100, r.Percentage);
+    }
+
+    [Fact] // Essay belum dinilai (EssayScore null) → tidak dihitung (pending), byte-identik perilaku lama
+    public void Essay_NullScore_NotCounted_Pending()
+    {
+        var q = Q(1, "Essay", 100);
+        var responses = new[] { Resp(1, essay: null) };
+        var r = AssessmentScoreAggregator.Compute(new[] { q }, responses, passPercentage: 70);
+        Assert.Equal(0, r.TotalScore);
+        Assert.Equal(0, r.Percentage);
+    }
+
     // ---- empty questions: 0%, no throw (guard kosong) ----
     [Fact]
     public void EmptyQuestions_ReturnsZero_NoThrow()

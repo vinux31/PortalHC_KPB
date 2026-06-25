@@ -310,6 +310,16 @@ namespace HcPortal.Services
                             .SetProperty(r => r.StartedAt, startedAt)
                             .SetProperty(r => r.Schedule, schedule));
 
+                    // MERGE FIX (v32.2 inject ↔ v32.7 Phase 423): GradeAndCompleteAsync kini MEN-SINKRON in-memory
+                    // tracked `session.CompletedAt = UtcNow` setelah bulk ExecuteUpdate-nya (Phase 423 Rule-1). Backdate
+                    // di atas hanya menulis DB (ExecuteUpdate BYPASS change-tracker) → tracked entity tetap UtcNow.
+                    // Tanpa sinkron ini, SaveChanges di akhir transaksi mem-FLUSH tracked CompletedAt=UtcNow dan
+                    // MENIMPA backdate (regresi: dedup gagal match tanggal, cert/ROMAN salah tahun, tanggal tampil hari ini).
+                    // Sinkronkan tracked entity ke nilai backdate (mirror pola in-memory-sync Phase 423 itu sendiri).
+                    session.CompletedAt = req.CompletedAt;
+                    session.StartedAt = startedAt;
+                    session.Schedule = schedule;
+
                     // h. Cert auto backdate (D-12) — ROMAN/year = tanggal ujian (req.CompletedAt), BUKAN DateTime.Now.
                     //    GradeAndCompleteAsync (non-essay) sudah generate cert basis today → release & regenerate basis backdate.
                     //    Cert manual (D-09): NomorSertifikat ter-set pra-grade, guard WHERE NomorSertifikat==null tak menimpa → skip di sini.

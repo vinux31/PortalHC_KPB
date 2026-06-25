@@ -13,6 +13,9 @@ namespace HcPortal.Models
         public string? Directorate { get; set; }
         public string? Section { get; set; }
         public string? Unit { get; set; }
+        // Multi-unit (MU-03): semua unit pekerja + penanda primary. Section TETAP scalar.
+        public List<string> Units { get; set; } = new();
+        public string? PrimaryUnit { get; set; }
         public string? Role { get; set; }
         public int RoleLevel { get; set; }
         public PSignViewModel? PSign { get; set; }

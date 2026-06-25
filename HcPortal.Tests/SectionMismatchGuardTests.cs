@@ -125,7 +125,8 @@ public class SectionMismatchGuardTests : IClassFixture<SectionFixture>
             scopeFactory:         null!,
             workerDataService:    null!,
             gradingService:       null!,
-            impersonationService: impersonation);
+            impersonationService: impersonation,
+            retakeService:        new RetakeService(ctx, auditLog, new NoopHubContext(), NullLogger<RetakeService>.Instance));
         #pragma warning restore CS8625
         ctrl.ControllerContext = new ControllerContext
         {

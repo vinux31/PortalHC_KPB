@@ -4,6 +4,9 @@ namespace HcPortal.Models
     {
         // Phase 377 (D-03): nullable — mode-role → null (view null-safe, tak tampil identitas admin).
         public ApplicationUser? CurrentUser { get; set; }
+        // MU-03 (Phase 399): SEMUA unit pekerja (primary-first) untuk hero badge; null saat mode-role.
+        public List<string>? CurrentUserUnits { get; set; }
+        public string? CurrentUserPrimaryUnit { get; set; }
         public string Greeting { get; set; } = string.Empty;
         public List<UpcomingEventViewModel> UpcomingEvents { get; set; } = new();
         public ProgressViewModel Progress { get; set; } = new();

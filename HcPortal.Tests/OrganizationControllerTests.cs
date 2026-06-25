@@ -2,9 +2,16 @@
 // REQ coverage: ORG-TREE-02 (per-parent uniqueness), ORG-TREE-07 (preview count == actual cascade).
 // Strategy: InMemory DB (Guid per test) + UserManager/env null-substitute (Add/Edit/Preview tidak deref).
 // Pitfall 5: casing IDENTIK (InMemory case-sensitive vs SQL Server CI) — jangan andalkan case-insensitivity.
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using HcPortal.Controllers;
 using HcPortal.Data;
 using HcPortal.Helpers;
@@ -20,6 +27,11 @@ public class OrganizationControllerTests
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            // Pitfall 1: EditOrganizationUnit dibungkus BeginTransactionAsync (Phase 403). InMemory tak
+            // dukung transaksi → tanpa suppress, EditOrganizationUnit/preview-parity test lempar
+            // TransactionIgnoredWarning. InMemory abaikan tx (no-op) → operasi tetap jalan → parity teruji.
+            // Atomicity = domain SQL Phase 404, bukan di-test di sini.
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;
         var ctx = new ApplicationDbContext(options);
         var auditLog = new AuditLogService(ctx);
@@ -28,6 +40,75 @@ public class OrganizationControllerTests
         #pragma warning restore CS8625
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Headers["X-Requested-With"] = "XMLHttpRequest";  // → IsAjaxRequest()==true → Json response
+        ctrl.ControllerContext = new ControllerContext { HttpContext = httpContext };
+        return (ctrl, ctx);
+    }
+
+    // ── Phase 426 AUDIT-01: user-aware factory (audit block deref _userManager.GetUserAsync(User)) ──
+    // FakeUserStore + MakeUserManager disalin verbatim dari RetakeExamEndpointTests.cs:47-99.
+    // MakeControllerWithUser memberi UserManager non-null + ClaimsPrincipal ber-NameIdentifier
+    // sehingga blok audit men-resolve actor & menulis baris AuditLog (happy-path content T1-T4).
+
+    private sealed class FakeUserStore : IUserStore<ApplicationUser>, IUserRoleStore<ApplicationUser>
+    {
+        private readonly Dictionary<string, ApplicationUser> _byId = new();
+        public void Add(ApplicationUser u) => _byId[u.Id] = u;
+
+        public Task<ApplicationUser?> FindByIdAsync(string userId, CancellationToken ct)
+            => Task.FromResult(_byId.TryGetValue(userId, out var u) ? u : null);
+        public Task<ApplicationUser?> FindByNameAsync(string normalizedUserName, CancellationToken ct)
+            => Task.FromResult<ApplicationUser?>(null);
+        public Task<string> GetUserIdAsync(ApplicationUser user, CancellationToken ct) => Task.FromResult(user.Id);
+        public Task<string?> GetUserNameAsync(ApplicationUser user, CancellationToken ct) => Task.FromResult(user.UserName);
+        public Task<string?> GetNormalizedUserNameAsync(ApplicationUser user, CancellationToken ct) => Task.FromResult(user.NormalizedUserName);
+        public Task SetUserNameAsync(ApplicationUser user, string? userName, CancellationToken ct) { user.UserName = userName; return Task.CompletedTask; }
+        public Task SetNormalizedUserNameAsync(ApplicationUser user, string? normalizedName, CancellationToken ct) { user.NormalizedUserName = normalizedName; return Task.CompletedTask; }
+        public Task<IdentityResult> CreateAsync(ApplicationUser user, CancellationToken ct) { _byId[user.Id] = user; return Task.FromResult(IdentityResult.Success); }
+        public Task<IdentityResult> UpdateAsync(ApplicationUser user, CancellationToken ct) { _byId[user.Id] = user; return Task.FromResult(IdentityResult.Success); }
+        public Task<IdentityResult> DeleteAsync(ApplicationUser user, CancellationToken ct) { _byId.Remove(user.Id); return Task.FromResult(IdentityResult.Success); }
+        public void Dispose() { }
+
+        // IUserRoleStore — role kosong (audit block tak gating by role level).
+        public Task AddToRoleAsync(ApplicationUser user, string roleName, CancellationToken ct) => Task.CompletedTask;
+        public Task RemoveFromRoleAsync(ApplicationUser user, string roleName, CancellationToken ct) => Task.CompletedTask;
+        public Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken ct) => Task.FromResult<IList<string>>(new List<string>());
+        public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName, CancellationToken ct) => Task.FromResult(false);
+        public Task<IList<ApplicationUser>> GetUsersInRoleAsync(string roleName, CancellationToken ct) => Task.FromResult<IList<ApplicationUser>>(new List<ApplicationUser>());
+    }
+
+    private static UserManager<ApplicationUser> MakeUserManager(FakeUserStore store)
+        => new UserManager<ApplicationUser>(
+            store,
+            Options.Create(new IdentityOptions()),
+            new PasswordHasher<ApplicationUser>(),
+            Array.Empty<IUserValidator<ApplicationUser>>(),
+            Array.Empty<IPasswordValidator<ApplicationUser>>(),
+            new UpperInvariantLookupNormalizer(),
+            new IdentityErrorDescriber(),
+            null!,
+            NullLogger<UserManager<ApplicationUser>>.Instance);
+
+    /// <summary>Factory user-aware: UserManager non-null atas FakeUserStore + ClaimsPrincipal
+    /// ber-NameIdentifier=actor.Id, sehingga blok audit Phase 426 menulis baris AuditLog nyata.</summary>
+    private static (OrganizationController ctrl, ApplicationDbContext ctx) MakeControllerWithUser(ApplicationUser actor)
+    {
+        var store = new FakeUserStore();
+        store.Add(actor);
+        var um = MakeUserManager(store);
+
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
+        var ctx = new ApplicationDbContext(options);
+        var auditLog = new AuditLogService(ctx);
+        #pragma warning disable CS8625 // null-substitute: EditOrganizationUnit tidak deref _env
+        var ctrl = new OrganizationController(ctx, um, auditLog, null!);
+        #pragma warning restore CS8625
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Headers["X-Requested-With"] = "XMLHttpRequest";  // → IsAjaxRequest()==true → Json response
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(
+            new[] { new Claim(ClaimTypes.NameIdentifier, actor.Id) }, "TestAuth"));
         ctrl.ControllerContext = new ControllerContext { HttpContext = httpContext };
         return (ctrl, ctx);
     }
@@ -46,6 +127,11 @@ public class OrganizationControllerTests
     {
         var j = Assert.IsType<JsonResult>(r);
         return (bool)j.Value!.GetType().GetProperty(prop)!.GetValue(j.Value)!;
+    }
+    private static string GetMessage(IActionResult r)
+    {
+        var j = Assert.IsType<JsonResult>(r);
+        return (string)j.Value!.GetType().GetProperty("message")!.GetValue(j.Value)!;
     }
 
     // ── ORG-TREE-02: dup-name per-parent ──────────────────────────────────────
@@ -230,5 +316,247 @@ public class OrganizationControllerTests
         Assert.Equal(new[] { 10, 20, 5, 30 }, order);   // R, C1, G(grandchild), C2(uncle) — DFS
         Assert.NotEqual(new[] { 10, 20, 30, 5 }, order); // NOT BFS
         Assert.Equal(2, built.Single(x => x.Id == 5).Depth);   // grandchild G → Depth 2
+    }
+
+    // ── Phase 403 ORG-01/02: OrganizationController sadar junction UserUnits ──────
+    // Pitfall 2: fixture diskriminatif WAJIB seed IsActive=false (rename harus ikut, guard tidak).
+    // Pitfall 5: casing nama unit IDENTIK (InMemory case-sensitive).
+
+    [Fact]
+    public async Task EditOrganizationUnit_RenameLevel1_RenamesAllUserUnitsRows()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        // mirror primary scalar (Invariant #3): u1 primary "Alkylation"
+        ctx.Users.Add(new ApplicationUser { Id = "u1", UserName = "u1", Unit = "Alkylation" });
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = true,  IsActive = true },   // primary aktif
+            new UserUnit { UserId = "u2", Unit = "Lain",       IsPrimary = true,  IsActive = true },   // non-match (jangan ikut rename)
+            new UserUnit { UserId = "u2", Unit = "Alkylation", IsPrimary = false, IsActive = true },   // sekunder aktif
+            new UserUnit { UserId = "u3", Unit = "Alkylation", IsPrimary = false, IsActive = false }); // diskriminatif (IsActive=false)
+        ctx.SaveChanges();
+
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation New", 1);   // rename Level1, parent unchanged
+
+        Assert.True(GetSuccess(result));
+        Assert.Equal(3, ctx.UserUnits.Count(uu => uu.Unit == "Alkylation New"));  // SEMUA 3 baris (incl IsActive=false)
+        Assert.Equal(0, ctx.UserUnits.Count(uu => uu.Unit == "Alkylation"));      // 0 tersisa
+        Assert.Equal(1, ctx.UserUnits.Count(uu => uu.Unit == "Lain"));            // non-match utuh
+        Assert.True(ctx.UserUnits.Single(uu => uu.UserId == "u1" && uu.Unit == "Alkylation New").IsPrimary); // primary tetap
+        Assert.Equal("Alkylation New", ctx.Users.Single(u => u.Id == "u1").Unit); // mirror konsisten
+    }
+
+    [Fact]
+    public async Task DeleteOrganizationUnit_SecondaryMembershipActive_Rejected()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        // kasus murni sekunder: TIDAK ada scalar Users.Unit/Section == "Alkylation"
+        ctx.UserUnits.Add(new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = false, IsActive = true });
+        ctx.SaveChanges();
+
+        var result = await ctrl.DeleteOrganizationUnit(2);
+
+        Assert.False(GetSuccess(result));
+        Assert.Contains("sekunder", GetMessage(result));
+        Assert.NotNull(ctx.OrganizationUnits.Find(2));   // unit MASIH ada
+    }
+
+    [Fact]
+    public async Task ToggleOrganizationUnitActive_SecondaryMembershipActive_Rejected()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.UserUnits.Add(new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = false, IsActive = true });
+        ctx.SaveChanges();
+
+        var result = await ctrl.ToggleOrganizationUnitActive(2);   // deactivate-branch
+
+        Assert.False(GetSuccess(result));
+        Assert.Contains("sekunder", GetMessage(result));
+        Assert.True(ctx.OrganizationUnits.Find(2)!.IsActive);   // MASIH aktif
+    }
+
+    [Fact]
+    public async Task EditOrganizationUnit_ReparentSplitsWorker_Blocked()
+    {
+        var (ctrl, ctx) = MakeController();
+        // 2 Bagian + 2 unit anak RFCC (semua IsActive=true → masuk GetSectionUnitsDictAsync)
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 5, Name = "HSC",  Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true },
+            new OrganizationUnit { Id = 6, Name = "X",          Level = 1, ParentId = 1, IsActive = true });
+        ctx.Users.Add(new ApplicationUser { Id = "p1", UserName = "p1", NIP = "12345", FullName = "Budi", Unit = "Alkylation", Section = "RFCC" });
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "p1", Unit = "Alkylation", IsPrimary = true,  IsActive = true },
+            new UserUnit { UserId = "p1", Unit = "X",          IsPrimary = false, IsActive = true });  // unit-lain Bagian RFCC
+        ctx.SaveChanges();
+
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation", 5);   // reparent Alkylation → HSC (split: "X" tetap RFCC)
+
+        Assert.False(GetSuccess(result));
+        var msg = GetMessage(result);
+        Assert.True(msg.Contains("12345") || msg.Contains("Budi"), $"Pesan harus sebut NIP/nama: {msg}");
+    }
+
+    [Fact]
+    public async Task EditOrganizationUnit_ReparentSingleUnitWorker_Allowed()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 5, Name = "HSC",  Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.Users.Add(new ApplicationUser { Id = "p1", UserName = "p1", Unit = "Alkylation", Section = "RFCC" });
+        ctx.UserUnits.Add(new UserUnit { UserId = "p1", Unit = "Alkylation", IsPrimary = true, IsActive = true });   // single-unit
+        ctx.SaveChanges();
+
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation", 5);   // reparent → HSC (tanpa split)
+
+        Assert.True(GetSuccess(result));
+        Assert.Equal("HSC", ctx.Users.Single(u => u.Id == "p1").Section);   // cascade Section existing dipertahankan
+    }
+
+    [Fact]
+    public async Task PreviewEditCascade_RenameLevel1_UserUnitsCountMatchesActual()
+    {
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = true,  IsActive = true },
+            new UserUnit { UserId = "u2", Unit = "Alkylation", IsPrimary = false, IsActive = true },
+            new UserUnit { UserId = "u3", Unit = "Alkylation", IsPrimary = false, IsActive = false }); // diskriminatif (count tanpa filter IsActive)
+        ctx.SaveChanges();
+
+        // ACT1: preview (read-only)
+        var preview = await ctrl.PreviewEditCascade(2, "Alkylation New", 1);
+        int pUserUnits = GetInt(preview, "affectedUserUnitsCount");
+
+        // ACT2: edit aktual pada ctx sama
+        await ctrl.EditOrganizationUnit(2, "Alkylation New", 1);
+        int aUserUnits = ctx.UserUnits.Count(uu => uu.Unit == "Alkylation New");
+
+        Assert.Equal(aUserUnits, pUserUnits);   // preview == actual
+        Assert.Equal(3, pUserUnits);            // SEMUA baris (tanpa filter IsActive)
+    }
+
+    // ── Phase 426 AUDIT-01: jejak audit EditOrganizationUnit (T1-T5) ─────────────
+    // T1-T4 pakai MakeControllerWithUser (UserManager non-null → audit nulis baris).
+    // T5 pakai MakeController() existing (null userManager → audit lempar NRE → swallow).
+
+    private static ApplicationUser SeedActor() =>
+        new ApplicationUser { Id = "hc1", UserName = "hc1", NIP = "99001", FullName = "Admin HC" };
+
+    [Fact]
+    public async Task EditOrganizationUnit_RenameLevel1_WritesOneAuditRow()   // T1 (SC#1, SC#2)
+    {
+        var (ctrl, ctx) = MakeControllerWithUser(SeedActor());
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.Users.Add(new ApplicationUser { Id = "u1", UserName = "u1", Unit = "Alkylation" });
+        ctx.UserUnits.AddRange(
+            new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = true,  IsActive = true },
+            new UserUnit { UserId = "u2", Unit = "Alkylation", IsPrimary = false, IsActive = true });
+        ctx.SaveChanges();
+
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation New", 1);   // rename Level1, parent unchanged
+        Assert.True(GetSuccess(result));
+
+        var rows = ctx.AuditLogs.Where(a => a.ActionType == "EditOrganizationUnit").ToList();
+        Assert.Single(rows);
+        var row = rows[0];
+        Assert.Equal(2, row.TargetId);
+        Assert.Equal("OrganizationUnit", row.TargetType);
+        Assert.Equal("99001 - Admin HC", row.ActorName);   // {NIP} - {FullName} seeded actor
+        Assert.Equal("hc1", row.ActorUserId);
+        Assert.Contains("'Alkylation'→'Alkylation New'", row.Description);   // oldName→newName
+        Assert.Contains("cascade:", row.Description);                        // SC#2 cascade counts
+    }
+
+    [Fact]
+    public async Task EditOrganizationUnit_Reparent_WritesParentIdsInDescription()   // T2 (SC#1, D-03)
+    {
+        var (ctrl, ctx) = MakeControllerWithUser(SeedActor());
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 5, Name = "HSC",  Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.Users.Add(new ApplicationUser { Id = "p1", UserName = "p1", Unit = "Alkylation", Section = "RFCC" });
+        ctx.UserUnits.Add(new UserUnit { UserId = "p1", Unit = "Alkylation", IsPrimary = true, IsActive = true });   // single-unit → allowed
+        ctx.SaveChanges();
+
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation", 5);   // reparent → HSC (oldParent 1 → newParent 5)
+        Assert.True(GetSuccess(result));
+
+        var rows = ctx.AuditLogs.Where(a => a.ActionType == "EditOrganizationUnit").ToList();
+        Assert.Single(rows);
+        Assert.Contains("parent 1→5", rows[0].Description);   // raw IDs (D-03)
+    }
+
+    [Fact]
+    public async Task EditOrganizationUnit_RenameAndReparent_WritesExactlyOneRow()   // T3 (D-02)
+    {
+        var (ctrl, ctx) = MakeControllerWithUser(SeedActor());
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 5, Name = "HSC",  Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.Users.Add(new ApplicationUser { Id = "p1", UserName = "p1", Unit = "Alkylation", Section = "RFCC" });
+        ctx.UserUnits.Add(new UserUnit { UserId = "p1", Unit = "Alkylation", IsPrimary = true, IsActive = true });
+        ctx.SaveChanges();
+
+        // rename ("Alkylation"→"Alkylation X") + reparent (1→5) sekaligus
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation X", 5);
+        Assert.True(GetSuccess(result));
+
+        var rows = ctx.AuditLogs.Where(a => a.ActionType == "EditOrganizationUnit").ToList();
+        Assert.Single(rows);   // SATU baris gabungan, bukan dua (D-02)
+        Assert.Contains("'Alkylation'→'Alkylation X'", rows[0].Description);
+        Assert.Contains("parent 1→5", rows[0].Description);
+    }
+
+    [Fact]
+    public async Task EditOrganizationUnit_NoChange_WritesZeroAuditRows()   // T4 (D-01)
+    {
+        var (ctrl, ctx) = MakeControllerWithUser(SeedActor());
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.SaveChanges();
+
+        // no-op edit: nama + parent IDENTIK → commit sukses TAPI tidak menulis audit
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation", 1);
+        Assert.True(GetSuccess(result));
+        Assert.Equal(0, ctx.AuditLogs.Count(a => a.ActionType == "EditOrganizationUnit"));   // only-on-change (D-01)
+    }
+
+    [Fact]
+    public async Task EditOrganizationUnit_AuditFailure_DoesNotBlockEdit()   // T5 (SC#3)
+    {
+        // Factory EXISTING null-userManager → blok audit lempar NRE → swallow → edit tetap sukses.
+        var (ctrl, ctx) = MakeController();
+        ctx.OrganizationUnits.AddRange(
+            new OrganizationUnit { Id = 1, Name = "RFCC", Level = 0, ParentId = null, IsActive = true },
+            new OrganizationUnit { Id = 2, Name = "Alkylation", Level = 1, ParentId = 1, IsActive = true });
+        ctx.Users.Add(new ApplicationUser { Id = "u1", UserName = "u1", Unit = "Alkylation" });
+        ctx.UserUnits.Add(new UserUnit { UserId = "u1", Unit = "Alkylation", IsPrimary = true, IsActive = true });
+        ctx.SaveChanges();
+
+        var result = await ctrl.EditOrganizationUnit(2, "Alkylation New", 1);   // rename nyata
+
+        Assert.True(GetSuccess(result));   // respons tak terblokir oleh kegagalan audit (NRE di-swallow)
+        Assert.Equal("Alkylation New", ctx.Users.Single(u => u.Id == "u1").Unit);              // cascade sukses
+        Assert.Equal(1, ctx.UserUnits.Count(uu => uu.Unit == "Alkylation New"));               // UserUnits ter-rename
+        Assert.Equal(0, ctx.AuditLogs.Count(a => a.ActionType == "EditOrganizationUnit"));      // tidak ada baris (audit gagal & di-swallow)
     }
 }

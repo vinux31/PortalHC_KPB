@@ -1,3 +1,7 @@
+---
+status: complete
+---
+
 # Quick Task 260318-qsh: Summary
 
 ## Changes Made

@@ -68,16 +68,42 @@
     }
 
     @{
-        // Compute summary data for the panel
-        bool hasMismatch = false;
-        int? referenceCount = null;
-        if (packages.Any(p => p.Questions.Any()))
-        {
-            referenceCount = packages.Where(p => p.Questions.Any()).Select(p => p.Questions.Count).First();
-            hasMismatch = packages.Where(p => p.Questions.Any()).Any(p => p.Questions.Count != referenceCount);
-        }
+        // v32.7 Phase 422 D-05/SHFX-07 (kill-drift): mismatch SATU SUMBER dari ViewBag (PackageSizeAnalysis.Compute
+        // di controller GET ManagePackages). Blok re-derive view lama DIHAPUS — hanya MEMBACA ViewBag agar tak
+        // divergen dari controller (SHUF-ISS-07).
+        bool hasMismatch = ViewBag.HasSizeMismatch == true;
+        int? referenceCount = ViewBag.ReferenceCount as int?;
         bool isMultiPackage = packages.Count > 1;
         string modeLabel = isMultiPackage ? $"Multi-Package ({packages.Count} paket)" : "Single Package";
+    }
+
+    @* v32.7 Phase 422 SHFX-02/D-01: Card Toggle SamePackage (Post-Test berpasangan SAJA — backward-compat:
+       Standard/Pre tak menampilkan card ini). Mirror card shuffle :104-129. *@
+    @if (ViewBag.IsPostSession == true && ViewBag.PreSessionId != null)
+    {
+        bool spChecked = ViewBag.IsSamePackageLocked == true;   // SamePackage aktif = locked state
+        bool spDisabled = ViewBag.AnyStartedInGroup == true;    // guard no-started (UX layer; server hard-reject)
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-files text-primary me-1"></i>Paket Soal Sama dengan Pre-Test</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="ToggleSamePackage" asp-controller="AssessmentAdmin" id="samePackageForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="assessmentId" value="@ViewBag.AssessmentId" />
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="samePackage" id="samePackageSwitch" value="true" @(spChecked ? "checked" : "") @(spDisabled ? "disabled" : "") />
+                        <label class="form-check-label" for="samePackageSwitch">Samakan paket soal dengan Pre-Test</label>
+                    </div>
+                    <div class="form-text text-muted mb-3">Saat aktif, paket soal Post-Test disalin penuh dari Pre-Test dan dikunci agar komparasi Pre↔Post identik. Saat nonaktif, kunci dilepas dan paket hasil salinan tetap dipertahankan agar bisa Anda edit manual.</div>
+                    @if (spDisabled)
+                    {
+                        <div class="form-text text-muted mb-3"><i class="bi bi-info-circle me-1"></i>Pengaturan paket-sama tidak dapat diubah karena sudah ada peserta yang memulai ujian di grup ini.</div>
+                    }
+                    <button type="submit" class="btn btn-primary" @(spDisabled ? "disabled" : "")><i class="bi bi-save me-1"></i>Simpan Pengaturan</button>
+                </form>
+            </div>
+        </div>
     }
 
     @* Phase 374: Card Pengacakan Soal & Jawaban (SHUF-10/11/12/13/14). Render dari ViewBag (Plan 02). *@
@@ -121,6 +147,19 @@
                             <div>Pre diatur OFF, Post masih ON — sengaja?</div>
                         </div>
                     }
+                    @* v32.7 Phase 422 D-03/SHFX-07: Acak ON pada Post SamePackage — non-blocking (HC tetap bisa simpan). *@
+                    @if (ViewBag.ShowAcakOnSamePackageWarning == true)
+                    {
+                        <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <div>Acak Soal aktif pada Post-Test paket-sama. Pengacakan mengaburkan komparasi item-level Pre/Post — disarankan nonaktifkan untuk komparasi yang setara. Pengaturan tetap bisa disimpan.</div>
+                        </div>
+                    }
+                    @* v32.7 Phase 422 D-04/SHFX-07: K=min truncation ON-path (Acak ON + ukuran paket beda → soal dipangkas ke K=min). *@
+                    <div id="shuffleKMinWarning" class="alert alert-warning d-flex align-items-center mb-3 @(ViewBag.ShowKMinWarning == true ? "" : "d-none")" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <div>Acak Soal aktif: jumlah soal yang ditampilkan dipangkas ke K=min (paket terkecil) agar setiap peserta menerima jumlah soal yang sama.</div>
+                    </div>
                     <div id="shuffleSizeWarning" class="alert alert-warning d-flex align-items-center mb-3 @(ViewBag.ShowSizeMismatchWarning == true ? "" : "d-none")" role="alert">
                         <i class="bi bi-exclamation-triangle me-2"></i>
                         <div>Jumlah soal antar paket berbeda — nilai maksimal &amp; pass% bisa tak setara antar peserta.</div>
@@ -129,6 +168,97 @@
                 </form>
             </div>
         </div>
+    }
+
+    @* v32.4 RTK-05: Card Ujian Ulang (mirror card shuffle, MINUS lock D-03, PLUS progressive disclosure D-04). Render dari ViewBag (405-04, controller :5752-5760). *@
+    @if (ViewBag.HideRetakeToggle != true)
+    {
+        bool arChecked = ViewBag.AllowRetake == true;
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-arrow-repeat text-primary me-1"></i>Ujian Ulang</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="UpdateRetakeSettings" asp-controller="AssessmentAdmin" id="retakeSettingsForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="assessmentId" value="@ViewBag.AssessmentId" />
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="allowRetake" id="allowRetake" value="true" @(arChecked ? "checked" : "") />
+                        <label class="form-check-label" for="allowRetake">Izinkan Ujian Ulang</label>
+                    </div>
+                    <div class="form-text text-muted mb-3">Saat aktif, peserta yang gagal boleh mengulang ujian ini secara mandiri (di bawah batas percobaan dan setelah masa jeda).</div>
+
+                    <div id="retakeFields" class="@(arChecked ? "" : "d-none")">
+                        <div class="mb-3" style="max-width: 320px;">
+                            <label for="maxAttempts" class="form-label fw-bold">Maksimal Percobaan</label>
+                            <input type="number" class="form-control" name="maxAttempts" id="maxAttempts" min="1" max="5" value="@(ViewBag.MaxAttempts ?? 2)" />
+                            <div class="form-text text-muted">Berapa kali peserta boleh mencoba (termasuk percobaan pertama). Rentang 1–5.</div>
+                            @if ((int)(ViewBag.MaxAttempts ?? 2) < (int)(ViewBag.RetakeMaxAttemptsUsedInGroup ?? 0))
+                            {
+                                <div class="alert alert-warning d-flex align-items-start mt-2 mb-0" role="alert">
+                                    <i class="bi bi-exclamation-triangle me-2 mt-1"></i>
+                                    <div>Maksimal percobaan yang Anda set lebih kecil dari jumlah percobaan yang sudah dipakai sebagian peserta. Peserta tersebut tidak akan kehilangan percobaan yang sudah berjalan, tetapi tidak bisa menambah percobaan baru. Pengaturan tetap bisa disimpan.</div>
+                                </div>
+                            }
+                        </div>
+                        <div class="mb-3" style="max-width: 320px;">
+                            <label for="retakeCooldownHours" class="form-label fw-bold">Jeda Ujian Ulang (jam)</label>
+                            <input type="number" class="form-control" name="retakeCooldownHours" id="retakeCooldownHours" min="0" max="168" value="@(ViewBag.RetakeCooldownHours ?? 24)" />
+                            <div class="form-text text-muted">Jeda minimal sebelum boleh mencoba lagi. 0 = tanpa jeda. Satuan: jam (maksimal 168 = 7 hari).</div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan Pengaturan</button>
+                </form>
+            </div>
+        </div>
+
+        @* v32.7 RTH-05/D-07: modal pra-simpan NON-BLOCKING saat MaxAttempts dipilih < jumlah terpakai (angka dari GET via MaxInGroupAsync). *@
+        <div class="modal fade" id="retakeMaxConfirmModal" tabindex="-1" aria-labelledby="retakeMaxConfirmLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="retakeMaxConfirmLabel"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Konfirmasi Batas Percobaan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+              </div>
+              <div class="modal-body">
+                Sebagian peserta sudah memakai lebih dari batas percobaan baru. Mereka tidak akan kehilangan percobaan yang sudah berjalan, tetapi tidak bisa menambah percobaan baru. Lanjutkan menyimpan?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="retakeMaxConfirmYes"><i class="bi bi-save me-1"></i>Ya, Lanjutkan</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <script>
+            // v32.7 RTH-05/D-07: WAJIB DOMContentLoaded — script ini ter-render inline di tengah body,
+            // sedangkan bootstrap.bundle dimuat di akhir layout. Tanpa defer → `bootstrap is not defined`
+            // (ReferenceError) → interceptor submit tak ke-attach → modal tak muncul (lesson Phase 390.1).
+            document.addEventListener('DOMContentLoaded', function () {
+                var form = document.getElementById('retakeSettingsForm');
+                if (!form) return;
+                var usedInGroup = @(ViewBag.RetakeMaxAttemptsUsedInGroup ?? 0);   // angka terpakai dari GET (MaxInGroupAsync, D-05)
+                var confirmed = false;
+                var modalEl = document.getElementById('retakeMaxConfirmModal');
+                var modal = (modalEl && typeof bootstrap !== 'undefined') ? new bootstrap.Modal(modalEl) : null;
+                form.addEventListener('submit', function (e) {
+                    if (confirmed || !modal) return;   // sudah dikonfirmasi (atau modal tak tersedia) → biarkan submit
+                    var input = document.getElementById('maxAttempts');
+                    var val = input ? parseInt(input.value, 10) : NaN;
+                    if (!isNaN(val) && val < usedInGroup) {   // non-blocking: hanya konfirmasi, server tetap simpan
+                        e.preventDefault();
+                        modal.show();
+                    }
+                });
+                var yesBtn = document.getElementById('retakeMaxConfirmYes');
+                if (yesBtn) yesBtn.addEventListener('click', function () {
+                    confirmed = true;
+                    if (modal) modal.hide();
+                    form.submit();
+                });
+            });
+        </script>
     }
 
     <div class="card mb-4">
@@ -270,14 +400,26 @@
                                             <small class="text-muted">@pkg.Questions.Count questions</small>
                                         </div>
                                         <div class="d-flex gap-2">
-                                            <a asp-action="ManagePackageQuestions" asp-route-packageId="@pkg.Id"
-                                               class="btn btn-sm btn-outline-success">
-                                                <i class="bi bi-list-check me-1"></i>Kelola Soal
-                                            </a>
-                                            <a asp-action="ImportPackageQuestions" asp-route-packageId="@pkg.Id"
-                                               class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-upload me-1"></i>Import Questions
-                                            </a>
+                                            @* v32.7 Phase 422 D-07 (UX layer): saat terkunci (paket-sama) edit soal disable —
+                                               server SUDAH hard-reject (Wave 2). Tooltip jelaskan alasan. *@
+                                            @if (ViewBag.IsSamePackageLocked == true)
+                                            {
+                                                <span class="btn btn-sm btn-outline-secondary disabled" tabindex="-1" aria-disabled="true"
+                                                      title="Terkunci: paket disinkronkan dari Pre-Test. Edit soal di sesi Pre-Test.">
+                                                    <i class="bi bi-lock-fill me-1"></i>Kelola Soal
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <a asp-action="ManagePackageQuestions" asp-route-packageId="@pkg.Id"
+                                                   class="btn btn-sm btn-outline-success">
+                                                    <i class="bi bi-list-check me-1"></i>Kelola Soal
+                                                </a>
+                                                <a asp-action="ImportPackageQuestions" asp-route-packageId="@pkg.Id"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-upload me-1"></i>Import Questions
+                                                </a>
+                                            }
                                             <a asp-action="PreviewPackage" asp-route-packageId="@pkg.Id"
                                                class="btn btn-sm btn-outline-secondary">
                                                 <i class="bi bi-eye me-1"></i>Preview
@@ -321,20 +463,51 @@
         }
     </script>
     <script>
-        // Phase 374 SHUF-12: warning §9 live recompute saat flip Acak Soal (precondition dari ViewBag, Pitfall 4 opsi b).
+        // v32.7 Phase 422 SHFX-02/D-01 (Interaction Contract 2 + Pitfall 6): confirm-before toggle SamePackage.
+        // Toggle destruktif-ish (ON menimpa paket Post; OFF melepas kunci) → confirm WAJIB. Single-quote string
+        // (hindari quote-break attribute, lesson fase 421); wrap DOMContentLoaded (lesson 390.1/421). State checkbox
+        // saat submit menentukan ON vs OFF copy. native confirm() → tak butuh bootstrap, tapi tetap defer aman.
+        document.addEventListener('DOMContentLoaded', function () {
+            var form = document.getElementById('samePackageForm');
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                var sw = document.getElementById('samePackageSwitch');
+                var turningOn = sw && sw.checked;
+                var msg = turningOn
+                    ? 'Mengaktifkan ini akan MENIMPA seluruh paket soal Post-Test dengan salinan dari Pre-Test. Lanjutkan?'
+                    : 'Menonaktifkan ini akan melepas kunci paket Post-Test. Paket hasil salinan tetap dipertahankan dan bisa Anda edit. Lanjutkan?';
+                if (!confirm(msg)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+    <script>
+        // Phase 374 SHUF-12 + v32.7 Phase 422 D-04: live recompute warning §9 saat flip Acak Soal
+        // (precondition dari ViewBag, Pitfall 4 opsi b). OFF-path = size-mismatch; ON-path = K=min truncation.
         (function () {
             var sq = document.getElementById('shuffleQuestions');
-            var warn = document.getElementById('shuffleSizeWarning');
-            if (!sq || !warn) return;
+            var warnOff = document.getElementById('shuffleSizeWarning');
+            var warnOn = document.getElementById('shuffleKMinWarning');
+            if (!sq || (!warnOff && !warnOn)) return;
             var hasMismatch = @((ViewBag.HasSizeMismatch == true) ? "true" : "false");
             var multiPkg = @(((int)(ViewBag.PackagesWithQuestions ?? 0)) >= 2 ? "true" : "false");
             function recompute() {
-                // Muncul bila: >=2 paket-ber-soal AND Acak Soal OFF (state saat ini) AND ukuran beda.
-                var show = multiPkg && hasMismatch && !sq.checked;
-                warn.classList.toggle('d-none', !show);
+                var base = multiPkg && hasMismatch;
+                // OFF-path: >=2 paket-ber-soal AND Acak Soal OFF AND ukuran beda.
+                if (warnOff) warnOff.classList.toggle('d-none', !(base && !sq.checked));
+                // ON-path (D-04): >=2 paket-ber-soal AND Acak Soal ON AND ukuran beda → dipangkas ke K=min.
+                if (warnOn) warnOn.classList.toggle('d-none', !(base && sq.checked));
             }
             sq.addEventListener('change', recompute);
             recompute(); // page load
         })();
+    </script>
+    <script>
+        // v32.4 RTK-05: progressive disclosure — reveal #retakeFields saat #allowRetake ON.
+        // Input tetap di DOM (selalu ter-submit; server Math.Clamp jadi guard, bukan min/max client).
+        document.getElementById('allowRetake')?.addEventListener('change', function () {
+            document.getElementById('retakeFields')?.classList.toggle('d-none', !this.checked);
+        });
     </script>
 }

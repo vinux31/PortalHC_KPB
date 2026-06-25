@@ -44,4 +44,26 @@ public class ShuffleToggleRulesTests
     {
         Assert.Equal(expected, ShuffleToggleRules.ShouldShowSizeMismatchWarning(packagesWithQuestions, shuffleQuestions, hasMismatch));
     }
+
+    // v32.7 Phase 422 D-04/SHFX-07: warning K=min truncation ON-path — muncul bila >=2 paket-ber-soal
+    // AND Acak Soal ON AND mismatch (mirror OFF-path, hanya beda shuffleQuestions=true).
+    [Theory]
+    [InlineData(2, true, true, true)]    // ON-path mismatch -> tampil
+    [InlineData(2, false, true, false)]  // OFF-path TIDAK trigger warning ON
+    [InlineData(1, true, true, false)]   // <2 paket -> tak relevan
+    [InlineData(2, true, false, false)]  // no mismatch -> tak relevan
+    [InlineData(3, true, true, true)]    // >=2 paket ON mismatch -> tampil
+    public void KMinWarning_Predicate(int packagesWithQuestions, bool shuffleQuestions, bool hasMismatch, bool expected)
+    {
+        Assert.Equal(expected, ShuffleToggleRules.ShouldShowKMinTruncationWarning(packagesWithQuestions, shuffleQuestions, hasMismatch));
+    }
+
+    // Regresi OFF-path existing (D-04 tak boleh ganggu): (2,false,true)->true, (2,true,true)->false.
+    [Theory]
+    [InlineData(2, false, true, true)]
+    [InlineData(2, true, true, false)]
+    public void OffPathWarning_Regression(int packagesWithQuestions, bool shuffleQuestions, bool hasMismatch, bool expected)
+    {
+        Assert.Equal(expected, ShuffleToggleRules.ShouldShowSizeMismatchWarning(packagesWithQuestions, shuffleQuestions, hasMismatch));
+    }
 }

@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-06-24T13:52:32.681Z",
+  "phase": "427",
+  "phase_name": "Exam Token-Gate Server-Authoritative",
+  "phase_dir": ".planning/phases/427-exam-token-gate-server-authoritative",
+  "plan": 1,
+  "task": 3,
+  "total_tasks": 3,
+  "status": "paused",
+  "milestone": "v32.8 Exam Security & Audit Hardening (phases 426-428)",
+  "driver": "/milestone-autopilot v32.8",
+  "summary": "426 FULLY CLOSED (all gates). 427 execute + verify DONE (4/4 SC). Remaining for 427: code-review, secure, validate gates. Then 428 (not started). NOT pushed.",
+  "completed_tasks": [
+    {"id": "426", "name": "Audit-Log EditOrganizationUnit (AUDIT-01)", "status": "CLOSED — all gates green", "commit": "execute ee1f5524/3a2f6f1c; verify 03563c83; review b29f1815 (0C/0W/3I); secure 850dd90d (threats_open:0); validate 0b2fe8ee"},
+    {"id": "427-01-T1", "name": "Kolom TokenVerifiedAt + migration AddTokenVerifiedAt (applied HcPortalDB_Dev, sqlcmd COL_LENGTH=8)", "status": "done", "commit": "5e585e99"},
+    {"id": "427-01-T2", "name": "VerifyToken stamp + StartExam gate kolom + RetakeService reset + hapus TempData", "status": "done", "commit": "bc1dbb63"},
+    {"id": "427-01-T3", "name": "5 test real-SQL T1-T5", "status": "done", "commit": "f3ccf380"},
+    {"id": "427-verify", "name": "gsd-verifier PASSED 4/4 SC", "status": "done", "commit": "b90a53ba"}
+  ],
+  "remaining_tasks": [
+    {"id": "427-gate-review", "name": "code-review 427 — changed src: Controllers/CMPController.cs, Controllers/AssessmentAdminController.cs, Services/RetakeService.cs, Models/AssessmentSession.cs, Migrations/20260624133656_AddTokenVerifiedAt*.cs, Migrations/ApplicationDbContextModelSnapshot.cs, HcPortal.Tests/TokenVerifiedAtTests.cs", "status": "not_started"},
+    {"id": "427-gate-secure", "name": "secure-phase 427 — threat_model in 427-01-PLAN.md (T-427-01..04, 0 High). State B: write 427-SECURITY.md from template", "status": "not_started"},
+    {"id": "427-gate-validate", "name": "validate-phase 427 — 427-VALIDATION.md exists (State A); confirm T1-T5 green, set nyquist_compliant:true + audit trail", "status": "not_started"},
+    {"id": "428", "name": "Phase 428 EXSEC-02 StartExam Write-on-GET Idempotency (depends 427, sequential — same StartExam method). has_context=false → discuss gate INTERACTIVE", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "Opus subagent connection drops (~180-220s): gsd-phase-researcher (426) and gsd-planner (427) both died 'Connection closed mid-response' before writing output.", "type": "technical", "workaround": "Orchestrator authored 426-RESEARCH.md, 427-RESEARCH.md, and 427-01-PLAN.md inline from scouted context; sonnet plan-checker validated both. Sonnet agents and long opus executor (506s/795s) completed fine — drop is intermittent, not size-gated. If opus researcher/planner dies, author inline + run sonnet plan-checker."}
+  ],
+  "human_actions_pending": [
+    {"action": "When v32.8 promoted: notify IT migration=TRUE Phase 427 (AddTokenVerifiedAt, commit 5e585e99). 426/428=FALSE.", "context": "branch ITHandoff, deploy bundle with v32.1/v32.3/v32.4/v32.7", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "426: audit only-on-change (D-01), single combined row (D-02), raw parent IDs (D-03)", "rationale": "user-confirmed discuss", "phase": "426"},
+    {"decision": "427: reset TokenVerifiedAt single-source in RetakeService.ExecuteAsync (D-01); full TempData removal (D-02); stamp only token-required path (D-03)", "rationale": "user-confirmed discuss; single source covers worker RetakeExam + HC ResetAssessment", "phase": "427"}
+  ],
+  "uncommitted_files": ["akun-doc-full.jpeg", "akun-doc-hero.jpeg", "docs/KPB - Licensor Training - SRU - Pre Test batch 1.xlsx", "docs/akun-multirole-multiunit/ (ALL pre-existing from session start — NOT from this work)"],
+  "next_action": "Resume autopilot at Phase 427 code-review gate: Skill gsd-code-review 427 → gsd-secure-phase 427 (write 427-SECURITY.md from plan threat_model, threats_open:0) → gsd-validate-phase 427 (set nyquist_compliant) → commit each → then Phase 428 discuss (interactive). Re-invoke /milestone-autopilot v32.8.",
+  "context_notes": "Driving /milestone-autopilot v32.8 (426 AUDIT-01, 427 EXSEC-01, 428 EXSEC-02). 427 keystone migration=TRUE: AssessmentSession.TokenVerifiedAt applied to local DB HcPortalDB_Dev (verified). Token gate server-authoritative (StartExam reads TokenVerifiedAt not TempData.Peek; outer guard StartedAt==null KEPT for SC#4 no-lockout; grep TokenVerified_ = 0). NOT pushed (deploy bundle). SQLEXPRESS=SQL Server 2025 up. Port 5270 ITHandoff. 428 = R-1 StartExam conflict zone vs main — keep edits surgical. v32.8 NOT done — do NOT audit-milestone until 428 closed. Skip Playwright on these phases (UI hint: no)."
+}

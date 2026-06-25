@@ -77,7 +77,8 @@ public class FlexibleParticipantRemoveReadTests
             workerDataService:       null!,
             gradingService:          null!,
             protonCompletionService: null!,
-            protonBypassService:     null!);
+            protonBypassService:     null!,
+            retakeService:           new RetakeService(ctx, auditLog, new NoopHubContext(), NullLogger<RetakeService>.Instance));
         #pragma warning restore CS8625
 
         ctrl.ControllerContext = new ControllerContext
@@ -252,7 +253,8 @@ public class FlexibleParticipantRemoveWriteTests : IClassFixture<FlexiblePartici
             workerDataService:       null!,
             gradingService:          null!,
             protonCompletionService: null!,
-            protonBypassService:     null!);
+            protonBypassService:     null!,
+            retakeService:           new RetakeService(ctx, auditLog, new NoopHubContext(), NullLogger<RetakeService>.Instance));
         #pragma warning restore CS8625
         ctrl.ControllerContext = new ControllerContext
         {

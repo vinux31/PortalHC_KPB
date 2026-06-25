@@ -362,6 +362,7 @@ function showCascadeConfirm(pv) {
         document.getElementById('cascadeMappings').textContent = pv.affectedMappingsCount || 0;
         document.getElementById('cascadeKompetensi').textContent = pv.affectedKompetensiCount || 0;
         document.getElementById('cascadeGuidance').textContent = pv.affectedGuidanceCount || 0;
+        document.getElementById('cascadeUserUnits').textContent = pv.affectedUserUnitsCount || 0;   // NEW 403 (D-03)
         const modalEl = document.getElementById('cascadeConfirmModal');
         const modal = new bootstrap.Modal(modalEl);
         const btnProceed = document.getElementById('cascadeConfirmProceed');
@@ -424,7 +425,8 @@ async function submitUnitModal() {
     if (isEdit) {
         const pv = await ajaxPost('PreviewEditCascade', { id, name, parentId });
         const total = (pv.affectedUsersCount || 0) + (pv.affectedMappingsCount || 0)
-                    + (pv.affectedKompetensiCount || 0) + (pv.affectedGuidanceCount || 0);
+                    + (pv.affectedKompetensiCount || 0) + (pv.affectedGuidanceCount || 0)
+                    + (pv.affectedUserUnitsCount || 0);   // NEW 403 (D-03): modal muncul saat dampak UserUnits-only
         if (total > 0) {
             const proceed = await showCascadeConfirm(pv);
             if (!proceed) return;   // user Batal — abort sebelum EditOrganizationUnit

@@ -29,6 +29,7 @@ namespace HcPortal.Controllers
         private readonly GradingService _gradingService;
         private readonly ProtonCompletionService _protonCompletionService;
         private readonly ProtonBypassService _protonBypassService;
+        private readonly HcPortal.Services.RetakeService _retakeService;
 
         public AssessmentAdminController(
             ApplicationDbContext context,
@@ -42,7 +43,8 @@ namespace HcPortal.Controllers
             IWorkerDataService workerDataService,
             GradingService gradingService,
             ProtonCompletionService protonCompletionService,
-            ProtonBypassService protonBypassService)
+            ProtonBypassService protonBypassService,
+            HcPortal.Services.RetakeService retakeService)
             : base(context, userManager, auditLog, env)
         {
             _cache = cache;
@@ -53,6 +55,7 @@ namespace HcPortal.Controllers
             _gradingService = gradingService;
             _protonCompletionService = protonCompletionService;
             _protonBypassService = protonBypassService;
+            _retakeService = retakeService;
         }
 
         // Override View resolution to use Views/Admin/ folder (controller name is AssessmentAdmin, but views stay in Admin/)
@@ -835,7 +838,7 @@ namespace HcPortal.Controllers
             }
 
             ViewBag.IsRenewalMode = isRenewalMode;
-            ViewBag.AssessmentTypeInput = "";
+            ViewBag.CreationMode = "";
 
             return View(model);
         }
@@ -862,7 +865,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> CreateAssessment(
             AssessmentSession model, List<string> UserIds,
             string? RenewalFkMap = null, string? RenewalFkMapType = null,
-            string? AssessmentTypeInput = null,
+            string? CreationMode = null,
             DateTime? PreSchedule = null, int? PreDurationMinutes = null, DateTime? PreExamWindowCloseDate = null,
             DateTime? PostSchedule = null, int? PostDurationMinutes = null, DateTime? PostExamWindowCloseDate = null,
             bool SamePackage = false,
@@ -871,19 +874,12 @@ namespace HcPortal.Controllers
             // Remove single UserId from validation since we use UserIds list
             ModelState.Remove("UserId");
 
-            // Phase 338 REST-06 (336-NAMING-CONVENTION-SPEC): Auto-pair LinkedGroupId via title pattern
-            // Hanya untuk standard mode (non PrePost). PrePost mode generate own GroupId di logic existing.
-            if (AssessmentTypeInput != "PrePostTest"
-                && model.LinkedGroupId == null
-                && !string.IsNullOrEmpty(model.Title))
-            {
-                var counterpartId = await TryAutoDetectCounterpartGroup(model.Title, model.Category);
-                if (counterpartId.HasValue)
-                {
-                    model.LinkedGroupId = counterpartId.Value;
-                    TempData["Info"] = $"Auto-paired LinkedGroupId={counterpartId.Value} berdasarkan title pattern '{model.Title}' (336-NAMING-CONVENTION).";
-                }
-            }
+            // GRDF-04 (FLOW-03 / D-08): auto-pair LinkedGroupId via pola judul (Phase 338 REST-06) DINONAKTIFKAN
+            // forward-only untuk mode Standard. Assessment Standard TIDAK lagi mendapat link Pre/Post SEMU dari
+            // kemiripan judul ("Pre Test X" / "Post Test X") — link semu menyesatkan grading/analytics & gate
+            // Pre→Post (GRDF-01 hanya percaya link eksplisit). Baris Standard LAMA ber-LinkedGroupId semu TIDAK
+            // disentuh (non-destruktif). Pemasangan Pre/Post resmi tetap via mode PrePostTest (generate GroupId
+            // sendiri di logic existing). Helper TryAutoDetectCounterpartGroup kini tak dipanggil (dead, disimpan utk histori).
 
             // Handle Token Validation
             if (model.IsTokenRequired)
@@ -920,7 +916,7 @@ namespace HcPortal.Controllers
             }
 
             // Early Pre-Post mode determination (needed before standard field validation)
-            bool isPrePostMode = AssessmentTypeInput == "PrePostTest";
+            bool isPrePostMode = CreationMode == "PrePostTest";
 
             // Phase 308 D-04: Status field hidden in PrePost mode — JS sets default 'Upcoming', server skips [Required] validation
             if (isPrePostMode)
@@ -1024,6 +1020,27 @@ namespace HcPortal.Controllers
                 if (srcAlreadyRenewed)
                     ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
             }
+
+            // Phase 423 CERT-05/VAL-04 (D-07): anti double-cert guard UNCONDITIONAL.
+            // Cegah penerbitan cert kedua yang AKTIF untuk (peserta, judul) sama. Renewal (RenewsSessionId/RenewsTrainingId)
+            // DIKECUALIKAN — perpanjangan resmi. Guard ini SETARA pola double-renewal di atas (di LUAR cabang !ConfirmDuplicateTitle),
+            // jadi TIDAK bisa di-bypass via ConfirmDuplicateTitle (Pitfall 3). Hanya relevan saat cert akan terbit (GenerateCertificate).
+            if (model.GenerateCertificate && !isRenewalModePost
+                && !string.IsNullOrWhiteSpace(model.Title) && UserIds != null && UserIds.Count > 0)
+            {
+                var blocked = new List<string>();
+                foreach (var uid in UserIds.Distinct())
+                {
+                    if (await HasActiveCertForTitleAsync(uid, model.Title, null))
+                        blocked.Add(uid);
+                }
+                if (blocked.Count > 0)
+                {
+                    ModelState.AddModelError("",
+                        $"{blocked.Count} peserta sudah memiliki sertifikat aktif untuk judul ini. " +
+                        "Cert tidak bisa diterbitkan ganda (gunakan mode renewal bila ingin perpanjang).");
+                }
+            }
             // Mixed-type bulk validation (per D-11, EDGE-01)
             if (!string.IsNullOrEmpty(RenewalFkMap) && UserIds != null && UserIds.Count > 1)
             {
@@ -1035,10 +1052,11 @@ namespace HcPortal.Controllers
             // NomorSertifikat is server-generated — remove from ModelState to prevent validation failure
             ModelState.Remove("NomorSertifikat");
 
-            // T-297-01: Validate AssessmentTypeInput hanya "Standard" atau "PrePostTest"
-            if (!string.IsNullOrEmpty(AssessmentTypeInput) && AssessmentTypeInput != "Standard" && AssessmentTypeInput != "PrePostTest")
+            // T-297-01: Validate CreationMode hanya "Standard" atau "PrePostTest"
+            // FORM-10: penanda mode internal (Standard/PrePostTest) — TIDAK rancu dgn kolom DB AssessmentType (PreTest/PostTest/Standard/Manual).
+            if (!string.IsNullOrEmpty(CreationMode) && CreationMode != "Standard" && CreationMode != "PrePostTest")
             {
-                ModelState.AddModelError("AssessmentTypeInput", "Tipe assessment tidak valid.");
+                ModelState.AddModelError("CreationMode", "Tipe assessment tidak valid.");
             }
 
             // isPrePostMode already determined above (before Schedule/Duration validation)
@@ -1250,6 +1268,9 @@ namespace HcPortal.Controllers
                             AllowAnswerReview = model.AllowAnswerReview,
                             ShuffleQuestions = model.ShuffleQuestions,
                             ShuffleOptions = model.ShuffleOptions,
+                            AllowRetake = false,                                            // FORM-02 / D-03: Pre baseline murni — retake OFF eksplisit
+                            MaxAttempts = Math.Clamp(model.MaxAttempts, 1, 5),             // disalin untuk konsistensi grup (perilaku OFF)
+                            RetakeCooldownHours = Math.Clamp(model.RetakeCooldownHours, 0, 168),
                             IsTokenRequired = model.IsTokenRequired,
                             AccessToken = model.AccessToken,
                             GenerateCertificate = false,  // D-20: Pre TIDAK generate sertifikat
@@ -1286,6 +1307,9 @@ namespace HcPortal.Controllers
                                 AllowAnswerReview = model.AllowAnswerReview,
                                 ShuffleQuestions = model.ShuffleQuestions,
                                 ShuffleOptions = model.ShuffleOptions,
+                                AllowRetake = model.AllowRetake,                                // FORM-02 Post: retake relevan → salin penuh dari model
+                                MaxAttempts = Math.Clamp(model.MaxAttempts, 1, 5),             // FORM-02 + clamp V5
+                                RetakeCooldownHours = Math.Clamp(model.RetakeCooldownHours, 0, 168),
                                 IsTokenRequired = model.IsTokenRequired,
                                 AccessToken = model.AccessToken,
                                 GenerateCertificate = model.GenerateCertificate, // D-21: pilihan HC
@@ -1393,6 +1417,8 @@ namespace HcPortal.Controllers
                     // (renewal = perpanjangan tahun yang SUDAH dilewati).
                     bool isRenewal = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue;
 
+                    // Phase 401 (D-03): actor untuk gate-block AuditLog (resolve sekali sebelum loop).
+                    var actor = await _userManager.GetUserAsync(User);
                     var filtered = new List<string>();
                     foreach (var uid in UserIds)
                     {
@@ -1409,11 +1435,20 @@ namespace HcPortal.Controllers
                         // (b) Deliverable 100% per-unit (D-02). Fallback: track 0 deliverable → eligible (D-08).
                         if (trackHasDeliverables)
                         {
+                            // Phase 401 (PSU-01): resolusi unit PROTON HANYA dari AssignmentUnit (fallback User.Unit DIBUANG — ambigu multi-unit).
                             var resolvedUnit = await _context.CoachCoacheeMappings
                                 .Where(m => m.CoacheeId == uid && m.IsActive).Select(m => m.AssignmentUnit).FirstOrDefaultAsync();
                             if (string.IsNullOrWhiteSpace(resolvedUnit))
-                                resolvedUnit = await _context.Users.Where(u => u.Id == uid).Select(u => u.Unit).FirstOrDefaultAsync();
-                            if (string.IsNullOrWhiteSpace(resolvedUnit)) { gateSkippedNotHundred++; continue; }
+                            {
+                                // PSU-05 / D-02: gate penerbitan session/cert — BLOCK (tak boleh terbit dgn unit ter-resolve dari primary).
+                                // D-03 channel = AuditLog persisted (event langka & signifikan) + LogWarning.
+                                await _auditLog.LogAsync(actor?.Id ?? "system", actor?.FullName ?? actor?.UserName ?? "system",
+                                    "ProtonUnitUnresolved",
+                                    $"Coachee {uid} di-skip dari gate eligibility exam (penerbitan session/cert): AssignmentUnit kosong — tak boleh resolve dari Unit primary.",
+                                    targetType: "CoachCoacheeMapping");
+                                _logger.LogWarning("Cert-gate skip: coachee {Uid} AssignmentUnit kosong (BLOCK penerbitan).", uid);
+                                gateSkippedNotHundred++; continue;
+                            }
                             var unitDeliverableIds = await _context.ProtonDeliverableList
                                 .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
                                          && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim())
@@ -1465,6 +1500,9 @@ namespace HcPortal.Controllers
                         AllowAnswerReview = model.AllowAnswerReview,
                         ShuffleQuestions = model.ShuffleQuestions,
                         ShuffleOptions = model.ShuffleOptions,
+                        AllowRetake = model.AllowRetake,                                  // FORM-02 std: retake disalin eksplisit (bukan EF-default)
+                        MaxAttempts = Math.Clamp(model.MaxAttempts, 1, 5),               // FORM-02 + clamp V5
+                        RetakeCooldownHours = Math.Clamp(model.RetakeCooldownHours, 0, 168),
                         GenerateCertificate = model.GenerateCertificate,
                         ExamWindowCloseDate = model.ExamWindowCloseDate,
                         ValidUntil = model.ValidUntil,
@@ -1678,6 +1716,11 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageAssessment");
             }
 
+            // FORM-06 (E-08): sesi entry-manual diarahkan ke form edit manual (bukan form online).
+            // Mirror filter IsManualEntry di TrainingAdminController EditManualAssessment GET.
+            if (assessment.IsManualEntry)
+                return RedirectToAction("EditManualAssessment", "TrainingAdmin", new { id });
+
             // Detect Pre-Post group
             bool isPrePost = assessment.AssessmentType == "PreTest" || assessment.AssessmentType == "PostTest";
 
@@ -1795,12 +1838,31 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> EditAssessment(int id, AssessmentSession model, List<string> NewUserIds,
             DateTime? PreSchedule, int? PreDurationMinutes, DateTime? PreExamWindowCloseDate,
             DateTime? PostSchedule, int? PostDurationMinutes, DateTime? PostExamWindowCloseDate,
-            List<string>? UserIds)
+            List<string>? UserIds, bool confirmRemoveWithHistory = false)   // v32.7 RTH-04/D-06: server round-trip flag
         {
             var assessment = await _context.AssessmentSessions.FindAsync(id);
             if (assessment == null)
             {
                 TempData["Error"] = "Assessment not found.";
+                return RedirectToAction("ManageAssessment");
+            }
+
+            // FORM-05 (E-04): lock metadata sesi/grup Completed — diangkat ke ATAS cabang Pre-Post.
+            // Bug asal: cabang Pre-Post return ke ManageAssessment SEBELUM guard lama (single-mode) di
+            // bawah cabang ini tercapai → guard tak pernah jalan untuk Pre-Post. Group-aware (Open Q#1):
+            // blokir bila ADA SATU sesi dalam grup (LinkedGroupId sama) berstatus Completed. Standard
+            // (LinkedGroupId null) → cek sesi itu sendiri (identik guard lama). JANGAN pakai
+            // AssessmentEditEligibility.IsEditableAsync (semantik TERBALIK). Guard lama :2006 dibiarkan
+            // (defense-in-depth jalur standard di bawah).
+            bool isCompleted = assessment.Status == "Completed";
+            if (assessment.LinkedGroupId.HasValue)
+            {
+                isCompleted = await _context.AssessmentSessions
+                    .AnyAsync(a => a.LinkedGroupId == assessment.LinkedGroupId && a.Status == "Completed");
+            }
+            if (isCompleted)
+            {
+                TempData["Error"] = "Tidak dapat mengubah assessment yang sudah Completed.";
                 return RedirectToAction("ManageAssessment");
             }
 
@@ -1881,6 +1943,9 @@ namespace HcPortal.Controllers
                     }
                 }
 
+                // v32.7 RTH-04 (PA-06, D-06): peserta ber-riwayat yang dibatalkan penghapusannya (butuh konfirmasi flag).
+                // Dideklarasi DI LUAR blok agar terlihat di cek redirect pasca-loop.
+                var pendingHistoryRemovals = new List<string>();
                 // D-31: Tambah peserta baru = buat Pre+Post session
                 if (UserIds != null && UserIds.Any())
                 {
@@ -1904,6 +1969,25 @@ namespace HcPortal.Controllers
                         {
                             TempData["Error"] = $"Tidak dapat menghapus peserta — sesi Post-Test sudah {userPostSession.Status}.";
                             continue;
+                        }
+
+                        // v32.7 RTH-04 (PA-06, D-06): soft-confirm — sesi Abandoned / sudah-dimulai / ber-AttemptHistory
+                        // (riwayat percobaan tercatat walau status kembali Open via reset) = HAPUS RIWAYAT.
+                        // Server-authoritative: flag confirmRemoveWithHistory HANYA menekan peringatan; guard
+                        // dievaluasi ulang tiap POST (forged flag tetap melewati guard hard-block di atas).
+                        bool preHasHistory = userPreSession != null &&
+                            (userPreSession.Status == "Abandoned" || userPreSession.StartedAt != null);
+                        bool postHasHistory = userPostSession != null &&
+                            (userPostSession.Status == "Abandoned" || userPostSession.StartedAt != null);
+                        var sessIdsForHistCheck = new List<int>();
+                        if (userPreSession != null) sessIdsForHistCheck.Add(userPreSession.Id);
+                        if (userPostSession != null) sessIdsForHistCheck.Add(userPostSession.Id);
+                        bool hasAttemptHistory = sessIdsForHistCheck.Count > 0 && await _context.AssessmentAttemptHistory
+                            .AnyAsync(h => sessIdsForHistCheck.Contains(h.SessionId));
+                        if ((preHasHistory || postHasHistory || hasAttemptHistory) && !confirmRemoveWithHistory)
+                        {
+                            pendingHistoryRemovals.Add(removedUserId);
+                            continue;   // BATALKAN penghapusan peserta INI; edit metadata + peserta lain tetap jalan
                         }
 
                         var sessionsToRemove = new List<AssessmentSession>();
@@ -1997,7 +2081,8 @@ namespace HcPortal.Controllers
                             AssessmentType = "PostTest",
                             LinkedGroupId = linkedGroupId,
                             CreatedBy = currentUser?.Id,
-                            BannerColor = repPost.BannerColor
+                            BannerColor = repPost.BannerColor,
+                            SamePackage = repPost.SamePackage   // SHFX-04/PA-02: peserta baru warisi SamePackage grup (bukan default false)
                         };
 
                         _context.AssessmentSessions.AddRange(newPre, newPost);
@@ -2009,6 +2094,17 @@ namespace HcPortal.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                // v32.7 RTH-04 (D-06): bila ada peserta ber-riwayat yang penghapusannya dibatalkan, kembali ke
+                // form Edit dengan peringatan + keep-list (UserIds) tersimpan → tombol "Tetap Hapus" me-replay
+                // UserIds + confirmRemoveWithHistory=true (server round-trip, BUKAN JS-only). Metadata + peserta
+                // tanpa-riwayat SUDAH tersimpan (SaveChanges di atas). Non-history → flow ManageAssessment normal.
+                if (pendingHistoryRemovals.Any())
+                {
+                    TempData["PendingRemoveCount"] = pendingHistoryRemovals.Count;
+                    TempData["PendingKeepUserIds"] = string.Join(",", UserIds ?? new List<string>());
+                    TempData["Warning"] = $"{pendingHistoryRemovals.Count} peserta memiliki riwayat ujian (sesi sudah dimulai/ditinggalkan/percobaan tercatat). Menghapusnya akan menghapus riwayat percobaan terkait. Klik 'Tetap Hapus' untuk melanjutkan.";
+                    return RedirectToAction("EditAssessment", new { id });
+                }
                 TempData["Success"] = "Assessment Pre-Post Test berhasil diperbarui.";
                 return RedirectToAction("ManageAssessment");
             }
@@ -2116,6 +2212,10 @@ namespace HcPortal.Controllers
                 sibling.ShuffleOptions = model.ShuffleOptions;
                 sibling.GenerateCertificate = model.GenerateCertificate;
                 sibling.ExamWindowCloseDate = model.ExamWindowCloseDate;
+                sibling.ValidUntil = model.ValidUntil;                                       // FORM-04 (E-05): ValidUntil tersimpan jalur std
+                sibling.AllowRetake = model.AllowRetake;                                     // FORM-03 (E-03): retake bukan no-op
+                sibling.MaxAttempts = Math.Clamp(model.MaxAttempts, 1, 5);                   // FORM-03 + clamp V5
+                sibling.RetakeCooldownHours = Math.Clamp(model.RetakeCooldownHours, 0, 168); // FORM-03 + clamp V5
                 sibling.UpdatedAt = now;
             }
 
@@ -2219,6 +2319,11 @@ namespace HcPortal.Controllers
                                 AllowAnswerReview = model.AllowAnswerReview,
                                 ShuffleQuestions = model.ShuffleQuestions,
                                 ShuffleOptions = model.ShuffleOptions,
+                                // v32.4 RTK-01 (MERGE): pekerja baru mewarisi policy retake dari sesi representatif. Retake config
+                                // di-set via UpdateRetakeSettings TERPISAH (bukan form Edit) → sumber = sibling, bukan model.
+                                AllowRetake = assessment.AllowRetake,
+                                MaxAttempts = assessment.MaxAttempts,
+                                RetakeCooldownHours = assessment.RetakeCooldownHours,
                                 GenerateCertificate = model.GenerateCertificate,
                                 ExamWindowCloseDate = model.ExamWindowCloseDate,
                                 Progress = 0,
@@ -4112,6 +4217,55 @@ namespace HcPortal.Controllers
             return View(model);
         }
 
+        // --- RIWAYAT PERCOBAAN per-worker (v32.4 Phase 406 RTK-08) ---
+        // GET lazy-AJAX (mirror EditHistoryPartial :3252): kembalikan PartialView @-encoded berisi
+        // accordion per-attempt + tabel per-soal. Arsip di-query by AttemptHistoryId; attempt LIVE
+        // saat ini dibangun via RetakeArchiveBuilder.Build(0,...) HANYA bila session.Status=="Completed"
+        // (Pitfall 2/5 — anti partial-answer leak in-progress). RBAC identik AssessmentMonitoringDetail
+        // (:3290) — T-406-01 IDOR/answer-leak guard. Read-only GET → tanpa [ValidateAntiForgeryToken].
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> RiwayatPercobaan(int sessionId)
+        {
+            var session = await _context.AssessmentSessions.Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+            if (session == null) return NotFound();
+
+            // Arsip: history by (UserId, Title, Category) anti-konflasi Pre/Post (Pitfall 3),
+            // baris arsip by AttemptHistoryId.
+            var histories = await _context.AssessmentAttemptHistory
+                .Where(h => h.UserId == session.UserId
+                         && h.Title == session.Title && h.Category == session.Category)
+                .OrderByDescending(h => h.AttemptNumber)
+                .ToListAsync();
+            var histIds = histories.Select(h => h.Id).ToList();
+            var archiveRows = await _context.AssessmentAttemptResponseArchives
+                .Where(a => histIds.Contains(a.AttemptHistoryId))
+                .ToListAsync();
+
+            // Attempt LIVE saat ini — sumber data persis RetakeService (:128-139), sentinel id=0.
+            var currentRows = new List<HcPortal.Models.AssessmentAttemptResponseArchive>();
+            if (session.Status == "Completed")
+            {
+                var assign = await _context.UserPackageAssignments
+                    .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+                var qids = assign?.GetShuffledQuestionIds() ?? new List<int>();
+                if (qids.Count > 0)
+                {
+                    var qs = await _context.PackageQuestions.Include(q => q.Options)
+                        .Where(q => qids.Contains(q.Id)).ToListAsync();
+                    var resp = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == sessionId).ToListAsync();
+                    if (qs.Count > 0)
+                        currentRows = HcPortal.Helpers.RetakeArchiveBuilder.Build(0, qs, resp);
+                }
+            }
+
+            ViewBag.WorkerName = session.User?.FullName ?? "";
+            var vm = HcPortal.Helpers.RiwayatUnifier.Build(session, histories, archiveRows, currentRows);
+            return PartialView("_RiwayatPercobaan", vm);
+        }
+
         // --- ESSAY GRADING PAGE per-worker (Phase 384 UIG-02/03) ---
         // GET action BARU (append sebelah AssessmentMonitoringDetail). Clone single-session essay
         // loader dari builder "Essay grading items per session". Backend POST endpoint TAK diubah.
@@ -4191,16 +4345,16 @@ namespace HcPortal.Controllers
             //    Completed → divergen Score/IsPassed yang memberi PDF lisensi resmi. Cermin FinalizeEssayGrading:3591.
             var session = await _context.AssessmentSessions.FindAsync(sessionId);
             if (session == null)
-                return Json(new { success = false, message = "Session tidak ditemukan" });
+                return this.JsonFail("Session tidak ditemukan");
             if (session.Status != AssessmentConstants.AssessmentStatus.PendingGrading)
-                return Json(new { success = false, message = "Penilaian hanya bisa dilakukan saat status Menunggu Penilaian." });
+                return this.JsonFail("Penilaian hanya bisa dilakukan saat status Menunggu Penilaian.");
 
             // 2. Load question + validasi skor range (T-298-13) — WAJIB sebelum upsert agar skor invalid tak pernah membuat baris.
             var question = await _context.PackageQuestions.FindAsync(questionId);
             if (question == null)
-                return Json(new { success = false, message = "Soal tidak ditemukan" });
+                return this.JsonFail("Soal tidak ditemukan");
             if (score < 0 || score > question.ScoreValue)
-                return Json(new { success = false, message = $"Skor harus antara 0 dan {question.ScoreValue}" });
+                return this.JsonFail($"Skor harus antara 0 dan {question.ScoreValue}");
 
             // 2a. PXF-06 anti-tamper: edit skor essay pasca-finalize SUDAH ditolak oleh status-guard Phase 386 D-08
             //     di atas (`Status != PendingGrading` → reject), sehingga guard `Status == Completed` eksplisit
@@ -4366,13 +4520,14 @@ namespace HcPortal.Controllers
 
             // 3. Update session: Completed + final score + IsPassed (T-298-16 replay guard via WHERE clause)
             // D-06 / D-07 — capture rowsAffected, gate semua side-effect (audit + cert + notif)
+            var completedAtSync = DateTime.UtcNow;
             var rowsAffected = await _context.AssessmentSessions
                 .Where(s => s.Id == sessionId && s.Status == AssessmentConstants.AssessmentStatus.PendingGrading)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(r => r.Score, finalPercentage)
                     .SetProperty(r => r.Status, AssessmentConstants.AssessmentStatus.Completed)
                     .SetProperty(r => r.IsPassed, isPassed)
-                    .SetProperty(r => r.CompletedAt, DateTime.UtcNow));
+                    .SetProperty(r => r.CompletedAt, completedAtSync));
 
             if (rowsAffected == 0)
             {
@@ -4399,40 +4554,44 @@ namespace HcPortal.Controllers
                 });
             }
 
+            // Phase 423 CR-01 fix: ExecuteUpdateAsync TIDAK refresh objek `session` in-memory (EF tracker).
+            // Tanpa sinkron ini, gate CertIssuanceRules.ShouldIssueCertificate(session) baca session.IsPassed
+            // STALE (null saat PendingGrading) → cert tak pernah terbit dari jalur essay-finalize. Paritas SITE 1/2.
+            session.IsPassed = isPassed;
+            session.Score = finalPercentage;
+            session.Status = AssessmentConstants.AssessmentStatus.Completed;
+            session.CompletedAt = completedAtSync;
+
             // Phase 324 D-02: TrainingRecord auto-create removed dari FinalizeEssayGrading path.
             // Konsisten dengan GradingService.GradeAndCompleteAsync (D-01).
             // AssessmentSession sole source-of-truth untuk Records page display.
 
             // 5. Generate sertifikat jika applicable (same pattern as GradingService)
-            // PXF-08: retry 3x saat collision nomor + LogError pada kegagalan persisten (jangan silent-pass cert un-numbered).
-            if (session.GenerateCertificate && isPassed)
+            // Phase 423 CERT-01 (SITE 3): gate kelayakan cert TUNGGAL via CertIssuanceRules.ShouldIssueCertificate
+            // (tolak PreTest — sebelumnya gate ini TANPA cek PreTest). Loop seq -> TryAssignNextSeqAsync (CERT-03).
+            // PXF-08: surface kegagalan cert ke HC tetap dipertahankan di bawah (certError).
+            if (CertIssuanceRules.ShouldIssueCertificate(session))
             {
                 var certNow = DateTime.Now;
-                int certYear = certNow.Year;
-                int certAttempts = 0;
-                const int maxCertAttempts = 3;
-                bool certSaved = false;
-                while (!certSaved && certAttempts < maxCertAttempts)
+                bool certSaved = await CertNumberHelper.TryAssignNextSeqAsync(_context, session.Id, certNow);
+                if (certSaved)
                 {
-                    certAttempts++;
-                    try
+                    // CERT-02/06: derive ValidUntil dari CompletedAt utk CertificateType kanonik (paritas GradingService SITE 1).
+                    var validUntil = CertIssuanceRules.DeriveValidUntil(session.CertificateType, session.CompletedAt);
+                    if (validUntil != null)
                     {
-                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
                         await _context.AssessmentSessions
-                            .Where(s => s.Id == session.Id && s.NomorSertifikat == null)
-                            .ExecuteUpdateAsync(s => s
-                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow)));
-                        certSaved = true;
-                    }
-                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
-                    {
-                        // Retry dengan sequence baru
+                            .Where(s => s.Id == session.Id)
+                            .ExecuteUpdateAsync(s => s.SetProperty(r => r.ValidUntil, (DateOnly?)validUntil));
                     }
                 }
-                if (!certSaved)
+                else
                 {
-                    _logger.LogError("Failed to generate certificate number for SessionId={SessionId} after {MaxAttempts} attempts due to repeated collisions.",
-                        session.Id, maxCertAttempts);
+                    // CERT-03 non-destruktif: sesi tetap final, NomorSertifikat==null -> certError (PXF-08) surface ke HC + stamp UpdatedAt.
+                    _logger.LogError("FinalizeEssayGrading: cert gagal terbit SessionId={SessionId} setelah retry — tandai HC (non-destruktif).", session.Id);
+                    await _context.AssessmentSessions
+                        .Where(s => s.Id == session.Id)
+                        .ExecuteUpdateAsync(s => s.SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
                 }
             }
 
@@ -4490,8 +4649,9 @@ namespace HcPortal.Controllers
                 nomorSertifikat = updatedSession?.NomorSertifikat
             });
 
-            // PXF-08: surface kegagalan cert ke HC (lulus + GenerateCertificate tapi NomorSertifikat masih kosong).
-            var certError = (session.GenerateCertificate && isPassed && string.IsNullOrEmpty(updatedSession?.NomorSertifikat))
+            // PXF-08: surface kegagalan cert ke HC (layak terbit tapi NomorSertifikat masih kosong).
+            // Phase 423 CERT-01: konsisten-kan kondisi ke gate tunggal ShouldIssueCertificate (bukan literal divergen).
+            var certError = (CertIssuanceRules.ShouldIssueCertificate(session) && string.IsNullOrEmpty(updatedSession?.NomorSertifikat))
                 ? "Nomor sertifikat gagal dibuat, coba lagi." : null;
             return Json(new
             {
@@ -4884,73 +5044,22 @@ namespace HcPortal.Controllers
                 });
             }
 
-            // Phase 46: Archive attempt data if session was Completed
-            if (assessment.Status == "Completed")
+            // v32.4 RTK-06: delegasi ke RetakeService bersama (claim-atomik DULU → snapshot per-soal
+            // SEBELUM delete → archive → reset → audit → SignalR reason). Guard HC (IsResettable/Pre-Post/
+            // status) TETAP di controller (di atas). Logika inline archive→delete→reset dipindah ke service.
+            var rsUser = await _userManager.GetUserAsync(User);
+            var rsActorName = string.IsNullOrWhiteSpace(rsUser?.NIP) ? (rsUser?.FullName ?? "Unknown") : $"{rsUser.NIP} - {rsUser.FullName}";
+
+            var rsResult = await _retakeService.ExecuteAsync(
+                sessionId: id,
+                actorUserId: rsUser?.Id ?? "",
+                actorName: rsActorName,
+                actionType: "ResetAssessment",
+                reason: "hc_reset");
+
+            if (!rsResult.Success)
             {
-                int existingAttempts = await _context.AssessmentAttemptHistory
-                    .Where(h => h.UserId == assessment.UserId && h.Title == assessment.Title)
-                    .CountAsync();
-
-                var attemptHistory = new AssessmentAttemptHistory
-                {
-                    SessionId    = assessment.Id,
-                    UserId       = assessment.UserId,
-                    Title        = assessment.Title ?? "",
-                    Category     = assessment.Category ?? "",
-                    Score        = assessment.Score,
-                    IsPassed     = assessment.IsPassed,
-                    StartedAt    = assessment.StartedAt,
-                    CompletedAt  = assessment.CompletedAt,
-                    AttemptNumber = existingAttempts + 1,
-                    ArchivedAt   = DateTime.UtcNow
-                };
-                _context.AssessmentAttemptHistory.Add(attemptHistory);
-            }
-
-            // Delete PackageUserResponse records for this session (package path answers)
-            var packageResponses = await _context.PackageUserResponses
-                .Where(r => r.AssessmentSessionId == id)
-                .ToListAsync();
-            if (packageResponses.Any())
-                _context.PackageUserResponses.RemoveRange(packageResponses);
-
-            // 2. Delete UserPackageAssignment for this session (package path)
-            //    Deleting ensures the next StartExam assigns a fresh random package.
-            var assignment = await _context.UserPackageAssignments
-                .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
-            if (assignment != null)
-                _context.UserPackageAssignments.Remove(assignment);
-
-            // #22 D-07: bersihkan ET scores stale agar retake regenerasi ET BARU
-            // (cegah unique-index violation di GradingService yang ditelan catch → analitik stale).
-            // SEBELUM SaveChangesAsync di bawah → ter-flush dalam batch yang sama. TANPA transaksi baru.
-            var etScores = await _context.SessionElemenTeknisScores
-                .Where(e => e.AssessmentSessionId == id)
-                .ToListAsync();
-            if (etScores.Any())
-                _context.SessionElemenTeknisScores.RemoveRange(etScores);
-
-            // 3. Reset session state to Open via status-guarded ExecuteUpdateAsync
-            // (Cancelled is the only status that is NOT resettable — guard prevents double-reset race)
-            await _context.SaveChangesAsync(); // flush archive + delete operations first
-
-            var rsRowsAffected = await _context.AssessmentSessions
-                .Where(s => s.Id == id && s.Status != "Cancelled")
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(r => r.Status, "Open")
-                    .SetProperty(r => r.Score, (int?)null)
-                    .SetProperty(r => r.IsPassed, (bool?)null)
-                    .SetProperty(r => r.Progress, 0)
-                    .SetProperty(r => r.StartedAt, (DateTime?)null)
-                    .SetProperty(r => r.CompletedAt, (DateTime?)null)
-                    .SetProperty(r => r.ElapsedSeconds, (int)0)
-                    .SetProperty(r => r.LastActivePage, (int?)null)
-                    .SetProperty(r => r.UpdatedAt, DateTime.UtcNow)
-                );
-
-            if (rsRowsAffected == 0)
-            {
-                TempData["Error"] = "Sesi tidak dapat direset (mungkin sudah dibatalkan).";
+                TempData["Error"] = rsResult.Error ?? "Sesi tidak dapat direset.";
                 return RedirectToAction("AssessmentMonitoringDetail", new {
                     title = assessment.Title,
                     category = assessment.Category,
@@ -4958,18 +5067,8 @@ namespace HcPortal.Controllers
                 });
             }
 
-            // Audit log
-            var rsUser = await _userManager.GetUserAsync(User);
-            var rsActorName = string.IsNullOrWhiteSpace(rsUser?.NIP) ? (rsUser?.FullName ?? "Unknown") : $"{rsUser.NIP} - {rsUser.FullName}";
-            await _auditLog.LogAsync(
-                rsUser?.Id ?? "",
-                rsActorName,
-                "ResetAssessment",
-                $"Reset assessment '{assessment.Title}' for user {assessment.UserId} [ID={id}]",
-                id,
-                "AssessmentSession");
-
-            await _hubContext.Clients.User(assessment.UserId).SendAsync("sessionReset", new { reason = "hc_reset" });
+            // EXSEC-01 (D-01): HC reset re-arms token verification — TokenVerifiedAt di-reset null di dalam
+            // RetakeService.ExecuteAsync (single source, parity worker retake). Tak ada TempData token untuk dibersihkan.
 
             TempData["Success"] = "Sesi ujian telah direset. Peserta dapat mengikuti ujian kembali.";
             return RedirectToAction("AssessmentMonitoringDetail", new {
@@ -5973,7 +6072,7 @@ namespace HcPortal.Controllers
                 .Include(p => p.Questions)              // 416 (Pitfall 3): reshuffle section-aware (SHF-04) —
                     .ThenInclude(q => q.Section)        // re-roll dalam batas Section butuh q.Section ter-load.
                 .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
-                .OrderBy(p => p.PackageNumber)
+                .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                 .ToListAsync();
 
             if (!packages.Any())
@@ -6055,7 +6154,7 @@ namespace HcPortal.Controllers
                 .Include(p => p.Questions)              // 416 (Pitfall 3): reshuffle-all section-aware (SHF-04).
                     .ThenInclude(q => q.Section)        // sessionPackages slice (by-reference dari packages) wariskan q.Section.
                 .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
-                .OrderBy(p => p.PackageNumber)
+                .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                 .ToListAsync();
 
             if (!packages.Any())
@@ -6100,7 +6199,7 @@ namespace HcPortal.Controllers
                 int workerIndex = typeSiblingIds.IndexOf(session.Id);
                 var sessionPackages = packages
                     .Where(p => typeSiblingIds.Contains(p.AssessmentSessionId))
-                    .OrderBy(p => p.PackageNumber)
+                    .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                     .ToList();
                 if (!sessionPackages.Any())
                 {
@@ -6157,7 +6256,9 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(a => a.Id == assessmentId);
             if (assessment == null) return NotFound();
 
-            // Sibling group — key identik StartExam/Reshuffle/EditAssessment (spec §5).
+            // PROPAGATION scope (type-AGNOSTIC, by design): shuffle Pre↔Post SENGAJA berbagi setting
+            // (cross-type). JANGAN ubah scope ini (Pitfall 4 / RESEARCH A3 — type-aware di sini = regresi
+            // propagation shuffle). Dipakai HANYA untuk foreach write di bawah.
             var siblingSessionIds = await _context.AssessmentSessions
                 .Where(s => s.Title == assessment.Title &&
                             s.Category == assessment.Category &&
@@ -6165,11 +6266,20 @@ namespace HcPortal.Controllers
                 .Select(s => s.Id)
                 .ToListAsync();
 
-            // Defense-in-depth (D-04a / SHUF-11): re-cek lock server-side.
+            // SHFX-06/SHUF-ISS-01 (LOCK-DETECTION SAJA): kunci sibling TYPE-AWARE — Pre mulai TIDAK
+            // mengunci Post (dan sebaliknya). Predicate kanonik selaras StartExam/Reshuffle. TERPISAH dari
+            // propagationSiblingIds di atas (cross-type) supaya over-lock hilang tanpa merusak propagation.
+            var lockSiblingIds = await _context.AssessmentSessions
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            // Defense-in-depth (D-04a / SHUF-11): re-cek lock server-side (type-aware sibling).
             bool anyStarted = await _context.AssessmentSessions
-                .AnyAsync(s => siblingSessionIds.Contains(s.Id) && s.StartedAt != null);
+                .AnyAsync(s => lockSiblingIds.Contains(s.Id) && s.StartedAt != null);
             bool anyAssignment = await _context.UserPackageAssignments
-                .AnyAsync(a => siblingSessionIds.Contains(a.AssessmentSessionId));
+                .AnyAsync(a => lockSiblingIds.Contains(a.AssessmentSessionId));
 
             if (ShuffleToggleRules.IsShuffleLocked(anyStarted, anyAssignment))
             {
@@ -6177,7 +6287,7 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackages", new { assessmentId });
             }
 
-            // Propagate ke SEMUA sibling grup (pola EditAssessment foreach).
+            // Propagate ke SEMUA sibling grup cross-type (Pre↔Post share shuffle by design — JANGAN ubah scope).
             var siblings = await _context.AssessmentSessions
                 .Where(s => siblingSessionIds.Contains(s.Id))
                 .ToListAsync();
@@ -6403,6 +6513,70 @@ namespace HcPortal.Controllers
 
         #endregion
 
+        // v32.4 RTK-04: explicit-save retake config (PRG + sibling propagation + audit), mirror UpdateShuffleSettings.
+        // Beda dari shuffle: TIDAK ada lock-saat-mulai (retake config bisa diubah kapan saja); hanya guard
+        // ShouldHideRetakeToggle (PreTest/Manual tak retakeable). Sibling key identik (Title/Category/Schedule.Date).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRetakeSettings(int assessmentId, bool allowRetake, int maxAttempts, int retakeCooldownHours)
+        {
+            var assessment = await _context.AssessmentSessions.FirstOrDefaultAsync(a => a.Id == assessmentId);
+            if (assessment == null) return NotFound();
+
+            // Guard: retake hanya untuk graded (bukan Pre-Test) & bukan manual entry.
+            if (HcPortal.Helpers.RetakeRules.ShouldHideRetakeToggle(assessment.AssessmentType, assessment.IsManualEntry))
+            {
+                TempData["Error"] = "Ujian ulang tidak berlaku untuk Pre-Test atau assessment manual.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
+
+            // Clamp ke range model (defense-in-depth; [Range] hanya client/model-validation, bypass form → clamp server).
+            maxAttempts = Math.Clamp(maxAttempts, 1, 5);
+            retakeCooldownHours = Math.Clamp(retakeCooldownHours, 0, 168);
+
+            // SHFX-06/SHUF-ISS-01: sibling key TYPE-AWARE (selaras StartExam/Reshuffle). Retake config
+            // bersifat per-type (PreTest sudah ditolak ShouldHideRetakeToggle di atas; Post retake tak
+            // berbagi setting dgn Pre by design) — propagate hanya ke sibling same-type, bukan cross-type.
+            var siblingSessionIds = await _context.AssessmentSessions
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
+                .Select(s => s.Id).ToListAsync();
+            var siblings = await _context.AssessmentSessions.Where(s => siblingSessionIds.Contains(s.Id)).ToListAsync();
+            var now = DateTime.UtcNow;
+            foreach (var sibling in siblings)
+            {
+                // MaxAttempts < attempt terpakai = warning non-blocking (tetap simpan — tak hard-lock; D-02 retroaktif).
+                sibling.AllowRetake = allowRetake;
+                sibling.MaxAttempts = maxAttempts;
+                sibling.RetakeCooldownHours = retakeCooldownHours;
+                sibling.UpdatedAt = now;
+            }
+            await _context.SaveChangesAsync();
+
+            // v32.7 RTH-01/D-02: peringatan NON-BLOCKING — cooldown bisa mendorong eligibility lewat batas tutup ujian?
+            // Predikat hidup di RetakeRules.CooldownMayExceedWindow (pure, +7h WIB SATU tempat) — controller & test panggil
+            // method yang SAMA (kill-drift). Setelan SUDAH tersimpan di atas; warning ko-eksis dgn Success, JANGAN return early.
+            if (HcPortal.Helpers.RetakeRules.CooldownMayExceedWindow(DateTime.UtcNow, assessment.ExamWindowCloseDate, retakeCooldownHours))
+            {
+                TempData["Warning"] = "Masa jeda ujian ulang yang Anda atur bisa melewati batas tutup ujian. Peserta yang gagal mungkin tidak sempat mengulang sebelum ujian ditutup. Pengaturan tetap bisa disimpan.";
+            }
+
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorNameStr = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+                await _auditLog.LogAsync(hcUser?.Id ?? "", actorNameStr, "UpdateRetakeSettings",
+                    $"Set AllowRetake={allowRetake}, MaxAttempts={maxAttempts}, Cooldown={retakeCooldownHours}h for '{assessment.Title}' [grup {siblingSessionIds.Count} sesi]",
+                    assessmentId, "AssessmentSession");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for UpdateRetakeSettings (assessmentId={Id})", assessmentId); }
+
+            // D-07: angka "terpakai" untuk modal pra-simpan TIDAK dihitung di sini — disuplai oleh GET ManagePackages
+            //       via RetakeCountingRules.MaxInGroupAsync (helper D-05, wired 421-02). POST = PRG redirect; no recompute.
+            TempData["Success"] = "Pengaturan ujian ulang berhasil disimpan.";
+            return RedirectToAction("ManagePackages", new { assessmentId });
+        }
         // Phase 373: the local Shuffle + cross-package distribution helpers moved to
         // Helpers/ShuffleEngine.cs (single source of truth — the canonical CMPController algorithm).
         // Both reshuffle endpoints now delegate to the shared ShuffleEngine core.
@@ -6424,7 +6598,7 @@ namespace HcPortal.Controllers
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                 .Where(p => p.AssessmentSessionId == assessmentId)
-                .OrderBy(p => p.PackageNumber)
+                .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                 .ToListAsync();
 
             var packageIds = packages.Select(p => p.Id).ToList();
@@ -6474,10 +6648,11 @@ namespace HcPortal.Controllers
             ViewBag.IsSamePackageLocked = isPostSession && assessment.SamePackage;
 
             // === Phase 374: Shuffle toggle state ===
+            // SHFX-06/SHUF-ISS-01: lock-detection TYPE-AWARE (Pre mulai → Post TIDAK terkunci). Site GET
+            // ini MURNI lock-detection (tak ada propagation), jadi sibling key boleh sepenuhnya type-aware.
             var shufSiblingIds = await _context.AssessmentSessions
-                .Where(s => s.Title == assessment.Title &&
-                            s.Category == assessment.Category &&
-                            s.Schedule.Date == assessment.Schedule.Date)
+                .Where(SiblingSessionQuery.SiblingPrePostAwarePredicate(
+                    assessment.Title, assessment.Category, assessment.Schedule.Date, assessment.AssessmentType))
                 .Select(s => s.Id)
                 .ToListAsync();
 
@@ -6492,19 +6667,40 @@ namespace HcPortal.Controllers
             ViewBag.HideShuffleToggle = ShuffleToggleRules.ShouldHideShuffleToggle(
                 assessment.Category, assessment.TahunKe, assessment.IsManualEntry);
 
-            // Warning §9 precondition: jumlah paket-ber-soal + mismatch ukuran (mirror view L70-81).
-            var pkgWithQuestions = packages.Where(p => p.Questions.Any()).ToList();
-            int packagesWithQuestions = pkgWithQuestions.Count;
-            bool hasMismatch = false;
-            if (packagesWithQuestions > 0)
-            {
-                int refCount = pkgWithQuestions[0].Questions.Count;
-                hasMismatch = pkgWithQuestions.Any(p => p.Questions.Count != refCount);
-            }
-            ViewBag.PackagesWithQuestions = packagesWithQuestions;
-            ViewBag.HasSizeMismatch = hasMismatch;
+            // === v32.4: Retake config state (RTK-05 — card di-render fase 406) ===
+            ViewBag.AllowRetake = assessment.AllowRetake;
+            ViewBag.MaxAttempts = assessment.MaxAttempts;
+            ViewBag.RetakeCooldownHours = assessment.RetakeCooldownHours;
+            ViewBag.HideRetakeToggle = HcPortal.Helpers.RetakeRules.ShouldHideRetakeToggle(assessment.AssessmentType, assessment.IsManualEntry);
+            // Warning non-blocking: MaxAttempts < attempt terpakai peserta mana pun di grup (Title/Category).
+            // v32.7 RTH-03 (D-05): satu sumber counting — kini SNAPSHOT-AWARE (legacy HC-reset pre-v32.4 excluded);
+            // GroupBy-max semantics dipertahankan (MaxInGroupAsync), HANYA filter snapshot-presence yang ditambahkan.
+            int retakeMaxArchivedForGroup = await HcPortal.Helpers.RetakeCountingRules.MaxInGroupAsync(
+                _context, assessment.Title, assessment.Category);
+            ViewBag.RetakeMaxAttemptsUsedInGroup = retakeMaxArchivedForGroup + 1;
+
+            // v32.7 Phase 422 D-05/SHFX-07: mismatch SATU SUMBER via PackageSizeAnalysis.Compute (kill-drift —
+            // gantikan compute inline lama DI SINI + re-derive view ManagePackages.cshtml:72-78 yang DIHAPUS).
+            var sizeAnalysis = PackageSizeAnalysis.Compute(packages);
+            ViewBag.PackagesWithQuestions = sizeAnalysis.PackagesWithQuestions;
+            ViewBag.HasSizeMismatch = sizeAnalysis.HasMismatch;
+            ViewBag.ReferenceCount = sizeAnalysis.ReferenceCount;
             ViewBag.ShowSizeMismatchWarning = ShuffleToggleRules.ShouldShowSizeMismatchWarning(
-                packagesWithQuestions, assessment.ShuffleQuestions, hasMismatch);
+                sizeAnalysis.PackagesWithQuestions, assessment.ShuffleQuestions, sizeAnalysis.HasMismatch);
+            // D-04: warning K=min truncation ON-path (Acak ON + ukuran paket beda → soal dipangkas ke K=min).
+            ViewBag.ShowKMinWarning = ShuffleToggleRules.ShouldShowKMinTruncationWarning(
+                sizeAnalysis.PackagesWithQuestions, assessment.ShuffleQuestions, sizeAnalysis.HasMismatch);
+            // D-03: warning Acak ON pada Post SamePackage (pengacakan kaburkan komparasi item-level Pre/Post).
+            ViewBag.ShowAcakOnSamePackageWarning =
+                assessment.AssessmentType == "PostTest" && assessment.SamePackage && assessment.ShuffleQuestions;
+
+            // SHFX-02/D-01: disable toggle SamePackage di view bila ADA peserta sudah-mulai di GRUP (Pre+Post
+            // pasangan). IN-03: SATU sumber via AnyStartedInPairAsync — endpoint ToggleSamePackage POST pakai
+            // helper YANG SAMA untuk hard-reject (server-authoritative); ini friendly UX layer (tak boleh divergen).
+            bool anyStartedInGroup = isPostSession
+                ? await AnyStartedInPairAsync(assessment.Id, assessment.LinkedSessionId)
+                : false;
+            ViewBag.AnyStartedInGroup = anyStartedInGroup;
 
             // Reminder Pre/Post (opsi Z, SHUF-13): Post page only, saved-state Pre via LinkedSessionId.
             if (isPostSession && assessment.LinkedSessionId.HasValue)
@@ -6517,6 +6713,41 @@ namespace HcPortal.Controllers
             }
 
             return View();
+        }
+
+        /// <summary>
+        /// v32.7 Phase 422 IN-03 (kill-drift) — SATU sumber kebenaran cek "ada peserta sudah-mulai di
+        /// pasangan Pre+Post". Dipakai DUA tempat: GET ManagePackages (ViewBag.AnyStartedInGroup, UX-disable)
+        /// + POST ToggleSamePackage (hard-reject server-authoritative). Keduanya WAJIB selalu sinkron —
+        /// UX-disable dan server-reject tak boleh divergen. Mirror pola SessionEditLockRules/ShuffleToggleRules.
+        /// "Sudah-mulai" = StartedAt != null || Status InProgress || Status Completed, atas {postId, preId}.
+        /// preId null (tak berpasangan) → false (tak ada pasangan untuk dicek).
+        /// </summary>
+        private async Task<bool> AnyStartedInPairAsync(int postId, int? preId)
+        {
+            if (!preId.HasValue) return false;
+            var pairIds = new[] { postId, preId.Value };
+            return await _context.AssessmentSessions
+                .AnyAsync(s => pairIds.Contains(s.Id) &&
+                               (s.StartedAt != null || s.Status == "InProgress" || s.Status == "Completed"));
+        }
+
+        // Phase 423 CERT-05 (D-07) — ada cert AKTIF (ValidUntil null OR >=today) utk (peserta, judul-ternormalisasi)?
+        // Renewal (RenewsSessionId terisi) dikecualikan. UNCONDITIONAL — tak boleh dibungkus ConfirmDuplicateTitle.
+        private async Task<bool> HasActiveCertForTitleAsync(string userId, string? title, int? excludeSessionId)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var norm = AdminBaseController.NormalizeTitleForDup(title);
+            var candidates = await _context.AssessmentSessions
+                .Where(s => s.UserId == userId
+                         && s.NomorSertifikat != null
+                         && s.IsPassed == true
+                         && s.RenewsSessionId == null
+                         && (excludeSessionId == null || s.Id != excludeSessionId)
+                         && (s.ValidUntil == null || s.ValidUntil >= today))
+                .Select(s => s.Title)
+                .ToListAsync();
+            return candidates.Any(t => AdminBaseController.NormalizeTitleForDup(t) == norm);
         }
 
         /// <summary>
@@ -6543,6 +6774,22 @@ namespace HcPortal.Controllers
                 .Where(p => p.AssessmentSessionId == postSessionId)
                 .ToListAsync();
 
+            // v32.7 Phase 422 WR-02 (kill-drift): bersihkan UserPackageAssignment Post yang menunjuk paket
+            // yang akan DIHAPUS, SEBELUM RemoveRange. UserPackageAssignment.AssessmentPackageId ber-FK
+            // OnDelete(Restrict) (ApplicationDbContext.cs:543-546) → menghapus paket Post sementara ada UPA
+            // yang merujuknya melempar DbUpdateException. Dipusatkan DI SINI agar SEMUA 7 caller (toggle +
+            // CreatePackage/DeletePackage/CreateQuestion/EditQuestion/DeleteQuestion/Import) ter-cover
+            // (defense-in-depth: legacy data / jalur out-of-band). Lingkup by AssessmentPackageId (FK Restrict).
+            var postPkgIds = existingPostPkgs.Select(p => p.Id).ToList();
+            if (postPkgIds.Count > 0)
+            {
+                var staleUpa = await _context.UserPackageAssignments
+                    .Where(a => postPkgIds.Contains(a.AssessmentPackageId))
+                    .ToListAsync();
+                if (staleUpa.Count > 0)
+                    _context.UserPackageAssignments.RemoveRange(staleUpa);
+            }
+
             foreach (var pkg in existingPostPkgs)
             {
                 foreach (var q in pkg.Questions)
@@ -6565,7 +6812,7 @@ namespace HcPortal.Controllers
             var prePkgs = await _context.AssessmentPackages
                 .Include(p => p.Questions).ThenInclude(q => q.Options)
                 .Where(p => p.AssessmentSessionId == preSessionId)
-                .OrderBy(p => p.PackageNumber)
+                .OrderBy(p => p.PackageNumber).ThenBy(p => p.Id)
                 .ToListAsync();
 
             // Phase 415 SEC-06: muat Section rows paket Pre untuk ikut di-clone + remap SectionId.
@@ -6644,33 +6891,128 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
         }
 
-        // Phase 415 H4: helper SamePackage Post-sync. Tiap surface yang MEMUTASI struktur paket Pre
-        // (soal ATAU Section) WAJIB memanggil ini agar paket Post SamePackage tetap selaras — kalau tidak,
-        // Post tertinggal struktur lama sampai HC kebetulan edit soal (langgar invariant SamePackage; ganggu
-        // pagination/scoped-shuffle; bila Pre/Post se-tanggal → re-guard StartExam bisa blokir ujian).
-        // Pola IDENTIK dgn blok inline di CreateQuestion/EditQuestion (kill-drift).
+        // MERGE v32.6 H4 ↔ v32.7 SHFX-01: helper packageId-entry (main) kini DELEGASI ke helper kanonik
+        // session-entry v32.7 (SyncToLinkedPostIfSamePackageAsync) — SATU sumber kebenaran (kill-drift).
+        // Tetap best-effort: mutasi Pre sudah ter-commit; kegagalan sync TAK boleh men-500-kan request /
+        // menganulir mutasi Pre. Bila gagal, Post tersinkron pada mutasi Pre berikutnya.
         private async Task SyncToPostIfSamePackageAsync(int packageId)
         {
             var parentPkg = await _context.AssessmentPackages.FindAsync(packageId);
             if (parentPkg == null) return;
-            var parentSession = await _context.AssessmentSessions.FindAsync(parentPkg.AssessmentSessionId);
-            if (parentSession?.AssessmentType != "PreTest" || !parentSession.LinkedSessionId.HasValue) return;
-            var linkedPost = await _context.AssessmentSessions.FindAsync(parentSession.LinkedSessionId.Value);
-            if (linkedPost == null || !linkedPost.SamePackage) return;
-
-            // H4 best-effort: skip-if-taken kini ADA DI DALAM SyncPackagesToPost (guard di sumber → lindungi semua
-            // pemanggil termasuk CopyPackagesFromPre/CreatePackage/DeletePackage). Di sini cukup bungkus best-effort:
-            // mutasi Pre sudah ter-commit; kegagalan sync (DbUpdateException/transien) TAK boleh men-500-kan request /
-            // menganulir mutasi Pre. Bila gagal, Post tersinkron pada mutasi Pre berikutnya.
             try
             {
-                await SyncPackagesToPost(parentSession.Id, linkedPost.Id);
+                await SyncToLinkedPostIfSamePackageAsync(parentPkg.AssessmentSessionId);
             }
             catch (Exception ex)
             {
                 _context.ChangeTracker.Clear();
-                _logger.LogWarning(ex, "SyncPackagesToPost gagal Pre {PreId}→Post {PostId}; Post mungkin tertinggal struktur lama.", parentSession.Id, linkedPost.Id);
+                _logger.LogWarning(ex, "SyncToPostIfSamePackageAsync gagal (packageId={PackageId}); Post mungkin tertinggal struktur lama.", packageId);
             }
+        }
+
+        /// <summary>
+        /// v32.7 Phase 422 SHFX-01/D-06 — SATU sumber kebenaran auto-sync Pre→Post (kill-drift).
+        /// Mengganti 5 blok copy-paste identik (CreatePackage/DeletePackage/CreateQuestion/EditQuestion/
+        /// DeleteQuestion) + menutup jalur Import yang BOCOR (SHUF-ISS-03 HIGH). Membungkus
+        /// <see cref="SyncPackagesToPost"/> (deep-clone, sudah benar — JANGAN ubah).
+        /// No-op aman bila: sesi bukan PreTest, tak punya LinkedSessionId, linkedPost null, atau !SamePackage.
+        /// </summary>
+        private async Task SyncToLinkedPostIfSamePackageAsync(int preSessionId)
+        {
+            var pre = await _context.AssessmentSessions.FindAsync(preSessionId);
+            if (pre?.AssessmentType == "PreTest" && pre.LinkedSessionId.HasValue)
+            {
+                var post = await _context.AssessmentSessions.FindAsync(pre.LinkedSessionId.Value);
+                if (post != null && post.SamePackage)
+                    await SyncPackagesToPost(pre.Id, post.Id);   // existing :5875-5933 deep-clone, sudah benar
+            }
+        }
+
+        // v32.7 Phase 422 SHFX-02/D-01 (FLOW-07, keputusan bisnis b) — toggle SamePackage editable
+        // pasca-create. Mirror UpdateShuffleSettings (RBAC + antiforgery + PRG + guard anyStarted + audit).
+        //   ON  → (transaksi WR-01) set SamePackage=true + SaveChanges (SEBELUM helper) →
+        //         SyncToLinkedPostIfSamePackageAsync (sync Pre→Post + lock implisit). Stale Post UPA
+        //         dibersihkan terpusat di SyncPackagesToPost (WR-02 — bukan lagi inline di sini).
+        //   OFF → set SamePackage=false SAJA (lepas lock). PERTAHANKAN paket clone (Pitfall 5: JANGAN sync/delete).
+        //   GUARD → tolak (TempData Error non-blocking) bila ADA peserta sudah-mulai di GRUP (Pre+Post pasangan);
+        //           belum-mulai = boleh. Server-authoritative (view disable hanya UX layer).
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleSamePackage(int assessmentId, bool samePackage)
+        {
+            var post = await _context.AssessmentSessions.FindAsync(assessmentId);
+            if (post == null) return NotFound();
+
+            // Hanya berlaku untuk Post-Test berpasangan (backward-compat: Standard/Pre tak tersentuh).
+            if (post.AssessmentType != "PostTest" || !post.LinkedSessionId.HasValue)
+            {
+                TempData["Error"] = "Pengaturan paket-sama hanya berlaku untuk Post-Test berpasangan.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
+
+            // GUARD D-01: grup = pasangan Pre+Post (LinkedSessionId). Tolak bila ADA peserta sudah-mulai.
+            // IN-03: SATU sumber via AnyStartedInPairAsync — helper YANG SAMA dipakai GET ViewBag
+            // (UX-disable). Server-authoritative; UX-disable & server-reject tak boleh divergen.
+            bool anyStarted = await AnyStartedInPairAsync(post.Id, post.LinkedSessionId);
+            if (anyStarted)
+            {
+                TempData["Error"] = "Gagal mengubah pengaturan paket-sama: sudah ada peserta yang memulai ujian di grup ini.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
+
+            if (samePackage)
+            {
+                // ON → sync Pre→Post (overwrite paket Post dgn clone Pre) + lock implisit (SamePackage=true).
+                // v32.7 Phase 422 WR-01: bungkus mutasi multi-langkah (set flag + sync paket) dalam transaksi
+                // eksplisit (mirror pola Import :6617) agar flag-set + package-sync commit ATOMIK. Kegagalan
+                // di tengah me-rollback (bukan meninggalkan SamePackage=true + paket Post belum ter-sync).
+                // v32.7 WR-02: cleanup stale Post UPA kini DIPUSATKAN di SyncPackagesToPost, jadi inline
+                // UPA-clear lama (Open Q2) DIHAPUS di sini — satu sumber kebenaran, hindari double-work.
+                await using var tx = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    post.SamePackage = true;
+                    post.UpdatedAt = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();   // SamePackage tersimpan SEBELUM helper (helper baca post.SamePackage==true)
+
+                    await SyncToLinkedPostIfSamePackageAsync(post.LinkedSessionId.Value);   // pre→post deep-clone (+ UPA cleanup terpusat)
+                    await tx.CommitAsync();
+                }
+                catch
+                {
+                    await tx.RollbackAsync();
+                    throw;
+                }
+                TempData["Success"] = "Pengaturan paket-sama diaktifkan. Paket Post-Test telah disinkronkan dari Pre-Test dan dikunci.";
+            }
+            else
+            {
+                // OFF → KEEP paket clone (Pitfall 5: lepas lock SAJA, JANGAN sync/delete). Paket Post jadi editable.
+                // Single SaveChanges, no destructive multi-step → tak butuh transaksi eksplisit.
+                post.SamePackage = false;
+                post.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Pengaturan paket-sama dinonaktifkan. Kunci dilepas; paket salinan dipertahankan untuk diedit.";
+            }
+
+            // Audit try/catch warn-only (pola UpdateShuffleSettings :5675-5687).
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorNameStr = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
+                await _auditLog.LogAsync(
+                    hcUser?.Id ?? "",
+                    actorNameStr,
+                    "ToggleSamePackage",
+                    $"Set SamePackage={samePackage} for Post-Test '{post.Title}' [ID={post.Id}, linkedPre={post.LinkedSessionId.Value}]" +
+                        (samePackage ? " (synced Pre→Post + locked)" : " (unlocked, clone kept)"),
+                    assessmentId,
+                    "AssessmentSession");
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for ToggleSamePackage (assessmentId={Id})", assessmentId); }
+
+            return RedirectToAction("ManagePackages", new { assessmentId });
         }
 
         [HttpPost]
@@ -6717,29 +7059,34 @@ namespace HcPortal.Controllers
             var assessment = await _context.AssessmentSessions.FindAsync(assessmentId);
             if (assessment == null) return NotFound();
 
-            var existingCount = await _context.AssessmentPackages
-                .CountAsync(p => p.AssessmentSessionId == assessmentId);
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama). Defense-in-depth
+            // terhadap root-cause SHUF-ISS-02 (lock view-only bisa di-bypass via POST langsung).
+            if (SessionEditLockRules.IsSessionEditLocked(assessment))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackages", new { assessmentId = assessment.Id });
+            }
+
+            // SHFX-05/D-02: MAX(PackageNumber)+1 per session (BUKAN count-based existingCount+1 yang
+            // turun setelah hapus paket tengah -> bentrok). Gap nomor dibiarkan; unique index = jaring DB-level.
+            var maxNumber = await _context.AssessmentPackages
+                .Where(p => p.AssessmentSessionId == assessmentId)
+                .Select(p => (int?)p.PackageNumber)
+                .MaxAsync();   // null bila belum ada paket
 
             var pkg = new AssessmentPackage
             {
                 AssessmentSessionId = assessmentId,
                 PackageName = packageName.Trim(),
-                PackageNumber = existingCount + 1
+                PackageNumber = (maxNumber ?? 0) + 1
             };
             _context.AssessmentPackages.Add(pkg);
             await _context.SaveChangesAsync();
 
             TempData["Success"] = $"Package '{packageName}' created.";
 
-            // Auto-sync: jika ini Pre-Test session dan ada Post-Test dengan SamePackage=true
-            if (assessment.AssessmentType == "PreTest" && assessment.LinkedSessionId.HasValue)
-            {
-                var postSession = await _context.AssessmentSessions.FindAsync(assessment.LinkedSessionId.Value);
-                if (postSession != null && postSession.SamePackage)
-                {
-                    await SyncPackagesToPost(assessment.Id, postSession.Id);
-                }
-            }
+            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift).
+            await SyncToLinkedPostIfSamePackageAsync(assessment.Id);
 
             return RedirectToAction("ManagePackages", new { assessmentId });
         }
@@ -6757,6 +7104,14 @@ namespace HcPortal.Controllers
             if (pkg == null) return NotFound();
 
             int assessmentId = pkg.AssessmentSessionId;
+
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama).
+            var delLockSession = await _context.AssessmentSessions.FindAsync(assessmentId);
+            if (delLockSession != null && SessionEditLockRules.IsSessionEditLocked(delLockSession))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
 
             // D-11 / SYN-02: path-collect SEBELUM cascade RemoveRange (union semua gambar soal+opsi).
             var imagePathsToDelete = new List<string>();
@@ -6825,16 +7180,8 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = $"Package '{pkg.PackageName}' deleted.";
 
-            // Auto-sync: jika ini Pre-Test session, sync ke Post jika SamePackage=true
-            var deletedFromSession = await _context.AssessmentSessions.FindAsync(assessmentId);
-            if (deletedFromSession?.AssessmentType == "PreTest" && deletedFromSession.LinkedSessionId.HasValue)
-            {
-                var postSession = await _context.AssessmentSessions.FindAsync(deletedFromSession.LinkedSessionId.Value);
-                if (postSession != null && postSession.SamePackage)
-                {
-                    await SyncPackagesToPost(deletedFromSession.Id, postSession.Id);
-                }
-            }
+            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift).
+            await SyncToLinkedPostIfSamePackageAsync(assessmentId);
 
             // D-11 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (Post mungkin di-rebuild share path).
             await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "DeletePackage image");
@@ -6997,6 +7344,15 @@ namespace HcPortal.Controllers
                     .ThenInclude(q => q.Section)
                 .FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
+
+            // SHFX-03/D-07 + Pitfall 3 (guard-ordering): tolak Import LANGSUNG ke paket Post terkunci
+            // di AWAL endpoint. Import ke Pre (lock false) lolos → sync Pre→Post di AKHIR success-path.
+            var importLockSession = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
+            if (importLockSession != null && SessionEditLockRules.IsSessionEditLocked(importLockSession))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Impor soal harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackages", new { assessmentId = pkg.AssessmentSessionId });
+            }
 
             // Phase 415 IMP-03: fingerprint 8-arg (+Opsi E/F +SectionNumber). Soal existing carry SectionId/Section nav.
             var existingFingerprints = pkg.Questions.Select(q =>
@@ -7469,10 +7825,9 @@ namespace HcPortal.Controllers
                     await importTx.RollbackAsync();
                     throw;
                 }
-
-                // H4: import = mutasi struktur paket (soal + Section) → sync paket Post SamePackage.
-                // Selaras dgn surface mutasi lain (CreateQuestion/EditQuestion); tanpa ini Post tertinggal basi.
-                await SyncToPostIfSamePackageAsync(packageId);
+                // MERGE (v32.6 H4 ↔ v32.7 SHFX-01): sync Pre→Post SamePackage dilakukan SEKALI di akhir
+                // success-path via SyncToLinkedPostIfSamePackageAsync (kanonik) — H4 in-block DIHAPUS agar
+                // tak dobel deep-clone per import (double-sync redundant dari keep-both auto-merge).
             }
 
             if (added == 0 && skipped == 0)
@@ -7551,6 +7906,11 @@ namespace HcPortal.Controllers
                 TempData["Success"] = $"Imported from file: {added} added, {skipped} skipped.";
             else
                 TempData["Success"] = $"{added} added, {skipped} skipped.";
+
+            // SHFX-01/D-06 (BOCOR SHUF-ISS-03 HIGH ditutup): Import beroperasi pada paket Pre →
+            // sisip auto-sync Pre→Post di AKHIR success-path (Pitfall 3: lock-guard di AWAL endpoint,
+            // sync di AKHIR). Import langsung ke Post terkunci sudah ditolak guard di awal (SHFX-03).
+            await SyncToLinkedPostIfSamePackageAsync(pkg.AssessmentSessionId);
 
             return RedirectToAction("ManagePackages", new { assessmentId = pkg.AssessmentSessionId });
         }
@@ -7675,6 +8035,12 @@ namespace HcPortal.Controllers
             }
             ViewBag.SectionEtWarnings = warnings;
 
+            // v32.7 Phase 422 D-07/SHFX-03: friendly-disable UX layer — server SUDAH hard-reject edit soal
+            // saat Post-Test terkunci (paket-sama) via guard 5 endpoint (Wave 2). View pakai ini untuk banner
+            // + disable tombol; bukan satu-satunya pengaman (server-authoritative).
+            ViewBag.IsSamePackageLocked = assessment.AssessmentType == "PostTest" && assessment.SamePackage;
+            ViewBag.PreSessionId = assessment.LinkedSessionId;
+
             return View();
         }
 
@@ -7682,6 +8048,8 @@ namespace HcPortal.Controllers
         public sealed record SectionEtWarning(int SectionNumber, string? Name, int K, int DistinctEt);
 
         // Truncate alt text ke MaxLength kolom (255) sebelum assign — hindari DbUpdateException (Pitfall 6).
+        // IN-01: TruncateAlt sebelum CreateQuestion agar trio attribute [HttpPost]/[Authorize]/[ValidateAntiForgeryToken]
+        // mengikat ke CreateQuestion (bukan ke helper static ini).
         private static string? TruncateAlt(string? s, int max)
             => string.IsNullOrEmpty(s) ? s : (s.Length <= max ? s : s.Substring(0, max));
 
@@ -7745,6 +8113,14 @@ namespace HcPortal.Controllers
                 .Include(p => p.Questions)
                 .FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
+
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama).
+            var cqLockSession = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
+            if (cqLockSession != null && SessionEditLockRules.IsSessionEditLocked(cqLockSession))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
 
             // Phase 415 SEC-03: validasi Section milik paket ini (IDOR guard T-415-08). null = "Lainnya".
             if (sectionId.HasValue)
@@ -7865,7 +8241,8 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Soal berhasil ditambahkan.";
 
-            // Auto-sync to Post if SamePackage=true — H4 re-check: lewat helper aman (skip-if-Post-taken + best-effort).
+            // Auto-sync Pre→Post bila SamePackage — via helper adapter (delegasi ke SyncToLinkedPostIfSamePackageAsync,
+            // best-effort: kegagalan sync TAK men-500-kan request).
             await SyncToPostIfSamePackageAsync(packageId);
 
             return RedirectToAction("ManagePackageQuestions", new { packageId });
@@ -7978,6 +8355,18 @@ namespace HcPortal.Controllers
                 .Include(q => q.Options)
                 .FirstOrDefaultAsync(q => q.Id == questionId);
             if (q == null) return NotFound();
+
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama).
+            var eqLockPkg = await _context.AssessmentPackages.FindAsync(packageId);
+            if (eqLockPkg != null)
+            {
+                var eqLockSession = await _context.AssessmentSessions.FindAsync(eqLockPkg.AssessmentSessionId);
+                if (eqLockSession != null && SessionEditLockRules.IsSessionEditLocked(eqLockSession))
+                {
+                    TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
+            }
 
             // Phase 418: guard H3 (placeholder yang menolak edit soal >4 opsi) DIHAPUS — kini form edit
             // mendukung opsi dinamis A–F penuh. Soal hasil import 415 (5–6 opsi) jadi editable. Penyusutan opsi
@@ -8195,7 +8584,7 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Soal berhasil diperbarui.";
 
-            // Auto-sync to Post if SamePackage=true — H4 re-check: lewat helper aman (skip-if-Post-taken + best-effort).
+            // Auto-sync Pre→Post bila SamePackage — via helper adapter (best-effort).
             await SyncToPostIfSamePackageAsync(packageId);
 
             // Ref-count + File.Delete SETELAH auto-sync (SYN-02 / D-10 / OQ2 ordering).
@@ -8238,6 +8627,18 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(q => q.Id == questionId);
             if (q == null) return NotFound();
 
+            // SHFX-03/D-07: tolak-keras server-side bila Post-Test terkunci (paket-sama).
+            var dqLockPkg = await _context.AssessmentPackages.FindAsync(packageId);
+            if (dqLockPkg != null)
+            {
+                var dqLockSession = await _context.AssessmentSessions.FindAsync(dqLockPkg.AssessmentSessionId);
+                if (dqLockSession != null && SessionEditLockRules.IsSessionEditLocked(dqLockSession))
+                {
+                    TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Edit soal harus dilakukan di sesi Pre-Test.";
+                    return RedirectToAction("ManagePackageQuestions", new { packageId });
+                }
+            }
+
             // SYN-02 / D-10: path-collect SEBELUM RemoveRange (gambar soal + opsi).
             var imagePathsToDelete = new List<string>();
             if (!string.IsNullOrEmpty(q.ImagePath)) imagePathsToDelete.Add(q.ImagePath);
@@ -8276,7 +8677,7 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Soal berhasil dihapus.";
 
-            // Auto-sync to Post if SamePackage=true — H4 re-check: lewat helper aman (skip-if-Post-taken + best-effort).
+            // Auto-sync Pre→Post bila SamePackage — via helper adapter (best-effort).
             await SyncToPostIfSamePackageAsync(packageId);
 
             // SYN-02 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (warn-only per file).
@@ -8558,11 +8959,25 @@ namespace HcPortal.Controllers
         }
 
         /// <summary>
+        /// Phase 424 GRDF-04 — apakah judul mengikuti pola Pre/Post-Test ("{Pre|Post}[ ]Test {rest}", case-insensitive).
+        /// Pure, EF-free, unit-testable. Pola ini DULU memicu auto-pair LinkedGroupId untuk Standard (Phase 338 REST-06);
+        /// kini auto-pair DINONAKTIFKAN forward-only (D-08) — sentinel mendokumentasikan pola yang tak lagi diterapkan otomatis.
+        /// </summary>
+        public static bool LooksLikePrePostTitle(string? title)
+            => !string.IsNullOrWhiteSpace(title)
+               && System.Text.RegularExpressions.Regex.IsMatch(
+                    title.Trim(),
+                    @"^(?:Pre|Post)\s*Test\s+.+$",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        /// <summary>
         /// Phase 338 REST-06 (336-NAMING-CONVENTION-SPEC.md): Auto-detect counterpart Pre/Post group
         /// berdasarkan title pattern `{Pre|Post}Test {rest}`. Return LinkedGroupId existing counterpart bila ada.
+        /// GRDF-04 (D-08): KINI TAK DIPANGGIL (forward-only disable di CreateAssessment) — dead, disimpan utk histori.
         /// </summary>
         private async Task<int?> TryAutoDetectCounterpartGroup(string title, string? category)
         {
+            if (!LooksLikePrePostTitle(title)) return null;     // GRDF-04 sentinel (pola dipakai bersama LooksLikePrePostTitle)
             // Pattern: "PreTest OJT GAST GTO SRU di Unit RU IV Cilacap" atau "Pre Test OJT GAST..."
             var match = System.Text.RegularExpressions.Regex.Match(
                 title.Trim(),

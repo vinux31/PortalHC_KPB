@@ -289,6 +289,33 @@ namespace HcPortal.Controllers
         }
 
         // ============================================================
+        // Phase 402 (CXU-05) seam: coerce operator-supplied unit to the coach's own scope.
+        // Returns the requested unit UNCHANGED iff it is one of the coach's active units (case-insensitive,
+        // trim-tolerant); otherwise null. null => union scope (no cross-coach foreign-unit leak).
+        // Pure (no DB) so it is unit-testable; caller supplies the coach's active units.
+        // ============================================================
+        public static string? CoerceCoachUnitScope(IEnumerable<string> coachActiveUnits, string? requestedUnit)
+        {
+            if (string.IsNullOrWhiteSpace(requestedUnit)) return null;
+            var trimmed = requestedUnit.Trim();
+            bool owned = coachActiveUnits != null && coachActiveUnits.Any(u =>
+                !string.IsNullOrWhiteSpace(u) && string.Equals(u.Trim(), trimmed, StringComparison.OrdinalIgnoreCase));
+            return owned ? requestedUnit : null;   // owned => keep original (post-filter unchanged); foreign => union
+        }
+
+        // ============================================================
+        // Phase 402 (CXU-05) seam: does a coachee (by resolved AssignmentUnit) fall within the requested unit scope?
+        // scopeUnit null/blank => union (always in scope). Else OrdinalIgnoreCase + Trim match (mirrors Phase 401 PSU-02
+        // axis: AssignmentUnit, not scalar User.Unit). Pure (no DB) so the union/narrow post-filter is unit-testable.
+        // ============================================================
+        public static bool CoacheeMatchesUnitScope(string? coacheeAssignmentUnit, string? scopeUnit)
+        {
+            if (string.IsNullOrWhiteSpace(scopeUnit)) return true;   // union — no narrowing requested
+            return string.Equals((coacheeAssignmentUnit ?? "").Trim(), scopeUnit.Trim(),
+                                  StringComparison.OrdinalIgnoreCase);
+        }
+
+        // ============================================================
         // Phase 121: AJAX endpoint — filter Coaching Proton content
         // ============================================================
         [HttpGet]
@@ -302,7 +329,19 @@ namespace HcPortal.Controllers
             // Server-side enforcement: override section/unit for restricted roles
             int roleLevel = UserRoles.GetRoleLevel(userRole);
             if (UserRoles.HasSectionAccess(roleLevel)) { section = user.Section; }
-            else if (UserRoles.IsCoachingRole(roleLevel)) { section = user.Section; unit = user.Unit; }
+            else if (UserRoles.IsCoachingRole(roleLevel))
+            {
+                section = user.Section;                                  // Bagian locked (Invariant #1)
+                // Phase 402 (CXU-05): do NOT force primary. Coerce operator-supplied unit to coach scope via shared seam.
+                if (!string.IsNullOrWhiteSpace(unit))
+                {
+                    var coachUnits = await _context.UserUnits
+                        .Where(uu => uu.UserId == user.Id && uu.IsActive)
+                        .Select(uu => uu.Unit).ToListAsync();
+                    unit = CoerceCoachUnitScope(coachUnits, unit);      // foreign unit rejected -> null = union
+                }
+                // unit == null => BuildProtonProgressSubModelAsync post-filter skipped => union (CXU-05 default)
+            }
 
             var (model, _) = await BuildProtonProgressSubModelAsync(user, userRole, section, unit, category, track);
             return PartialView("Shared/_CoachingProtonContentPartial", model);
@@ -323,7 +362,19 @@ namespace HcPortal.Controllers
             // Server-side enforcement sama seperti FilterCoachingProton (scope role)
             int roleLevel = UserRoles.GetRoleLevel(userRole);
             if (UserRoles.HasSectionAccess(roleLevel)) { section = user.Section; }
-            else if (UserRoles.IsCoachingRole(roleLevel)) { section = user.Section; unit = user.Unit; }
+            else if (UserRoles.IsCoachingRole(roleLevel))
+            {
+                section = user.Section;                                  // Bagian locked (Invariant #1)
+                // Phase 402 (CXU-05): do NOT force primary. Coerce operator-supplied unit to coach scope via shared seam.
+                if (!string.IsNullOrWhiteSpace(unit))
+                {
+                    var coachUnits = await _context.UserUnits
+                        .Where(uu => uu.UserId == user.Id && uu.IsActive)
+                        .Select(uu => uu.Unit).ToListAsync();
+                    unit = CoerceCoachUnitScope(coachUnits, unit);      // foreign unit rejected -> null = union
+                }
+                // unit == null => BuildProtonProgressSubModelAsync post-filter skipped => union (CXU-05 default)
+            }
 
             var (model, _) = await BuildProtonProgressSubModelAsync(user, userRole, section, unit, category, track);
             var rows = model.CoacheeRows;
@@ -474,9 +525,12 @@ namespace HcPortal.Controllers
                     .Select(a => a.CoacheeId)
                     .Distinct()
                     .ToListAsync();
-                scopeLabel = !string.IsNullOrEmpty(user.Unit)
-                    ? $"Unit: {user.Unit}"
-                    : $"Section: {user.Section ?? "(unknown)"} (Unit not set)";
+                // Phase 402 (WR-03): default load (unit == null) = UNION coachee lintas semua unit coach,
+                // jadi label tak boleh menyebut satu unit primary scalar. Pakai label unit HANYA saat filter
+                // unit aktif; selain itu label berbasis Section (union seluruh unit coach dalam 1 Bagian).
+                scopeLabel = !string.IsNullOrWhiteSpace(unit)
+                    ? $"Unit: {unit.Trim()}"
+                    : $"Section: {user.Section ?? "(unknown)"}";
             }
 
             // Batch load data (avoid N+1) — filter inactive users
@@ -488,7 +542,18 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(section) && UserRoles.HasFullAccess(roleLevel))
                 coacheeUsers = coacheeUsers.Where(u => u.Section == section).ToList();
             if (!string.IsNullOrEmpty(unit))
-                coacheeUsers = coacheeUsers.Where(u => u.Unit == unit).ToList();
+            {
+                // Phase 401 (PSU-02): filter coachee berbasis AssignmentUnit (active mapping), bukan scalar User.Unit primary.
+                var coacheeIdsForUnit = coacheeUsers.Select(u => u.Id).ToList();
+                var unitByCoachee = (await _context.CoachCoacheeMappings
+                    .Where(m => m.IsActive && coacheeIdsForUnit.Contains(m.CoacheeId))
+                    .Select(m => new { m.CoacheeId, m.AssignmentUnit }).ToListAsync())
+                    .GroupBy(m => m.CoacheeId)
+                    .ToDictionary(g => g.Key, g => g.Select(x => x.AssignmentUnit).FirstOrDefault()?.Trim() ?? "");
+                coacheeUsers = coacheeUsers
+                    .Where(u => CoacheeMatchesUnitScope(unitByCoachee.GetValueOrDefault(u.Id, ""), unit))
+                    .ToList();
+            }
 
             var filteredCoacheeIds = coacheeUsers.Select(u => u.Id).ToList();
             var userNames = coacheeUsers.ToDictionary(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
@@ -516,14 +581,13 @@ namespace HcPortal.Controllers
                     .Where(m => m.IsActive && coacheeIdList129.Contains(m.CoacheeId))
                     .Select(m => new { m.CoacheeId, m.AssignmentUnit })
                     .ToListAsync();
-                var userUnits129 = await _context.Users
-                    .Where(u => coacheeIdList129.Contains(u.Id))
-                    .Select(u => new { u.Id, u.Unit })
-                    .ToDictionaryAsync(u => u.Id, u => u.Unit);
+                // Phase 401 (PSU-01): unit PROTON HANYA dari AssignmentUnit (fallback User.Unit primary DIBUANG — ambigu multi-unit).
                 var asnUnitMap129 = asnCoacheeIds129.ToDictionary(
                     x => x.Id,
-                    x => (mappingUnits129.FirstOrDefault(m => m.CoacheeId == x.CoacheeId)?.AssignmentUnit
-                          ?? userUnits129.GetValueOrDefault(x.CoacheeId))?.Trim() ?? "");
+                    x => (mappingUnits129.FirstOrDefault(m => m.CoacheeId == x.CoacheeId)?.AssignmentUnit)?.Trim() ?? "");
+                // PSU-05 read-path (D-03): warn AssignmentUnit kosong — ILogger SAJA (no persisted audit).
+                foreach (var emptyId in asnUnitMap129.Where(kv => string.IsNullOrWhiteSpace(kv.Value)).Select(kv => kv.Key))
+                    _logger.LogWarning("CDP defensive resolver: assignment {AssignmentId} AssignmentUnit kosong — read-path (defensive filter dilewati).", emptyId);
 
                 allProgresses = allProgresses.Where(p =>
                 {
@@ -633,7 +697,7 @@ namespace HcPortal.Controllers
             // Phase 121: Determine locked values and available options
             string? lockedSection = null, lockedUnit = null;
             if (UserRoles.HasSectionAccess(roleLevel)) { lockedSection = user.Section; }
-            else if (UserRoles.IsCoachingRole(roleLevel)) { lockedSection = user.Section; lockedUnit = user.Unit; }
+            else if (UserRoles.IsCoachingRole(roleLevel)) { lockedSection = user.Section; /* Phase 402 (CXU-05): lockedUnit stays null — coach chooses among own units */ }
 
             var availableSections = await _context.GetAllSectionsAsync();
             var effectiveSection = lockedSection ?? section;
@@ -641,6 +705,16 @@ namespace HcPortal.Controllers
                 ? await _context.GetUnitsForSectionAsync(effectiveSection)
                 : new List<string>();
             // Graceful fallback: jika availableSections kosong, tampilkan semua (jangan block user)
+
+            // Phase 402 (CXU-05): coaching-role dropdown shows ONLY the coach's own active units (not every unit in the Bagian).
+            bool unitFilterEnabled = false;
+            if (UserRoles.IsCoachingRole(roleLevel))
+            {
+                availableUnits = await _context.UserUnits
+                    .Where(uu => uu.UserId == user.Id && uu.IsActive)
+                    .Select(uu => uu.Unit).Distinct().ToListAsync();
+                unitFilterEnabled = true;                                // enable dropdown for multi-unit coach (harmless for single-unit)
+            }
 
             var subModel = new ProtonProgressSubModel
             {
@@ -667,7 +741,8 @@ namespace HcPortal.Controllers
                 AvailableSections = availableSections,
                 AvailableUnits = availableUnits,
                 AvailableCategories = availableCategories!,
-                AvailableTracks = availableTracks!
+                AvailableTracks = availableTracks!,
+                UnitFilterEnabled = unitFilterEnabled
             };
 
             return (subModel, scopeLabel);
@@ -1582,8 +1657,10 @@ namespace HcPortal.Controllers
                 if (userLevel <= 3)
                 {
                     // HC/Admin/Direktur/VP/Manager: any unit (but must be within selected bagian if set)
+                    // Phase 401 (PSU-02): filter berbasis AssignmentUnit (active mapping), bukan scalar User.Unit primary.
                     scopedCoacheeIds = await _context.Users
-                        .Where(u => scopedCoacheeIds.Contains(u.Id) && u.IsActive && u.Unit == unit)
+                        .Where(u => scopedCoacheeIds.Contains(u.Id) && u.IsActive
+                                 && _context.CoachCoacheeMappings.Any(m => m.IsActive && m.CoacheeId == u.Id && m.AssignmentUnit == unit))
                         .Select(u => u.Id).ToListAsync();
                 }
                 else if (userLevel == 4)
@@ -1592,8 +1669,10 @@ namespace HcPortal.Controllers
                     var allowedUnits = await _context.GetUnitsForSectionAsync(user.Section ?? "");
                     if (allowedUnits.Contains(unit))
                     {
+                        // Phase 401 (PSU-02): filter berbasis AssignmentUnit (active mapping), bukan scalar User.Unit primary.
                         scopedCoacheeIds = await _context.Users
-                            .Where(u => scopedCoacheeIds.Contains(u.Id) && u.IsActive && u.Unit == unit)
+                            .Where(u => scopedCoacheeIds.Contains(u.Id) && u.IsActive
+                                     && _context.CoachCoacheeMappings.Any(m => m.IsActive && m.CoacheeId == u.Id && m.AssignmentUnit == unit))
                             .Select(u => u.Id).ToListAsync();
                     }
                     else
@@ -1709,14 +1788,13 @@ namespace HcPortal.Controllers
                     .Where(m => m.IsActive && coacheeIds129.Contains(m.CoacheeId))
                     .Select(m => new { m.CoacheeId, m.AssignmentUnit })
                     .ToListAsync();
-                var userUnits129 = await _context.Users
-                    .Where(u => coacheeIds129.Contains(u.Id))
-                    .Select(u => new { u.Id, u.Unit })
-                    .ToDictionaryAsync(u => u.Id, u => u.Unit);
+                // Phase 401 (PSU-01): unit PROTON HANYA dari AssignmentUnit (fallback User.Unit primary DIBUANG — ambigu multi-unit).
                 var asnUnitMap129 = asnCoachees129.ToDictionary(
                     x => x.Id,
-                    x => (mappingUnits129.FirstOrDefault(m => m.CoacheeId == x.CoacheeId)?.AssignmentUnit
-                          ?? userUnits129.GetValueOrDefault(x.CoacheeId))?.Trim() ?? "");
+                    x => (mappingUnits129.FirstOrDefault(m => m.CoacheeId == x.CoacheeId)?.AssignmentUnit)?.Trim() ?? "");
+                // PSU-05 read-path (D-03): warn AssignmentUnit kosong — ILogger SAJA (no persisted audit).
+                foreach (var emptyId in asnUnitMap129.Where(kv => string.IsNullOrWhiteSpace(kv.Value)).Select(kv => kv.Key))
+                    _logger.LogWarning("CDP defensive resolver: assignment {AssignmentId} AssignmentUnit kosong — read-path (defensive filter dilewati).", emptyId);
 
                 progresses = progresses.Where(p =>
                 {
@@ -4244,8 +4322,10 @@ namespace HcPortal.Controllers
             // Apply unit filter
             if (!string.IsNullOrEmpty(unit) && userLevel <= 4)
             {
+                // Phase 401 (PSU-02): filter berbasis AssignmentUnit (active mapping), bukan scalar User.Unit primary.
                 scopedCoacheeIds = await _context.Users
-                    .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Unit == unit)
+                    .Where(u => scopedCoacheeIds.Contains(u.Id)
+                             && _context.CoachCoacheeMappings.Any(m => m.IsActive && m.CoacheeId == u.Id && m.AssignmentUnit == unit))
                     .Select(u => u.Id).ToListAsync();
             }
             // Apply coacheeId filter

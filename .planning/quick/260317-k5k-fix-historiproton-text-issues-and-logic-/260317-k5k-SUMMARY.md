@@ -1,3 +1,7 @@
+---
+status: complete
+---
+
 # Quick Task 260317-k5k: Fix HistoriProton text issues and logic bugs
 
 **Completed:** 2026-03-17

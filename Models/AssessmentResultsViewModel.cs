@@ -22,6 +22,16 @@ namespace HcPortal.Models
         public List<ElemenTeknisScore>? ElemenTeknisScores { get; set; }
         public string? NomorSertifikat { get; set; }
         public bool IsPendingGrading { get; set; } = false; // Phase 309 SUB-01 — true saat assessment.Status == PendingGrading
+
+        // v32.4 RTK-09/10/11/12 (Phase 407) — sisi-pekerja ujian ulang. Diisi CMPController.Results (407-02), dirender Results.cshtml (407-03).
+        public HcPortal.Helpers.RetakeReviewMode RetakeMode { get; set; } = HcPortal.Helpers.RetakeReviewMode.ShowFullReview;
+        public bool CanRetake { get; set; }
+        public int CurrentAttempt { get; set; }
+        public int MaxAttempts { get; set; }
+        public DateTime? CooldownUntilUtc { get; set; }
+        public bool IsCapReached { get; set; }
+        public bool IsInCooldown { get; set; } // WR-01 (RTK-10): true saat gagal+attempt-sisa tapi masa jeda cooldown belum lewat → render tombol disabled + countdown (CanRetake=false selama cooldown, jadi tak bisa pakai itu)
+        public List<RiwayatAttemptViewModel>? RiwayatAttempts { get; set; }
     }
 
     public class QuestionReviewItem

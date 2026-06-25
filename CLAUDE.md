@@ -10,7 +10,7 @@ Aturan ringkas saat fix bug / development:
 
 1. Cek bug via URL Dev (`http://10.55.3.3/KPB-PortalHC`)
 2. Reproduce & fix di lokal
-3. Verifikasi lokal: `dotnet build` + `dotnet run` (cek di `http://localhost:5277`) + cek DB lokal (+ Playwright bila ada)
+3. Verifikasi lokal: `dotnet build` + `dotnet run` (cek di `http://localhost:5277`; **di branch `ITHandoff` pakai `http://localhost:5270`** biar tidak tabrakan dgn worktree `main` — detail [`docs/DEV_WORKFLOW.md`](docs/DEV_WORKFLOW.md) §1) + cek DB lokal (+ Playwright bila ada)
 4. Commit & push (sertakan file migration kalau ada)
 5. Promosi ke server Dev & DB Dev = **tanggung jawab Team IT**, bukan developer. Notifikasi IT dengan commit hash + flag migration.
 

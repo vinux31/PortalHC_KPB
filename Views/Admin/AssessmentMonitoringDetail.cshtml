@@ -289,7 +289,16 @@
                                 <tr data-session-id="@session.Id">
                                     <td class="fw-semibold">@session.UserFullName</td>
                                     <td class="text-center progress-cell">@(session.QuestionCount > 0 ? $"\u2014/{session.QuestionCount}" : "\u2014")</td>
-                                    <td class="status-cell"><span class="badge @statusClass">@statusLabel</span></td>
+                                    <td class="status-cell">
+                                        <span class="badge @statusClass">@statusLabel</span>
+                                        @* CERT-07 (D-08/D-09): badge umur PendingGrading — display-only, NO auto-finalize. *@
+                                        @if (session.UserStatus == "Menunggu Penilaian" && session.CompletedAt.HasValue)
+                                        {
+                                            var pCls = HcPortal.Helpers.CertIssuanceRules.PendingAgeBadgeClass(session.CompletedAt, DateTime.UtcNow);
+                                            var pDays = (int)(DateTime.UtcNow - session.CompletedAt.Value).TotalDays;
+                                            <span class="badge @pCls ms-1" title="Menunggu penilaian sejak @session.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") WIB">Menunggu @pDays hari</span>
+                                        }
+                                    </td>
                                     <td class="score-cell">
                                         @if (session.Score.HasValue)
                                         {
@@ -342,9 +351,16 @@
                                                     }
                                                     @if (session.UserStatus != "Cancelled")
                                                     {
+                                                        // v32.7 RTH-02/D-04: konfirmasi conditional pencabutan sertifikat (view-only; VM expose IsPassed/NomorSertifikat).
+                                                        // Per-session di dalam loop — tiap baris pakai nilai miliknya sendiri. Pencabutan/nol-kan cert tetap server-side (D-03 via service).
+                                                        bool hasCert = session.IsPassed == true || session.NomorSertifikat != null;
+                                                        string resetConfirm = hasCert
+                                                            ? "Reset sesi ini? Sesi ini SUDAH LULUS dan memiliki nomor sertifikat. Mereset akan MENCABUT sertifikat (nomor dihapus) dan semua jawaban dihapus. Peserta dapat mengulang ujian. Lanjutkan?"
+                                                            : "Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.";
                                                         <li>
+                                                            @* onsubmit pakai single-quote JS string di dalam atribut double-quote (idiom existing form reset/akhiri). resetConfirm tanpa apostrof. *@
                                                             <form asp-action="ResetAssessment" asp-controller="AssessmentAdmin" method="post" class="m-0"
-                                                                  onsubmit="return confirm('Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.')">
+                                                                  onsubmit="return confirm('@resetConfirm')">
                                                                 @Html.AntiForgeryToken()
                                                                 <input type="hidden" name="id" value="@session.Id" />
                                                                 <button type="submit" class="dropdown-item">
@@ -389,6 +405,20 @@
                                                                     data-session-id="@session.Id"
                                                                     onclick="reshuffleWorker(this)">
                                                                 <i class="bi bi-shuffle me-1"></i>Reshuffle
+                                                            </button>
+                                                        </li>
+                                                    }
+                                                    @* v32.4 RTK-08 — Riwayat Percobaan HC: lazy-fetch _RiwayatPercobaan ke #riwayatPercobaanModal.
+                                                       Gate Completed (= attempt selesai/arsip mungkin ada; partial tampilkan empty-state bila kosong). *@
+                                                    @if (session.UserStatus == "Completed")
+                                                    {
+                                                        <li>
+                                                            <button type="button"
+                                                                    class="dropdown-item btn-riwayat-percobaan"
+                                                                    data-session-id="@session.Id"
+                                                                    data-worker-name="@session.UserFullName"
+                                                                    aria-label="Riwayat percobaan untuk @session.UserFullName">
+                                                                <i class="bi bi-clock-history me-1"></i>Riwayat Percobaan
                                                             </button>
                                                         </li>
                                                     }
@@ -515,6 +545,11 @@
                                         else
                                         {
                                             <span class="badge bg-success">Selesai</span>
+                                        }
+                                        @* CERT-07 (D-08/D-09): badge umur PendingGrading berdampingan — display-only, NO auto-finalize. *@
+                                        @if (s.Status == AssessmentConstants.AssessmentStatus.PendingGrading && s.CompletedAt.HasValue)
+                                        {
+                                            <span class="badge @HcPortal.Helpers.CertIssuanceRules.PendingAgeBadgeClass(s.CompletedAt, DateTime.UtcNow) ms-1" title="Menunggu penilaian sejak @s.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") WIB">Menunggu @((int)(DateTime.UtcNow - s.CompletedAt.Value).TotalDays) hari</span>
                                         }
                                     </td>
                                     <td class="text-end">
@@ -669,6 +704,25 @@
                             <div class="edit-history-placeholder text-muted small">Memuat...</div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* v32.4 RTK-08 — Riwayat Percobaan modal (SATU shell bersama, di-fetch lazy oleh .btn-riwayat-percobaan).
+       Body diisi server-rendered @@-encoded HTML dari _RiwayatPercobaan (XSS-safe via innerHTML); title via .textContent. *@
+    <div class="modal fade" id="riwayatPercobaanModal" tabindex="-1" aria-labelledby="riwayatModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="riwayatModalLabel"><i class="bi bi-clock-history me-2"></i>Riwayat Percobaan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="riwayatBody"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
@@ -1567,6 +1621,29 @@
             if (chevron) chevron.style.transform = 'rotate(0deg)';
         });
     }
+
+    // ---- Riwayat Percobaan Modal (RTK-08): lazy-fetch _RiwayatPercobaan ke #riwayatBody ----
+    // Mirror EditHistoryPartial lazy-load (:986-1001) + appUrl PathBase-aware fetch (:1013/:1080).
+    // Title via .textContent (XSS-safe untuk nama pekerja); body innerHTML = server @@-encoded HTML.
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-riwayat-percobaan');
+        if (!btn) return;
+        var sid = btn.getAttribute('data-session-id');
+        var wname = btn.getAttribute('data-worker-name') || '';
+        var label = document.getElementById('riwayatModalLabel');
+        if (label) { label.textContent = 'Riwayat Percobaan — ' + wname; } // .textContent = XSS-safe
+        var body = document.getElementById('riwayatBody');
+        if (body) {
+            body.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>Memuat riwayat...</div>';
+        }
+        new bootstrap.Modal(document.getElementById('riwayatPercobaanModal')).show();
+        fetch(appUrl('/Admin/RiwayatPercobaan?sessionId=' + encodeURIComponent(sid)))
+            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(function (html) { if (body) body.innerHTML = html; }) // server-rendered @@-encoded HTML
+            .catch(function () {
+                if (body) body.innerHTML = '<div class="alert alert-warning mb-0">Gagal memuat riwayat. Coba lagi.</div>';
+            });
+    });
 })();
 </script>
 

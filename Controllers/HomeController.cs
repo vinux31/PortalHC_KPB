@@ -53,9 +53,27 @@ public class HomeController : Controller
         var upcomingEvents = await GetUpcomingEvents(userId);
         var progress = await GetProgress(userId);
 
+        // MU-03: muat SEMUA unit pekerja (primary-first) untuk hero badge. Mode-role (user null) → unit kosong.
+        List<string>? currentUserUnits = null;
+        string? currentUserPrimaryUnit = null;
+        if (user != null)
+        {
+            var heroUnits = await _context.UserUnits
+                .Where(uu => uu.UserId == user.Id)
+                .ToListAsync();
+            currentUserPrimaryUnit = heroUnits.FirstOrDefault(x => x.IsPrimary)?.Unit;
+            currentUserUnits = heroUnits
+                .OrderByDescending(x => x.Unit == currentUserPrimaryUnit)
+                .ThenBy(x => x.Unit)
+                .Select(x => x.Unit)
+                .ToList();
+        }
+
         var viewModel = new DashboardHomeViewModel
         {
             CurrentUser = user,   // null saat mode-role → view null-safe (tak tampil identitas admin)
+            CurrentUserUnits = currentUserUnits,
+            CurrentUserPrimaryUnit = currentUserPrimaryUnit,
             Greeting = GetTimeBasedGreeting(),
             UpcomingEvents = upcomingEvents,
             Progress = progress

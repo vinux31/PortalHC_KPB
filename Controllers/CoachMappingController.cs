@@ -39,6 +39,56 @@ namespace HcPortal.Controllers
         protected new ViewResult View(string viewName) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml");
         protected new ViewResult View(string viewName, object? model) => base.View(viewName.StartsWith("~/") ? viewName : "~/Views/Admin/" + viewName + ".cshtml", model);
 
+        // ============================================================
+        // Phase 401 (PSU-03) — multi-unit AssignmentUnit validation helper (single-source, testable seam)
+        // ============================================================
+
+        /// <summary>
+        /// Phase 401 (PSU-03) — validasi membership junction: AssignmentUnit harus ∈ unit AKTIF coachee.
+        /// Sumber TUNGGAL: junction UserUnits (ApplicationUser TAK punya nav collection — Pitfall 1).
+        /// Empty/whitespace assignmentUnit → false (skip/reject; jangan resolve dari primary). Trim + OrdinalIgnoreCase.
+        /// Testable seam (pola WorkerController.ValidateUnitsInSection) — EF-InMemory tanpa InternalsVisibleTo.
+        /// </summary>
+        public static async Task<bool> ValidateAssignmentUnitInUserUnits(
+            ApplicationDbContext context, string coacheeId, string? assignmentUnit)
+        {
+            if (string.IsNullOrWhiteSpace(assignmentUnit)) return false;
+            var activeUnits = await context.UserUnits
+                .Where(uu => uu.UserId == coacheeId && uu.IsActive)
+                .Select(uu => uu.Unit)
+                .ToListAsync();
+            return activeUnits.Any(u =>
+                string.Equals(u.Trim(), assignmentUnit.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Phase 402 (CXU-02): coachee.Section harus == coach.Section (Invariant #1: 1 batch = 1 Bagian = coach.Section).
+        // Static seam (testable via InMemory, no UserManager/HttpContext mock — pola 401 ValidateAssignmentUnitInUserUnits).
+        public static async Task<bool> CoacheeSectionMatchesCoach(
+            ApplicationDbContext context, string coacheeId, string? coachSection)
+        {
+            if (string.IsNullOrWhiteSpace(coachSection)) return false;
+            var coacheeSection = await context.Users
+                .Where(u => u.Id == coacheeId)
+                .Select(u => u.Section)
+                .FirstOrDefaultAsync();
+            if (string.IsNullOrWhiteSpace(coacheeSection)) return false;
+            return string.Equals(coacheeSection.Trim(), coachSection.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Phase 402 (CXU-01) seam: eligible coachees for the assign modal = active AND not already in an active mapping.
+        // SET-AWARE = NO unit scoping (cross-unit within a Bagian: Section-level scope is applied client-side via
+        // applyCoachScope(); the server never filters this list by unit). Pure (no DB) → unit-testable; caller supplies
+        // the role-member candidates + the set of already-actively-mapped coachee ids.
+        public static List<ApplicationUser> FilterEligibleCoachees(
+            IEnumerable<ApplicationUser> coacheeRoleUsers, IEnumerable<string> activeCoacheeIds)
+        {
+            var assigned = new HashSet<string>(activeCoacheeIds ?? Enumerable.Empty<string>());
+            return (coacheeRoleUsers ?? Enumerable.Empty<ApplicationUser>())
+                .Where(u => u.IsActive && !assigned.Contains(u.Id))
+                .OrderBy(u => u.FullName)
+                .ToList();
+        }
+
         public async Task<IActionResult> CoachCoacheeMapping(
             string? search, string? section, bool showAll = false, int page = 1)
         {
@@ -148,9 +198,20 @@ namespace HcPortal.Controllers
                 .Where(u => u.IsActive)
                 .OrderBy(u => u.FullName).ToList();
             var coacheeRoleUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coachee);
-            ViewBag.EligibleCoachees = coacheeRoleUsers
-                .Where(u => u.IsActive && !activeCoacheeIds.Contains(u.Id))
-                .OrderBy(u => u.FullName).ToList();
+            // Phase 402 (CXU-01): set-aware eligible list via shared seam (active, not-already-mapped, NO unit scoping).
+            ViewBag.EligibleCoachees = FilterEligibleCoachees(coacheeRoleUsers, activeCoacheeIds);
+
+            // Phase 402 (CXU-03 / D-02): expose active units per eligible coachee (primary-first) for per-row unit picker.
+            // ApplicationUser has NO UserUnits nav (Pitfall 1) — query junction table directly + batch dict.
+            var eligibleCoacheeIds = ((IEnumerable<ApplicationUser>)ViewBag.EligibleCoachees).Select(u => u.Id).ToList();
+            var unitsByEligibleCoachee = (await _context.UserUnits
+                    .Where(uu => eligibleCoacheeIds.Contains(uu.UserId) && uu.IsActive)
+                    .Select(uu => new { uu.UserId, uu.Unit, uu.IsPrimary }).ToListAsync())
+                .GroupBy(x => x.UserId)
+                .ToDictionary(g => g.Key,
+                    g => g.OrderByDescending(x => x.IsPrimary).Select(x => x.Unit.Trim()).ToList());
+            ViewBag.CoacheeUnits = unitsByEligibleCoachee;   // coacheeId -> active units, primary-first (D-02 default)
+
             ViewBag.AllUsers = activeUsers.OrderBy(u => u.FullName).ToList();
             ViewBag.ProtonTracks = await _context.ProtonTracks
                 .OrderBy(t => t.Urutan).ToListAsync();
@@ -161,6 +222,21 @@ namespace HcPortal.Controllers
                 .GroupBy(m => m.CoachId)
                 .ToDictionary(g => g.Key, g => g.Count());
             ViewBag.CoachWorkloads = coachWorkloads;
+
+            // Phase 401 (D-01 / PSU-05): indikator on-demand — mapping aktif yg AssignmentUnit kosong / ∉ UserUnits aktif coachee.
+            var activeForCheck = await _context.CoachCoacheeMappings.Where(m => m.IsActive)
+                .Select(m => new { m.Id, m.CoacheeId, m.AssignmentUnit }).ToListAsync();
+            var checkCoacheeIds = activeForCheck.Select(m => m.CoacheeId).Distinct().ToList();
+            var unitsByCoachee = (await _context.UserUnits
+                .Where(uu => checkCoacheeIds.Contains(uu.UserId) && uu.IsActive)
+                .Select(uu => new { uu.UserId, uu.Unit }).ToListAsync())
+                .GroupBy(x => x.UserId).ToDictionary(g => g.Key, g => g.Select(x => x.Unit.Trim()).ToList());
+            var orphanUnitMappings = activeForCheck.Where(m =>
+                string.IsNullOrWhiteSpace(m.AssignmentUnit) ||
+                !unitsByCoachee.GetValueOrDefault(m.CoacheeId, new()).Any(u =>
+                    string.Equals(u, m.AssignmentUnit!.Trim(), StringComparison.OrdinalIgnoreCase))).ToList();
+            ViewBag.OrphanUnitMappings = orphanUnitMappings.Count;
+            ViewBag.OrphanUnitCoacheeIds = orphanUnitMappings.Select(m => m.CoacheeId).Distinct().ToList();
 
             return View();
         }
@@ -333,6 +409,15 @@ namespace HcPortal.Controllers
                         continue;
                     }
 
+                    // Phase 401 (PSU-03): unit baris ∈ UserUnits aktif coachee (primary baru selalu sah by Invariant #3; safety net).
+                    if (!await ValidateAssignmentUnitInUserUnits(_context, coacheeUser.Id, coacheeUser.Unit?.Trim()))
+                    {
+                        result.Status = "Error";
+                        result.Message = $"Unit coachee ('{coacheeUser.Unit}') bukan anggota UserUnits aktif.";
+                        results.Add(result);
+                        continue;
+                    }
+
                     // Check for existing active mapping
                     var activeMapping = allMappings.FirstOrDefault(m =>
                         m.CoachId == coachUser.Id && m.CoacheeId == coacheeUser.Id && m.IsActive);
@@ -349,14 +434,22 @@ namespace HcPortal.Controllers
                         m.CoachId == coachUser.Id && m.CoacheeId == coacheeUser.Id && !m.IsActive);
                     if (inactiveMapping != null)
                     {
+                        // Phase 401 (PSU-04/07a): PRESERVE AssignmentUnit existing (jangan clobber ke primary). Validasi ∈ UserUnits.
+                        if (!await ValidateAssignmentUnitInUserUnits(_context, coacheeUser.Id, inactiveMapping.AssignmentUnit))
+                        {
+                            result.Status = "Error";
+                            result.Message = $"Unit mapping lama ('{inactiveMapping.AssignmentUnit}') sudah dilepas dari Unit aktif coachee — tidak dapat diaktifkan kembali.";
+                            results.Add(result);
+                            continue;
+                        }
                         inactiveMapping.IsActive = true;
                         inactiveMapping.StartDate = DateTime.Today;
                         inactiveMapping.EndDate = null;
                         inactiveMapping.AssignmentSection = coacheeUser.Section.Trim();
-                        inactiveMapping.AssignmentUnit = coacheeUser.Unit.Trim();
+                        // NOTE: AssignmentUnit SENGAJA TIDAK di-set — preserve unit asli mapping (D-04 no-clobber).
                         reactivatedMappings.Add(inactiveMapping);
                         result.Status = "Reactivated";
-                        result.Message = "Mapping diaktifkan kembali";
+                        result.Message = "Mapping diaktifkan kembali (unit penugasan dipertahankan)";
                         results.Add(result);
                         continue;
                     }
@@ -462,16 +555,51 @@ namespace HcPortal.Controllers
             if (req == null || string.IsNullOrEmpty(req.CoachId) || req.CoacheeIds == null || req.CoacheeIds.Count == 0)
                 return Json(new { success = false, message = "Data tidak lengkap." });
 
+            // Phase 402 (WR-02): dedup coacheeId di awal supaya payload dengan duplikat (DOM glitch / crafted)
+            // tidak membuat dua baris aktif untuk coachee yang sama → IX_CoachCoacheeMappings_CoacheeId_ActiveUnique
+            // violation yang me-rollback SELURUH batch. Dipakai di semua langkah hilir.
+            req.CoacheeIds = req.CoacheeIds.Distinct().ToList();
+
             if (req.CoacheeIds.Contains(req.CoachId))
                 return Json(new { success = false, message = "Coach tidak dapat menjadi coachee dirinya sendiri." });
 
-            if (string.IsNullOrWhiteSpace(req.AssignmentSection) || string.IsNullOrWhiteSpace(req.AssignmentUnit))
-                return Json(new { success = false, message = "Assignment Section dan Unit wajib diisi." });
+            if (string.IsNullOrWhiteSpace(req.AssignmentSection))
+                return Json(new { success = false, message = "Bagian penugasan wajib diisi." });
 
+            // Phase 402 (CXU-02): coach.Section authoritative (Invariant #1). Load + enforce cross-Bagian reject.
+            var coach = await _context.Users.Where(u => u.Id == req.CoachId)
+                .Select(u => new { u.Id, u.Section }).FirstOrDefaultAsync();
+            if (coach == null || string.IsNullOrWhiteSpace(coach.Section))
+                return Json(new { success = false, message = "Coach tidak valid atau belum memiliki Bagian." });
+            if (!string.Equals(req.AssignmentSection!.Trim(), coach.Section.Trim(), StringComparison.OrdinalIgnoreCase))
+                return Json(new { success = false, message = "Bagian penugasan harus sama dengan Bagian coach." });
+
+            // CXU-02: reject any coachee not in coach's Bagian (server-side; client filter is UX-only).
+            var crossBagian = new List<string>();
+            foreach (var cid in req.CoacheeIds)
+                if (!await CoacheeSectionMatchesCoach(_context, cid, coach.Section))
+                    crossBagian.Add(cid);
+            if (crossBagian.Any())
+                return Json(new { success = false, message = $"{crossBagian.Count} coachee bukan anggota Bagian coach (cross-Bagian ditolak)." });
+
+            // Phase 402 (CXU-03): resolve AssignmentUnit PER-COACHEE (req.AssignmentUnits[cid] ?? fallback req.AssignmentUnit).
+            // Tiap unit harus ∈ org-tree(coach.Section) DAN ∈ coachee.UserUnits aktif (Invariant #4, helper 401).
             var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
-            if (!sectionUnitsDict.TryGetValue(req.AssignmentSection!.Trim(), out var validUnits)
-                || !validUnits.Contains(req.AssignmentUnit!.Trim()))
-                return Json(new { success = false, message = "Section/Unit tidak ditemukan di data organisasi aktif." });
+            if (!sectionUnitsDict.TryGetValue(coach.Section.Trim(), out var validUnits))
+                return Json(new { success = false, message = "Bagian coach tidak ditemukan di data organisasi." });
+
+            var resolvedUnits = new Dictionary<string, string>();
+            foreach (var cid in req.CoacheeIds)
+            {
+                var unit = (req.AssignmentUnits?.GetValueOrDefault(cid) ?? req.AssignmentUnit)?.Trim();
+                if (string.IsNullOrWhiteSpace(unit))
+                    return Json(new { success = false, message = "Unit penugasan wajib dipilih untuk setiap coachee." });
+                if (!validUnits.Contains(unit))
+                    return Json(new { success = false, message = $"Unit '{unit}' bukan anak Bagian coach." });
+                if (!await ValidateAssignmentUnitInUserUnits(_context, cid, unit))
+                    return Json(new { success = false, message = $"Unit '{unit}' bukan anggota unit aktif coachee terpilih — tambahkan unit ke coachee dulu." });
+                resolvedUnits[cid] = unit;
+            }
 
             // Check for duplicate active mappings
             var existingMappings = await _context.CoachCoacheeMappings
@@ -575,8 +703,8 @@ namespace HcPortal.Controllers
                 CoacheeId = id,
                 IsActive = true,
                 StartDate = startDate,
-                AssignmentSection = req.AssignmentSection!.Trim(),
-                AssignmentUnit = req.AssignmentUnit!.Trim()
+                AssignmentSection = coach.Section!.Trim(),
+                AssignmentUnit = resolvedUnits[id]
             }).ToList();
 
             await using var tx = await _context.Database.BeginTransactionAsync();
@@ -664,7 +792,7 @@ namespace HcPortal.Controllers
 
             var count = newMappings.Count;
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Assign",
-                $"Assigned coach to {count} coachee(s) [Section: {req.AssignmentSection}, Unit: {req.AssignmentUnit}]",
+                $"Assign {count} coachee, Bagian {coach.Section}, units: {string.Join(", ", resolvedUnits.Values.Distinct())}",
                 targetType: "CoachCoacheeMapping");
 
             // COACH-01: Notify coach for each coachee assigned
@@ -724,6 +852,13 @@ namespace HcPortal.Controllers
                 if (!sectionUnitsDict.TryGetValue(secEdit, out var validUnitsEdit) || !validUnitsEdit.Contains(unitEdit))
                     return Json(new { success = false, message = "Section/Unit tidak ditemukan di data organisasi aktif." });
             }
+
+            // Phase 401 (PSU-03 / WR-02): Edit WAJIB punya AssignmentUnit sah ∈ UserUnits aktif coachee
+            // SEBELUM tx (Pitfall 4 — jangan pecah rebuild Phase 129). Tolak juga unit KOSONG: line 813
+            // menulis req.AssignmentUnit ke mapping AKTIF, blank → orphan (Invariant #4, persis yg dicegah
+            // indikator D-01). Parity dgn Assign (hard-require) + validasi client (submitEdit alert).
+            if (!await ValidateAssignmentUnitInUserUnits(_context, mapping.CoacheeId, unitEdit))
+                return Json(new { success = false, message = "Unit penugasan wajib dan harus anggota Unit aktif coachee." });
 
             // CRIT-02 fix: wrap ALL mutations (mapping fields, ProtonTrack rebuild, Phase 129
             // unit-change rebuild, audit log) in ONE transaction. Disk file deletes are deferred
@@ -886,6 +1021,17 @@ namespace HcPortal.Controllers
 
                 if (isValid) continue;
 
+                // Phase 401 (PSU-04): jangan clobber AssignmentUnit non-primary yang masih sah ∈ UserUnits (data-loss vector, spec §10).
+                if (!string.IsNullOrWhiteSpace(m.AssignmentUnit)
+                    && await ValidateAssignmentUnitInUserUnits(_context, m.CoacheeId, m.AssignmentUnit))
+                {
+                    // Unit existing sah ∈ UserUnits → PRESERVE. Perbaiki HANYA AssignmentSection bila kosong/invalid.
+                    if (userDict.TryGetValue(m.CoacheeId, out var ciPreserve) && !string.IsNullOrEmpty(ciPreserve.Section?.Trim()))
+                        m.AssignmentSection = ciPreserve.Section!.Trim();
+                    autoFixed++;
+                    continue;
+                }
+
                 // Try fix from coachee user record
                 if (userDict.TryGetValue(m.CoacheeId, out var coacheeInfo))
                 {
@@ -1027,6 +1173,10 @@ namespace HcPortal.Controllers
                 .AnyAsync(m => m.CoacheeId == mapping.CoacheeId && m.IsActive && m.Id != id);
             if (duplicateActive)
                 return Json(new { success = false, message = "Coachee sudah memiliki coach aktif lain. Nonaktifkan dulu sebelum mengaktifkan mapping ini." });
+
+            // Phase 401 (PSU-07b): tolak reaktivasi bila AssignmentUnit mapping sudah dilepas dari UserUnits coachee.
+            if (!await ValidateAssignmentUnitInUserUnits(_context, mapping.CoacheeId, mapping.AssignmentUnit))
+                return Json(new { success = false, message = "Unit penugasan mapping ini sudah dilepas dari Unit aktif coachee — tidak dapat diaktifkan kembali. Perbarui unit coachee dulu." });
 
             var actor = await _userManager.GetUserAsync(User);
             if (actor == null)
@@ -1402,21 +1552,30 @@ namespace HcPortal.Controllers
             // semua-unit track. Coachee di track multi-unit (mis. track id=4) hanya punya progress
             // untuk deliverable unit-nya — membandingkan dengan total semua unit membuatnya tak pernah
             // eligible. expectedCount per-unit MIRROR PERSIS filter AutoCreateProgressForAssignment.
+            // Phase 401 (D-03): actor untuk gate-block AuditLog (resolve sekali sebelum loop).
+            var actor = await _userManager.GetUserAsync(User);
+            var actorId = actor?.Id ?? "system";
+            var actorName = actor?.FullName ?? actor?.UserName ?? User.Identity?.Name ?? "system";
+
             var eligibleCoacheeIds = new List<string>();
             foreach (var coacheeId in assignedCoacheeIds)
             {
-                // Resolve unit per-coachee — MIRROR PERSIS AutoCreateProgressForAssignment L1342-1355
-                var assignmentUnit = await _context.CoachCoacheeMappings
+                // Phase 401 (PSU-01): resolusi unit PROTON HANYA dari AssignmentUnit eksplisit (fallback User.Unit DIBUANG — ambigu multi-unit).
+                var resolvedUnit = await _context.CoachCoacheeMappings
                     .Where(m => m.CoacheeId == coacheeId && m.IsActive)
                     .Select(m => m.AssignmentUnit)
                     .FirstOrDefaultAsync();
-                var resolvedUnit = assignmentUnit;
                 if (string.IsNullOrWhiteSpace(resolvedUnit))
-                    resolvedUnit = await _context.Users
-                        .Where(u => u.Id == coacheeId)
-                        .Select(u => u.Unit)
-                        .FirstOrDefaultAsync();
-                if (string.IsNullOrWhiteSpace(resolvedUnit)) continue; // unit tak terselesaikan → tidak eligible
+                {
+                    // PSU-05 / D-02 GATE-ELIGIBILITY = BLOCK (tak boleh eligible dgn unit ter-resolve dari primary).
+                    // D-03 channel = AuditLog persisted (event langka & signifikan, queryable compliance) + LogWarning.
+                    await _auditLog.LogAsync(actorId, actorName,
+                        "ProtonUnitUnresolved",
+                        $"Coachee {coacheeId} di-skip dari eligibility coaching: AssignmentUnit kosong (tak boleh resolve dari Unit primary).",
+                        targetType: "CoachCoacheeMapping");
+                    _logger.LogWarning("Eligibility skip: coachee {CoacheeId} AssignmentUnit kosong (gate-block).", coacheeId);
+                    continue;
+                }
 
                 // WR-01: expectedCount + myStatuses keduanya PER-UNIT (sumbu perbandingan identik).
                 // Ambil deliverable-id unit coachee (filter PERSIS .Trim() dua sisi seperti
@@ -1457,7 +1616,7 @@ namespace HcPortal.Controllers
         {
             var warnings = new List<string>();
 
-            // Resolve unit: AssignmentUnit from active mapping, fallback to User.Unit
+            // Phase 401 (PSU-01): resolusi unit HANYA dari AssignmentUnit active mapping (fallback User.Unit DIBUANG).
             var assignmentUnit = await _context.CoachCoacheeMappings
                 .Where(m => m.CoacheeId == coacheeId && m.IsActive)
                 .Select(m => m.AssignmentUnit)
@@ -1466,20 +1625,14 @@ namespace HcPortal.Controllers
             var resolvedUnit = assignmentUnit;
             if (string.IsNullOrWhiteSpace(resolvedUnit))
             {
-                resolvedUnit = await _context.Users
-                    .Where(u => u.Id == coacheeId)
-                    .Select(u => u.Unit)
-                    .FirstOrDefaultAsync();
-            }
-
-            if (string.IsNullOrWhiteSpace(resolvedUnit))
-            {
-                warnings.Add($"Coachee {coacheeId} tidak memiliki AssignmentUnit maupun Unit — progress tidak dibuat.");
+                // PSU-05 read-path (D-03): channel = LogWarning / warnings.Add SAJA — JANGAN _auditLog persisted (volume).
+                _logger.LogWarning("AutoCreateProgress skip: coachee {CoacheeId} AssignmentUnit kosong (read-path).", coacheeId);
+                warnings.Add($"Coachee {coacheeId} tidak memiliki AssignmentUnit — progress tidak dibuat (unit tak boleh diturunkan dari primary).");
                 return warnings;
             }
 
             // Phase 360 (PBYP-05): filter + insert diekstrak ke helper parametrik (unit eksplisit,
-            // guard anti-dobel B-06). Resolve unit (mapping → fallback User.Unit) tetap di sini.
+            // guard anti-dobel B-06). Resolve unit (Phase 401: AssignmentUnit-only, NO fallback) tetap di sini.
             return await ProtonDeliverableBootstrap.CreateProgressAsync(
                 _context, assignmentId, protonTrackId, coacheeId, resolvedUnit);
         }
@@ -1781,7 +1934,8 @@ public class CoachAssignRequest
     public int? ProtonTrackId { get; set; }
     public DateTime? StartDate { get; set; }
     public string? AssignmentSection { get; set; }
-    public string? AssignmentUnit { get; set; }
+    public string? AssignmentUnit { get; set; }                          // single — keep for back-compat fallback
+    public Dictionary<string, string>? AssignmentUnits { get; set; }     // Phase 402 (D-05): coacheeId -> unit (per-coachee)
     /// <summary>D-09: If true, user confirmed to proceed despite incomplete progression warning.</summary>
     public bool ConfirmProgressionWarning { get; set; }
 }
