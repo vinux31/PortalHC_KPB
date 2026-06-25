@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v32.8
 milestone_name: Exam Security & Audit Hardening
 status: verifying
-stopped_at: Completed 427-01-PLAN.md
-last_updated: "2026-06-24T13:46:44.798Z"
-last_activity: 2026-06-24
+stopped_at: Phase 428 context gathered
+last_updated: "2026-06-25T00:46:30.613Z"
+last_activity: 2026-06-24 -- Phase 427 plan 01 executed (EXSEC-01)
 progress:
   total_phases: 15
   completed_phases: 2
@@ -143,6 +143,6 @@ Backlog tracked: 999.9 · 999.11 · 999.12 · 999.13 (FLOW-08 token server-auth)
 
 Last activity: 2026-06-23
 
-Stopped at: Completed 427-01-PLAN.md
+Stopped at: Phase 428 context gathered
 
 Next action: **`/gsd-discuss-phase 421`** (Retake Lifecycle Hardening; RTH-01..05; RTK-LOGIC-02 🔴 retake dead-end). Phase 420 done. Urutan eksekusi **sekuensial by file-overlap** 420 -> 421 -> 422 -> 423 -> 424 -> 425. Domain 420: `Views/Admin/CreateAssessment.cshtml`/`EditAssessment.cshtml` + `AssessmentAdminController` binding. migration=FALSE (420). ⚠️ migration TBD-confirm saat plan-phase 422 (SamePackage toggle editable) & 425 (CLN-03 drop `AssessmentPhase`). App port **5270** (branch ITHandoff; 5277 dipakai worktree main). NOT pushed (deploy bundle v32.1+v32.3+v32.4+v32.7). ⚠️ 422 (+420) overlap v32.6 (branch main, Section+ScopedShuffle) — rekonsiliasi saat merge, JANGAN duplikasi.
