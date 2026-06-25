@@ -2,7 +2,7 @@
 // Menguji 3 kasus endpoint worker self-service POST CMP/RetakeExam(id):
 //   1. non-owner (assessment.UserId != effective user) → ForbidResult (IDOR guard SEBELUM mutasi).
 //   2. not-eligible (CanRetakeAsync false) → RedirectToAction("Results") + TempData["Error"] (server-authoritative).
-//   3. sukses (failed+eligible+cooldown lewat) → TempData["TokenVerified_{id}"] TERHAPUS + RedirectToAction("StartExam").
+//   3. sukses (failed+eligible+cooldown lewat) → kolom DB TokenVerifiedAt di-reset null (EXSEC-01, server-authoritative) + RedirectToAction("StartExam").
 //
 // Strategy (Opsi A): controller unit test atas RetakeServiceFixture (real-SQL disposable DB @localhost\SQLEXPRESS,
 // MigrateAsync full chain incl AddRetakeColumnsAndArchive) — reuse RetakeServiceFixture + NoOpHubContext dari
@@ -148,7 +148,7 @@ public class RetakeExamEndpointTests : IClassFixture<RetakeServiceFixture>
         ApplicationDbContext ctx, string userId, string title, string category,
         string status = "Completed", bool? isPassed = false, bool allowRetake = true,
         int maxAttempts = 2, int cooldownHours = 0, DateTime? completedAt = null,
-        string? assessmentType = null, bool isManualEntry = false)
+        string? assessmentType = null, bool isManualEntry = false, DateTime? tokenVerifiedAt = null)
     {
         var s = new AssessmentSession
         {
@@ -157,7 +157,7 @@ public class RetakeExamEndpointTests : IClassFixture<RetakeServiceFixture>
             IsPassed = isPassed, AllowRetake = allowRetake, MaxAttempts = maxAttempts,
             RetakeCooldownHours = cooldownHours, CompletedAt = completedAt,
             AssessmentType = assessmentType, IsManualEntry = isManualEntry,
-            Score = 50, Progress = 100
+            Score = 50, Progress = 100, TokenVerifiedAt = tokenVerifiedAt
         };
         ctx.AssessmentSessions.Add(s);
         await ctx.SaveChangesAsync();
@@ -214,22 +214,24 @@ public class RetakeExamEndpointTests : IClassFixture<RetakeServiceFixture>
         await using var ctx = NewCtx();
         var owner = await SeedUserAsync(ctx);
         // Owner sign-in, sesi failed+eligible (cooldown 0 → lewat) → CanRetakeAsync true.
+        // Sesi sebelumnya sudah verifikasi token (kolom DB ter-stamp) — sukses-case WAJIB me-reset-nya null (EXSEC-01).
         var sessionId = await SeedSessionAsync(ctx, owner.Id, "FailedTitle", "Test",
             status: "Completed", isPassed: false, allowRetake: true, maxAttempts: 2,
-            cooldownHours: 0, completedAt: DateTime.UtcNow.AddDays(-2));
+            cooldownHours: 0, completedAt: DateTime.UtcNow.AddDays(-2),
+            tokenVerifiedAt: DateTime.UtcNow.AddMinutes(-30));
 
-        var (ctrl, tempData) = MakeController(ctx, owner);
-        // Seed token verified (StartExam pakai Peek non-consume) — sukses-case WAJIB menghapusnya (must-fix #1).
-        tempData[$"TokenVerified_{sessionId}"] = true;
+        var (ctrl, _) = MakeController(ctx, owner);
 
         var result = await ctrl.RetakeExam(sessionId);
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("StartExam", redirect.ActionName);
-        Assert.False(tempData.ContainsKey($"TokenVerified_{sessionId}"));   // token TERHAPUS — re-arm lobby
-        // Sesi ter-reset ke Open (ExecuteAsync claim sukses).
+        // EXSEC-01 (Phase 427): token gate kini server-authoritative — retake me-reset kolom DB TokenVerifiedAt=null
+        // via single-source RetakeService (bukan lagi TempData). Sesi ter-reset ke Open (ExecuteAsync claim sukses).
         await using var verify = NewCtx();
-        var status = await verify.AssessmentSessions.Where(a => a.Id == sessionId).Select(a => a.Status).SingleAsync();
-        Assert.Equal("Open", status);
+        var row = await verify.AssessmentSessions.Where(a => a.Id == sessionId)
+            .Select(a => new { a.Status, a.TokenVerifiedAt }).SingleAsync();
+        Assert.Equal("Open", row.Status);
+        Assert.Null(row.TokenVerifiedAt);   // token gate re-arm — minta token ulang di percobaan baru
     }
 }
