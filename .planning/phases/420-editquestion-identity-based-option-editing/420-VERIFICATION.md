@@ -1,9 +1,11 @@
 ---
 phase: 420-editquestion-identity-based-option-editing
 verified: 2026-06-25T00:00:00Z
-status: human_needed
-score: 5/6
+status: passed
+score: 6/6
+resolved_note: "Human-verification leg (VRF-01 Playwright real-browser) executed in Plan 03 and PASSED 3/3 DB-verified — see 420-UAT.md (status: passed). All 3 human_verification items below confirmed. Status flipped human_needed → passed at v32.9 milestone close 2026-06-25."
 overrides_applied: 0
+human_verification_resolved: true
 human_verification:
   - test: "Jalankan Playwright UAT real-browser: buka ManagePackageQuestions, edit soal MC 4-opsi yang sudah dijawab peserta di posisi tengah (B), hapus baris B, klik Simpan. Assert: pesan error memuat 'sudah dijawab' dan 'B'; DB opsi B masih ada."
     expected: "Alert/TempData error muncul dengan wording guard; soal tetap 4 opsi di DB."

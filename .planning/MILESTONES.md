@@ -1,5 +1,23 @@
 # Milestones
 
+## v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based) (Shipped: 2026-06-25)
+
+**Phases completed:** 1 phase, 3 plans · **migration=FALSE** · branch main (NOT PUSHED) · audit PASSED 6/6 REQ
+
+**Delivered:** Menghapus/mengedit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap — mekanisme upsert opsi `EditQuestion` POST diganti dari posisional (`existing[i]` by Id) menjadi identity-based (match `PackageOption` by stable `Id`). Menutup backlog 999.15 (verified reproduces on main). Git range: `f102879d`..`cf8595e3` (code) / `f4e291da`..`ef04be1d` (full phase incl docs).
+
+**Key accomplishments:**
+
+- EditQuestion POST: loop upsert posisional diganti identity-based — carrier `OptionInput.Id` (hidden per baris) + anti-tamper fail-closed pre-mutation (Id submit harus ∈ `existingIds`; tolak duplikat) + `removedOptionIds = existingIds.Except(keptIds)` (set-difference by Id, kill-drift: guard + upsert pakai himpunan sama) + reuse `OptionShrinkGuard.FindBlockedOptionIds` + UPDATE/REMOVE/ADD by Id; GET JSON emit `id`. Hapus opsi tengah membuang record yang BENAR; guard answered-option menyala untuk delete posisi MANAPUN (bukan cuma ekor). [OPTEDIT-01..04]
+- Authoring form `ManagePackageQuestions.cshtml`: hidden `options[i].Id` carrier per baris (clone dengan baris) + `reletterRows` rename-preserve-value + `populateEditForm` isi dari GET JSON `opt.id` + **clone-reset hapus hidden Id (GOTCHA §2c)** — tanpa ini baris baru mewarisi Id baris[0] → opsi baru senyap meng-UPDATE opsi A. [OPTEDIT-05]
+- Integritas lintas-surface terbukti: `PackageUserResponse` simpan `PackageOptionId` saja (no text snapshot); karena edit kini UPDATE-by-Id (bukan relabel posisional), jawaban tercatat peserta tetap menunjuk record `PackageOption` yang sama di semua surface (Results/grading/Excel/PDF/EssayGrading semua JOIN by Id, bukan posisi). [OPTEDIT-03]
+- Verifikasi: integration test real-SQL (2 ported TEST1/2 + 7 baru: middle-delete/edit-by-id/MC→Essay-no-500/anti-tamper/add-no-overwrite/dup-Id/add-as-correct) + CR-01 fix (SectionFix tests → identity contract + Id-stability assert) → full suite **702/702 PASS** (SQLEXPRESS, 0 regresi); Playwright real-browser UAT **3/3 PASS DB-verified** (S1 delete-answered-middle blocked no-500, S2 delete-unanswered-middle no-relabel, S3 add-option clone-gotcha A-not-overwritten) dengan SEED_WORKFLOW snapshot→restore (DB pristine). [VRF-01]
+- Semua gerbang hijau: verify 6/6, code-review (1 Crit + 2 Warn FIXED, 2 accepted), security SECURED 7/7 threats_open:0 (ASVS L1; IDOR/mass-assign + dup-Id + silent-relabel + FK-Restrict-500 + XSS all closed), nyquist COMPLIANT. Regression-lock 999.14 (konversi MC/MA→Essay + shrink terjawab → blocked no-500) dipertahankan.
+
+**Known deferred items at close:** 60 pre-existing cross-project items acknowledged (14 diagnosed debug sessions + 45 quick-tasks + 1 db-cleanup todo — all OLD/other-feature, predate v32.9; same set deferred at v32.6 close). See STATE.md `## Deferred Items`. None block ship.
+
+---
+
 ## v32.6 Section + Scoped Shuffle + Pagination + Opsi Dinamis (Shipped: 2026-06-24)
 
 **Phases completed:** 6 phases, 20 plans, 41 tasks

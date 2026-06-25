@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v32.9
 milestone_name: EditQuestion Option-Edit Data Integrity (Identity-Based)
-status: executing
-stopped_at: Phase 420 COMPLETE (all gates green); milestone v32.9 ready for audit
-last_updated: "2026-06-25T01:53:35.406Z"
-last_activity: 2026-06-25 -- Phase 420 planning complete
+status: milestone_complete
+stopped_at: v32.9 CLOSED + archived + tagged local 2026-06-25; ready for /gsd-new-milestone
+last_updated: "2026-06-25T02:45:55.106Z"
+last_activity: 2026-06-25 -- v32.9 milestone closed (audit PASSED 6/6, archived, tagged)
 progress:
-  total_phases: 7
+  total_phases: 1
   completed_phases: 1
   total_plans: 3
   completed_plans: 3
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.9 — EditQuestion Option-Edit Data Integrity (mendefinisikan requirements + roadmap)
+**Current focus:** v32.9 ✅ CLOSED 2026-06-25 — planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 420 — EditQuestion Identity-Based Option Editing (not started)
+Phase: — (v32.9 closed; Phase 420 shipped)
 Plan: —
-Status: Ready to execute
-Last activity: 2026-06-25 -- Phase 420 planning complete
+Status: Milestone v32.9 complete — archived (`milestones/v32.9-*`) + tagged local `v32.9`. NOT PUSHED.
+Last activity: 2026-06-25 -- v32.9 closed (audit PASSED 6/6 REQ, integration SOUND, suite 702/702, Playwright UAT 3/3)
 
 Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** — hapus/edit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap. Ganti upsert opsi POSISIONAL di `AssessmentAdminController.cs` EditQuestion POST menjadi **IDENTITY-based** (match baris input ke `PackageOption` existing by stable `Id`, bukan posisi) → hapus opsi tengah membuang record yang BENAR + guard answered-option (D-418-02) menyala untuk delete posisi MANAPUN. **migration=FALSE**. Branch main. Fase mulai **420** (lanjut dari 419).
 
@@ -90,12 +90,13 @@ Next action: **`/gsd-plan-phase 420`** (atau `/gsd-discuss-phase 420` dulu — f
 
 ## Deferred Items
 
-Items acknowledged + deferred at v32.6 milestone close (2026-06-24) — pre-existing cross-project debt + GSD UAT-convention status-staleness, NOT blockers:
+Items acknowledged + deferred at **v32.9 milestone close (2026-06-25)** — same pre-existing cross-project debt carried from v32.6 close, NOT blockers (Phase 420-specific verification staleness was RESOLVED before close, not deferred):
 
 | Category | Count | Note |
 |----------|-------|------|
-| debug sessions | 14 | [diagnosed] — OLD/other features (KKJ matrix, paste-excel, monitoring, team-view) — predate v32.6 |
-| quick tasks | 45 | project-wide backlog (KKJ/CPDP/dll) |
-| backlog 999.x | 5 | 999.13/14/15/16 + 999.9/999.5 — verified+triaged 2026-06-24 (lihat Backlog Housekeeping di atas) |
+| debug sessions | 14 | [diagnosed] — OLD/other features (KKJ matrix, paste-excel, monitoring, team-view, user-assessment-history-404, delete-single-assessment) — predate v32.9 |
+| quick tasks | 45 | project-wide backlog (KKJ/CPDP/records/dll) |
+| pending todos | 1 | 2026-06-11 one-time-cleanup data test lokal (database) |
+| backlog 999.x | 4 | 999.13/999.16 permanent-defer (no-op/benign) + 999.9/999.5 dropped-stale; **999.14 = regression-lock di 420, 999.15 = SHIPPED via 420** |
 
 Full audit: `gsd-tools audit-open`. None block ship.
