@@ -1,10 +1,11 @@
 ---
 phase: 428
 slug: startexam-write-on-get-idempotency
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-25
+validated: 2026-06-25
 ---
 
 # Phase 428 — Validation Strategy
@@ -38,8 +39,8 @@ created: 2026-06-25
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 428-01-01 | 01 | 1 | EXSEC-02 | T-428-01 | GET StartExam TIDAK persist transisi Upcoming→Open; effective-status in-memory; gate time/GRDF/token/window utuh | refactor | `dotnet build` + grep (no `Status = "Open"` + SaveChanges di GET) | ❌ W0 | ⬜ pending |
-| 428-01-02 | 01 | 1 | EXSEC-02 | T-428-01 | Idempotensi GET + gate parity terbukti real-SQL | integration | `dotnet test --filter "FullyQualifiedName~StartExamIdempotencyTests"` | ❌ W0 (6 test) | ⬜ pending |
+| 428-01-01 | 01 | 1 | EXSEC-02 | T-428-01/03/04 | GET StartExam TIDAK persist transisi Upcoming→Open; effective-status in-memory; gate time/GRDF/token/window utuh | refactor | `dotnet build` + grep (0× `Status = "Open"` di GET; 1× `Schedule > nowWib`) | ✅ `Controllers/CMPController.cs` | ✅ COVERED |
+| 428-01-02 | 01 | 1 | EXSEC-02 | T-428-01..05 | Idempotensi GET + gate parity terbukti real-SQL | integration | `dotnet test --filter "FullyQualifiedName~StartExamIdempotencyTests"` | ✅ `HcPortal.Tests/StartExamIdempotencyTests.cs` (6 test) | ✅ COVERED |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -47,13 +48,13 @@ created: 2026-06-25
 
 ## Wave 0 Requirements
 
-- [ ] `HcPortal.Tests/StartExamIdempotencyTests.cs` — 6 test real-SQL (reuse RetakeServiceFixture + CMPController factory + StubSession impersonation)
-  - [ ] `StartExam_Impersonate_TimeArrivedUpcoming_RendersWithoutPersisting` (SC#1/#2 — Status tetap Upcoming, ViewResult)
-  - [ ] `StartExam_Impersonate_DoubleGet_StatusStaysUpcoming` (SC#1 idempoten)
-  - [ ] `StartExam_Upcoming_NotYetTime_BlocksAndNoWrite` (SC#3 time-gate)
-  - [ ] `StartExam_PostTest_PreNotCompleted_Blocks` (SC#3 GRDF-01)
-  - [ ] `StartExam_Owner_TimeArrived_StartsInProgress` (SC#4 worker start end-to-end)
-  - [ ] `StartExam_TokenRequired_NotVerified_Blocks` (regresi 427 token-gate)
+- [x] `HcPortal.Tests/StartExamIdempotencyTests.cs` — 6 test real-SQL (reuse RetakeServiceFixture + CMPController factory + StubSession impersonation)
+  - [x] `StartExam_Impersonate_TimeArrivedUpcoming_RendersWithoutPersisting` (SC#1/#2 — Status tetap Upcoming, ViewResult)
+  - [x] `StartExam_Impersonate_DoubleGet_StatusStaysUpcoming` (SC#1 idempoten)
+  - [x] `StartExam_Upcoming_NotYetTime_BlocksAndNoWrite` (SC#3 time-gate)
+  - [x] `StartExam_PostTest_PreNotCompleted_Blocks` (SC#3 GRDF-01)
+  - [x] `StartExam_Owner_TimeArrived_StartsInProgress` (SC#4 worker start end-to-end)
+  - [x] `StartExam_TokenRequired_NotVerified_Blocks` (regresi 427 token-gate)
 
 ---
 
@@ -69,11 +70,29 @@ created: 2026-06-25
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (StartExamIdempotencyTests 6 test)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (StartExamIdempotencyTests 6 test)
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-06-25
+
+---
+
+## Validation Audit 2026-06-25
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+State A audit. Kontrak Wave-0 dipenuhi penuh saat execute (Phase 428-01). Bukti hidup:
+- `dotnet test --filter "FullyQualifiedName~StartExamIdempotencyTests"` → **6/6 PASS** (real-SQL, verifier 2026-06-25).
+- Full suite `dotnet test HcPortal.Tests` → **784 passed / 2 skipped / 0 failed** (no regresi; +6 dari 778 pra-428).
+- Static: grep `assessment.Status = "Open"` di `Controllers/CMPController.cs` = 0 (di StartExam); `Schedule > nowWib` = 1.
+- migration=FALSE (tak ada file Migrations/ baru).
+
+Tidak ada test di-generate (zero gap). Nyquist-compliant.
