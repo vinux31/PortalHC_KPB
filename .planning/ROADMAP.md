@@ -1434,37 +1434,7 @@ Plans:
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
-### Phase 999.13: FLOW-08 — Token exam server-authoritative (kolom TokenVerifiedAt) (PROMOTED -> v32.8 Phase 427 / EXSEC-01, 2026-06-24)
-
-**Goal:** [Captured Phase 425 D-03 defer, 2026-06-24] Token gate auto-submit ujian saat ini pakai `TempData.Peek` (FLOW-08) — bukan server-authoritative. Usul: kolom `TokenVerifiedAt` di sesi untuk verifikasi token sisi-server yang persisten (tahan terhadap manipulasi TempData/round-trip). **Hardening, BUKAN bug** — by-design + sudah dimitigasi (impersonation guard aktif). Di-defer dari Phase 425 (fase cleanup low-risk) karena butuh **migration + ubah-perilaku** = risiko regresi tinggi.
-
-**Context:**
-- Sumber: `425-CONTEXT.md` `<deferred>` (D-03) + `docs/prepost-audit/2026-06-22-evaluasi-pretest-posttest.md` (FLOW-08) + `v32.7-MILESTONE-AUDIT.md` tech_debt + `425-SECURITY.md` AR-425-01 (accepted risk).
-- Situs: token gate `CMPController.cs` (`TempData.Peek`, sekitar SubmitExam auto-submit path — re-grep `AutoSubmitToken` / `TempData.Peek` sebelum plan; line drift ITHandoff).
-- Implikasi: migration=TRUE (kolom baru `TokenVerifiedAt`). Verifikasi paritas perilaku token existing + impersonation guard tetap.
-
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
----
-
-### Phase 999.14: FLOW-10 — Write-on-GET StartExam side-effect refactor (Upcoming→Open) (PROMOTED -> v32.8 Phase 428 / EXSEC-02, 2026-06-24)
-
-**Goal:** [Captured Phase 425 D-03 defer, 2026-06-24] GET `StartExam` melakukan side-effect mutasi status (Upcoming→Open) — write-on-GET (FLOW-10), melanggar idempotensi GET. Usul: pindah/amankan side-effect ke jalur POST atau guarded transition. **Dimitigasi** (impersonation guard) — di-defer dari Phase 425 karena ubah-perilaku di fase cleanup = risiko regresi.
-
-**Context:**
-- Sumber: `425-CONTEXT.md` `<deferred>` (D-03) + audit FLOW-10 + `v32.7-MILESTONE-AUDIT.md` tech_debt + `425-SECURITY.md` AR-425-01 (accepted risk).
-- Situs: blok GET `StartExam` di `CMPController.cs` (re-grep `StartExam` + transition Upcoming→Open sebelum plan; line drift ITHandoff). Integration checker v32.7 konfirmasi blok GET StartExam TIDAK disentuh Phase 425 (utuh).
-- Implikasi: hati-hati gating Pre→Post (GRDF-01/Phase 424) yang juga gate di StartExam — jangan ganggu. Kemungkinan migration=FALSE (refactor logic), TBD plan.
-
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
+> **Promoted & SHIPPED in v32.8** (audit PASSED 2026-06-25): 999.11 → Phase 426 (AUDIT-01), 999.13 → Phase 427 (EXSEC-01, migration=TRUE `AddTokenVerifiedAt`), 999.14 → Phase 428 (EXSEC-02). Resolved dari backlog — detail di `## v32.8` + `.planning/v32.8-MILESTONE-AUDIT.md`.
 
 ---
 
@@ -1476,23 +1446,6 @@ Plans:
 - Precondition TERPENUHI: Phase 367 (Delete Records Cascade Overhaul) SHIPPED (`15cfbbcb`, cascade aman 28-temuan ditutup). DB lokal saat ini 2026-06-21: 60 sesi total, ~45 match pola test/legacy (filter LUAS — review per-sesi, hati-hati jangan tangkap data riil).
 - SOP: snapshot DB (`sqlcmd BACKUP` + SEED_JOURNAL) → hapus via fitur cascade-delete 367 (preview konfirmasi, BUKAN raw SQL — raw = orphan-bleed) → verify zero-orphan per-tabel (pola integration test 367 SC1) → bisa digabung one-time cleanup AttemptHistory orphan (Phase 368).
 - Sumber: di-promote dari `.planning/todos/completed/2026-06-11-one-time-cleanup-data-test-lokal-setelah-367-ship.md` saat close v32.3.
-
-**Requirements:** TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
----
-
-### Phase 999.11: Audit trail EditOrganizationUnit cascade (rename/reparent) — gap traceability (PROMOTED -> v32.8 Phase 426 / AUDIT-01, 2026-06-24)
-
-**Goal:** [Captured Phase 403 review/verify, 2026-06-19] `EditOrganizationUnit` TIDAK menulis `AuditLog` padahal `DeleteOrganizationUnit` menulis (asimetri pre-existing). Phase 403 memperlebar cascade ke junction `UserUnits` (incl baris IsActive=false) → mutasi admin-only rename/reparent unit tak ter-trace.
-
-**Context:**
-- Sumber: `403-REVIEW.md` WR-01 (non-blocking, 0C/1W/3I) + `403-VERIFICATION.md` notes (passed 7/7).
-- Fix: tiru pola audit `DeleteOrganizationUnit` setelah `tx.CommitAsync()` (log actor NIP/nama + jumlah `cascadedUsers`/`cascadedMappings`/`cascadedUserUnits`).
-- NON-security (authz/CSRF utuh; ini murni traceability). Pre-existing — bukan regresi 403.
 
 **Requirements:** TBD
 **Plans:** 0 plans
