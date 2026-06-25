@@ -40,24 +40,26 @@
 
 **Goal:** Hapus/edit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap. Ganti upsert opsi POSISIONAL di `AssessmentAdminController.cs` EditQuestion POST menjadi **IDENTITY-based** (match baris input ke `PackageOption` existing by stable `Id`). **migration=FALSE** · branch main · fase mulai **420** (lanjut dari 419).
 
-**Roadmap (1 fase):**
+### Phases
 
-- [ ] **Phase 420**: EditQuestion Identity-Based Option Editing — OPTEDIT-01..05 + VRF-01; migration=FALSE
+- [ ] **Phase 420: EditQuestion Identity-Based Option Editing** — Upsert opsi posisional → identity-based (no silent relabel); OPTEDIT-01..05 + VRF-01. migration=FALSE.
 
 ### Phase Details
 
-**Phase 420: EditQuestion Identity-Based Option Editing**
-Goal: Ganti mekanisme upsert opsi di `EditQuestion` POST dari posisional (`existing[i]` by Id) ke identity-based (hidden `OptionId` per baris form `ManagePackageQuestions.cshtml` + match input→existing `PackageOption` by stable `Id` di controller), sehingga menghapus/mengedit opsi (termasuk opsi tengah) pada soal yang sudah dijawab tidak lagi me-relabel jawaban peserta secara senyap; guard answered-option (D-418-02) menyala untuk delete posisi manapun. Pertahankan regression-lock 999.14.
-Requirements: OPTEDIT-01, OPTEDIT-02, OPTEDIT-03, OPTEDIT-04, OPTEDIT-05, VRF-01
-Depends on: — (fase pertama milestone)
-Migration: FALSE
+### Phase 420: EditQuestion Identity-Based Option Editing
+**Goal**: Ganti mekanisme upsert opsi di `EditQuestion` POST dari posisional (`existing[i]` by Id) ke identity-based (hidden `OptionId` per baris form `ManagePackageQuestions.cshtml` + match input→existing `PackageOption` by stable `Id` di controller), sehingga menghapus/mengedit opsi (termasuk opsi tengah) pada soal yang sudah dijawab tidak lagi me-relabel jawaban peserta secara senyap; guard answered-option (D-418-02) menyala untuk delete posisi manapun. Pertahankan regression-lock 999.14.
+**Depends on**: Nothing (fase pertama milestone)
+**Requirements**: OPTEDIT-01, OPTEDIT-02, OPTEDIT-03, OPTEDIT-04, OPTEDIT-05, VRF-01
+**Migration**: FALSE
 ⚠️ Fix ubah MEKANISME upsert, BUKAN sekadar perketat threshold guard (in-code note `AAC:8027-8035` — upsert posisional di-LOCK spec D-418-02). UAT real-browser WAJIB (lesson 354 — Razor/JS authoring form).
-Success criteria:
-1. HC menghapus opsi di tengah pada soal yang BELUM dijawab → record opsi yang benar (yang dipilih HC) yang terhapus; teks/kebenaran opsi tersisa utuh (tak ter-relabel/tergeser). [OPTEDIT-01]
-2. HC menghapus opsi yang SUDAH dijawab peserta (posisi MANAPUN, termasuk tengah) → ditolak dengan pesan ramah; jawaban peserta tidak berubah. [OPTEDIT-02]
-3. HC mengedit teks/kebenaran opsi yang sudah dijawab → jawaban peserta tetap merujuk opsi yang sama secara semantik di Results/grading/PDF (match by Id, bukan posisi). [OPTEDIT-03]
-4. Konversi soal MC/MA→Essay + penyusutan opsi pada soal terjawab tetap ditolak tanpa error 500 (regression-lock 999.14, guard D-418-02 tetap berlaku). [OPTEDIT-04]
-5. CreateQuestion (soal baru) + edit soal belum-dijawab + import Excel tetap berfungsi normal; integration test controller-level mereproduksi relabel-senyap lalu membuktikan diblokir + Playwright UAT real-browser form authoring PASS. [OPTEDIT-05 + VRF-01]
+**Success Criteria** (what must be TRUE):
+  1. HC menghapus opsi di tengah pada soal yang BELUM dijawab → record opsi yang benar (yang dipilih HC) yang terhapus; teks/kebenaran opsi tersisa utuh (tak ter-relabel/tergeser). [OPTEDIT-01]
+  2. HC menghapus opsi yang SUDAH dijawab peserta (posisi MANAPUN, termasuk tengah) → ditolak dengan pesan ramah; jawaban peserta tidak berubah. [OPTEDIT-02]
+  3. HC mengedit teks/kebenaran opsi yang sudah dijawab → jawaban peserta tetap merujuk opsi yang sama secara semantik di Results/grading/PDF (match by Id, bukan posisi). [OPTEDIT-03]
+  4. Konversi soal MC/MA→Essay + penyusutan opsi pada soal terjawab tetap ditolak tanpa error 500 (regression-lock 999.14, guard D-418-02 tetap berlaku). [OPTEDIT-04]
+  5. CreateQuestion (soal baru) + edit soal belum-dijawab + import Excel tetap berfungsi normal; integration test controller-level mereproduksi relabel-senyap lalu membuktikan diblokir + Playwright UAT real-browser form authoring PASS. [OPTEDIT-05 + VRF-01]
+**File-overlap**: `Controllers/AssessmentAdminController.cs` (EditQuestion/CreateQuestion authoring), `Views/Admin/ManagePackageQuestions.cshtml` (authoring form — hidden OptionId carrier).
+**UI hint**: yes
 
 ### Progress
 
