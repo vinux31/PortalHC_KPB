@@ -546,3 +546,11 @@ docs/test-reports/
 
 # Runtime download artifacts (test exports, downloaded reports)
 downloads/
+
+# Local-only exam source material (soal mentah utk upload — binary/besar, jangan commit)
+docs/Soal/
+docs/Tipe A.xlsx
+docs/KPB - Licensor Training - SRU - Pre Test batch 1.xlsx
+
+# Transient discuss-power artifact (fase 395, sudah ship)
+docs/395-QUESTIONS.json
