@@ -362,8 +362,8 @@ Plans:
 
 </details>
 
-<details open>
-<summary>📋 v32.3 Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial (Phases 399-404) — ROADMAP created 2026-06-18 (24/24 REQ, migration=TRUE [Phase 399 only])</summary>
+<details>
+<summary>✅ v32.3 Akun Multi-Unit (dalam 1 Bagian) + Coaching Cross-Unit + PROTON Sekuensial (Phases 399-404) — SHIPPED local + audited PASSED + closed 2026-06-21 (24/24 REQ, migration=TRUE Phase 399 only) — <a href="milestones/v32.3-ROADMAP.md">archive</a> — <a href="milestones/v32.3-MILESTONE-AUDIT.md">audit</a></summary>
 
 **Status:** Roadmap created 2026-06-18 (spec-driven; brainstorm + 22-agent codebase investigation selesai). NOT YET PLANNED.
 **Spec:** `docs/superpowers/specs/2026-06-18-akun-multi-unit-within-bagian-design.md` (AUTHORITATIVE — §5 phase breakdown, §6 dependency+parallelism, §7 invariants, §8 out-of-scope, §10 risks).
@@ -548,8 +548,8 @@ See .planning/MILESTONES.md for full history.
 
 </details>
 
-<details open>
-<summary>✅ v32.1 Perbaikan Teks & Desain (Phases 388-390 + 390.1) — SHIPPED local + closed 2026-06-18 (7/7 REQ, 0 migration)</summary>
+<details>
+<summary>✅ v32.1 Perbaikan Teks & Desain (Phases 388-390 + 390.1) — SHIPPED local + closed 2026-06-18 (7/7 REQ, 0 migration) — <a href="milestones/v32.1-ROADMAP.md">archive</a> — <a href="milestones/v32.1-MILESTONE-AUDIT.md">audit</a></summary>
 
 **Status:** Roadmap created 2026-06-17 (skip domain-research — pure UI/teks polish, arah desain sudah terkunci via brainstorm + visual-companion). NOT YET PLANNED.
 **Goal:** Rapikan teks & tampilan 3 surface (hasil assessment + 2 halaman Admin coach) — murni UI/teks, tanpa ubah backend/perilaku/migration. (main pegang v32.0 di branch terpisah; branch ITHandoff ini = v32.1)
