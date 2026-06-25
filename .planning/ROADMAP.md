@@ -102,7 +102,7 @@
   3. Gate GRDF-01 (Post butuh Pre Completed, ph424) dan time-gate StartExam tetap berfungsi di GET (tidak ter-degradasi oleh refactor). *(EXSEC-02)*
   4. Worker yang membuka ujian yang sudah waktunya tetap dapat memulai ujian dengan benar (alur exam-taking utuh end-to-end); impersonation guard existing tetap read-only. *(EXSEC-02)*
 **Plans:** 1 plan
-- [ ] 428-01-PLAN.md — Refactor StartExam GET ke effective-status in-memory (hapus persist Upcoming->Open) + 6 test idempotensi real-SQL (EXSEC-02)
+- [x] 428-01-PLAN.md — Refactor StartExam GET ke effective-status in-memory (hapus persist Upcoming->Open) + 6 test idempotensi real-SQL (EXSEC-02)
 **UI hint:** no
 
 **v32.8 mapped: 3/3 ✓ (AUDIT-01 → 426 · EXSEC-01 → 427 · EXSEC-02 → 428) — Orphans: 0 — Duplicates: 0 — migration=TRUE Phase 427 only (426/428=FALSE). Urutan: 426 file-disjoint (independen); 427 → 428 SEKUENSIAL WAJIB (shared StartExam di CMPController.cs). ⚠️ R-1 StartExam = zona konflik PASTI vs main — pertahankan KEDUA saat merge (GRDF-01 setelah cek-Completed sebelum token-gate); R-2 AddTokenVerifiedAt stamp setelah semua migrasi kedua branch + regen snapshot.**
@@ -113,7 +113,7 @@
 |-------|----------------|--------|-----------|
 | 426. Audit-Log EditOrganizationUnit (AUDIT-01) | 1/1 | Complete   | 2026-06-24 |
 | 427. Exam Token-Gate Server-Authoritative (EXSEC-01) | 1/1 | Complete   | 2026-06-24 |
-| 428. StartExam Write-on-GET Idempotency (EXSEC-02) | 0/1 | Not started | - |
+| 428. StartExam Write-on-GET Idempotency (EXSEC-02) | 1/1 | Complete   | 2026-06-25 |
 
 </details>
 

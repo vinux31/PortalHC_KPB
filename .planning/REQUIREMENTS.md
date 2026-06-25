@@ -15,7 +15,7 @@ Requirements untuk milestone v32.8. Tiap REQ memetakan satu backlog item + temua
 ### EXSEC — Exam Security Hardening (Phases 427-428)
 
 - [x] **EXSEC-01**: Verifikasi token ujian bersifat server-authoritative via kolom `AssessmentSession.TokenVerifiedAt` (menggantikan `TempData.Peek`), dan di-reset (`=null`) saat retake/`ResetExam` agar gate re-arm konsisten. **migration=TRUE** (`AddTokenVerifiedAt`, `DateTime? null` aditif). [999.13 / FLOW-08]
-- [ ] **EXSEC-02**: `StartExam` tidak melakukan mutasi status via GET (idempotensi GET) — side-effect transisi `Upcoming→Open` dipindah/diamankan ke jalur POST atau guarded, tanpa mengganggu gate GRDF-01 (Pre→Post) dan time-gate yang tetap berjalan di GET. [999.14 / FLOW-10]
+- [x] **EXSEC-02**: `StartExam` tidak melakukan mutasi status via GET (idempotensi GET) — side-effect transisi `Upcoming→Open` dipindah/diamankan ke jalur POST atau guarded, tanpa mengganggu gate GRDF-01 (Pre→Post) dan time-gate yang tetap berjalan di GET. [999.14 / FLOW-10]
 
 ## Future Requirements (deferred)
 
@@ -34,7 +34,7 @@ Requirements untuk milestone v32.8. Tiap REQ memetakan satu backlog item + temua
 |-------------|-------|--------|
 | AUDIT-01 | Phase 426 | Complete |
 | EXSEC-01 | Phase 427 | Complete |
-| EXSEC-02 | Phase 428 | Pending |
+| EXSEC-02 | Phase 428 | Complete |
 
 **Coverage:** 3/3 v1 REQ mapped ke 3 fase (426-428), 0 orphan, 0 duplikat. migration=TRUE hanya Phase 427.
 
