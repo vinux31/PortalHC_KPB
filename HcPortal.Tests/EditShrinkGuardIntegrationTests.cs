@@ -597,4 +597,50 @@ public class EditShrinkGuardIntegrationTests : IClassFixture<SectionFixture>
             Assert.Equal(new[] { "A", "B", "C", "D" }, q.Options.OrderBy(o => o.Id).Select(o => o.OptionText).ToArray());
         }
     }
+
+    // #7 (WR-02 coverage): tambah opsi BARU (Id null) DAN jadikan opsi baru itu jawaban benar (correctIndex
+    // menunjuk baris null-Id). Buktikan correctIndex resolusi posisional bekerja untuk baris ADD.
+    [Fact]
+    public async Task IdentityEdit_AddOption_SetNewAsCorrect_AddsAndMarksCorrect()
+    {
+        int packageId, sessionId, questionId; string actorId; List<int> optionIds;
+        await using (var seed = NewCtx())
+        {
+            (sessionId, packageId) = await SeedSessionPackageAsync(seed, "ID-addCorrect");
+            (questionId, optionIds, _) = await SeedFourOptionQuestionAsync(seed, sessionId, packageId);
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "EditQuestion");
+            IActionResult? res = null;
+            var ex = await Record.ExceptionAsync(async () =>
+            {
+                res = await ctrl.EditQuestion(
+                    questionId, packageId, "Soal 4 opsi", "MultipleChoice", 10, "K3", null, 2000,
+                    null, null, false,
+                    new List<OptionInput>
+                    {
+                        new OptionInput { Id = optionIds[0], Text = "A" },
+                        new OptionInput { Id = optionIds[1], Text = "B" },
+                        new OptionInput { Id = optionIds[2], Text = "C" },
+                        new OptionInput { Id = optionIds[3], Text = "D" },
+                        new OptionInput { Text = "E" },   // opsi BARU (Id null)
+                    },
+                    correctIndex: 4, sectionId: null);   // jadikan opsi baru (E) yang benar
+            });
+            Assert.Null(ex);
+            Assert.True(string.IsNullOrWhiteSpace(ctrl.TempData["Error"] as string));
+        }
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.Include(x => x.Options).SingleAsync(x => x.Id == questionId);
+            Assert.Equal(5, q.Options.Count);
+            var correct = q.Options.Single(o => o.IsCorrect);
+            Assert.Equal("E", correct.OptionText);                          // opsi baru yang benar
+            Assert.False(optionIds.Contains(correct.Id));                   // benar = record BARU (Id baru)
+            Assert.All(q.Options.Where(o => optionIds.Contains(o.Id)), o => Assert.False(o.IsCorrect)); // A..D tak lagi benar
+        }
+    }
 }

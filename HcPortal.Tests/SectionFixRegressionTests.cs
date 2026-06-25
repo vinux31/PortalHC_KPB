@@ -429,7 +429,7 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
     [Fact]
     public async Task Edit6Options_NoResponses_Succeeds_OptionsUpdated()
     {
-        int packageId, questionId; string actorId;
+        int packageId, questionId; string actorId; List<int> optionIds;
         await using (var seed = NewCtx())
         {
             (_, packageId, _, _, _) = await SeedSessionPackageAsync(seed, "H3pkg");
@@ -451,21 +451,22 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
             seed.PackageQuestions.Add(q);
             await seed.SaveChangesAsync();
             questionId = q.Id;
+            optionIds = q.Options.OrderBy(o => o.Id).Select(o => o.Id).ToList();   // Phase 420: capture utk identity contract
         }
 
         await using (var ctx = NewCtx())
         {
             var actor = await ctx.Users.FindAsync(actorId);
             var ctrl = MakeController(ctx, actor!, "EditQuestion");
-            // Phase 418: kirim 6 opsi A–F via List<OptionInput>, pindah jawaban benar ke F (correctIndex=5).
+            // Phase 418/420: kirim 6 opsi A–F via List<OptionInput> DENGAN Id (identity), pindah jawaban benar ke F (correctIndex=5).
             var res = await ctrl.EditQuestion(
                 questionId, packageId, "Soal 6 opsi (edit)", "MultipleChoice", 10, "K3", null, 2000,
                 null, null, false,
                 new List<OptionInput>
                 {
-                    new OptionInput { Text = "A" }, new OptionInput { Text = "B" },
-                    new OptionInput { Text = "C" }, new OptionInput { Text = "D" },
-                    new OptionInput { Text = "E" }, new OptionInput { Text = "F" },
+                    new OptionInput { Id = optionIds[0], Text = "A" }, new OptionInput { Id = optionIds[1], Text = "B" },
+                    new OptionInput { Id = optionIds[2], Text = "C" }, new OptionInput { Id = optionIds[3], Text = "D" },
+                    new OptionInput { Id = optionIds[4], Text = "E" }, new OptionInput { Id = optionIds[5], Text = "F" },
                 },
                 correctIndex: 5,
                 sectionId: null);
@@ -481,6 +482,8 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
             Assert.Equal(6, q.Options.Count);                                   // 6 opsi utuh (preserve)
             Assert.Equal("F", q.Options.Single(o => o.IsCorrect).OptionText);   // jawaban benar pindah ke F
             Assert.Equal("Soal 6 opsi (edit)", q.QuestionText);                 // teks soal ter-update
+            // Phase 420: identity — Id opsi STABIL (UPDATE in-place, BUKAN recreate).
+            Assert.Equal(optionIds.OrderBy(x => x), q.Options.Select(o => o.Id).OrderBy(x => x));
         }
     }
 
@@ -488,7 +491,7 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
     [Fact]
     public async Task H3_EditQuestionWith4Options_SucceedsNormally()
     {
-        int packageId, questionId; string actorId;
+        int packageId, questionId; string actorId; List<int> optionIds;
         await using (var seed = NewCtx())
         {
             (_, packageId, _, _, _) = await SeedSessionPackageAsync(seed, "H3ok");
@@ -508,6 +511,7 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
             seed.PackageQuestions.Add(q);
             await seed.SaveChangesAsync();
             questionId = q.Id;
+            optionIds = q.Options.OrderBy(o => o.Id).Select(o => o.Id).ToList();   // Phase 420: capture utk identity contract
         }
 
         await using (var ctx = NewCtx())
@@ -519,8 +523,8 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
                 null, null, false,
                 new List<OptionInput>
                 {
-                    new OptionInput { Text = "A" }, new OptionInput { Text = "B" },
-                    new OptionInput { Text = "C" }, new OptionInput { Text = "D" },
+                    new OptionInput { Id = optionIds[0], Text = "A" }, new OptionInput { Id = optionIds[1], Text = "B" },
+                    new OptionInput { Id = optionIds[2], Text = "C" }, new OptionInput { Id = optionIds[3], Text = "D" },
                 },
                 correctIndex: 1,   // pindah jawaban benar → B
                 sectionId: null);
@@ -534,6 +538,8 @@ public class SectionFixRegressionTests : IClassFixture<SectionFixture>
             Assert.Equal(4, q.Options.Count);
             Assert.Equal("Soal 4 opsi (edit)", q.QuestionText);                 // edit ter-apply
             Assert.Equal("B", q.Options.Single(o => o.IsCorrect).OptionText);   // jawaban benar pindah ke B
+            // Phase 420: identity — Id opsi STABIL (UPDATE in-place, BUKAN recreate).
+            Assert.Equal(optionIds.OrderBy(x => x), q.Options.Select(o => o.Id).OrderBy(x => x));
         }
     }
 
