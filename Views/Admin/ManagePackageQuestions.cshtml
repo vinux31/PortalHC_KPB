@@ -401,6 +401,7 @@
                                 {
                                     var letter = ((char)('A' + i)).ToString();
                                     <div class="option-row" data-option-row data-index="@i">
+                                        <input type="hidden" class="opt-id-input" name="options[@i].Id" id="option_@(letter)_id" value="" />
                                         <div class="input-group input-group-sm mb-2">
                                             <div class="input-group-text" style="width:36px">
                                                 <input class="form-check-input mt-0 correct-input" type="radio"
@@ -714,6 +715,9 @@
             var L = LETTERS[i];
             var textEl = document.getElementById('option_' + L);
             if (textEl) textEl.value = opt.optionText || '';
+            // Phase 420: isi hidden carrier identity dari GET JSON (opt.id). Baris padding di luar opts.length → Id kosong (baru).
+            var idEl = document.getElementById('option_' + L + '_id');
+            if (idEl) idEl.value = (opt.id != null) ? String(opt.id) : '';
             // Selektor benar: MC → set radio correctIndex (value=index) yang benar; MA → checkbox per-baris.
             var correctEl = document.getElementById('correct_' + L);
             if (correctEl) correctEl.checked = opt.isCorrect === true;
@@ -783,6 +787,12 @@
                 txt.placeholder = 'Opsi ' + L;
                 txt.setAttribute('aria-label', 'Teks opsi ' + L);
             }
+            // Phase 420: hidden carrier identity — rename name+id ikut posisi (value preserved, tak di-clear).
+            var idInput = row.querySelector('.opt-id-input');
+            if (idInput) {
+                idInput.name = 'options[' + i + '].Id';
+                idInput.id = 'option_' + L + '_id';
+            }
             // Selektor benar (radio MC: satu name grup 'correctIndex' value=index; MA checkbox: per-index)
             var correct = row.querySelector('.correct-input');
             if (correct) {
@@ -844,6 +854,7 @@
             if (inp.type === 'text') inp.value = '';
             if (inp.type === 'radio' || inp.type === 'checkbox') inp.checked = false;
             if (inp.type === 'file') inp.value = '';
+            if (inp.type === 'hidden') inp.value = '';   // Phase 420 GOTCHA §2c: baris baru → Id kosong → ADD (bukan overwrite opsi A)
             inp.removeAttribute('data-wired');
         });
         var thumb = clone.querySelector('img'); if (thumb) { thumb.src = ''; thumb.classList.add('d-none'); }
