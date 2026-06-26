@@ -1604,7 +1604,10 @@ test.describe('FLOW T — ManualAssessment Full CRUD', () => {
 
   test('T6 — HC delete + DB row removed', async ({ page }) => {
     test.setTimeout(FLOW_TIMEOUT_MS);
-    await login(page, 'hc');
+    // Phase 367 HC-tier guard: HC TIDAK bisa hapus sesi Completed/ber-jawaban (proteksi data peserta,
+    // TrainingAdminController:980-981) — Manual cert entry = Completed → butuh Admin override.
+    // Login admin (sebelumnya 'hc' → diblok by design → row tak terhapus → test fail).
+    await login(page, 'admin');
 
     // Strategy 1: POST direct via page.request (cookies inherited)
     await page.goto('/Admin/ManageAssessment?tab=training');

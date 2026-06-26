@@ -87,8 +87,9 @@ test.describe('Assessment - Admin Creates & Manages', () => {
     // Click the assessment title/detail link
     await page.click(`text=${assessmentTitle}`);
     await expect(page.locator('body')).toContainText(assessmentTitle);
-    // Should show participant table
-    await expect(page.locator('table')).toBeVisible();
+    // Should show participant table.
+    // .first() — v32.5 merge menambah tabel #tblRemoved (soft-remove panel); 'table' kini match 2 elemen.
+    await expect(page.locator('table').first()).toBeVisible();
   });
 });
 

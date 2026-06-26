@@ -633,6 +633,7 @@
         document.getElementById('confirmTypeChange').addEventListener('click', function () {
             document.getElementById('QuestionType').value = pendingType;
             applyQTypeSwitch(pendingType);
+            reletterRows();   // FIX (bug pra-existing): sync name .correct-input ke tipe baru (lihat catatan di handler change #QuestionType)
             editTypeWarningModal.hide();
         });
 
@@ -690,6 +691,11 @@
         }
 
         applyQTypeSwitch(newType);
+        // FIX (bug pra-existing v32.6 Phase 418): applyQTypeSwitch hanya ganti type radio<->checkbox,
+        // TIDAK update name .correct-input. Tanpa reletterRows, pilih "Multiple Answer" (tanpa tambah/hapus
+        // opsi) → name tetap 'correctIndex' → submit MA kirim correctIndex bukan options[i].IsCorrect →
+        // server tolak "Multiple Answer membutuhkan minimal 2 jawaban benar". reletterRows re-sync nama+value.
+        reletterRows();
     });
 
     function applyQTypeSwitch(qtype) {

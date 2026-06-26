@@ -776,8 +776,9 @@ test.describe('Flow F: Multiple Workers Same Assessment', () => {
 
     // Should show 2 completed
     const completedCells = page.locator('td:has-text("Completed"), td:has-text("100%")');
-    // At least monitoring should show both participants
-    await expect(page.locator('table')).toBeVisible();
+    // At least monitoring should show both participants.
+    // .first() — v32.5 merge menambah tabel #tblRemoved (soft-remove panel); 'table' kini match 2 elemen.
+    await expect(page.locator('table').first()).toBeVisible();
   });
 
   test('F6 - Cleanup: delete multi-worker assessment', async ({ page }) => {
