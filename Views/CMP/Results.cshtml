@@ -319,8 +319,12 @@
        Non-owner Admin/HC (CanReviewAnswers && !AllowAnswerReview) → SELALU ShowFullReview (leak-safety N/A: admin tak mungkin retake).
        Owner/peserta (atau toggle ON) → ikut RetakeMode server-authoritative. Tak ada kebocoran kunci di kasus manapun. *@
     @{
-        var isAdminReviewBypass = Model.CanReviewAnswers && !Model.AllowAnswerReview;
-        var effectiveReviewMode = isAdminReviewBypass ? RetakeReviewMode.ShowFullReview : Model.RetakeMode;
+        // M2 (merge): reviewer non-owner berwenang (Admin/HC/L3/L4-section) SELALU full review (Phase 414),
+        // INDEPENDEN toggle. Sebelumnya effectiveReviewMode dihitung dari isAdminReviewBypass (= non-owner &&
+        // toggle OFF) → saat toggle ON admin jatuh ke RetakeMode leak-safe (cuma Benar/Salah), langgar Phase 414.
+        var isNonOwnerReviewer = !Model.IsResultOwner;
+        var isAdminReviewBypass = isNonOwnerReviewer && !Model.AllowAnswerReview;   // hanya untuk nota "peserta tak bisa lihat" (toggle OFF) — semantik identik sebelumnya
+        var effectiveReviewMode = isNonOwnerReviewer ? RetakeReviewMode.ShowFullReview : Model.RetakeMode;
     }
     @switch (effectiveReviewMode)
     {
@@ -495,7 +499,7 @@
             else
             {
                 @await Html.PartialAsync("_RiwayatPekerja", Model.RiwayatAttempts,
-                    new ViewDataDictionary(ViewData) { ["HideDetail"] = (Model.RetakeMode == RetakeReviewMode.ShowScoreOnly) })
+                    new ViewDataDictionary(ViewData) { ["HideDetail"] = (effectiveReviewMode == RetakeReviewMode.ShowScoreOnly) })  @* L2 (merge): pakai effectiveReviewMode — admin bypass (ShowFullReview) ikut lihat detail riwayat, konsisten answer-review *@
             }
         </div>
     </div>

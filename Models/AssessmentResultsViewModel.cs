@@ -13,6 +13,10 @@ namespace HcPortal.Models
         // Phase 414 (D-01): nilai EFEKTIF "boleh lihat tinjauan jawaban" = AllowAnswerReview || non-owner.
         // AllowAnswerReview (di atas) TETAP raw toggle — view butuh membedakan "OFF tapi admin tetap lihat" untuk nota admin.
         public bool CanReviewAnswers { get; set; }
+        // MERGE v32-consolidation (M2): apakah viewer = pemilik hasil. Non-owner = reviewer berwenang
+        // (Admin/HC/L3/L4-section, sudah lolos IsResultsAuthorized) → SELALU full review (Phase 414),
+        // independen dari toggle AllowAnswerReview. Owner ikut RetakeMode leak-safe.
+        public bool IsResultOwner { get; set; }
         public bool GenerateCertificate { get; set; }
         public DateTime? CompletedAt { get; set; }
         public int TotalQuestions { get; set; }

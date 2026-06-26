@@ -89,6 +89,13 @@
         <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     }
 
+    @* v32.7 lock-state — dideklarasi di sini (sebelum panel Section) agar dipakai gating panel + form soal. *@
+    @{ bool isLocked = ViewBag.IsSamePackageLocked == true; }
+
+    @* MERGE v32-consolidation (M1): panel Kelola Section di-gate lock (parity form soal). Saat terkunci
+       (paket-sama), kelola Section dilakukan di sesi Pre-Test; server juga hard-reject 4 endpoint Section. *@
+    @if (!isLocked)
+    {
     <!-- Phase 415 SEC-01/02: Panel Kelola Section (inline, full-width — D-415-01) -->
     <div class="card shadow-sm mb-4" id="sectionPanelCard">
         <div class="card-header bg-light d-flex justify-content-between align-items-center">
@@ -261,9 +268,9 @@
             </div>
         </div>
     </div>
+    }
     @* v32.7 Phase 422 D-07/SHFX-03: lock banner friendly-disable (mirror ManagePackages :29-44).
        Server SUDAH hard-reject Create/Edit/DeleteQuestion saat terkunci (Wave 2) — banner+disable = UX layer. *@
-    @{ bool isLocked = ViewBag.IsSamePackageLocked == true; }
     @if (isLocked)
     {
         <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
@@ -617,6 +624,9 @@
 
     // Initialize Bootstrap modals
     document.addEventListener('DOMContentLoaded', function () {
+        // M3 (merge): paket terkunci → form soal + modalnya tak dirender. Skip wiring form-spesifik agar
+        // handler tak throw. window.* di bawah tetap aman (handler ini deferred, IIFE sudah selesai assign).
+        if (!document.getElementById('questionForm')) return;
         editTypeWarningModal = new bootstrap.Modal(document.getElementById('editTypeWarningModal'));
         editScoreWarningModal = new bootstrap.Modal(document.getElementById('editScoreWarningModal'));
 
@@ -663,8 +673,11 @@
             'persentase mereka akan dihitung ulang otomatis. Lanjutkan?';
     }
 
-    // QuestionType change handler
-    document.getElementById('QuestionType').addEventListener('change', function () {
+    // QuestionType change handler — M3 (merge): null-guard top-level. #QuestionType absen saat paket
+    // terkunci (form soal disembunyikan); tanpa guard throw di sini meng-ABORT IIFE → window.loadPreview/
+    // loadEditForm/loadSectionEdit/resetSectionForm tak pernah ter-assign (tombol Preview/Section ReferenceError).
+    var questionTypeEl = document.getElementById('QuestionType');
+    if (questionTypeEl) questionTypeEl.addEventListener('change', function () {
         var newType = this.value;
         var isEditMode = document.getElementById('editQuestionId').value !== '';
 
@@ -818,7 +831,8 @@
     // aria, value radio, reasosiasi blok gambar (id prefix opt{letter}). Gambar terikat node baris.
     function reletterRows() {
         var rows = optionRowEls();
-        var qtype = document.getElementById('QuestionType').value;
+        var qtypeEl = document.getElementById('QuestionType');
+        var qtype = qtypeEl ? qtypeEl.value : 'MultipleChoice';   // M3 (merge): null-guard — reletterRows dipanggil saat load meski paket terkunci (#QuestionType absen)
         rows.forEach(function (row, i) {
             var L = LETTERS[i];
             row.dataset.index = i;

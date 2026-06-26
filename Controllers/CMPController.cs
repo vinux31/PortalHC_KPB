@@ -2486,6 +2486,7 @@ namespace HcPortal.Controllers
                     IsPassed = score >= passPercentage,
                     AllowAnswerReview = assessment.AllowAnswerReview,
                     CanReviewAnswers = canReviewAnswers,
+                    IsResultOwner = isOwner,   // M2 (merge): view butuh owner-signal untuk full-review non-owner independen toggle
                     GenerateCertificate = assessment.GenerateCertificate,
                     CompletedAt = assessment.CompletedAt,
                     TotalQuestions = orderedQuestionIds.Count,
@@ -2511,6 +2512,7 @@ namespace HcPortal.Controllers
                     IsPassed = score >= passPercentage,
                     AllowAnswerReview = false,
                     CanReviewAnswers = false,
+                    IsResultOwner = isOwner,   // M2 (merge): konsisten dgn path utama
                     GenerateCertificate = assessment.GenerateCertificate,
                     CompletedAt = assessment.CompletedAt,
                     TotalQuestions = 0,
@@ -2668,6 +2670,16 @@ namespace HcPortal.Controllers
             var (user, _) = await GetCurrentUserRoleLevelAsync();   // effective user (impersonation-aware) — idiom :909
             if (user == null) return Challenge();
             if (assessment.UserId != user.Id) return Forbid();      // RTK-09 ownership — IDOR guard (worker self-service only)
+
+            // v32.5 Phase 409 (PRMV-03 / D-02): peserta soft-removed tak boleh mutasi state ujian.
+            // Guard yang sama dgn StartExam:932 / SaveAnswer / SubmitExam — path retake (v32.4, dari ITHandoff)
+            // tak pernah dapat guard ini; gap merge-only v32-consolidation. Tanpa ini: peserta removed klik
+            // Retake → ExecuteAsync hapus jawaban + NULL NomorSertifikat + arsip, baru diblok di StartExam (dangling Open).
+            if (IsParticipantRemoved(assessment))
+            {
+                TempData["Error"] = "Anda telah dikeluarkan dari ujian ini.";
+                return RedirectToAction("Assessment");
+            }
 
             // Server-authoritative re-check (D-01): countdown/disable JS hanya UX, server otoritatif atas cooldown/cap.
             if (!await _retakeService.CanRetakeAsync(id))

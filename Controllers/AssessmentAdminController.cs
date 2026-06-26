@@ -6333,6 +6333,19 @@ namespace HcPortal.Controllers
             catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for {ActionType} (entityId={Id})", actionType, entityId); }
         }
 
+        // MERGE v32-consolidation (M1): paket → sesi induk terkunci? (SamePackage Post-Test lock).
+        // Mirror guard inline CreateQuestion :8118. Dipakai 4 endpoint Section di bawah agar mutasi STRUKTUR
+        // Section pada paket Post terkunci ditolak server-side. Sebelum konsolidasi v32, hanya soal yang
+        // ter-guard (CreateQuestion/EditQuestion/DeleteQuestion); Section (v32.6) × lock (v32.7) tak pernah
+        // hidup bareng di salah satu parent → gap merge-only.
+        private async Task<bool> IsPackageSessionEditLockedAsync(int packageId)
+        {
+            var pkg = await _context.AssessmentPackages.FindAsync(packageId);
+            if (pkg == null) return false;
+            var session = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
+            return session != null && SessionEditLockRules.IsSessionEditLocked(session);
+        }
+
         // SEC-01: buat Section baru per-paket. Pre-check duplikat (packageId, sectionNumber)
         // sebelum bergantung ke DbUpdateException (Phase 404 lesson — unique index non-filtered).
         [HttpPost]
@@ -6342,6 +6355,13 @@ namespace HcPortal.Controllers
         {
             var pkg = await _context.AssessmentPackages.FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
+
+            // M1 (merge): tolak-keras mutasi Section bila paket Post terkunci (paket-sama). Parity CreateQuestion.
+            if (await IsPackageSessionEditLockedAsync(packageId))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Kelola Section harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
 
             bool dup = await _context.AssessmentPackageSections
                 .AnyAsync(s => s.AssessmentPackageId == packageId && s.SectionNumber == sectionNumber);
@@ -6406,6 +6426,13 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
+            // M1 (merge): tolak-keras mutasi Section bila paket Post terkunci (paket-sama). Parity EditQuestion.
+            if (await IsPackageSessionEditLockedAsync(packageId))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Kelola Section harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
             if (section.SectionNumber != sectionNumber)
             {
                 bool dup = await _context.AssessmentPackageSections
@@ -6466,6 +6493,13 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManagePackageQuestions", new { packageId });
             }
 
+            // M1 (merge): tolak-keras hapus Section bila paket Post terkunci (paket-sama). Parity DeleteQuestion.
+            if (await IsPackageSessionEditLockedAsync(packageId))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Kelola Section harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
+
             _context.AssessmentPackageSections.Remove(section);
             await _context.SaveChangesAsync();   // FK SetNull men-NULL-kan SectionId soal otomatis.
 
@@ -6490,6 +6524,13 @@ namespace HcPortal.Controllers
             // sebelum mutasi — endpoint sudah RBAC+antiforgery, tapi guard existence cegah aksi pada packageId asing/ngawur.
             var pkg = await _context.AssessmentPackages.FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
+
+            // M1 (merge): tolak-keras toggle massal Section bila paket Post terkunci (paket-sama).
+            if (await IsPackageSessionEditLockedAsync(packageId))
+            {
+                TempData["Error"] = "Paket Post-Test ini terkunci (paket-sama). Kelola Section harus dilakukan di sesi Pre-Test.";
+                return RedirectToAction("ManagePackageQuestions", new { packageId });
+            }
 
             var sections = await _context.AssessmentPackageSections
                 .Where(s => s.AssessmentPackageId == packageId)
@@ -6899,14 +6940,24 @@ namespace HcPortal.Controllers
         {
             var parentPkg = await _context.AssessmentPackages.FindAsync(packageId);
             if (parentPkg == null) return;
+            await SyncToLinkedPostBestEffortAsync(parentPkg.AssessmentSessionId);
+        }
+
+        // MERGE v32-consolidation (L5): best-effort session-entry. Pemanggil yang sudah punya preSessionId
+        // (CreatePackage/DeletePackage/Import) sebelumnya memanggil SyncToLinkedPostIfSamePackageAsync MENTAH
+        // (tanpa try/catch) → kegagalan sync (mis. DbUpdateException transien) men-500-kan request padahal
+        // mutasi utama (Pre) SUDAH commit → Pre/Post drift + admin tak lihat sukses. Best-effort: log +
+        // ChangeTracker.Clear, JANGAN lempar. Sama semantik wrapper packageId di atas.
+        private async Task SyncToLinkedPostBestEffortAsync(int preSessionId)
+        {
             try
             {
-                await SyncToLinkedPostIfSamePackageAsync(parentPkg.AssessmentSessionId);
+                await SyncToLinkedPostIfSamePackageAsync(preSessionId);
             }
             catch (Exception ex)
             {
                 _context.ChangeTracker.Clear();
-                _logger.LogWarning(ex, "SyncToPostIfSamePackageAsync gagal (packageId={PackageId}); Post mungkin tertinggal struktur lama.", packageId);
+                _logger.LogWarning(ex, "SyncToLinkedPostBestEffortAsync gagal (preSessionId={PreSessionId}); Post mungkin tertinggal struktur lama.", preSessionId);
             }
         }
 
@@ -7085,8 +7136,8 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = $"Package '{packageName}' created.";
 
-            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift).
-            await SyncToLinkedPostIfSamePackageAsync(assessment.Id);
+            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift). L5 (merge): best-effort — gagal sync ≠ 500 (package sudah commit).
+            await SyncToLinkedPostBestEffortAsync(assessment.Id);
 
             return RedirectToAction("ManagePackages", new { assessmentId });
         }
@@ -7180,8 +7231,8 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = $"Package '{pkg.PackageName}' deleted.";
 
-            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift).
-            await SyncToLinkedPostIfSamePackageAsync(assessmentId);
+            // SHFX-01/D-06: auto-sync Pre→Post via helper tunggal (kill-drift). L5 (merge): best-effort — gagal sync ≠ 500 (delete sudah commit).
+            await SyncToLinkedPostBestEffortAsync(assessmentId);
 
             // D-11 / D-10 / OQ2: ref-count + File.Delete SETELAH auto-sync (Post mungkin di-rebuild share path).
             await ImageFileCleanup.DeleteUnreferencedAsync(_context, _env.WebRootPath, _logger, imagePathsToDelete, "DeletePackage image");
@@ -7910,7 +7961,8 @@ namespace HcPortal.Controllers
             // SHFX-01/D-06 (BOCOR SHUF-ISS-03 HIGH ditutup): Import beroperasi pada paket Pre →
             // sisip auto-sync Pre→Post di AKHIR success-path (Pitfall 3: lock-guard di AWAL endpoint,
             // sync di AKHIR). Import langsung ke Post terkunci sudah ditolak guard di awal (SHFX-03).
-            await SyncToLinkedPostIfSamePackageAsync(pkg.AssessmentSessionId);
+            // L5 (merge): best-effort — gagal sync ≠ 500 (Pre import sudah commit).
+            await SyncToLinkedPostBestEffortAsync(pkg.AssessmentSessionId);
 
             return RedirectToAction("ManagePackages", new { assessmentId = pkg.AssessmentSessionId });
         }

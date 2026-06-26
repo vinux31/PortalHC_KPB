@@ -1147,8 +1147,14 @@
         }
 
         // Reset -- all statuses except Cancelled
+        // L3 (merge): konfirmasi cert-aware — mirror server-rendered resetConfirm (view :356-359). Baris hasil
+        // restore (v32.5) sebelumnya pakai teks generik tanpa peringatan cabut sertifikat, padahal ResetAssessment
+        // (v32.4/v32.7) tetap MENCABUT cert. session.nomorSertifikat tersedia di payload (dipakai hasCert di bawah).
+        var resetConfirm = session.nomorSertifikat
+            ? 'Reset sesi ini? Sesi ini SUDAH LULUS dan memiliki nomor sertifikat. Mereset akan MENCABUT sertifikat (nomor dihapus) dan semua jawaban dihapus. Peserta dapat mengulang ujian. Lanjutkan?'
+            : 'Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.';
         html += '<form class="d-inline me-1" method="post" action="' + basePath + '/Admin/ResetAssessment"'
-            + ' onsubmit="return confirm(\'Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.\')">'
+            + ' onsubmit="return confirm(\'' + resetConfirm + '\')">'
             + '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />'
             + '<input type="hidden" name="id" value="' + session.sessionId + '" />'
             + '<button type="submit" class="btn btn-warning btn-sm"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>'
@@ -1170,6 +1176,17 @@
             + ' data-session-id="' + session.sessionId + '"'
             + ' data-worker-name="' + wn.replace(/"/g, '&quot;') + '"'
             + ' title="Lihat activity log"><i class="bi bi-clock-history"></i></button>';
+
+        // L4 (merge): Riwayat Percobaan (v32.4 RTK-08) — mirror server-rendered (view :413-424). Baris Completed
+        // hasil restore (v32.5) sebelumnya kehilangan tombol ini → admin harus reload. Handler delegasi
+        // .btn-riwayat-percobaan sudah ada (tak perlu wiring tambahan). wn sudah dihitung di atas.
+        if (session.status === 'Completed') {
+            html += '<button type="button"'
+                + ' class="btn btn-outline-secondary btn-sm ms-1 btn-riwayat-percobaan"'
+                + ' data-session-id="' + session.sessionId + '"'
+                + ' data-worker-name="' + wn.replace(/"/g, '&quot;') + '"'
+                + ' aria-label="Riwayat percobaan"><i class="bi bi-clock-history me-1"></i>Riwayat Percobaan</button>';
+        }
 
         // Phase 412 PRMV-02: tombol Hapus Peserta untuk baris yang di-inject SignalR.
         // Guard Proton (panel/hapus tak relevan untuk Assessment Proton).
