@@ -19,11 +19,13 @@ Mulai handoff ini, **tarik kode dari branch `main`**, bukan `ITHandoff` lagi.
 | Item | Nilai |
 |---|---|
 | Branch | `main` |
-| Commit HEAD | `9fa729f4` |
-| Tag rilis | `v32-consolidated` |
+| Commit HEAD | `bcea1664` (merge `9fa729f4` + handoff doc + 8 fix integrasi pasca-audit) |
+| Tag rilis | `v32-consolidated` (di `9fa729f4`; HEAD lebih baru, lihat catatan) |
 | Repo | `https://github.com/vinux31/PortalHC_KPB.git` |
 
-Verifikasi setelah pull: `git rev-parse HEAD` harus `9fa729f4...`.
+Verifikasi setelah pull: `git rev-parse HEAD` harus `bcea1664...`.
+
+> **Catatan:** setelah merge, audit multi-agent atas 19 seam hasil-resolve-tangan menemukan **8 bug integrasi lintas-fitur merge-only** (kombinasi v32.1/3/4/7/8 × v32.0/2/5/6/9 yang tak teruji per-branch). Semua sudah di-fix (commit `bcea1664`), terverifikasi build + xUnit 1004/0/2 + UAT live @5277. **Code-only — TIDAK ada migration baru.** Daftar migration di bawah TETAP 6.
 
 ---
 
