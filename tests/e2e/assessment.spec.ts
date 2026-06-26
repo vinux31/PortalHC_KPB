@@ -27,7 +27,8 @@ test.describe('Assessment - Admin Creates & Manages', () => {
     await expect(page.locator('h2')).toContainText('Manage Assessment');
 
     await page.click('a[href*="CreateAssessment"]');
-    await expect(page.locator('h2')).toContainText('Create New Assessment');
+    // v32.1 melokalkan heading "Create New Assessment" → "Buat Assessment Baru".
+    await expect(page.locator('h2')).toContainText('Buat Assessment Baru');
   });
 
   test('1.2 - HC can create a new assessment for workers', async ({ page }) => {

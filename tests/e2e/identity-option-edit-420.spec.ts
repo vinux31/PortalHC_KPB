@@ -77,8 +77,9 @@ test('S1: hapus opsi tengah SUDAH-dijawab → diblokir pesan ramah (OPTEDIT-02/V
   await page.getByRole('button', { name: 'Hapus opsi B' }).click();
   await page.locator('#submitBtn').click();
   // Diblokir — pesan D-04 (huruf + cuplik teks). BUKAN 500.
-  await expect(page.locator('.alert-danger')).toContainText('sudah dijawab');
-  await expect(page.locator('.alert-danger')).toContainText('"B"');
+  // .first() — strict-mode: halaman bisa punya >1 .alert (toast global + inline). Pesan blokir di alert pertama.
+  await expect(page.locator('.alert-danger').first()).toContainText('sudah dijawab');
+  await expect(page.locator('.alert-danger').first()).toContainText('"B"');
   // DB: opsi B utuh + response utuh.
   expect(await db.queryScalar(`SELECT COUNT(*) FROM PackageOptions WHERE PackageQuestionId=${q1}`)).toBe(4);
   expect(await db.queryScalar(`SELECT COUNT(*) FROM PackageUserResponses WHERE PackageOptionId=${q1b}`)).toBe(1);
@@ -89,7 +90,7 @@ test('S2: hapus opsi tengah BELUM-dijawab → sukses tanpa relabel (OPTEDIT-01)'
   await openEdit(page, q2);
   await page.getByRole('button', { name: 'Hapus opsi B' }).click();
   await page.locator('#submitBtn').click();
-  await expect(page.locator('.alert-success')).toContainText('berhasil diperbarui');
+  await expect(page.locator('.alert-success').first()).toContainText('berhasil diperbarui');
   // DB: 3 opsi tersisa teks A,C,D — C TIDAK ter-relabel jadi "B".
   expect(await db.queryScalar(`SELECT COUNT(*) FROM PackageOptions WHERE PackageQuestionId=${q2}`)).toBe(3);
   const texts = await db.queryString(`SELECT STRING_AGG(OptionText, ',') WITHIN GROUP (ORDER BY Id) FROM PackageOptions WHERE PackageQuestionId=${q2}`);
@@ -105,7 +106,7 @@ test('S3: tambah opsi (clone gotcha §2c) → opsi baru ADD, A tak ter-overwrite
   await page.locator('#correct_A').check();          // MC: re-pilih A benar (reletter drop seleksi)
   await page.locator('#option_E').fill('E');
   await page.locator('#submitBtn').click();
-  await expect(page.locator('.alert-success')).toContainText('berhasil diperbarui');
+  await expect(page.locator('.alert-success').first()).toContainText('berhasil diperbarui');
   // DB: 5 opsi; A teks tetap "A" (Id stabil, tak ter-overwrite); E ter-ADD.
   expect(await db.queryScalar(`SELECT COUNT(*) FROM PackageOptions WHERE PackageQuestionId=${q3}`)).toBe(5);
   const aText = await db.queryString(`SELECT OptionText FROM PackageOptions WHERE PackageQuestionId=${q3} ORDER BY Id`);
