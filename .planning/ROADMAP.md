@@ -77,7 +77,9 @@
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
-### Phase 999.17: Excel "zero-config" template — dropdown Data Validation + import skor per-soal (BACKLOG, ditunda dari v32.6 via D-08)
+### Phase 999.17: Excel "zero-config" template — dropdown Data Validation + import skor per-soal — ✅ COMPLETE 2026-06-30 (promoted dari backlog; ditunda dari v32.6 via D-08)
+
+> **CLOSED 2026-06-30** — 3/3 plan, semua gerbang hijau: verify **7/7**, code-review clean (0C/0W/3-info), secure **SECURED 8/8** (threats_open:0), full-suite **1027/0/2** (incl Integration/SQLEXPRESS), UAT manusia APPROVED (VRF-03; render dropdown + numeric DV di Excel desktop nyata). **migration=FALSE.** GradingService 0-diff (grade-lock). 9 commit (`ade2425c`..`1907621b`) unpushed → push bareng bundle IT berikutnya.
 
 **Goal:** [Captured 2026-06-30] Template Excel soal jadi "zero-config" untuk admin: (1) **dropdown Data Validation** pada kolom data-pasti (mis. `QuestionType`: MultipleChoice/MultipleAnswer/Essay) biar self-explanatory + anti salah-ketik; (2) **import skor per-soal** lewat Excel.
 

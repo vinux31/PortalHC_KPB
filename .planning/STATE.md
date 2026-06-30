@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v32.6
 milestone_name: via D-08)
-status: verifying
-stopped_at: Completed 999.17-02-PLAN.md
-last_updated: "2026-06-30T08:30:37.369Z"
+status: complete
+stopped_at: Phase 999.17 CLOSED (3/3 plans, all gates green, UAT-approved, ROADMAP marked ✅)
+last_updated: "2026-06-30T10:00:00.000Z"
 last_activity: 2026-06-30
 progress:
   total_phases: 3
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 999.17 (excel-zero-config-template-dropdown-data-validation-plus-imp) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: 999.17 (excel-zero-config-template-dropdown-data-validation-plus-imp) — ✅ CLOSED 2026-06-30
+Plan: 3 of 3 complete
+Status: Phase 999.17 CLOSED — semua gerbang hijau (verify 7/7, code-review clean 0C/0W/3-info, secure 8/8 threats_open:0, full-suite 1027/0/2), UAT manusia APPROVED (VRF-03), migration=FALSE. ROADMAP ditandai ✅.
 Last activity: 2026-06-30
 
-Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** — hapus/edit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap. Ganti upsert opsi POSISIONAL di `AssessmentAdminController.cs` EditQuestion POST menjadi **IDENTITY-based** (match baris input ke `PackageOption` existing by stable `Id`, bukan posisi) → hapus opsi tengah membuang record yang BENAR + guard answered-option (D-418-02) menyala untuk delete posisi MANAPUN. **migration=FALSE**. Branch main. Fase mulai **420** (lanjut dari 419).
+**Milestone v32.9 (Phase 420, EditQuestion identity-based option-edit) SUDAH SHIPPED 2026-06-25** (lihat MILESTONES.md — 1 phase/3 plan, audit 6/6, migration=FALSE, `cf8595e3` ada di origin/main). 999.17 = backlog phase dikerjakan SETELAH v32.9 close, kini juga CLOSED. **Tidak ada phase aktif berikutnya** — next = `/gsd-new-milestone` (scope baru) atau `/gsd-review-backlog` (promote 999.x lain).
 
 ## Milestone Source (verified)
 
@@ -58,7 +58,8 @@ Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** —
 | Push v29.0 + v30.0 ke `origin/ITHandoff` (branch + tag) | ✅ PUSHED 2026-06-15, HEAD `fe8c5ffe` |
 | Notify IT — 2 migration carry lama (`PendingProtonBypass`+index/360, `ShuffleToggles`/372) | ⏳ PENDING — kasih commit hash + flag ke IT |
 | Push v32.2 + v32.5 + v32.6 ke `origin/main` (bundle deploy) | ⏳ pending koordinasi IT — **migration=TRUE:** Phase 409 `AddParticipantRemovalColumns` (v32.5) + Phase 415 `AddAssessmentPackageSection` (v32.6) |
-| v32.9 | migration=FALSE (rencana) |
+| v32.9 (Phase 420) | ✅ di origin/main (`cf8595e3`), migration=FALSE |
+| Phase 999.17 (Excel zero-config + import Skor) | ⏳ 9 commit unpushed (`ade2425c`..`1907621b`), migration=FALSE — push bareng bundle IT berikutnya |
 
 ## Accumulated Context
 
@@ -84,11 +85,11 @@ Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** —
 
 ## Session Continuity
 
-Last activity: 2026-06-24
+Last activity: 2026-06-30
 
-Stopped at: Completed 999.17-02-PLAN.md
+Stopped at: Phase 999.17 CLOSED — bookkeeping done (ROADMAP ✅ + STATE + MEMORY updated). 3/3 plan, gerbang hijau, UAT-approved, migration=FALSE.
 
-Next action: **`/gsd-execute-phase 999.17`** lanjut Plan 03 (UAT roundtrip download→import bobot→grade — autonomous tergantung plan). 999.17-02 (import Skor) ✅ SELESAI: parse Skor+validasi atomic+grade-lock, suite 15/15+fast 653/0/2, migration=FALSE, commits `5e4719cf`(test)→`92a69a86`(feat). _(v32.9 fase 420 = milestone berikutnya, di-pause selama 999.17 berjalan.)_
+Next action: Tidak ada phase aktif. v32.9 (Phase 420) shipped 2026-06-25; 999.17 closed 2026-06-30. Opsi: (1) push 9 commit 999.17 (`ade2425c`..`1907621b`) bareng bundle migration-TRUE (v32.5/409 + v32.6/415) ke origin/main saat koordinasi IT; (2) `/gsd-new-milestone` scope baru; (3) `/gsd-review-backlog` promote 999.x lain (999.13/999.16 = permanent-defer; 999.9/999.5 = dropped-stale).
 
 ## Deferred Items
 
