@@ -50,13 +50,35 @@
         </div>
     }
 
+    @{
+        // Phase 999.17-02 (D-09/D-12): daftar baris dengan Skor invalid (bukan 1–100). Tolak keras, 0 write.
+        List<string>? scoreErrors = null;
+        if (TempData["ScoreErrors"] is string seJson && !string.IsNullOrWhiteSpace(seJson))
+        {
+            try { scoreErrors = System.Text.Json.JsonSerializer.Deserialize<List<string>>(seJson); }
+            catch { scoreErrors = null; }
+        }
+    }
+    @if (scoreErrors != null && scoreErrors.Count > 0)
+    {
+        <div class="alert alert-danger">
+            <strong>Skor tidak valid. Perbaiki dulu sebelum import:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach (var line in scoreErrors)
+                {
+                    <li>@line</li>
+                }
+            </ul>
+        </div>
+    }
+
     <!-- Format reference card -->
     <div class="card border-info mb-4">
         <div class="card-body py-2">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                 <div>
                     <strong class="text-info">Format kolom (template universal diperluas):</strong>
-                    <code class="ms-2">Pertanyaan | Opsi A–F | Jawaban Benar | No. Section | Nama Section | Elemen Teknis | QuestionType | Rubrik</code>
+                    <code class="ms-2">Pertanyaan | Opsi A–F | Jawaban Benar | No. Section | Nama Section | Elemen Teknis | QuestionType | Rubrik | Skor</code>
                 </div>
             </div>
             <ul class="mb-2 small text-muted">
@@ -64,6 +86,7 @@
                 <li><strong>MA — Jawaban Benar:</strong> huruf A–F dipisah koma, contoh: <code>A,C</code> atau <code>A,C,E</code></li>
                 <li><strong>Opsi E/F:</strong> opsional (2–6 opsi). Kosongkan jika tidak dipakai.</li>
                 <li><strong>No. Section:</strong> angka (1, 2, 3...). Kosongkan = soal tanpa Section (Lainnya). Section dibuat otomatis dari kolom ini.</li>
+                <li><strong>Skor:</strong> bobot poin per soal (angka bulat 1–100). Kosongkan = 10 (default). Skor di luar 1–100 / desimal / non-angka menolak seluruh import.</li>
                 <li><strong>Essay:</strong> Opsi dan Jawaban Benar dikosongkan. Kolom Rubrik wajib diisi.</li>
                 <li>File template lama (9 kolom, tanpa Section, Opsi A–D) tetap bisa di-import otomatis. File dengan kolom No. Section / Nama Section / Opsi E–F terdeteksi sebagai format baru.</li>
             </ul>

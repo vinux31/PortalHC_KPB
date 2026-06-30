@@ -7352,6 +7352,11 @@ namespace HcPortal.Controllers
             // Legacy (≤9 kolom): OptE/OptF="", SectionNumber=null, SectionName=null.
             List<(string Question, string OptA, string OptB, string OptC, string OptD, string OptE, string OptF, string Correct, int? SectionNumber, string? SectionName, string? ElemenTeknis, string QuestionType, string? Rubrik)> rows;
             var errors = new List<string>();
+            // 999.17-02 (SKR): kolom Skor (N/14) dibawa di list paralel ke `rows` (lockstep) — menghindari
+            // memperlebar tuple 13-field yang dipakai helper RowIsValid/CorrectLettersMapToFilledOptions
+            // (signature cascade + risiko regresi dual-format). null = legacy/paste (tanpa Skor, D-07/D-08).
+            var rawScores = new List<string?>();
+            var scoreErrors = new List<string>();   // D-12: error Skor per-baris → tolak-keras-atomic (0 write).
 
             var validQuestionTypes = new[] { "MultipleChoice", "MultipleAnswer", "Essay" };
 
@@ -7402,6 +7407,7 @@ namespace HcPortal.Controllers
                         int? sectionNumber;
                         string? sectionName;
                         string questionType;
+                        string? rawScore;   // 999.17-02: kolom Skor (N/14) — hanya format baru; legacy = null.
 
                         if (isNewFormat)
                         {
@@ -7422,6 +7428,7 @@ namespace HcPortal.Controllers
                             subComp = string.IsNullOrWhiteSpace(cellEt) ? null : cellEt;
                             questionType = NormalizeQuestionType(row.Cell(12).GetString() ?? "");
                             rubrik = (row.Cell(13).GetString() ?? "").Trim();
+                            rawScore = (row.Cell(14).GetString() ?? "").Trim();   // 999.17-02 SKR-02: kolom Skor (N)
                         }
                         else
                         {
@@ -7440,10 +7447,12 @@ namespace HcPortal.Controllers
                             rubrik = (row.Cell(9).GetString() ?? "").Trim();
                             sectionNumber = null;
                             sectionName = null;
+                            rawScore = null;   // 999.17-02 D-07: legacy 9-kolom tanpa Skor → default 10 nanti
                         }
 
                         string? rubrikN = string.IsNullOrWhiteSpace(rubrik) ? null : rubrik;
                         rows.Add((q, a, b, c, d, e, f, cor, sectionNumber, sectionName, subComp, questionType, rubrikN));
+                        rawScores.Add(string.IsNullOrWhiteSpace(rawScore) ? null : rawScore.Trim());   // lockstep dgn rows
                     }
                 }
                 catch (Exception ex)
@@ -7488,12 +7497,32 @@ namespace HcPortal.Controllers
                         cells[3].Trim(), cells[4].Trim(), "", "", cells[5].Trim().ToUpper(),
                         null, null, subComp, questionType, rubrik
                     ));
+                    rawScores.Add(null);   // 999.17-02: paste tanpa kolom Skor → default 10 (lockstep dgn rows)
                 }
             }
             else
             {
                 TempData["Error"] = "Please upload an Excel file or paste question data.";
                 return RedirectToAction("ImportPackageQuestions", new { packageId });
+            }
+
+            // 999.17-02 SKR-03/SKR-04 (D-09/D-12): validasi server-side kolom Skor SEBELUM build/persist.
+            // Integer 1–100 (NumberStyles.None menolak desimal/whitespace/tanda → "5.5"/"-3" gugur). Jangan
+            // percaya Data Validation client (D-10). ≥1 baris invalid → TOLAK-KERAS ATOMIK: 0 write + daftar
+            // error per-baris via TempData["ScoreErrors"] (pola SectionMismatch) → view alert-danger. Pass mandiri
+            // ini mendahului semua tulis → 0-write terjamin. (rawScores lockstep dgn rows; baris Excel = i+2.)
+            for (int i = 0; i < rawScores.Count; i++)
+            {
+                var rawScore = rawScores[i];
+                if (string.IsNullOrWhiteSpace(rawScore)) continue;   // kosong → default 10 (D-08)
+                if (!int.TryParse(rawScore, NumberStyles.None, CultureInfo.InvariantCulture, out var sv)
+                    || sv < 1 || sv > 100)
+                    scoreErrors.Add($"Baris {i + 2}: Skor harus angka bulat 1-100. Ditemukan '{rawScore}'.");
+            }
+            if (scoreErrors.Any())
+            {
+                TempData["ScoreErrors"] = System.Text.Json.JsonSerializer.Serialize(scoreErrors);
+                return RedirectToAction("ImportPackageQuestions", new { packageId });   // 0 write (D-12)
             }
 
             // H2 helper: ambil huruf benar dari kolom Correct sesuai tipe soal (MA = comma-split A–F; MC = 1 huruf).
@@ -7748,6 +7777,15 @@ namespace HcPortal.Controllers
                 }
                 seenInBatch.Add(fp);
 
+                // 999.17-02 SKR-02 (D-06/D-08): ScoreValue dari kolom Skor Excel; default 10 bila kosong/legacy.
+                // Validitas (1–100) sudah dijamin pass atomik di atas → parse-ulang di sini aman (default 10).
+                int scoreValue = 10;
+                var rawScoreVal = rawScores[i];
+                if (!string.IsNullOrWhiteSpace(rawScoreVal)
+                    && int.TryParse(rawScoreVal, NumberStyles.None, CultureInfo.InvariantCulture, out var pv)
+                    && pv >= 1 && pv <= 100)
+                    scoreValue = pv;
+
                 var newQ = new PackageQuestion
                 {
                     AssessmentPackageId = packageId,
@@ -7756,7 +7794,7 @@ namespace HcPortal.Controllers
                     Rubrik = questionType == "Essay" ? rubrik : null,
                     MaxCharacters = 2000,
                     Order = order++,
-                    ScoreValue = 10,
+                    ScoreValue = scoreValue,
                     ElemenTeknis = NormalizeElemenTeknis(rawSubComp),
                     // O-2: assign ke Section via navigation (EF wire FK saat save, same tx). null = Lainnya.
                     Section = FindOrCreateSection(sectionNumber, sectionName),
