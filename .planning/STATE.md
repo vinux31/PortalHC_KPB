@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.6
 milestone_name: via D-08)
 status: executing
-stopped_at: Phase 999.17 context gathered
-last_updated: "2026-06-30T07:19:03.862Z"
-last_activity: 2026-06-30 -- Phase 999.17 planning complete
+stopped_at: Completed 999.17-01-PLAN.md
+last_updated: "2026-06-30T07:33:37.382Z"
+last_activity: 2026-06-30
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State: Portal HC KPB
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v32.9 ✅ CLOSED 2026-06-25 — planning next milestone (`/gsd-new-milestone`)
+**Current focus:** Phase 999.17 — excel-zero-config-template-dropdown-data-validation-plus-imp
 
 ## Current Position
 
-Phase: — (v32.9 closed; Phase 420 shipped)
-Plan: —
+Phase: 999.17 (excel-zero-config-template-dropdown-data-validation-plus-imp) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-30 -- Phase 999.17 planning complete
+Last activity: 2026-06-30
 
 Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** — hapus/edit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap. Ganti upsert opsi POSISIONAL di `AssessmentAdminController.cs` EditQuestion POST menjadi **IDENTITY-based** (match baris input ke `PackageOption` existing by stable `Id`, bukan posisi) → hapus opsi tengah membuang record yang BENAR + guard answered-option (D-418-02) menyala untuk delete posisi MANAPUN. **migration=FALSE**. Branch main. Fase mulai **420** (lanjut dari 419).
 
@@ -64,6 +64,7 @@ Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** —
 
 ### Decisions (persist across milestones)
 
+- [999.17 / 01 Excel zero-config download]: Template Excel soal "zero-config" sisi DOWNLOAD via seam pure `Helpers/QuestionTemplateBuilder.Build(type)->XLWorkbook` (ekstrak dari `DownloadQuestionTemplate`, analog `InjectExcelHelper`). Dropdown DataValidation `QuestionType` (List 3-nilai, inCellDropdown, baris 2-1000) di SEMUA template: Universal kolom L(12) + legacy MC/MA/Essay kolom H(8). Kolom `Skor` baru di Universal posisi 14(N) APPEND setelah Rubrik (marker dual-format 6/7/9/10 TAK bergeser) + numeric DV WholeNumber 1-100; legacy TANPA Skor (D-07). DV = hint anti-typo non-otoritatif (ErrorStyle.Warning); server otoritatif menyusul Plan 02. DataValidation greenfield ClosedXML 0.105.0 (`git grep CreateDataValidation` dulu 0 kini ada). migration=FALSE. **Parse Skor->ScoreValue masih hardcode 10 (handoff Plan 02 SKR-02/03/04).**
 - [v32.6 / 418 opsi dinamis]: CreateQuestion/EditQuestion POST pakai binding `List<OptionInput>` (≤6) + `correctIndex` (MC single-select). Guard H3 (`q.Options.Count>4`) DIHAPUS → soal 5-6 opsi editable. Guard edit-shrink **D-418-02** (`OptionShrinkGuard.FindBlockedOptionIds`, query-existence pre-SaveChanges) tutup hazard FK-Restrict 500 untuk shrink-EKOR + convert→Essay. ⚠️ Upsert opsi POSISIONAL (`existing[i]` by Id) di-LOCK spec D-418-02 → **lubang 999.15** (relabel opsi tengah senyap) = target v32.9.
 - [v32.6 / Section]: entity `AssessmentPackageSection` per-paket + `PackageQuestion.SectionId int?` nullable (FK Question→Section SetNull, Section→Package Restrict — Cascade picu SQL 1785 multi-path). Section opsional → kosong = perilaku global lama (kompatibel-mundur). `ShuffleEngine` partisi by `(SectionNumber, ET)`. `SectionStructureComparer.MismatchedSections` + re-guard StartExam (SEC-04).
 - [v32.5 / soft-remove]: 3 kolom `RemovedAt/RemovedBy/RemovalReason` (migration=TRUE `AddParticipantRemovalColumns`). Invarian: soft-removed ⇔ `RemovedAt != null` (BUKAN via Status). Seam `CMPController.IsParticipantRemoved`.
@@ -84,7 +85,7 @@ Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** —
 
 Last activity: 2026-06-24
 
-Stopped at: Phase 999.17 context gathered
+Stopped at: Completed 999.17-01-PLAN.md
 
 Next action: **`/gsd-plan-phase 420`** (atau `/gsd-discuss-phase 420` dulu — fix mengubah mekanisme spec-locked D-418-02, layak discuss). migration=FALSE.
 

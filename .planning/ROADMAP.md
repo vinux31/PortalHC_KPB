@@ -88,10 +88,10 @@ Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-re
 - Implementasi: ClosedXML `ws.Range(...).CreateDataValidation().List("\"MultipleChoice,MultipleAnswer,Essay\"")` pada kolom QuestionType di `DownloadQuestionTemplate`; import skor butuh kolom baru + jalur grading manual (selaras pola inject manual existing).
 
 **Requirements:** 9 pseudo-REQ (diturunkan dari D-01..D-12; backlog tanpa REQUIREMENTS.md) — DRP-01 (dropdown QuestionType semua template, D-01/02/03), DRP-02 (kolom lain TANPA dropdown, D-04/05), SKR-01 (kolom Skor 14 Universal + WholeNumber DV 1-100, D-07/10), SKR-02 (parse Skor->ScoreValue default 10, D-06/08), SKR-03 (validasi server int 1-100, D-09), SKR-04 (atomic hard-reject + surface, D-12), VRF-01 (grade-lock normalize 0-100, D-11), VRF-02 (legacy-safe regression, D-02/07), VRF-03 (UAT render Excel, D-01..10)
-**Plans:** 3 plans (3 wave, sequential — file-overlap AssessmentAdminController.cs; migration=FALSE) — planned 2026-06-30
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] 999.17-01-PLAN.md — Wave 1: ekstrak QuestionTemplateBuilder (seam pure) + DataValidation dropdown QuestionType (semua template, L/H) + kolom Skor 14 Universal + numeric DV 1-100 (DRP-01/02, SKR-01)
+- [x] 999.17-01-PLAN.md — Wave 1: ekstrak QuestionTemplateBuilder (seam pure) + DataValidation dropdown QuestionType (semua template, L/H) + kolom Skor 14 Universal + numeric DV 1-100 (DRP-01/02, SKR-01)
 - [ ] 999.17-02-PLAN.md — Wave 2: ImportPackageQuestions parse Skor + validasi server 1-100 + atomic hard-reject (TempData ScoreErrors, 0-write) + view error-surface + grade-lock/legacy-safe tests (SKR-02/03/04, VRF-01/02)
 - [ ] 999.17-03-PLAN.md — Wave 3: gerbang full-suite + e2e roundtrip opsional + UAT manual dropdown/numeric Excel (VRF-03; autonomous:false)
 
