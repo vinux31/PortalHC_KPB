@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v32.6
 milestone_name: via D-08)
 status: executing
-stopped_at: Completed 999.17-01-PLAN.md
-last_updated: "2026-06-30T07:33:37.382Z"
+stopped_at: Completed 999.17-02-PLAN.md
+last_updated: "2026-06-30T07:53:49.944Z"
 last_activity: 2026-06-30
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State: Portal HC KPB
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 999.17 (excel-zero-config-template-dropdown-data-validation-plus-imp) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-30
 
@@ -65,6 +65,7 @@ Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** —
 ### Decisions (persist across milestones)
 
 - [999.17 / 01 Excel zero-config download]: Template Excel soal "zero-config" sisi DOWNLOAD via seam pure `Helpers/QuestionTemplateBuilder.Build(type)->XLWorkbook` (ekstrak dari `DownloadQuestionTemplate`, analog `InjectExcelHelper`). Dropdown DataValidation `QuestionType` (List 3-nilai, inCellDropdown, baris 2-1000) di SEMUA template: Universal kolom L(12) + legacy MC/MA/Essay kolom H(8). Kolom `Skor` baru di Universal posisi 14(N) APPEND setelah Rubrik (marker dual-format 6/7/9/10 TAK bergeser) + numeric DV WholeNumber 1-100; legacy TANPA Skor (D-07). DV = hint anti-typo non-otoritatif (ErrorStyle.Warning); server otoritatif menyusul Plan 02. DataValidation greenfield ClosedXML 0.105.0 (`git grep CreateDataValidation` dulu 0 kini ada). migration=FALSE. **Parse Skor->ScoreValue masih hardcode 10 (handoff Plan 02 SKR-02/03/04).**
+- [999.17 / 02 Import Skor]: `ImportPackageQuestions` baca kolom Skor (N/14) di branch `isNewFormat` via **list paralel `rawScores`** (lockstep ke `rows`, BUKAN perlebar tuple 13-field → hindari cascade 3 signature helper RowIsValid/CorrectLettersMapToFilledOptions/rowForCheck + risiko regresi dual-format; PATTERNS menyanksi alternatif ini). `ScoreValue` ganti hardcode 10. Validasi server `int.TryParse(NumberStyles.None, InvariantCulture)` + range 1-100 (tolak desimal/negatif/>100/non-angka, D-09/D-10). Tolak-keras-atomic (D-12): ≥1 invalid → `TempData["ScoreErrors"]` + RedirectToAction + **0 write** (pola SectionMismatch, pass mandiri sebelum persist). Legacy 9-kolom + paste → rawScore null → default 10 (D-07/LEGACY-SAFE). View render ScoreErrors (alert-danger) + dok kolom Skor. **GradingService 0 diff (D-11)** — grade-lock dikunci `WeightedScoreImportTests` (import bobot non-uniform 30/10 → finalPercentage 75). suite Skor 15/15 + fast 653/0/2 + grading-integ 14/14. migration=FALSE. Commits test `5e4719cf` → feat `92a69a86`. **Sisa: Plan 03 UAT roundtrip.**
 - [v32.6 / 418 opsi dinamis]: CreateQuestion/EditQuestion POST pakai binding `List<OptionInput>` (≤6) + `correctIndex` (MC single-select). Guard H3 (`q.Options.Count>4`) DIHAPUS → soal 5-6 opsi editable. Guard edit-shrink **D-418-02** (`OptionShrinkGuard.FindBlockedOptionIds`, query-existence pre-SaveChanges) tutup hazard FK-Restrict 500 untuk shrink-EKOR + convert→Essay. ⚠️ Upsert opsi POSISIONAL (`existing[i]` by Id) di-LOCK spec D-418-02 → **lubang 999.15** (relabel opsi tengah senyap) = target v32.9.
 - [v32.6 / Section]: entity `AssessmentPackageSection` per-paket + `PackageQuestion.SectionId int?` nullable (FK Question→Section SetNull, Section→Package Restrict — Cascade picu SQL 1785 multi-path). Section opsional → kosong = perilaku global lama (kompatibel-mundur). `ShuffleEngine` partisi by `(SectionNumber, ET)`. `SectionStructureComparer.MismatchedSections` + re-guard StartExam (SEC-04).
 - [v32.5 / soft-remove]: 3 kolom `RemovedAt/RemovedBy/RemovalReason` (migration=TRUE `AddParticipantRemovalColumns`). Invarian: soft-removed ⇔ `RemovedAt != null` (BUKAN via Status). Seam `CMPController.IsParticipantRemoved`.
@@ -85,9 +86,9 @@ Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** —
 
 Last activity: 2026-06-24
 
-Stopped at: Completed 999.17-01-PLAN.md
+Stopped at: Completed 999.17-02-PLAN.md
 
-Next action: **`/gsd-plan-phase 420`** (atau `/gsd-discuss-phase 420` dulu — fix mengubah mekanisme spec-locked D-418-02, layak discuss). migration=FALSE.
+Next action: **`/gsd-execute-phase 999.17`** lanjut Plan 03 (UAT roundtrip download→import bobot→grade — autonomous tergantung plan). 999.17-02 (import Skor) ✅ SELESAI: parse Skor+validasi atomic+grade-lock, suite 15/15+fast 653/0/2, migration=FALSE, commits `5e4719cf`(test)→`92a69a86`(feat). _(v32.9 fase 420 = milestone berikutnya, di-pause selama 999.17 berjalan.)_
 
 ## Deferred Items
 
