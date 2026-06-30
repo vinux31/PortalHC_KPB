@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Pekerjaan — v31.0 (Pra-Ujian Lisensor) &amp; v32.0 (Manajemen Peserta)</title>
+<style>
+  :root{
+    --ink:#1a2233; --muted:#5b6678; --line:#e4e8ef; --bg:#f6f8fb; --card:#fff;
+    --green:#1a8a52; --green-bg:#e7f6ee; --amber:#9a6a00; --amber-bg:#fbf2dc;
+    --blue:#1f5fa8; --blue-bg:#e8f0fa; --red:#b3261e;
+    --purple:#5a3aa8; --purple-bg:#efeafa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 64px}
+  header.top{background:linear-gradient(135deg,#16335c,#1f5fa8);color:#fff;border-radius:16px;padding:32px 28px;box-shadow:0 8px 28px rgba(22,51,92,.18)}
+  header.top .tag{display:inline-block;background:rgba(255,255,255,.18);padding:4px 12px;border-radius:999px;font-size:13px;letter-spacing:.5px;margin-bottom:12px}
+  header.top h1{margin:0 0 6px;font-size:26px;line-height:1.25}
+  header.top p{margin:0;opacity:.92;font-size:15px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font-size:13.5px;opacity:.95}
+  .meta b{font-weight:600}
+  /* milestone divider */
+  .mstone{margin-top:34px;border-radius:14px;padding:18px 24px;color:#fff;box-shadow:0 4px 14px rgba(20,30,50,.12)}
+  .mstone.v31{background:linear-gradient(135deg,#1f5fa8,#2f86d6)}
+  .mstone.v32{background:linear-gradient(135deg,#5a3aa8,#8154d6)}
+  .mstone .lbl{display:inline-block;background:rgba(255,255,255,.2);padding:3px 11px;border-radius:999px;font-size:12.5px;letter-spacing:.5px;margin-bottom:8px}
+  .mstone h2{margin:0;font-size:22px;color:#fff;display:block}
+  .mstone p{margin:6px 0 0;opacity:.93;font-size:14.5px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-top:20px;box-shadow:0 1px 3px rgba(20,30,50,.04)}
+  h2{font-size:19px;margin:0 0 14px;display:flex;align-items:center;gap:9px}
+  h2 .ic{font-size:20px}
+  h3{font-size:15.5px;margin:18px 0 6px;color:var(--ink)}
+  p{margin:8px 0}
+  .lead{font-size:16px;color:var(--ink)}
+  .muted{color:var(--muted)}
+  /* verdict */
+  .verdict{border:2px solid var(--green);background:var(--green-bg);border-radius:14px;padding:22px 24px;margin-top:20px}
+  .verdict .big{font-size:20px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .verdict ul{margin:10px 0 0;padding-left:20px}
+  .verdict li{margin:5px 0}
+  /* badges */
+  .badge{display:inline-block;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px}
+  .b-green{background:var(--green-bg);color:var(--green)}
+  .b-amber{background:var(--amber-bg);color:var(--amber)}
+  .b-blue{background:var(--blue-bg);color:var(--blue)}
+  .b-purple{background:var(--purple-bg);color:var(--purple)}
+  /* fix cards */
+  .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:8px}
+  .fix{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:10px;padding:14px 16px;background:#fcfdff}
+  .fix.v32{border-left-color:var(--purple)}
+  .fix .t{font-weight:600;margin-bottom:3px}
+  .fix .d{font-size:14.5px;color:var(--muted)}
+  /* table */
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f2f5f9;font-weight:600;font-size:13.5px}
+  /* note box */
+  .note{border:1px solid var(--amber);background:var(--amber-bg);border-radius:12px;padding:16px 18px;margin-top:8px}
+  .note h3{margin-top:0;color:var(--amber)}
+  .check{color:var(--green);font-weight:700}
+  .dot{color:var(--amber);font-weight:700}
+  footer{margin-top:28px;text-align:center;color:var(--muted);font-size:13px}
+  .kv{font-size:14px}
+  .kv b{display:inline-block;min-width:130px;color:var(--muted);font-weight:600}
+  .toc{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .toc a{flex:1 1 240px;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fcfdff;transition:.15s}
+  .toc a:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(31,95,168,.12)}
+  .toc a b{display:block;font-size:15px}
+  .toc a span{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <span class="tag">PORTAL HC KPB · RINGKASAN UNTUK TIM HC</span>
+    <h1>Laporan Pekerjaan — Paket v31.0 &amp; v32.0</h1>
+    <p>Dua paket: <b>v31.0</b> persiapan Ujian Lisensor (perbaikan sistem ujian) &amp; <b>v32.0</b> Manajemen Peserta (tambah peserta saat ujian berjalan + perbaikan buat akun pekerja)</p>
+    <div class="meta">
+      <span><b>Tanggal laporan:</b> 30 Juni 2026</span>
+      <span><b>Status:</b> Selesai &amp; teruji di komputer lokal</span>
+      <span><b>Perlu ubah database:</b> Tidak (kedua paket)</span>
+    </div>
+  </header>
+
+  <!-- DAFTAR ISI -->
+  <section>
+    <h2><span class="ic">🗂️</span> Dua paket dalam dokumen ini</h2>
+    <p class="muted">Dokumen ini menggabungkan ringkasan dua paket pekerjaan berurutan. Klik untuk loncat:</p>
+    <div class="toc">
+      <a href="#v31"><b>📦 v31.0 — Pra-Ujian Lisensor</b><span>14 perbaikan agar ujian lisensor (Pilihan Ganda, Jamak, Esai, soal bergambar) berjalan mulus.</span></a>
+      <a href="#v32"><b>📦 v32.0 — Manajemen Peserta</b><span>Tambah peserta saat ujian berjalan + halaman buat akun pekerja kembali bisa dipakai.</span></a>
+    </div>
+  </section>
+
+  <!-- ================= v31.0 ================= -->
+  <div class="mstone v31" id="v31">
+    <span class="lbl">PAKET PERTAMA</span>
+    <h2>📦 v31.0 — Perbaikan Sistem Ujian (Pra-Ujian Lisensor)</h2>
+    <p>Persiapan menjelang Ujian Lisensor · 14 perbaikan · selesai 16 Juni 2026 · tanpa ubah database</p>
+  </div>
+
+  <!-- VERDICT v31 -->
+  <section class="verdict" aria-label="Kesimpulan utama v31">
+    <div class="big"><span>✅</span> Website sudah bisa membuat ujian Pilihan Ganda <i>(Single Answer)</i> dan ujian Esai.</div>
+    <p class="muted" style="margin-top:4px">Bukan sekadar perkiraan. Dijalankan langsung di aplikasi (otomatis lewat browser) dan berhasil:</p>
+    <ul>
+      <li><span class="check">✓</span> <b>Membuat ujian Pilihan Ganda</b> (termasuk soal dengan <b>gambar</b> di pilihannya) — admin bisa menyusun &amp; menyimpan soal dengan benar.</li>
+      <li><span class="check">✓</span> <b>Membuat ujian Esai</b> — admin bisa membuat ujian berisi soal esai dan menugaskannya ke peserta.</li>
+      <li><span class="check">✓</span> <b>Peserta mengerjakan esai</b> — jawaban tersimpan utuh saat dikumpulkan, tidak hilang, tidak ditolak keliru "belum dijawab".</li>
+      <li><span class="check">✓</span> <b>Pengaman soal</b> — sistem menolak soal pilihan yang dibuat tanpa opsi jawaban (mencegah ujian macet).</li>
+    </ul>
+  </section>
+
+  <!-- APA INI v31 -->
+  <section>
+    <h2><span class="ic">📌</span> Apa isi paket v31.0?</h2>
+    <p class="lead">Kumpulan perbaikan untuk <b>memastikan ujian lisensor berjalan mulus</b> — dari membuat soal, peserta mengerjakan, hingga hasil &amp; sertifikat. Tidak ada fitur baru besar; fokusnya membereskan hal yang bisa mengganggu di hari-H.</p>
+    <p class="muted">Dibagi dua: <b>(A) Perbaikan mendesak sebelum ujian</b> dan <b>(B) Penyempurnaan setelah ujian</b>.</p>
+  </section>
+
+  <!-- BAGIAN A -->
+  <section>
+    <h2><span class="ic">🛟</span> A. Perbaikan mendesak (sebelum ujian)</h2>
+    <div class="grid">
+      <div class="fix"><div class="t">🖼️ Gambar pada soal &amp; pilihan kini tampil</div><div class="d">Dulu gambar bisa gagal muncul saat aplikasi dibuka di alamat resmi kantor. Sekarang gambar tampil benar di semua layar (saat mengerjakan, ringkasan, dan hasil).</div></div>
+      <div class="fix"><div class="t">✍️ Jawaban esai tidak hilang</div><div class="d">Jawaban esai langsung tersimpan saat peserta menekan "Kumpulkan" / pindah halaman / waktu habis — tidak menunggu jeda. Ketikan terakhir tidak hilang, dan peserta yang sudah mengisi tidak ditolak keliru "belum dijawab".</div></div>
+      <div class="fix"><div class="t">🚫 Soal cacat tidak bisa disimpan</div><div class="d">Admin tidak bisa lagi menyimpan soal Pilihan Ganda/Jamak tanpa opsi jawaban. Mencegah satu soal rusak membekukan ujian semua peserta.</div></div>
+      <div class="fix"><div class="t">📝 Penilaian esai tidak macet</div><div class="d">Jika peserta mengosongkan esai, penilai (HC) tetap bisa menyelesaikan penilaian (esai kosong = 0). Tombol "Selesaikan Penilaian" muncul sebagaimana mestinya.</div></div>
+      <div class="fix"><div class="t">📄 Hasil PDF &amp; Excel akurat</div><div class="d">Pada bukti resmi (PDF per-peserta &amp; Excel), penilaian soal Pilihan Jamak kini benar (harus semua pilihan tepat baru dianggap benar) dan konsisten antara layar web, PDF, dan Excel.</div></div>
+    </div>
+  </section>
+
+  <!-- BAGIAN B -->
+  <section>
+    <h2><span class="ic">✨</span> B. Penyempurnaan (setelah ujian)</h2>
+    <div class="grid">
+      <div class="fix"><div class="t">🔒 Penilaian esai lebih aman</div><div class="d">Skor esai hanya bisa diisi saat statusnya memang "menunggu penilaian", dan hanya untuk soal esai milik sesi yang benar — mencegah salah ubah nilai.</div></div>
+      <div class="fix"><div class="t">🎫 Nomor sertifikat anti-gagal-diam</div><div class="d">Saat menyelesaikan penilaian, jika pembuatan nomor sertifikat sempat bentrok, sistem mencoba ulang otomatis. Bila tetap gagal, penilai kini <b>diberi peringatan jelas</b> (bukan diam-diam dianggap berhasil).</div></div>
+      <div class="fix"><div class="t">📊 Excel menampilkan jawaban &amp; skor esai</div><div class="d">Pada unduhan Excel, kolom esai kini menampilkan teks jawaban peserta dan skornya, bukan tanda "—".</div></div>
+      <div class="fix"><div class="t">🔔 Layar pemantauan langsung ter-update</div><div class="d">Saat penilaian selesai, tab pemantauan admin lain ikut ter-update otomatis tanpa perlu refresh.</div></div>
+      <div class="fix"><div class="t">♿ Bantuan pembaca layar</div><div class="d">Gambar pilihan jawaban diberi penanda huruf (opsi A/B/C/D) agar terbaca jelas oleh pembaca layar (aksesibilitas).</div></div>
+      <div class="fix"><div class="t">🛡️ Jawaban tidak tertimpa kosong</div><div class="d">Jawaban pilihan ganda yang sudah tersimpan tidak akan tertimpa menjadi kosong jika soal tidak ikut terkirim. Jawaban esai juga ditolak bila ditulis setelah waktu habis.</div></div>
+    </div>
+  </section>
+
+  <!-- BUKTI v31 -->
+  <section>
+    <h2><span class="ic">🔬</span> Bukti pengujian v31.0</h2>
+    <table>
+      <thead><tr><th>Jenis pengujian</th><th>Hasil</th><th>Arti</th></tr></thead>
+      <tbody>
+        <tr><td>Uji otomatis (logika program)</td><td><span class="badge b-green">347 + 8 lulus</span></td><td>Semua aturan program berjalan benar, tidak ada yang rusak.</td></tr>
+        <tr><td>Uji langsung di browser — buat ujian Pilihan Ganda + gambar</td><td><span class="badge b-green">LULUS</span></td><td>Admin berhasil membuat &amp; menyimpan soal pilihan bergambar.</td></tr>
+        <tr><td>Uji langsung di browser — buat ujian Esai + peserta mengerjakan</td><td><span class="badge b-green">LULUS</span></td><td>Ujian esai bisa dibuat, dikerjakan, jawaban tersimpan utuh.</td></tr>
+        <tr><td>Uji langsung di browser — tolak soal tanpa opsi</td><td><span class="badge b-green">LULUS</span></td><td>Soal cacat ditolak; ujian aman dari macet.</td></tr>
+        <tr><td>Pemeriksaan keamanan (10 risiko)</td><td><span class="badge b-green">10/10 aman</span></td><td>Tidak ada celah terbuka pada perbaikan ini.</td></tr>
+        <tr><td>Penilaian manual oleh penguji</td><td><span class="badge b-amber">3 item, semua OK</span></td><td>Sertifikat, notifikasi langsung, &amp; batas waktu esai — diuji manual.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- CATATAN v31 -->
+  <section>
+    <h2><span class="ic">⚠️</span> Yang perlu diperhatikan — v31.0</h2>
+    <div class="note">
+      <h3>Langkah lanjutan &amp; batasan</h3>
+      <ul>
+        <li><b>Tidak ada perubahan database</b> — pemasangan cukup perbarui kode.</li>
+        <li><b>Uji gambar di server perlu dicek sekali lagi.</b> Masalah gambar hanya muncul di alamat resmi kantor (sub-folder); di lokal sudah lolos uji.</li>
+        <li><b>3 hal diuji manual, bukan otomatis:</b> (1) nomor sertifikat saat bentrok, (2) update layar pemantauan langsung, (3) penolakan jawaban esai setelah waktu habis. Ketiganya sudah dicoba langsung dan <span class="check">berhasil</span>.</li>
+        <li><b>Bagian "B" (penyempurnaan) dipasang setelah acara</b> — terpisah dari paket mendesak (A) agar persiapan hari-H tidak terganggu.</li>
+      </ul>
+    </div>
+    <p class="muted" style="font-size:13.5px;margin-top:12px">Catatan: v31.0 sudah <b>dipasang Tim IT ke server Dev</b> dan lulus uji lifecycle penuh di Dev (ujian 20 soal: 10 Pilihan Ganda / 5 Pilihan Jamak / 5 Esai, 6 bergambar → kerjakan → nilai → sertifikat → ekspor). Sertifikat terbit (mis. KPB/001/VI/2026).</p>
+  </section>
+
+  <!-- ================= v32.0 ================= -->
+  <div class="mstone v32" id="v32">
+    <span class="lbl">PAKET KEDUA</span>
+    <h2>📦 v32.0 — Manajemen Peserta</h2>
+    <p>Tambah peserta saat ujian sedang berjalan + halaman buat akun pekerja kembali bisa dipakai · 7 perbaikan · selesai 17 Juni 2026 · tanpa ubah database</p>
+  </div>
+
+  <!-- VERDICT v32 -->
+  <section class="verdict" aria-label="Kesimpulan utama v32">
+    <div class="big"><span>✅</span> HC kini bisa menambah peserta saat ujian berjalan, dan halaman buat akun pekerja kembali normal.</div>
+    <p class="muted" style="margin-top:4px">Dua hal yang sebelumnya menghambat kerja HC sudah dibereskan:</p>
+    <ul>
+      <li><span class="check">✓</span> <b>Tambah peserta ke ujian yang sedang berjalan</b> — tidak lagi diblokir. Peserta yang telat/baru ditugaskan bisa langsung ikut selama waktu ujian masih buka.</li>
+      <li><span class="check">✓</span> <b>Peserta yang sedang mengerjakan tidak terganggu</b> — timer, jadwal, dan durasi mereka tidak berubah saat HC menambah peserta lain.</li>
+      <li><span class="check">✓</span> <b>Halaman "Buat Pekerja" (/Admin/CreateWorker)</b> — kolom Nama Lengkap &amp; Email yang dulu terkunci kini bisa diketik lagi, di semua lingkungan (termasuk saat login kantor/Active Directory aktif).</li>
+    </ul>
+  </section>
+
+  <!-- APA INI v32 -->
+  <section>
+    <h2><span class="ic">📌</span> Apa isi paket v32.0?</h2>
+    <p class="lead">Paket ini soal <b>kelancaran kerja HC mengelola peserta</b>. Dua keluhan nyata yang diperbaiki: (1) menambah peserta ke ujian yang sudah mulai sering diblokir/membingungkan, dan (2) halaman buat akun pekerja tidak bisa diisi nama &amp; email.</p>
+    <p class="muted">Tidak ada perubahan database. Semua perbaikan di sisi logika &amp; tampilan.</p>
+  </section>
+
+  <!-- FITUR 1: PESERTA FLEKSIBEL -->
+  <section>
+    <h2><span class="ic">👥</span> 1. Tambah peserta fleksibel saat ujian berjalan</h2>
+    <div class="grid">
+      <div class="fix v32"><div class="t">➕ Boleh menambah peserta selama ujian masih buka</div><div class="d">HC bisa menambah peserta baru ke sebuah ujian walau sebagian peserta sudah mulai mengerjakan — tidak lagi terblokir. Aturannya berbasis <b>waktu tutup ujian</b>: selama jadwal ujian belum lewat, penambahan diperbolehkan. Bahkan bila sebagian peserta sudah selesai, penambahan tetap bisa.</div></div>
+      <div class="fix v32"><div class="t">🆕 Peserta baru langsung siap mengerjakan</div><div class="d">Peserta yang baru ditambahkan diberi status <b>siap-mulai</b> (Open bila jadwal sudah tiba, atau Upcoming bila belum) — bukan langsung dianggap "sedang mengerjakan". Jadi mereka bisa menekan "Mulai Ujian" secara normal, dan layar pemantauan menampilkan status yang akurat.</div></div>
+      <div class="fix v32"><div class="t">🛡️ Peserta yang sedang ujian tidak terganggu</div><div class="d">Saat HC menyimpan penambahan, sistem <b>tidak menyentuh</b> sesi peserta yang sedang berjalan — timer, jadwal, dan durasi mereka aman, tidak ter-reset atau ter-overwrite.</div></div>
+      <div class="fix v32"><div class="t">💬 Pemberitahuan menenangkan, bukan peringatan</div><div class="d">Setelah menambah peserta ke ujian yang sedang berjalan, HC melihat <b>info biru</b> yang menjelaskan "peserta baru tetap bisa langsung mulai selama ujian masih buka" — menggantikan peringatan lama yang berkesan error dan membuat ragu. Tanpa dialog konfirmasi yang menghambat.</div></div>
+      <div class="fix v32"><div class="t">🔁 Dikunci uji otomatis</div><div class="d">Perilaku ini dikunci uji otomatis (regression test) agar tidak rusak lagi di pembaruan berikutnya: penambahan saat ada peserta berjalan berhasil, peserta baru lahir status siap-mulai, dan sesi peserta lama tidak berubah.</div></div>
+    </div>
+  </section>
+
+  <!-- FITUR 2: CREATEWORKER -->
+  <section>
+    <h2><span class="ic">🧑‍💼</span> 2. Perbaikan halaman "Buat Pekerja"</h2>
+    <div class="grid">
+      <div class="fix v32"><div class="t">⌨️ Nama Lengkap &amp; Email bisa diketik lagi</div><div class="d">Di <code>/Admin/CreateWorker</code>, kolom Nama Lengkap dan Email yang sebelumnya terkunci (readonly) kini bisa diisi di <b>semua lingkungan</b> — termasuk di Dev/Prod yang memakai login kantor (Active Directory). Login AD tetap aktif, hanya kolomnya yang dibuka.</div></div>
+      <div class="fix v32"><div class="t">✅ Pesan validasi per-kolom</div><div class="d">Kolom Email memeriksa format email, dan tiap kolom (Nama, Email, Jabatan, Direktorat, Bagian, Unit) menampilkan <b>pesan kesalahan tepat di bawah kolomnya</b> — bukan hanya menumpuk di ringkasan atas halaman.</div></div>
+      <div class="fix v32"><div class="t">🔗 Semua kolom berfungsi sampai tuntas</div><div class="d">Seluruh kolom diverifikasi bekerja: NIP, Tanggal Bergabung, Jabatan, Direktorat, pilihan berantai Bagian→Unit, Peran (Role), Password/Konfirmasi (mode lokal) atau info password otomatis (mode AD) — dan HC dapat <b>menyelesaikan pembuatan pekerja baru</b> (data tersimpan, lalu diarahkan ke daftar pekerja).</div></div>
+    </div>
+  </section>
+
+  <!-- BUKTI v32 -->
+  <section>
+    <h2><span class="ic">🔬</span> Bukti pengujian v32.0</h2>
+    <table>
+      <thead><tr><th>Jenis pengujian</th><th>Hasil</th><th>Arti</th></tr></thead>
+      <tbody>
+        <tr><td>Uji otomatis (logika program)</td><td><span class="badge b-green">347 lulus</span></td><td>Semua aturan program berjalan benar, 0 yang rusak.</td></tr>
+        <tr><td>Uji integrasi database — tambah peserta saat ujian berjalan</td><td><span class="badge b-green">4/4 lulus</span></td><td>Penambahan berhasil, peserta baru siap-mulai, sesi lama tak berubah.</td></tr>
+        <tr><td>Pemeriksaan keamanan (per fitur)</td><td><span class="badge b-green">8/8 aman</span></td><td>Tidak ada celah terbuka; akses hanya untuk Admin/HC.</td></tr>
+        <tr><td>Pemeriksaan keterkaitan antar-bagian</td><td><span class="badge b-green">Tersambung 8/8</span></td><td>Dua alur penuh (tambah peserta &amp; buat pekerja) tersambung rapi.</td></tr>
+        <tr><td>Alur lengkap (end-to-end)</td><td><span class="badge b-green">2/2 lengkap</span></td><td>(1) tambah peserta → sesi tersimpan siap-mulai; (2) buat pekerja → akun tersimpan + diarahkan ke daftar.</td></tr>
+        <tr><td>Pemeriksaan mutu milestone (audit)</td><td><span class="badge b-green">LULUS 7/7</span></td><td>Semua 7 target perbaikan terpenuhi, diperiksa ulang secara ketat.</td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="font-size:13.5px">Uji yang melibatkan data hanya di komputer lokal dengan database sekali-pakai; tidak meninggalkan data sampah.</p>
+  </section>
+
+  <!-- CATATAN v32 -->
+  <section>
+    <h2><span class="ic">⚠️</span> Yang perlu diperhatikan — v32.0</h2>
+    <div class="note">
+      <h3>Langkah lanjutan &amp; batasan</h3>
+      <ul>
+        <li><b>Belum dipasang ke server.</b> Semua perbaikan selesai &amp; teruji <b>di komputer lokal</b>, belum dikirim ke server. Pemasangan ke Dev/Prod adalah tugas <b>Tim IT</b>.</li>
+        <li><b>Tidak ada perubahan database</b> — pemasangan cukup perbarui kode.</li>
+        <li><b>2 uji perlu dicoba sekali lagi di server (oleh IT) saat login kantor (AD) aktif:</b> (1) tambah peserta ke ujian berjalan → muncul info biru, peserta baru siap-mulai, sesi berjalan tak berubah; (2) buat pekerja di <code>/Admin/CreateWorker</code> → Nama &amp; Email bisa diketik, simpan sukses. Di lokal login kantor tidak bisa dijalankan, jadi bagian ini diperiksa lewat penelusuran kode + perlu konfirmasi singkat di server.</li>
+        <li><b>Catatan kecil (tidak menghambat):</b> ada beberapa item perbaikan minor yang dicatat untuk dikerjakan kemudian (mis. penguncian halaman edit saat penilaian esai sedang berjalan, dan penyempurnaan tombol "loading" bersama). Tidak memengaruhi fungsi inti paket ini.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================= STATUS GABUNGAN ================= -->
+  <section>
+    <h2><span class="ic">🧭</span> Status &amp; langkah berikutnya (kedua paket)</h2>
+    <table>
+      <thead><tr><th>Paket</th><th>Hasil audit</th><th>Database</th><th>Status pemasangan</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>v31.0</b> Pra-Ujian Lisensor</td>
+          <td><span class="badge b-green">LULUS 14/14</span></td>
+          <td><span class="badge b-blue">Tidak ada</span></td>
+          <td><span class="badge b-green">Sudah di server Dev</span> (oleh IT, lifecycle PASS)</td>
+        </tr>
+        <tr>
+          <td><b>v32.0</b> Manajemen Peserta</td>
+          <td><span class="badge b-green">LULUS 7/7</span></td>
+          <td><span class="badge b-blue">Tidak ada</span></td>
+          <td><span class="badge b-amber">Menunggu dipasang IT</span> (selesai &amp; teruji lokal)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Langkah berikutnya (oleh Tim IT)</h3>
+    <ol>
+      <li>Pasang kode v32.0 ke server Development (10.55.3.3) — <b>flag migration = FALSE</b> (tidak perlu ubah database).</li>
+      <li>Konfirmasi singkat di server (login kantor aktif): tambah peserta ke ujian berjalan &amp; buat pekerja baru di <code>/Admin/CreateWorker</code>.</li>
+      <li>Untuk v31.0: bila ada penyesuaian akhir, pastikan sekali lagi gambar soal tampil di alamat resmi <code>/KPB-PortalHC</code>.</li>
+    </ol>
+    <p class="muted" style="font-size:13.5px">Catatan teknis untuk IT: kedua paket <b>tidak mengubah database</b> (migration = FALSE). Pemasangan = perbarui kode saja.</p>
+  </section>
+
+  <footer>
+    Portal HC KPB — Laporan gabungan paket v31.0 &amp; v32.0 · disusun 30 Juni 2026<br>
+    Disusun untuk Tim HC (bahasa non-teknis). Rincian teknis lengkap ada di dokumen audit internal (<code>.planning/milestones/</code>).
+  </footer>
+
+</div>
+</body>
+</html>
