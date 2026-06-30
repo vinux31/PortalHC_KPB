@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: v32.6
-milestone_name: via D-08)
+milestone: v32.9
+milestone_name: EditQuestion Option-Edit Data Integrity (SHIPPED) — no active milestone
 status: complete
 stopped_at: Phase 999.17 CLOSED (3/3 plans, all gates green, UAT-approved, ROADMAP marked ✅)
 last_updated: "2026-06-30T10:00:00.000Z"
 last_activity: 2026-06-30
 progress:
-  total_phases: 3
+  total_phases: 1
   completed_phases: 1
   total_plans: 3
   completed_plans: 3
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 999.17 — excel-zero-config-template-dropdown-data-validation-plus-imp
+**Current focus:** Tidak ada phase aktif — semua milestone v32.x CLOSED (terakhir v32.9 shipped 2026-06-25). Backlog Phase 999.17 closed 2026-06-30. Next: `/gsd-new-milestone` atau `/gsd-review-backlog`.
 
 ## Current Position
 
@@ -32,13 +32,9 @@ Last activity: 2026-06-30
 
 **Milestone v32.9 (Phase 420, EditQuestion identity-based option-edit) SUDAH SHIPPED 2026-06-25** (lihat MILESTONES.md — 1 phase/3 plan, audit 6/6, migration=FALSE, `cf8595e3` ada di origin/main). 999.17 = backlog phase dikerjakan SETELAH v32.9 close, kini juga CLOSED. **Tidak ada phase aktif berikutnya** — next = `/gsd-new-milestone` (scope baru) atau `/gsd-review-backlog` (promote 999.x lain).
 
-## Milestone Source (verified)
+## Milestone Source (historis)
 
-- **Scope = backlog 999.15** (review Phase 418 WR-01), diverifikasi reproduces on main 2026-06-24 via 7-agen verify workflow.
-- **Root cause:** loop upsert `EditQuestion` (`AssessmentAdminController.cs:8121-8160`) map input ke `existing[i]` (OrderBy Id) BY POSISI → pertahankan `PackageOption.Id` by-posisi. Form JS `ManagePackageQuestions.cshtml` (`removeOptionRow:866-878` + `reletterRows:769-826`) compact daftar saat hapus opsi tengah (A,B,C,D → hapus B → kirim A,C,D, no empty slot). Guard edit-shrink D-418-02 (`:8036-8075`) hanya flag slot EKOR (`i>=keep`) → Id opsi-B selamat, guard TAK menyala walau B sudah dijawab. Upsert lalu UPDATE record B (Id tetap) jadi teks "C". `PackageUserResponse` simpan `PackageOptionId` saja (no text snapshot, `Models/PackageUserResponse.cs:19-21`) → jawaban peserta yang dulu "B" kini menunjuk teks "C" → makna berubah senyap di review/grading/PDF.
-- **Fix arah (LOCKED context):** ⚠️ in-code note `AAC:8027-8035` peringatkan upsert posisional di-LOCK spec D-418-02 → fix ubah **MEKANISME** jadi identity-based (hidden `OptionId` per baris form + match-by-Id di controller), BUKAN sekadar perketat threshold guard.
-- **Regression-lock 999.14** — konversi MC/MA→Essay + penyusutan-EKOR pada soal terjawab SUDAH ditutup guard D-418-02 (`drop-noop`, jangan re-build); pertahankan tertutup (no FK-Restrict 500).
-- **FK relevan:** `PackageUserResponse → PackageOption` = Restrict (`ApplicationDbContext.cs:561-564`).
+> v32.9 (Phase 420 — fix relabel-senyap identity-based option-edit) **SUDAH SHIPPED 2026-06-25** + pushed `cf8595e3` + tag `v32.9`. Detail root-cause/akomplismen ada di `MILESTONES.md` §v32.9. Working-notes dipindah ke sana — tidak ada kerja v32.9 yang tersisa.
 
 ## Backlog Housekeeping (lakukan saat milestone setup / close)
 
@@ -49,24 +45,31 @@ Last activity: 2026-06-30
 | 999.5 test Coach×Coachee AF-3/AF-6 | DROP — stale, Phase 365 sudah ship `MarkMappingCompletedTests.cs` (AF-3 graduate + AF-6 race) | hapus dari ROADMAP Backlog |
 | 999.13 Section re-guard resume path | DEFER (permanent) — benign; soal di-pin `ShuffledQuestionIds`, Section cuma display/pagination null-safe; worst case re-pagination kosmetik | tandai permanent-defer |
 | 999.16 LinkPrePost section guard | DEFER (permanent) — no-op; `InjectQuestionSpec` tak punya `SectionId` → inject all-Lainnya → guard tak akan nyala. Promote hanya bila muncul surface LinkPrePost non-inject | tandai permanent-defer |
-| 999.15 relabel senyap | PROMOTE → v32.9 | (milestone ini) |
+| 999.15 relabel senyap | ✅ SHIPPED via v32.9 Phase 420 (identity-based option-edit, 2026-06-25) | DONE |
+| 999.17 Excel zero-config + import Skor | ✅ CLOSED 2026-06-30 (gerbang hijau, UAT-approved) | DONE |
 
 ## Push IT
+
+**⏳ PENDING (perlu aksi — koordinasi IT):**
+
+| Item | Status |
+|------|--------|
+| Notify IT — 2 migration carry lama (`PendingProtonBypass`+index/360, `ShuffleToggles`/372) | ⏳ kasih commit hash + flag ke IT |
+| Push bundle ke `origin/main` (v32.2 + v32.5 + v32.6 + **999.17**) | ⏳ koordinasi IT — **migration=TRUE:** Phase 409 `AddParticipantRemovalColumns` (v32.5) + Phase 415 `AddAssessmentPackageSection` (v32.6). 999.17 = 10 commit unpushed (`ade2425c`..`7720fffa`), migration=FALSE |
+
+**✅ DONE (tidak perlu aksi — jejak audit):**
 
 | Item | Status |
 |------|--------|
 | Push v29.0 + v30.0 ke `origin/ITHandoff` (branch + tag) | ✅ PUSHED 2026-06-15, HEAD `fe8c5ffe` |
-| Notify IT — 2 migration carry lama (`PendingProtonBypass`+index/360, `ShuffleToggles`/372) | ⏳ PENDING — kasih commit hash + flag ke IT |
-| Push v32.2 + v32.5 + v32.6 ke `origin/main` (bundle deploy) | ⏳ pending koordinasi IT — **migration=TRUE:** Phase 409 `AddParticipantRemovalColumns` (v32.5) + Phase 415 `AddAssessmentPackageSection` (v32.6) |
-| v32.9 (Phase 420) | ✅ di origin/main (`cf8595e3`), migration=FALSE |
-| Phase 999.17 (Excel zero-config + import Skor) | ⏳ 9 commit unpushed (`ade2425c`..`1907621b`), migration=FALSE — push bareng bundle IT berikutnya |
+| v32.9 (Phase 420) | ✅ SELESAI — di `origin/main` (`cf8595e3`) + tag `v32.9`, migration=FALSE |
 
 ## Accumulated Context
 
 ### Decisions (persist across milestones)
 
-- [999.17 / 01 Excel zero-config download]: Template Excel soal "zero-config" sisi DOWNLOAD via seam pure `Helpers/QuestionTemplateBuilder.Build(type)->XLWorkbook` (ekstrak dari `DownloadQuestionTemplate`, analog `InjectExcelHelper`). Dropdown DataValidation `QuestionType` (List 3-nilai, inCellDropdown, baris 2-1000) di SEMUA template: Universal kolom L(12) + legacy MC/MA/Essay kolom H(8). Kolom `Skor` baru di Universal posisi 14(N) APPEND setelah Rubrik (marker dual-format 6/7/9/10 TAK bergeser) + numeric DV WholeNumber 1-100; legacy TANPA Skor (D-07). DV = hint anti-typo non-otoritatif (ErrorStyle.Warning); server otoritatif menyusul Plan 02. DataValidation greenfield ClosedXML 0.105.0 (`git grep CreateDataValidation` dulu 0 kini ada). migration=FALSE. **Parse Skor->ScoreValue masih hardcode 10 (handoff Plan 02 SKR-02/03/04).**
-- [999.17 / 02 Import Skor]: `ImportPackageQuestions` baca kolom Skor (N/14) di branch `isNewFormat` via **list paralel `rawScores`** (lockstep ke `rows`, BUKAN perlebar tuple 13-field → hindari cascade 3 signature helper RowIsValid/CorrectLettersMapToFilledOptions/rowForCheck + risiko regresi dual-format; PATTERNS menyanksi alternatif ini). `ScoreValue` ganti hardcode 10. Validasi server `int.TryParse(NumberStyles.None, InvariantCulture)` + range 1-100 (tolak desimal/negatif/>100/non-angka, D-09/D-10). Tolak-keras-atomic (D-12): ≥1 invalid → `TempData["ScoreErrors"]` + RedirectToAction + **0 write** (pola SectionMismatch, pass mandiri sebelum persist). Legacy 9-kolom + paste → rawScore null → default 10 (D-07/LEGACY-SAFE). View render ScoreErrors (alert-danger) + dok kolom Skor. **GradingService 0 diff (D-11)** — grade-lock dikunci `WeightedScoreImportTests` (import bobot non-uniform 30/10 → finalPercentage 75). suite Skor 15/15 + fast 653/0/2 + grading-integ 14/14. migration=FALSE. Commits test `5e4719cf` → feat `92a69a86`. **Sisa: Plan 03 UAT roundtrip.**
+- [999.17 / 01 Excel zero-config download]: Template Excel soal "zero-config" sisi DOWNLOAD via seam pure `Helpers/QuestionTemplateBuilder.Build(type)->XLWorkbook` (ekstrak dari `DownloadQuestionTemplate`, analog `InjectExcelHelper`). Dropdown DataValidation `QuestionType` (List 3-nilai, inCellDropdown, baris 2-1000) di SEMUA template: Universal kolom L(12) + legacy MC/MA/Essay kolom H(8). Kolom `Skor` baru di Universal posisi 14(N) APPEND setelah Rubrik (marker dual-format 6/7/9/10 TAK bergeser) + numeric DV WholeNumber 1-100; legacy TANPA Skor (D-07). DV = hint anti-typo non-otoritatif (ErrorStyle.Warning); server otoritatif menyusul Plan 02. DataValidation greenfield ClosedXML 0.105.0 (`git grep CreateDataValidation` dulu 0 kini ada). migration=FALSE. (Plan 02 sudah ganti hardcode 10 → ScoreValue dari kolom Skor Excel.)
+- [999.17 / 02 Import Skor]: `ImportPackageQuestions` baca kolom Skor (N/14) di branch `isNewFormat` via **list paralel `rawScores`** (lockstep ke `rows`, BUKAN perlebar tuple 13-field → hindari cascade 3 signature helper RowIsValid/CorrectLettersMapToFilledOptions/rowForCheck + risiko regresi dual-format; PATTERNS menyanksi alternatif ini). `ScoreValue` ganti hardcode 10. Validasi server `int.TryParse(NumberStyles.None, InvariantCulture)` + range 1-100 (tolak desimal/negatif/>100/non-angka, D-09/D-10). Tolak-keras-atomic (D-12): ≥1 invalid → `TempData["ScoreErrors"]` + RedirectToAction + **0 write** (pola SectionMismatch, pass mandiri sebelum persist). Legacy 9-kolom + paste → rawScore null → default 10 (D-07/LEGACY-SAFE). View render ScoreErrors (alert-danger) + dok kolom Skor. **GradingService 0 diff (D-11)** — grade-lock dikunci `WeightedScoreImportTests` (import bobot non-uniform 30/10 → finalPercentage 75). suite Skor 15/15 + fast 653/0/2 + grading-integ 14/14. migration=FALSE. Commits test `5e4719cf` → feat `92a69a86`. Plan 03 UAT-approved (VRF-03) — phase CLOSED.
 - [v32.6 / 418 opsi dinamis]: CreateQuestion/EditQuestion POST pakai binding `List<OptionInput>` (≤6) + `correctIndex` (MC single-select). Guard H3 (`q.Options.Count>4`) DIHAPUS → soal 5-6 opsi editable. Guard edit-shrink **D-418-02** (`OptionShrinkGuard.FindBlockedOptionIds`, query-existence pre-SaveChanges) tutup hazard FK-Restrict 500 untuk shrink-EKOR + convert→Essay. ⚠️ Upsert opsi POSISIONAL (`existing[i]` by Id) di-LOCK spec D-418-02 → **lubang 999.15** (relabel opsi tengah senyap) = target v32.9.
 - [v32.6 / Section]: entity `AssessmentPackageSection` per-paket + `PackageQuestion.SectionId int?` nullable (FK Question→Section SetNull, Section→Package Restrict — Cascade picu SQL 1785 multi-path). Section opsional → kosong = perilaku global lama (kompatibel-mundur). `ShuffleEngine` partisi by `(SectionNumber, ET)`. `SectionStructureComparer.MismatchedSections` + re-guard StartExam (SEC-04).
 - [v32.5 / soft-remove]: 3 kolom `RemovedAt/RemovedBy/RemovalReason` (migration=TRUE `AddParticipantRemovalColumns`). Invarian: soft-removed ⇔ `RemovedAt != null` (BUKAN via Status). Seam `CMPController.IsParticipantRemoved`.
@@ -81,7 +84,6 @@ Last activity: 2026-06-30
 
 - [push] Carry migration lama (Origin, PendingProtonBypass+index/360, ShuffleToggles/372) — notify IT flag. v28→v32.2 = 0 migration baru; **v32.5 Phase 409 + v32.6 Phase 415 = migration=TRUE** (di range unpushed sama).
 - [branch] ⚠️ JANGAN tarik ITHandoff→main tanpa cherry-pick guard 391/398.1 (ITHandoff kehilangan guard tsb). v32.3/v32.4/v32.8 hidup di ITHandoff (terpisah dari main).
-- [v32.9] Fix MEKANISME (identity-based), bukan perketat threshold guard (in-code note `AAC:8035` LOCK). UAT real-browser WAJIB (lesson 354 — Razor/JS authoring form). Skenario kritis: hapus opsi tengah pada soal SUDAH dijawab → harus diblokir, bukan relabel.
 
 ## Session Continuity
 

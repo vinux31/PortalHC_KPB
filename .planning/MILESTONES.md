@@ -2,7 +2,7 @@
 
 ## v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based) (Shipped: 2026-06-25)
 
-**Phases completed:** 1 phase, 3 plans · **migration=FALSE** · branch main (NOT PUSHED) · audit PASSED 6/6 REQ
+**Phases completed:** 1 phase, 3 plans · **migration=FALSE** · branch main · ✅ PUSHED `origin/main` (`cf8595e3`) + tag `v32.9` · audit PASSED 6/6 REQ
 
 **Delivered:** Menghapus/mengedit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap — mekanisme upsert opsi `EditQuestion` POST diganti dari posisional (`existing[i]` by Id) menjadi identity-based (match `PackageOption` by stable `Id`). Menutup backlog 999.15 (verified reproduces on main). Git range: `f102879d`..`cf8595e3` (code) / `f4e291da`..`ef04be1d` (full phase incl docs).
 
