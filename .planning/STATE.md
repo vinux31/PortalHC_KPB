@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v32.6
 milestone_name: via D-08)
-status: completed
+status: executing
 stopped_at: Phase 999.17 context gathered
-last_updated: "2026-06-30T06:31:06.985Z"
-last_activity: 2026-06-25 -- v32.9 closed (audit PASSED 6/6 REQ, integration SOUND, suite 702/702, Playwright UAT 3/3)
+last_updated: "2026-06-30T07:19:03.862Z"
+last_activity: 2026-06-30 -- Phase 999.17 planning complete
 progress:
-  total_phases: 4
+  total_phases: 3
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -26,8 +27,8 @@ See: .planning/PROJECT.md
 
 Phase: — (v32.9 closed; Phase 420 shipped)
 Plan: —
-Status: Milestone v32.9 complete — archived (`milestones/v32.9-*`) + tagged local `v32.9`. NOT PUSHED.
-Last activity: 2026-06-25 -- v32.9 closed (audit PASSED 6/6 REQ, integration SOUND, suite 702/702, Playwright UAT 3/3)
+Status: Ready to execute
+Last activity: 2026-06-30 -- Phase 999.17 planning complete
 
 Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** — hapus/edit opsi jawaban pada soal yang SUDAH dijawab peserta tidak lagi me-relabel jawaban peserta secara senyap. Ganti upsert opsi POSISIONAL di `AssessmentAdminController.cs` EditQuestion POST menjadi **IDENTITY-based** (match baris input ke `PackageOption` existing by stable `Id`, bukan posisi) → hapus opsi tengah membuang record yang BENAR + guard answered-option (D-418-02) menyala untuk delete posisi MANAPUN. **migration=FALSE**. Branch main. Fase mulai **420** (lanjut dari 419).
 
