@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB Handoff IT — Deploy Bundle v31 + v32 ke Dev/Prod HcPortal KPB (2026-06-30)</title>
+<style>
+:root {
+  --brand: #e30613;
+  --brand-dark: #b8050f;
+  --navy: #1e3a8a;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg-alt: #f9fafb;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --amber: #f59e0b;
+  --amber-bg: #fef3c7;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --info-bg: #eff6ff;
+  --info-border: #3b82f6;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px; line-height: 1.6; color: var(--text);
+  background: #ffffff; margin: 0; padding: 0;
+}
+.container { max-width: 950px; margin: 0 auto; padding: 32px; }
+header.hero { border-top: 6px solid var(--brand); padding: 24px 0 16px; margin-bottom: 8px; }
+header.hero .badge {
+  display: inline-block; background: var(--brand); color: #fff; font-size: 12px;
+  font-weight: 600; padding: 4px 10px; border-radius: 3px; letter-spacing: 0.5px; margin-bottom: 12px;
+}
+header.hero h1 { font-size: 30px; margin: 0 0 6px; color: var(--text); }
+header.hero .subtitle { font-size: 16px; color: var(--muted); margin: 0; }
+.meta-row {
+  display: flex; flex-wrap: wrap; gap: 16px 32px; padding: 16px 20px;
+  background: var(--bg-alt); border-left: 4px solid var(--navy); border-radius: 4px;
+  margin: 16px 0 32px; font-size: 14px;
+}
+.meta-row .meta-item strong {
+  display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--muted); margin-bottom: 2px;
+}
+h2 { font-size: 22px; margin: 40px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+h3 { font-size: 17px; margin: 24px 0 10px; }
+h4 { font-size: 15px; margin: 14px 0 6px; }
+p { margin: 0 0 12px; }
+code, .mono {
+  font-family: Consolas, "Courier New", monospace; font-size: 13px;
+  background: var(--bg-alt); padding: 2px 6px; border-radius: 3px;
+}
+pre {
+  font-family: Consolas, "Courier New", monospace; font-size: 12.5px;
+  background: #1e293b; color: #e2e8f0; padding: 14px 18px; border-radius: 6px;
+  overflow-x: auto; border-left: 4px solid var(--brand); margin: 12px 0; line-height: 1.5;
+}
+pre.sql { background: var(--bg-alt); color: var(--text); border-left-color: var(--navy); }
+table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: var(--bg-alt); font-weight: 600; color: var(--text); }
+tbody tr:nth-child(even) { background: var(--bg-alt); }
+ul, ol { margin: 8px 0 16px; padding-left: 24px; }
+li { margin-bottom: 6px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.3px; vertical-align: middle; }
+.tag.ok { background: var(--green-bg); color: var(--green); }
+.tag.warn { background: var(--amber-bg); color: #92400e; }
+.tag.danger { background: var(--red-bg); color: var(--red); }
+.callout { padding: 14px 18px; margin: 16px 0; border-radius: 6px; border-left: 4px solid; }
+.callout.info { background: var(--info-bg); border-color: var(--info-border); }
+.callout.warn { background: var(--amber-bg); border-color: var(--amber); }
+.callout.success { background: var(--green-bg); border-color: var(--green); }
+.callout.danger { background: var(--red-bg); border-color: var(--red); }
+.callout p:last-child { margin-bottom: 0; }
+.callout .title { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.toc { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 16px 20px; margin: 0 0 32px; }
+.toc .title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; }
+.toc ol { margin: 0; padding-left: 22px; }
+.toc li { margin-bottom: 4px; font-size: 14px; }
+.toc a { color: var(--navy); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+.tldr { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%); color: #fff; padding: 20px 24px; border-radius: 8px; margin: 24px 0; }
+.tldr .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85; margin-bottom: 6px; }
+.tldr p { margin: 0; font-size: 16px; line-height: 1.5; }
+.tldr code { background: rgba(255,255,255,0.2); color: #fff; }
+@media print {
+  body { font-size: 11pt; }
+  .container { max-width: 100%; padding: 0; }
+  pre { background: #f4f4f4 !important; color: #000 !important; }
+  pre.sql { background: #f4f4f4 !important; }
+  .toc, header.hero { page-break-after: avoid; }
+  h2 { page-break-after: avoid; page-break-before: auto; }
+  table, pre, .callout { page-break-inside: avoid; }
+  a { color: var(--text); text-decoration: none; }
+  footer { page-break-before: avoid; }
+  @page { size: A4; margin: 18mm 15mm; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <span class="badge">HANDOFF TEAM IT</span>
+  <h1>Deploy Bundle v31 + v32 ke Dev/Prod — HcPortal KPB</h1>
+  <p class="subtitle">Semua pekerjaan sejak handoff terakhir (<code>DB_HANDOFF_IT_2026-06-15_Bundle-v24-v30.html</code>, baseline <code>e5f342e5</code>) sampai sekarang (<code>origin/main</code> = <code>2dff7435</code>, code HEAD bermakna <code>0c9a0d51</code>): milestone <strong>v31.0</strong> + <strong>v32.0 → v32.9</strong>. Inti DB: <strong>6 migration baru yang auto-apply</strong> saat startup — 5 additive + <strong>1 mengubah data (#422)</strong>. <strong>BACKUP DB wajib.</strong></p>
+</header>
+
+<div class="meta-row">
+  <div class="meta-item"><strong>Tanggal</strong> 30 Juni 2026</div>
+  <div class="meta-item"><strong>Scope</strong> v31.0 + v32.0 → v32.9 (+ konsolidasi &amp; bugfix MA)</div>
+  <div class="meta-item"><strong>Deploy target</strong> <code>2dff7435</code> (code HEAD <code>0c9a0d51</code>)</div>
+  <div class="meta-item"><strong>Baseline sebelumnya</strong> <code>e5f342e5</code> (bundle v24–v30, 2026-06-15)</div>
+  <div class="meta-item"><strong>Migration pending</strong> <strong style="color: var(--amber);">6 — auto-apply</strong></div>
+  <div class="meta-item"><strong>Risk</strong> <span class="tag warn">Medium — 6 migration, 1 mutasi data (#422)</span></div>
+  <div class="meta-item"><strong>Validasi lokal</strong> build 0 error · xUnit 1004 pass / 0 fail / 2 skip · e2e hijau</div>
+  <div class="meta-item"><strong>Developer</strong> Rino (asistensme@gmail.com)</div>
+</div>
+
+<div class="tldr">
+  <div class="label">TL;DR</div>
+  <p>Sejak bundle 06-15: <strong>v31.0</strong> (kode, <strong>0 migration</strong> — kemungkinan sudah di Dev) + <strong>v32.0–v32.9</strong> (<strong>6 migration</strong>). IT: <code>BACKUP DB Dev dulu (WAJIB)</code> → <code>git pull origin main</code> (<code>2dff7435</code>) → build/publish + restart. <strong>6 migration auto-apply</strong> saat startup (<code>Program.cs:151 Database.Migrate()</code>). <strong>5 additive non-destruktif</strong>, <strong>1 (#422) mengubah DATA permanen</strong> (renumber PackageNumber + unique index, idempotent). <strong>WAJIB verifikasi 6 migration benar-benar ter-apply</strong> (Section 5) — startup dibungkus <code>try/catch</code> yang <strong>menelan error</strong> (app tetap jalan walau migrasi gagal).</p>
+</div>
+
+<div class="callout danger" id="langkah" style="border-left-width:5px;">
+  <div class="title">▶ Langkah Eksekusi — Ikuti Berurutan</div>
+  <ol style="margin-bottom:0;">
+    <li><strong>Backup dulu</strong> — <code>BACKUP DATABASE</code> penuh (Section 5 Step 1). WAJIB — migration #422 mengubah data permanen.</li>
+    <li><strong>Pull code</strong> <code>2dff7435</code> dari <code>origin/main</code> + build/publish + restart (Step 2–3).</li>
+    <li><strong>Verifikasi 6 migration ter-apply</strong> — jangan percaya "app jalan" saja; startup menelan error migrasi (Step 4).</li>
+    <li><strong>Verifikasi skema baru</strong> — tabel/kolom/index baru ada + #422 unique index terbentuk (Step 5).</li>
+    <li><strong>Smoke test</strong> per fitur (Section 6), lalu isi <strong>Log Pengerjaan IT</strong> (Section 10) + kabari developer (Rino).</li>
+    <li>Kalau Dev OK → ulang prosedur sama ke <strong>Prod</strong> (backup → deploy → verifikasi).</li>
+  </ol>
+</div>
+
+<div class="callout info">
+  <div class="title">Posisi Dokumen Ini</div>
+  <p>Handoff terakhir ke Team IT = <code>DB_HANDOFF_IT_2026-06-15_Bundle-v24-v30.html</code> (Bundle v24–v30, commit <code>e5f342e5</code>, <strong>5 migration</strong> — baseline). Dokumen ini = bundle <strong>berikutnya</strong> (v31 + v32) di atas baseline itu. <strong>v31.0</strong> (hotfix pra-ujian lisensor) sebelumnya di-deploy ke Dev sekitar 2026-06-16 untuk acara lisensor (UAT lifecycle PASS) tapi <strong>belum pernah masuk seri handoff resmi</strong> — karena <strong>0 migration</strong>, ia tak menyentuh DB sama sekali dan disertakan di sini untuk kelengkapan catatan. Semua tag rilis <code>v32.0</code>–<code>v32.9</code> ada di repo.</p>
+</div>
+
+<div class="toc">
+  <div class="title">Daftar Isi</div>
+  <ol>
+    <li><a href="#langkah">★ Langkah Eksekusi (Ringkas, Urut)</a></li>
+    <li><a href="#status">Section 1 — Status Deploy: v31 vs v32</a></li>
+    <li><a href="#context">Section 2 — Pekerjaan yang Di-deliver (v31 + v32.0–v32.9)</a></li>
+    <li><a href="#migration">Section 3 — 6 Migration Detail (urut apply)</a></li>
+    <li><a href="#m422">Section 4 — ⚠️ Khusus Migration #422 (Mengubah Data)</a></li>
+    <li><a href="#checklist">Section 5 — Cara Apply + Checklist IT (URUTAN WAJIB)</a></li>
+    <li><a href="#verify">Section 6 — Verifikasi Post-Deploy (Smoke Test)</a></li>
+    <li><a href="#delta">Section 7 — Delta Terakhir Code-Only (Bugfix MA + Test-Debt)</a></li>
+    <li><a href="#not-needed">Section 8 — Yang TIDAK Perlu IT Lakukan</a></li>
+    <li><a href="#rollback">Section 9 — Rollback Plan</a></li>
+    <li><a href="#log">Section 10 — Log Pengerjaan IT (isi saat selesai)</a></li>
+    <li><a href="#refs">Section 11 — File Referensi</a></li>
+  </ol>
+</div>
+
+<h2 id="status">1. Status Deploy — v31 vs v32</h2>
+
+<table>
+  <thead>
+    <tr><th>Milestone</th><th>Migration</th><th>Status deploy (per catatan dev)</th><th>Aksi di bundle ini</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>v31.0</strong> Hotfix Pra-Ujian Lisensor</td>
+      <td><span class="tag ok">FALSE — 0 migration</span></td>
+      <td>Merge ke <code>main</code> <code>7ea6c81e</code> (2026-06-16). <strong>Sudah di Dev</strong> (UAT lifecycle PASS 2026-06-16). Prod tak tercatat.</td>
+      <td>Ikut ter-deploy (kode). Nol risiko DB.</td>
+    </tr>
+    <tr>
+      <td><strong>v32.0 → v32.9</strong></td>
+      <td><span class="tag warn">TRUE — 6 migration</span></td>
+      <td><strong>BELUM di-deploy.</strong></td>
+      <td><strong>Inti bundle ini.</strong> 6 migration auto-apply (lihat Section 3–5).</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout info">
+  <p><strong>Catatan:</strong> sebelumnya ada handoff markdown internal <code>docs/handoff/2026-06-26-IT-handoff-v32-consolidation.md</code> yang menyebut "jalankan <code>dotnet ef database update</code>". Itu <strong>opsional</strong> — sebenarnya migration <strong>auto-apply</strong> saat app start. Dokumen HTML ini adalah versi resmi & terbaru untuk seri handoff IT.</p>
+</div>
+
+<h2 id="context">2. Pekerjaan yang Di-deliver (v31 + v32.0 → v32.9)</h2>
+
+<p>Ringkasan tiap milestone sejak baseline 06-15. Kolom <strong>Migration</strong> menandai mana yang menyentuh DB.</p>
+
+<table>
+  <thead>
+    <tr><th>Milestone</th><th>Deliver singkat</th><th>Migration</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>v31.0</strong> Hotfix Pra-Ujian Lisensor</td><td>Perbaikan pra-acara lisensor (PXF-01..14): gambar soal di sub-path, flush essay, retry sertifikat, broadcast monitoring, aria opsi, guard timer, MC no-null.</td><td><span class="tag ok">—</span></td></tr>
+    <tr><td><strong>v32.0</strong> Manajemen Peserta</td><td>Penambahan peserta fleksibel saat ujian berjalan (391) + perbaikan view CreateWorker + audit field (392). 7/7 REQ PART/WRKR.</td><td><span class="tag ok">—</span></td></tr>
+    <tr><td><strong>v32.1</strong> Design &amp; Label Polish</td><td>Rapikan teks &amp; tampilan 3 surface (LBL-03 + DSN-01..07): halaman Results (label "Batas Nilai Kelulusan"), CoachCoacheeMapping (accordion card per coach), CoachWorkload (+ fix tombol import).</td><td><span class="tag ok">—</span></td></tr>
+    <tr><td><strong>v32.2</strong> Inject Assessment Manual</td><td>Page <code>/Admin/InjectAssessment</code> (Kelola Data Section C, Admin+HC): inject hasil assessment manual <em>identik online</em> (history + jawaban per-soal + sertifikat), via Form/Auto-gen/Excel, dengan link Pre/Post silang. 13/13 INJ.</td><td><span class="tag ok">—</span></td></tr>
+    <tr><td><strong>v32.3</strong> Akun Multi-Unit (1 Bagian)</td><td>Pekerja bisa di &gt;1 Unit dalam 1 Bagian; PROTON sekuensial; coach cross-unit.</td><td><span class="tag warn">TRUE — #1</span></td></tr>
+    <tr><td><strong>v32.4</strong> Ujian Ulang (Retake)</td><td>Self-service retake untuk peserta gagal + admin toggle/MaxAttempts/cooldown + feedback bertingkat (leak-safe) + riwayat percobaan.</td><td><span class="tag warn">TRUE — #3</span></td></tr>
+    <tr><td><strong>v32.5</strong> Add/Remove Peserta Fleksibel</td><td>Tambah/hapus peserta saat ujian live (hard/soft remove + restore) + broadcast SignalR + force-kick.</td><td><span class="tag warn">TRUE — #2</span></td></tr>
+    <tr><td><strong>v32.6</strong> Section + Scoped Shuffle + Opsi Dinamis</td><td>Section di dalam paket assessment + shuffle ber-scope + pagination + opsi jawaban dinamis (2–6).</td><td><span class="tag warn">TRUE — #4</span></td></tr>
+    <tr><td><strong>v32.7</strong> Audit Pre/Post + Fixes</td><td>Perbaikan alur Pre→Post (gating wajib Pre dulu), retake logic, SamePackage, persistensi form Pre/Post. Termasuk dedup &amp; unique index nomor paket.</td><td><span class="tag danger">TRUE — #5 (DATA)</span></td></tr>
+    <tr><td><strong>v32.8</strong> Exam Security &amp; Audit Hardening</td><td>Penanda <code>TokenVerifiedAt</code> (anti reuse token ujian) + audit + StartExam idempoten.</td><td><span class="tag warn">TRUE — #6</span></td></tr>
+    <tr><td><strong>v32.9</strong> EditQuestion Data Integrity</td><td>Edit/hapus opsi jawaban berbasis <em>identity</em> (match by Id stabil), bukan posisi — supaya hapus/edit opsi tengah pada soal yang sudah dijawab tidak diam-diam menggeser jawaban peserta.</td><td><span class="tag ok">—</span></td></tr>
+    <tr><td><strong>Konsolidasi + bugfix</strong></td><td>Merge ITHandoff→main + 8 fix integrasi lintas-fitur + bugfix produk pembuatan soal Multiple Answer + tuntaskan test-debt e2e (lihat Section 7).</td><td><span class="tag ok">—</span></td></tr>
+  </tbody>
+</table>
+
+<h2 id="migration">3. Enam Migration Detail (urut apply by timestamp)</h2>
+
+<p>EF meng-apply otomatis berurutan berdasarkan <strong>timestamp</strong> nama file (bukan nomor milestone). Urutan apply:</p>
+
+<table>
+  <thead>
+    <tr><th>#</th><th>Migration (timestamp)</th><th>Milestone</th><th>Perubahan skema</th><th>Sifat</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td><code>20260618045427_AddUserUnitsTable</code></td><td>v32.3</td><td>Tabel baru <code>UserUnits</code> (relasi pekerja ↔ unit untuk akun multi-unit dalam 1 bagian) + backfill idempotent.</td><td><span class="tag ok">Additive</span></td></tr>
+    <tr><td>2</td><td><code>20260621011101_AddParticipantRemovalColumns</code></td><td>v32.5</td><td>Kolom soft-remove peserta (penanda dihapus / kapan / oleh siapa) untuk add/remove fleksibel saat ujian live.</td><td><span class="tag ok">Additive</span></td></tr>
+    <tr><td>3</td><td><code>20260621065918_AddRetakeColumnsAndArchive</code></td><td>v32.4</td><td>Kolom retake (<code>AllowRetake</code> / <code>MaxAttempts</code> / <code>RetakeCooldownHours</code>) di <code>AssessmentSessions</code> + tabel arsip jawaban baru <code>AssessmentAttemptResponseArchives</code> (relasi ke tabel riwayat <code>AssessmentAttemptHistory</code> yang sudah ada sejak Feb 2026).</td><td><span class="tag ok">Additive</span></td></tr>
+    <tr><td>4</td><td><code>20260622124217_AddAssessmentPackageSection</code></td><td>v32.6</td><td>Tabel baru <code>AssessmentPackageSections</code> + kolom <code>SectionId</code> di <code>PackageQuestions</code> (pengelompokan soal ke Section di dalam paket).</td><td><span class="tag ok">Additive</span></td></tr>
+    <tr><td>5</td><td><code>20260623103224_AddPackageNumberUniqueIndex</code></td><td>v32.7</td><td><strong>Renumber data <code>PackageNumber</code> per session (ROW_NUMBER, gap-free) + UNIQUE index.</strong> Lihat Section 4.</td><td><span class="tag danger">MUTASI DATA</span></td></tr>
+    <tr><td>6</td><td><code>20260624133656_AddTokenVerifiedAt</code></td><td>v32.8</td><td>Kolom <code>TokenVerifiedAt</code> di <code>AssessmentSessions</code> (hardening keamanan token ujian).</td><td><span class="tag ok">Additive</span></td></tr>
+  </tbody>
+</table>
+
+<div class="callout success">
+  <p><strong>5 dari 6 = additive non-destruktif</strong> (tambah tabel/kolom/index, tidak menyentuh baris data lama). Hanya <strong>#5 (422)</strong> yang memutasi <strong>DATA LAMA</strong> (renumber baris <code>AssessmentPackages</code> existing) dan butuh backup — dibahas khusus di Section 4.</p>
+  <p style="margin-bottom:0;"><strong>Catatan transparansi:</strong> #1 (<code>AddUserUnitsTable</code>) juga menjalankan raw SQL (INSERT backfill), tapi <strong>hanya mengisi tabel BARU <code>UserUnits</code></strong> dari data Users — tidak mengubah/menghapus baris existing, dan di-revert penuh oleh <code>Down()</code> (DropTable). Jadi tetap aman/additive, tak butuh penanganan khusus seperti #422.</p>
+</div>
+
+<h2 id="m422">4. ⚠️ Khusus Migration #422 (<code>AddPackageNumberUniqueIndex</code>)</h2>
+
+<p>Migration ini <strong>mengubah data existing</strong>, bukan cuma skema:</p>
+
+<ul>
+  <li><strong>STEP 1 — auto-renumber</strong> <code>PackageNumber</code> per session via <code>ROW_NUMBER()</code> (gap-free 1..N), untuk membersihkan duplikat lama (bug penomoran count-based + delete tanpa renumber). <strong>Idempotent</strong> (re-run = hasil sama).</li>
+  <li><strong>STEP 2 — bikin UNIQUE index</strong> <code>IX_AssessmentPackages_SessionId_PackageNumber_Unique</code>.</li>
+</ul>
+
+<table>
+  <thead><tr><th>Implikasi</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td><span class="tag ok">✅ Tidak perlu fix duplikat manual</span></td><td>STEP 1 sudah menanganinya otomatis. Migration tidak akan gagal karena ada duplikat lama.</td></tr>
+    <tr><td><span class="tag warn">⚠️ Renumber permanen</span></td><td><code>Down()</code> tidak me-revert renumber. Nomor paket yang tampil pada session lama bisa berubah (gap-free).</td></tr>
+    <tr><td><span class="tag danger">⚠️ Backup WAJIB</span></td><td>Karena ada mutasi data permanen (selain SOP standar). Satu-satunya jalan balik penuh = restore <code>.bak</code>.</td></tr>
+  </tbody>
+</table>
+
+<pre class="sql">-- BACKUP DB sebelum deploy (WAJIB — karena #422 mengubah data)
+BACKUP DATABASE [HcPortalDB_Dev]
+TO DISK = N'&lt;server-backup-path&gt;\HcPortalDB_Dev_pre-v31v32_20260630.bak'
+WITH FORMAT, INIT, NAME = N'pre-v31-v32-bundle';</pre>
+
+<h2 id="checklist">5. Cara Apply + Checklist IT (URUTAN WAJIB)</h2>
+
+<div class="callout warn">
+  <div class="title">Penting — migration auto-apply, tapi error-nya ditelan</div>
+  <p><code>Program.cs:151</code> memanggil <code>context.Database.Migrate()</code> saat startup → 6 migration apply <strong>otomatis</strong> begitu build baru jalan. TAPI blok itu dibungkus <code>try/catch</code> yang <strong>hanya nge-log error</strong> (app tetap start walau migrasi gagal). Maka <strong>WAJIB verifikasi</strong> migration benar-benar ter-apply (Step 4–5) — jangan cukup percaya "app-nya jalan".</p>
+</div>
+
+<h3>Urutan langkah</h3>
+<ol>
+  <li><strong>BACKUP DATABASE</strong> penuh (SQL di Section 4). Capture path <code>.bak</code> untuk rollback. <span class="tag danger">WAJIB</span></li>
+  <li><strong>Pull / checkout</strong> <code>main</code> (<code>2dff7435</code>) ke server. <code>git pull origin main</code>.</li>
+  <li><strong>Build / publish</strong> ulang artifact + <strong>restart</strong> app (IIS / Kestrel pool). Saat start → 6 migration auto-apply.</li>
+  <li><strong>Verifikasi 6 migration ter-apply</strong> (query <code>__EFMigrationsHistory</code>):
+    <pre class="sql">SELECT MigrationId FROM __EFMigrationsHistory
+WHERE MigrationId IN (
+  '20260618045427_AddUserUnitsTable',
+  '20260621011101_AddParticipantRemovalColumns',
+  '20260621065918_AddRetakeColumnsAndArchive',
+  '20260622124217_AddAssessmentPackageSection',
+  '20260623103224_AddPackageNumberUniqueIndex',
+  '20260624133656_AddTokenVerifiedAt'
+)
+ORDER BY MigrationId;
+-- Expected: 6 baris. Kalau &lt; 6 → migrasi gagal (cek log startup), JANGAN lanjut.</pre>
+  </li>
+  <li><strong>Verifikasi skema baru</strong> ada:
+    <pre class="sql">-- Tabel BARU di bundle ini (expect 3 baris)
+SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_NAME IN ('UserUnits','AssessmentPackageSections','AssessmentAttemptResponseArchives');
+
+-- Kolom baru kunci (expect 4 baris)
+SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+WHERE (TABLE_NAME='PackageQuestions'   AND COLUMN_NAME='SectionId')
+   OR (TABLE_NAME='AssessmentSessions' AND COLUMN_NAME IN ('TokenVerifiedAt','MaxAttempts','AllowRetake'));
+
+-- Unique index #422 (expect 1 baris)
+SELECT name FROM sys.indexes WHERE name = 'IX_AssessmentPackages_SessionId_PackageNumber_Unique';</pre>
+  </li>
+  <li><strong>Smoke test</strong> (Section 6) → isi <strong>Log Pengerjaan IT</strong> (Section 10) → kabari developer.</li>
+  <li>Dev OK → ulang ke <strong>Prod</strong> (backup → deploy → verifikasi sama).</li>
+</ol>
+
+<h2 id="verify">6. Verifikasi Post-Deploy (Smoke Test)</h2>
+<ol>
+  <li><strong>App start bersih</strong> — buka <code>http://10.55.3.3/KPB-PortalHC</code>, login, buka Kelola Data (assessment list) render normal. Cek log startup tak ada "error occurred while seeding the database".</li>
+  <li><strong>v32.3 Multi-Unit</strong> — buka CreateWorker / akun pekerja: widget multi-unit muncul (pekerja bisa pilih &gt;1 unit).</li>
+  <li><strong>v32.4 Retake</strong> — buka pengaturan paket: opsi "Ujian Ulang" (AllowRetake / MaxAttempts / cooldown) tampil.</li>
+  <li><strong>v32.5 Add/Remove peserta</strong> — di monitoring ujian live: bisa tambah/hapus peserta + restore.</li>
+  <li><strong>v32.6 Section</strong> — buat paket assessment: bisa kelompokkan soal per Section + pagination.</li>
+  <li><strong>v32.7 Pre/Post</strong> — alur Pre→Post: Post terkunci sampai Pre selesai. Nomor paket per session tidak ada duplikat.</li>
+  <li><strong>v32.8 Token</strong> — ujian token: token tervalidasi sekali (tak bisa reuse).</li>
+  <li><strong>Bugfix MA</strong> — buat soal "Multiple Answer" lewat form, centang ≥2 jawaban benar, simpan → <strong>tersimpan tanpa error</strong> "butuh minimal 2 jawaban benar".</li>
+</ol>
+
+<h2 id="delta">7. Delta Terakhir — Code-Only (Bugfix MA + Test-Debt)</h2>
+
+<p>Tiga commit terakhir di atas konsolidasi v32 — <strong>0 migration</strong>:</p>
+<table>
+  <thead><tr><th>Commit</th><th>Isi</th><th>Sifat</th></tr></thead>
+  <tbody>
+    <tr><td><code>1fe9e69a</code></td><td><strong>Bugfix produk:</strong> buat soal <em>Multiple Answer</em> lewat form gagal walau ≥2 jawaban benar dicentang. Akar: handler ganti tipe soal tidak me-relabel input → form kirim field salah. Fix di <code>Views/Admin/ManagePackageQuestions.cshtml</code>. (Pre-existing v32.6, bukan regresi merge.)</td><td><span class="tag warn">Perlu deploy</span></td></tr>
+    <tr><td><code>7f867619</code></td><td>Perbaikan e2e test-debt (selector/teks).</td><td><span class="tag ok">Test saja</span></td></tr>
+    <tr><td><code>0c9a0d51</code></td><td>Tuntaskan 6 e2e deferred (semua hijau) + quarantine blok test usang Phase 307.</td><td><span class="tag ok">Test saja</span></td></tr>
+  </tbody>
+</table>
+
+<h2 id="not-needed">8. Yang TIDAK Perlu IT Lakukan</h2>
+<ul>
+  <li><strong>Tidak perlu</strong> edit SQL data manual — #422 sudah auto-dedup PackageNumber.</li>
+  <li><strong>Tidak perlu</strong> <code>dotnet ef database update</code> manual (boleh, tapi tak wajib — auto saat startup). Kalau dipakai: <code>dotnet ef database update --project HcPortal.csproj</code>.</li>
+  <li><strong>Tidak perlu</strong> install NuGet / edit config tambahan — semua di build.</li>
+  <li><strong>Tidak perlu</strong> jalankan <code>POST /Admin/RecomputeEssayScores</code> untuk bundle ini (itu khusus repair essay historis bundle v24–v30; tidak terkait v31/v32).</li>
+</ul>
+
+<h2 id="rollback">9. Rollback Plan</h2>
+<h4>Opsi A — Restore BACKUP (utama, karena #422 mutasi data)</h4>
+<pre class="sql">USE master;
+ALTER DATABASE HcPortalDB_Dev SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+RESTORE DATABASE HcPortalDB_Dev FROM DISK = N'&lt;backup-path&gt;.bak' WITH REPLACE;
+ALTER DATABASE HcPortalDB_Dev SET MULTI_USER;</pre>
+<p>Lalu redeploy build lama (baseline <code>e5f342e5</code>).</p>
+
+<h4>Opsi B — EF Down (skema saja; TIDAK me-revert renumber #422)</h4>
+<pre>dotnet ef database update 20260613095102_AddShuffleTogglesToAssessmentSession --project HcPortal.csproj</pre>
+<p>Mengembalikan skema ke titik baseline 06-15. <strong>Catatan:</strong> data <code>PackageNumber</code> yang sudah di-renumber #422 TIDAK kembali ke nomor lama — untuk pemulihan data penuh pakai Opsi A.</p>
+<div class="callout danger">
+  <p><strong>⚠️ Opsi B sendirian PERCUMA kalau build baru masih ter-deploy.</strong> <code>Program.cs:151 Database.Migrate()</code> jalan tiap startup → restart app berikutnya akan <strong>auto-apply ulang ke-6 migration secara diam-diam</strong>. Supaya EF Down efektif: <strong>hentikan / re-deploy build lama (baseline <code>e5f342e5</code>) dulu</strong>, baru jalankan Down. Untuk rollback sebenarnya saat insiden, pakai <strong>Opsi A (restore <code>.bak</code> + redeploy build lama)</strong>.</p>
+</div>
+
+<h2 id="log">10. Log Pengerjaan IT <span class="tag warn">isi saat selesai</span></h2>
+<table>
+  <thead><tr><th>Langkah</th><th>Dev</th><th>Prod</th><th>Catatan / waktu</th></tr></thead>
+  <tbody>
+    <tr><td>Backup DB (path .bak)</td><td>☐</td><td>☐</td><td></td></tr>
+    <tr><td>Pull + build + restart</td><td>☐</td><td>☐</td><td></td></tr>
+    <tr><td>6 migration ter-apply (Step 4)</td><td>☐</td><td>☐</td><td></td></tr>
+    <tr><td>Skema baru + index #422 (Step 5)</td><td>☐</td><td>☐</td><td></td></tr>
+    <tr><td>Smoke test (Section 6)</td><td>☐</td><td>☐</td><td></td></tr>
+    <tr><td>Kabari developer</td><td>☐</td><td>☐</td><td></td></tr>
+  </tbody>
+</table>
+
+<h2 id="refs">11. File Referensi</h2>
+<ul>
+  <li><code>docs/DB_HANDOFF_IT_2026-06-15_Bundle-v24-v30.html</code> — handoff baseline (v24–v30, <code>e5f342e5</code>).</li>
+  <li><code>docs/handoff/2026-06-26-IT-handoff-v32-consolidation.md</code> — handoff internal konsolidasi v32 (markdown; HTML ini menggantikannya untuk seri IT).</li>
+  <li><code>Migrations/</code> — 6 file migration (timestamp 20260618 … 20260624).</li>
+  <li><code>Program.cs:151</code> — <code>context.Database.Migrate()</code> (auto-apply startup, dalam try/catch).</li>
+  <li><code>docs/superpowers/specs/2026-06-25-merge-ithandoff-to-main-consolidation-design.md</code> — desain konsolidasi v32.</li>
+</ul>
+
+<footer>
+  HcPortal KPB — DB Handoff IT · Bundle v31 + v32 · 2026-06-30 · target <code>2dff7435</code> (code <code>0c9a0d51</code>) · migration: 6 (auto-apply, #422 mutasi data) · Developer: Rino (asistensme@gmail.com)
+</footer>
+
+</div>
+</body>
+</html>
