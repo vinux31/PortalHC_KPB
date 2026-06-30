@@ -77,6 +77,24 @@
 
 Unsequenced ideas captured untuk future milestone planning. Promote via `/gsd-review-backlog` saat siap masuk active milestone.
 
+### Phase 999.17: Excel "zero-config" template — dropdown Data Validation + import skor per-soal (BACKLOG, ditunda dari v32.6 via D-08)
+
+**Goal:** [Captured 2026-06-30] Template Excel soal jadi "zero-config" untuk admin: (1) **dropdown Data Validation** pada kolom data-pasti (mis. `QuestionType`: MultipleChoice/MultipleAnswer/Essay) biar self-explanatory + anti salah-ketik; (2) **import skor per-soal** lewat Excel.
+
+**Context:**
+- DITUNDA dari milestone v32.6 via keputusan **D-08** ("v32.6 = berat; quick-win Excel = milestone terpisah"). Yang masuk v32.6 cuma perluasan isi template yang fitur Section butuh (Phase 415 IMP-01: kolom No.Section/Nama Section + Opsi A–F + dual-format). Dropdown + skor-per-soal di-carve-out.
+- Sumber keputusan: spec `docs/superpowers/specs/2026-06-22-section-scoped-shuffle-pagination-dynamic-options-design.md` §"TIDAK termasuk", D-08, §9.4 (`DownloadQuestionTemplate` v32.6 sengaja TANPA dropdown).
+- **Status kode saat capture (verified main + ITHandoff, 2026-06-30):** BELUM ada. `DownloadQuestionTemplate` (`Controllers/AssessmentAdminController.cs:7267`) masih pakai `AddInstruction` (teks merah-tua biasa), bukan ClosedXML `DataValidation` list → admin ketik `QuestionType` manual. `git grep DataValidation -- '*.cs'` = NOL match di kedua branch. `ImportPackageQuestions` cuma terima soal (`excelFile`/`pasteText`), tak ada jalur skor.
+- Implementasi: ClosedXML `ws.Range(...).CreateDataValidation().List("\"MultipleChoice,MultipleAnswer,Essay\"")` pada kolom QuestionType di `DownloadQuestionTemplate`; import skor butuh kolom baru + jalur grading manual (selaras pola inject manual existing).
+
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
 ### Phase 999.16: Defensive guard struktur Section saat LinkPrePost — 🅿️ PERMANENT-DEFER (2026-06-24, verified no-op: `InjectQuestionSpec` tak punya `SectionId` → inject all-Lainnya → guard tak akan nyala; promote hanya bila muncul surface LinkPrePost non-inject)
 
 **Goal:** [Captured dari eksekusi Phase 419, 2026-06-24] Guard hard-block menaut Pre↔Post (Phase 397) bila KEDUA sisi punya Section nyata dan struktur (count per SectionNumber) berbeda — reuse `Helpers/SectionStructureComparer.MismatchedSections` + pola `CMPController.StartExam:1094-1119` (`guardAnySections`). Skip bila salah satu sisi all-Lainnya.
