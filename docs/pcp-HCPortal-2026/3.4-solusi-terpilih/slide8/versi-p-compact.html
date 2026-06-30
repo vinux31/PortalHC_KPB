@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<title>§3.4 Slide 8 — Versi P Compact</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  :root {
+    --pertamina-red: #C8102E;
+    --pertamina-red-light: #fce8eb;
+    --pertamina-blue: #00558C;
+    --pertamina-blue-dark: #003D63;
+    --pertamina-blue-light: #e6f0f7;
+    --pertamina-green: #00A551;
+    --pertamina-green-light: #d4f0dd;
+    --pertamina-yellow: #FFC72C;
+    --pertamina-yellow-light: #fff5d6;
+    --pertamina-orange-light: #ffe8d1;
+    --neutral-gray: #6b7280;
+    --neutral-light: #d1d5db;
+    --bg: #f6f7fb;
+    --hub-grad: linear-gradient(135deg, #00558C, #00A551);
+
+    --fs-xxs: 0.5rem;
+    --fs-xs: 0.55rem;
+    --fs-sm: 0.65rem;
+    --fs-base: 0.75rem;
+    --fs-title: 0.85rem;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    width: 972px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: #1f2937;
+  }
+  #export-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--pertamina-red);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 100;
+  }
+
+  #diagram-row {
+    display: grid;
+    grid-template-columns: 478px 478px;
+    gap: 6px;
+    padding: 4px;
+  }
+  .panel {
+    background: white;
+    border-radius: .5rem;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .panel.sebelum { border-top: 4px solid var(--pertamina-red); }
+  .panel.sesudah { border-top: 4px solid var(--pertamina-green); }
+
+  .panel-title {
+    font-size: var(--fs-title);
+    font-weight: 700;
+    margin: 0 0 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px dashed var(--neutral-light);
+  }
+  .panel.sebelum .panel-title { color: var(--pertamina-red); }
+  .panel.sesudah .panel-title { color: var(--pertamina-blue); }
+
+  .layer {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 4px;
+    min-height: 40px;
+    border-bottom: 1px dashed var(--neutral-light);
+    padding: 2px 0;
+  }
+  .layer:last-child { border-bottom: none; }
+  .layer-label {
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    padding: 2px 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: var(--neutral-gray);
+  }
+  .layer-label .icon { font-size: 1rem; line-height: 1; }
+  .layer-label .actor { font-weight: 700; color: #1f2937; }
+  .layer-label .lv { font-size: var(--fs-xxs); font-weight: 500; opacity: .7; }
+  .layer-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    align-items: center;
+    padding: 2px 4px;
+  }
+  .comp {
+    padding: 2px 5px;
+    border: 1px solid;
+    border-radius: 3px;
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+    line-height: 1.3;
+  }
+  .comp.manual { background: var(--pertamina-red-light); border-color: var(--pertamina-red); color: var(--pertamina-red); }
+  .comp.tool-ext { background: var(--pertamina-yellow-light); border-color: var(--pertamina-yellow); color: #8a6500; }
+  .comp.paper { background: var(--pertamina-orange-light); border-color: #d97706; color: #9a3412; }
+  .comp.portal { background: var(--pertamina-blue-light); border-color: var(--pertamina-blue); color: var(--pertamina-blue-dark); }
+  .marker {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    line-height: 12px;
+    text-align: center;
+    color: white;
+    font-size: var(--fs-xxs);
+    font-weight: 800;
+    margin-left: 2px;
+  }
+  .marker.issue { background: var(--pertamina-red); }
+  .marker.improvement { background: var(--pertamina-green); }
+
+  .no-buffer-slot {
+    height: 40px;
+    border: 1.5px dashed var(--neutral-light);
+    border-radius: 4px;
+    margin: 2px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--fs-sm);
+    font-style: italic;
+    color: var(--neutral-gray);
+  }
+
+  .buffer-zone {
+    height: 40px;
+    background: var(--hub-grad);
+    color: white;
+    border-radius: 4px;
+    margin: 2px 0;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 2px 6px rgba(0,85,140,.25);
+    position: relative;
+  }
+  .buffer-zone .hub-label {
+    font-size: var(--fs-base);
+    font-weight: 700;
+    text-align: center;
+  }
+  .buffer-zone .marker {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+  }
+
+  @media print { #export-btn { display: none; } }
+</style>
+</head>
+<body>
+<button id="export-btn" onclick="exportPNG()">📸 Export PNG</button>
+
+<div id="diagram-row">
+  <section class="panel sebelum">
+    <h2 class="panel-title">❌ SEBELUM (Kondisi Aktual)</h2>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👔</span>
+        <span class="actor">Manajemen</span>
+        <span class="lv">Lv 5 · Strategic</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp manual">📄 Laporan PDF/Excel</span>
+        <span class="comp tool-ext">📧 Email Pertamina</span>
+        <span class="marker issue">D</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👤</span>
+        <span class="actor">HC</span>
+        <span class="lv">Lv 4 · Governance</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp manual">📊 Pekerja</span>
+        <span class="comp manual">📊 Assessment</span>
+        <span class="comp manual">📊 Training</span>
+        <span class="comp manual">📊 KKJ</span>
+        <span class="comp manual">📊 Sertifikat</span>
+        <span class="comp manual">📝 Word</span>
+        <span class="marker issue">A</span>
+        <span class="marker issue">B</span>
+      </div>
+    </div>
+
+    <div class="no-buffer-slot">— Tidak ada hub terintegrasi —</div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">🏢</span>
+        <span class="actor">Atasan</span>
+        <span class="lv">Lv 3 · Supervisory</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp tool-ext">📧 Email kotak masuk</span>
+        <span class="comp tool-ext">💬 WhatsApp approval</span>
+        <span class="marker issue">C</span>
+        <span class="marker issue">E</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">🧑‍🏫</span>
+        <span class="actor">Coach</span>
+        <span class="lv">Lv 2 · Coaching</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp paper">📋 Form PROTON cetak</span>
+        <span class="comp paper">📁 Arsip fisik</span>
+        <span class="comp tool-ext">💬 WhatsApp (foto)</span>
+        <span class="comp tool-ext">📧 Email (lampiran)</span>
+        <span class="marker issue">A</span>
+        <span class="marker issue">E</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👷</span>
+        <span class="actor">Pekerja</span>
+        <span class="lv">Lv 1 · Operational</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp tool-ext">🌐 FleQi Quiz</span>
+        <span class="comp paper">🎓 Sertifikat hardcopy</span>
+        <span class="comp manual">📊 Excel pribadi (IDP)</span>
+        <span class="marker issue">A</span>
+        <span class="marker issue">F</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel sesudah">
+    <h2 class="panel-title">✅ SESUDAH (Konsep HC Portal)</h2>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👔</span>
+        <span class="actor">Manajemen</span>
+        <span class="lv">Lv 5 · Strategic</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">📈 Analytics Dashboard</span>
+        <span class="comp portal">🔥 Heatmap Gap</span>
+        <span class="comp portal">📤 Export Excel/PDF</span>
+        <span class="marker improvement">1</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👤</span>
+        <span class="actor">HC</span>
+        <span class="lv">Lv 4 · Governance</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">👥 Pekerja</span>
+        <span class="comp portal">🎯 PROTON IDP</span>
+        <span class="comp portal">📝 Assessment</span>
+        <span class="comp portal">📊 KKJ</span>
+        <span class="comp portal">🔄 Renewal</span>
+        <span class="comp portal">🔍 Audit Log</span>
+        <span class="marker improvement">2</span>
+        <span class="marker improvement">3</span>
+      </div>
+    </div>
+
+    <div class="buffer-zone">
+      <div class="hub-label">🛡️ BUFFER ZONE — 🌐 HC PORTAL · Single Source of Truth</div>
+      <span class="marker improvement">4</span>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">🏢</span>
+        <span class="actor">Atasan</span>
+        <span class="lv">Lv 3 · Supervisory</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">👀 Records Team</span>
+        <span class="comp portal">✅ Approval Deliverable</span>
+        <span class="comp portal">📊 View Matriks KKJ</span>
+        <span class="marker improvement">5</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">🧑‍🏫</span>
+        <span class="actor">Coach</span>
+        <span class="lv">Lv 2 · Coaching</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">🎯 Coaching PROTON (5 fase)</span>
+        <span class="comp portal">📎 Upload Evidence</span>
+        <span class="comp portal">📜 Histori PROTON</span>
+        <span class="marker improvement">6</span>
+      </div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-label">
+        <span class="icon">👷</span>
+        <span class="actor">Pekerja</span>
+        <span class="lv">Lv 1 · Operational</span>
+      </div>
+      <div class="layer-content">
+        <span class="comp portal">📝 Assessment Online</span>
+        <span class="comp portal">📋 Plan IDP</span>
+        <span class="comp portal">🏆 Certificate Download</span>
+        <span class="comp portal">🔔 Notifikasi In-App</span>
+        <span class="marker improvement">7</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+async function exportPNG() {
+  const btn = document.getElementById('export-btn');
+  btn.style.display = 'none';
+  const target = document.getElementById('diagram-row');
+  const canvas = await html2canvas(target, {
+    scale: 2,
+    backgroundColor: '#ffffff',
+    useCORS: true
+  });
+  btn.style.display = '';
+  const link = document.createElement('a');
+  link.download = 'versi-p-slide8.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
+</body>
+</html>
