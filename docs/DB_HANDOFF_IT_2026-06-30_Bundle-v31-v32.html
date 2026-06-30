@@ -107,30 +107,30 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border
 <header class="hero">
   <span class="badge">HANDOFF TEAM IT</span>
   <h1>Deploy Bundle v31 + v32 ke Dev/Prod — HcPortal KPB</h1>
-  <p class="subtitle">Semua pekerjaan sejak handoff terakhir (<code>DB_HANDOFF_IT_2026-06-15_Bundle-v24-v30.html</code>, baseline <code>e5f342e5</code>) sampai sekarang (<code>origin/main</code> = <code>2dff7435</code>, code HEAD bermakna <code>0c9a0d51</code>): milestone <strong>v31.0</strong> + <strong>v32.0 → v32.9</strong>. Inti DB: <strong>6 migration baru yang auto-apply</strong> saat startup — 5 additive + <strong>1 mengubah data (#422)</strong>. <strong>BACKUP DB wajib.</strong></p>
+  <p class="subtitle">Semua pekerjaan sejak handoff terakhir (<code>DB_HANDOFF_IT_2026-06-15_Bundle-v24-v30.html</code>, baseline <code>e5f342e5</code>) sampai sekarang (<code>origin/main</code> = <code>1907621b</code>, code HEAD bermakna <code>92a69a86</code>): milestone <strong>v31.0</strong> + <strong>v32.0 → v32.9</strong> + <strong>Phase 999.17</strong> (Excel zero-config). Inti DB: <strong>6 migration baru yang auto-apply</strong> saat startup — 5 additive + <strong>1 mengubah data (#422)</strong>. <strong>BACKUP DB wajib.</strong></p>
 </header>
 
 <div class="meta-row">
   <div class="meta-item"><strong>Tanggal</strong> 30 Juni 2026</div>
-  <div class="meta-item"><strong>Scope</strong> v31.0 + v32.0 → v32.9 (+ konsolidasi &amp; bugfix MA)</div>
-  <div class="meta-item"><strong>Deploy target</strong> <code>2dff7435</code> (code HEAD <code>0c9a0d51</code>)</div>
+  <div class="meta-item"><strong>Scope</strong> v31.0 + v32.0 → v32.9 + Phase 999.17 (+ konsolidasi &amp; bugfix MA)</div>
+  <div class="meta-item"><strong>Deploy target</strong> <code>1907621b</code> (code HEAD <code>92a69a86</code>)</div>
   <div class="meta-item"><strong>Baseline sebelumnya</strong> <code>e5f342e5</code> (bundle v24–v30, 2026-06-15)</div>
   <div class="meta-item"><strong>Migration pending</strong> <strong style="color: var(--amber);">6 — auto-apply</strong></div>
   <div class="meta-item"><strong>Risk</strong> <span class="tag warn">Medium — 6 migration, 1 mutasi data (#422)</span></div>
-  <div class="meta-item"><strong>Validasi lokal</strong> build 0 error · xUnit 1004 pass / 0 fail / 2 skip · e2e hijau</div>
+  <div class="meta-item"><strong>Validasi lokal</strong> build 0 error · xUnit 1027 pass / 0 fail / 2 skip · e2e hijau</div>
   <div class="meta-item"><strong>Developer</strong> Rino (asistensme@gmail.com)</div>
 </div>
 
 <div class="tldr">
   <div class="label">TL;DR</div>
-  <p>Sejak bundle 06-15: <strong>v31.0</strong> (kode, <strong>0 migration</strong> — kemungkinan sudah di Dev) + <strong>v32.0–v32.9</strong> (<strong>6 migration</strong>). IT: <code>BACKUP DB Dev dulu (WAJIB)</code> → <code>git pull origin main</code> (<code>2dff7435</code>) → build/publish + restart. <strong>6 migration auto-apply</strong> saat startup (<code>Program.cs:151 Database.Migrate()</code>). <strong>5 additive non-destruktif</strong>, <strong>1 (#422) mengubah DATA permanen</strong> (renumber PackageNumber + unique index, idempotent). <strong>WAJIB verifikasi 6 migration benar-benar ter-apply</strong> (Section 5) — startup dibungkus <code>try/catch</code> yang <strong>menelan error</strong> (app tetap jalan walau migrasi gagal).</p>
+  <p>Sejak bundle 06-15: <strong>v31.0</strong> (kode, <strong>0 migration</strong> — kemungkinan sudah di Dev) + <strong>v32.0–v32.9</strong> (<strong>6 migration</strong>). IT: <code>BACKUP DB Dev dulu (WAJIB)</code> → <code>git pull origin main</code> (<code>1907621b</code>) → build/publish + restart. <strong>6 migration auto-apply</strong> saat startup (<code>Program.cs:151 Database.Migrate()</code>). <strong>5 additive non-destruktif</strong>, <strong>1 (#422) mengubah DATA permanen</strong> (renumber PackageNumber + unique index, idempotent). <strong>WAJIB verifikasi 6 migration benar-benar ter-apply</strong> (Section 5) — startup dibungkus <code>try/catch</code> yang <strong>menelan error</strong> (app tetap jalan walau migrasi gagal).</p>
 </div>
 
 <div class="callout danger" id="langkah" style="border-left-width:5px;">
   <div class="title">▶ Langkah Eksekusi — Ikuti Berurutan</div>
   <ol style="margin-bottom:0;">
     <li><strong>Backup dulu</strong> — <code>BACKUP DATABASE</code> penuh (Section 5 Step 1). WAJIB — migration #422 mengubah data permanen.</li>
-    <li><strong>Pull code</strong> <code>2dff7435</code> dari <code>origin/main</code> + build/publish + restart (Step 2–3).</li>
+    <li><strong>Pull code</strong> <code>1907621b</code> dari <code>origin/main</code> + build/publish + restart (Step 2–3).</li>
     <li><strong>Verifikasi 6 migration ter-apply</strong> — jangan percaya "app jalan" saja; startup menelan error migrasi (Step 4).</li>
     <li><strong>Verifikasi skema baru</strong> — tabel/kolom/index baru ada + #422 unique index terbentuk (Step 5).</li>
     <li><strong>Smoke test</strong> per fitur (Section 6), lalu isi <strong>Log Pengerjaan IT</strong> (Section 10) + kabari developer (Rino).</li>
@@ -208,6 +208,7 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--border
     <tr><td><strong>v32.8</strong> Exam Security &amp; Audit Hardening</td><td>Penanda <code>TokenVerifiedAt</code> (anti reuse token ujian) + audit + StartExam idempoten.</td><td><span class="tag warn">TRUE — #6</span></td></tr>
     <tr><td><strong>v32.9</strong> EditQuestion Data Integrity</td><td>Edit/hapus opsi jawaban berbasis <em>identity</em> (match by Id stabil), bukan posisi — supaya hapus/edit opsi tengah pada soal yang sudah dijawab tidak diam-diam menggeser jawaban peserta.</td><td><span class="tag ok">—</span></td></tr>
     <tr><td><strong>Konsolidasi + bugfix</strong></td><td>Merge ITHandoff→main + 8 fix integrasi lintas-fitur + bugfix produk pembuatan soal Multiple Answer + tuntaskan test-debt e2e (lihat Section 7).</td><td><span class="tag ok">—</span></td></tr>
+    <tr><td><strong>Phase 999.17</strong> Excel Zero-Config Template</td><td>Template Excel soal "zero-config": dropdown <em>Data Validation</em> tipe soal di semua template + kolom <strong>Skor per-soal</strong> (N/14 → <code>ScoreValue</code>, ganti hardcode 10) + validasi atomic 1–100 (hard-reject). Backlog dipromosikan dari v32.6 (D-08).</td><td><span class="tag ok">—</span></td></tr>
   </tbody>
 </table>
 
@@ -267,7 +268,7 @@ WITH FORMAT, INIT, NAME = N'pre-v31-v32-bundle';</pre>
 <h3>Urutan langkah</h3>
 <ol>
   <li><strong>BACKUP DATABASE</strong> penuh (SQL di Section 4). Capture path <code>.bak</code> untuk rollback. <span class="tag danger">WAJIB</span></li>
-  <li><strong>Pull / checkout</strong> <code>main</code> (<code>2dff7435</code>) ke server. <code>git pull origin main</code>.</li>
+  <li><strong>Pull / checkout</strong> <code>main</code> (<code>1907621b</code>) ke server. <code>git pull origin main</code>.</li>
   <li><strong>Build / publish</strong> ulang artifact + <strong>restart</strong> app (IIS / Kestrel pool). Saat start → 6 migration auto-apply.</li>
   <li><strong>Verifikasi 6 migration ter-apply</strong> (query <code>__EFMigrationsHistory</code>):
     <pre class="sql">SELECT MigrationId FROM __EFMigrationsHistory
@@ -309,14 +310,16 @@ SELECT name FROM sys.indexes WHERE name = 'IX_AssessmentPackages_SessionId_Packa
   <li><strong>v32.7 Pre/Post</strong> — alur Pre→Post: Post terkunci sampai Pre selesai. Nomor paket per session tidak ada duplikat.</li>
   <li><strong>v32.8 Token</strong> — ujian token: token tervalidasi sekali (tak bisa reuse).</li>
   <li><strong>Bugfix MA</strong> — buat soal "Multiple Answer" lewat form, centang ≥2 jawaban benar, simpan → <strong>tersimpan tanpa error</strong> "butuh minimal 2 jawaban benar".</li>
+  <li><strong>Phase 999.17 Excel</strong> — download template soal Excel: ada <strong>dropdown Data Validation</strong> tipe soal + kolom <strong>Skor</strong>. Import balik: skor per-soal kebaca (bukan hardcode 10); skor di luar 1–100 ditolak.</li>
 </ol>
 
 <h2 id="delta">7. Delta Terakhir — Code-Only (Bugfix MA + Test-Debt)</h2>
 
-<p>Tiga commit terakhir di atas konsolidasi v32 — <strong>0 migration</strong>:</p>
+<p>Commit di atas konsolidasi v32 — semua <strong>0 migration</strong> (termasuk fitur Phase 999.17):</p>
 <table>
   <thead><tr><th>Commit</th><th>Isi</th><th>Sifat</th></tr></thead>
   <tbody>
+    <tr><td><code>ade2425c..92a69a86</code></td><td><strong>Phase 999.17 — Excel zero-config:</strong> dropdown Data Validation tipe soal di semua template + kolom Skor per-soal (N/14 → <code>ScoreValue</code>, ganti hardcode 10) + validasi atomic 1–100. Seam baru <code>QuestionTemplateBuilder.cs</code> + parser controller. (Backlog dipromosikan dari v32.6 D-08.)</td><td><span class="tag warn">Perlu deploy</span></td></tr>
     <tr><td><code>1fe9e69a</code></td><td><strong>Bugfix produk:</strong> buat soal <em>Multiple Answer</em> lewat form gagal walau ≥2 jawaban benar dicentang. Akar: handler ganti tipe soal tidak me-relabel input → form kirim field salah. Fix di <code>Views/Admin/ManagePackageQuestions.cshtml</code>. (Pre-existing v32.6, bukan regresi merge.)</td><td><span class="tag warn">Perlu deploy</span></td></tr>
     <tr><td><code>7f867619</code></td><td>Perbaikan e2e test-debt (selector/teks).</td><td><span class="tag ok">Test saja</span></td></tr>
     <tr><td><code>0c9a0d51</code></td><td>Tuntaskan 6 e2e deferred (semua hijau) + quarantine blok test usang Phase 307.</td><td><span class="tag ok">Test saja</span></td></tr>
@@ -369,7 +372,7 @@ ALTER DATABASE HcPortalDB_Dev SET MULTI_USER;</pre>
 </ul>
 
 <footer>
-  HcPortal KPB — DB Handoff IT · Bundle v31 + v32 · 2026-06-30 · target <code>2dff7435</code> (code <code>0c9a0d51</code>) · migration: 6 (auto-apply, #422 mutasi data) · Developer: Rino (asistensme@gmail.com)
+  HcPortal KPB — DB Handoff IT · Bundle v31 + v32 + Phase 999.17 · 2026-06-30 · target <code>1907621b</code> (code <code>92a69a86</code>) · migration: 6 (auto-apply, #422 mutasi data) · Developer: Rino (asistensme@gmail.com)
 </footer>
 
 </div>
