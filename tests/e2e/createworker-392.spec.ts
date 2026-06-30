@@ -81,12 +81,13 @@ test.describe('Phase 392 — /Admin/CreateWorker usable + audited', () => {
     expect(await page.locator('#FullName').inputValue()).toBe(FULLNAME);
     expect(await page.locator('#Email').inputValue()).toBe(EMAIL);
 
-    // WRKR-03 — cascade Bagian→Unit membangun opsi Unit saat runtime.
+    // WRKR-03 — cascade Bagian→Unit membangun checkbox-list Unit (widget multi-unit) saat runtime.
+    // v32.3 Phase 399 ganti <select #unitSelect> jadi widget multi-unit (#unitMultiContainer .uu-check).
     const sectionValue = await page.locator('#sectionSelect option:not([value=""])').first().getAttribute('value');
     expect(sectionValue).toBeTruthy();
     await page.selectOption('#sectionSelect', sectionValue!);
     await expect.poll(
-      () => page.locator('#unitSelect option:not([value=""])').count(),
+      () => page.locator('#unitMultiContainer .uu-check').count(),
       { timeout: 10_000 },
     ).toBeGreaterThan(0);
 

@@ -611,6 +611,24 @@ test.describe('Flow E: Proton Tahun 3 Interview', () => {
   let title: string;
   let assessmentId: number;
 
+  // SEED (temporary + local-only, klasifikasi == SEED_JOURNAL 379-03). Flow E eligibility:
+  // rino butuh ProtonTrackAssignment AKTIF ke track Tahun-3 PERTAMA (Urutan terkecil = Panelman
+  // Tahun 3) agar GetEligibleCoachees mengisi #protonUserCheckboxContainer. Origin='Bypass'
+  // WAJIB — exempt gate cross-year (rino belum lulus Panelman Tahun 2; AssessmentAdminController).
+  // Snapshot global.setup diambil SEBELUM insert ini → global.teardown RESTORE auto-cleanup.
+  test.beforeAll(async () => {
+    await db.queryString(`
+      DECLARE @rino NVARCHAR(450) = (SELECT Id FROM Users WHERE Email='rino.prasetyo@pertamina.com');
+      DECLARE @admin NVARCHAR(450) = (SELECT Id FROM Users WHERE Email='admin@pertamina.com');
+      DECLARE @track INT = (SELECT TOP 1 Id FROM ProtonTracks WHERE TahunKe='Tahun 3' ORDER BY Urutan);
+      IF NOT EXISTS (SELECT 1 FROM ProtonTrackAssignments
+                     WHERE CoacheeId=@rino AND ProtonTrackId=@track AND IsActive=1)
+        INSERT INTO ProtonTrackAssignments (CoacheeId, AssignedById, ProtonTrackId, IsActive, AssignedAt, Origin)
+        VALUES (@rino, @admin, @track, 1, SYSUTCDATETIME(), 'Bypass');
+      SELECT 'OK';
+    `);
+  });
+
   test('E1 - HC creates Assessment Proton Tahun 3', async ({ page }) => {
     title = uniqueTitle('Pre Test Proton T3 Interview');
     await login(page, 'hc');

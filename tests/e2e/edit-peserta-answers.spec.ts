@@ -16,8 +16,13 @@
 
 import { test, expect, type Page } from '@playwright/test';
 import { accounts, AccountKey } from '../helpers/accounts';
+import { resolve } from 'path';
+import * as db from '../helpers/dbSnapshot';
 
-const COMPLETED_SESSION_ID = parseInt(
+const SEED_SQL = resolve(__dirname, '..', 'sql', 'edit-peserta-321-seed.sql');
+let snapshotPath = '';
+// SEED_WORKFLOW: env override dihormati; jika tak di-set, spec self-seed sesi [EDIT321].
+let COMPLETED_SESSION_ID = parseInt(
   process.env.COMPLETED_PASS_SESSION_ID ?? process.env.EDIT_TEST_SESSION_ID ?? '0',
   10
 );
@@ -33,12 +38,35 @@ async function loginAny(page: Page, accountKey: AccountKey) {
   ]);
 }
 
+test.describe.configure({ mode: 'serial' });
+
 test.describe('Phase 321 — Edit Peserta Answers', () => {
 
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
+    // SEED_WORKFLOW: backup → seed sesi Completed PASS [EDIT321] → resolve id.
+    // Env COMPLETED_PASS_SESSION_ID tetap dihormati sbg override (skip seed bila sudah di-set).
     if (!COMPLETED_SESSION_ID || COMPLETED_SESSION_ID < 1) {
-      throw new Error('COMPLETED_PASS_SESSION_ID env var required (Completed eligible session). See docs/SEED_WORKFLOW.md.');
+      const dir = (await db.queryString(
+        "SELECT CAST(SERVERPROPERTY('InstanceDefaultBackupPath') AS NVARCHAR(260))"
+      )).replace(/[\\/]+$/, '').replace(/\\/g, '/');
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      snapshotPath = `${dir}/HcPortalDB_Dev-pre321edit-${ts}.bak`;
+      await db.backup(snapshotPath);
+      await db.execScript(SEED_SQL);
+      COMPLETED_SESSION_ID = await db.queryScalar(
+        "SELECT TOP 1 Id FROM AssessmentSessions WHERE Title = '[EDIT321] Edit Jawaban Peserta'"
+      );
     }
+    if (!COMPLETED_SESSION_ID || COMPLETED_SESSION_ID < 1) {
+      throw new Error('Gagal seed/resolve sesi Completed eligible untuk Edit. Lihat docs/SEED_WORKFLOW.md.');
+    }
+  });
+
+  test.afterAll(async () => {
+    if (!snapshotPath) return; // hanya restore kalau spec yang seed (bukan env override)
+    await db.restore(snapshotPath);
+    const fs = await import('node:fs');
+    try { fs.unlinkSync(snapshotPath); } catch { /* best-effort */ }
   });
 
   test('auth-gate: Admin/HC accessible, Worker blocked (REQ EDIT-01)', async ({ browser }) => {
@@ -96,11 +124,14 @@ test.describe('Phase 321 — Edit Peserta Answers', () => {
     await page.waitForLoadState('networkidle');
     expect(page.url()).toContain('AssessmentMonitoringDetail');
 
-    // Verify actual success — body must contain "Edit ... jawaban berhasil" + NO error banner
+    // Verify actual success — flash "... jawaban berhasil" + NO error banner VISIBLE.
+    // CATATAN: 'Alasan wajib diisi...' & error modal lain ADA sbg markup TERSEMBUNYI di
+    // AssessmentMonitoringDetail (edit modal :919/:975) → body-text scan false-positive. Sukses sudah
+    // dijamin redirect ke MonitoringDetail (URL) + flash 'jawaban berhasil'; cukup pastikan tak ada
+    // flash error VISIBLE (alert-danger) alih-alih scan seluruh body termasuk node hidden.
     const bodyText = await page.textContent('body');
     expect(bodyText).toContain('jawaban berhasil');
-    expect(bodyText).not.toContain('Alasan wajib');
-    expect(bodyText).not.toContain('Sesi sudah diubah');
+    await expect(page.locator('.alert-danger:visible')).toHaveCount(0);
   });
 
   test('concurrency stale: 2 admin contexts, A submit → B stale error (REQ EDIT-07)', async ({ browser }) => {

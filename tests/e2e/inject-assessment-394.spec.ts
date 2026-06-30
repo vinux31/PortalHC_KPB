@@ -250,8 +250,10 @@ test.describe('D-07 step5 placeholder + confirm', () => {
     await page.click('#btnNext3');
     await page.click('#btnNext4');
     await expect(page.locator('#step-5')).toBeVisible();
-    await expect(page.locator('#step5Placeholder')).toBeVisible();
-    await expect(page.locator('#step5Placeholder')).toContainText('tahap berikutnya');
+    // Phase 395 mengganti #step5Placeholder dengan form jawaban nyata (#step5Root/#step5Body).
+    // #step5Body tampil saat ada pekerja DAN soal (toggle JS) — prasyarat yang sudah dipenuhi test ini.
+    await expect(page.locator('#step5Root')).toBeVisible();
+    await expect(page.locator('#step5Body')).toBeVisible();
     await page.click('#btnNext5');
     await expect(page.locator('#step-6')).toBeVisible();
   });

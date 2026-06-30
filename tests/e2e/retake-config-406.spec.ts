@@ -175,6 +175,10 @@ test.describe('Phase 406 — Retake Config ManagePackages (UAT e2e)', () => {
 
     // Ambil UserId/Title/Category sesi untuk seed 2 baris AssessmentAttemptHistory (1 user, 2 attempt
     // archived) → RetakeMaxAttemptsUsedInGroup = max(count per user) + 1 = 2 + 1 = 3.
+    // PENTING (v32.7 Phase 421 / RTH-03 / D-05): warning count kini lewat RetakeCountingRules.MaxInGroupAsync
+    // yang SNAPSHOT-AWARE — HANYA AssessmentAttemptHistory yang punya child AssessmentAttemptResponseArchives
+    // (AttemptHistoryId == h.Id) yang dihitung. Tanpa child, kedua arsip ter-filter → MaxInGroup=0 → warning
+    // tak pernah muncul. Maka WAJIB seed 1 child archive per history row.
     const uid = await db.queryString(`SET NOCOUNT ON; SELECT TOP 1 UserId FROM AssessmentSessions WHERE Id = ${id}`);
     // Set AllowRetake ON + MaxAttempts=1 supaya 1 < 3 → warning. (Reuse UpdateRetakeSettings clamp domain.)
     await execSql(`UPDATE AssessmentSessions SET AllowRetake = 1, MaxAttempts = 1 WHERE Id = ${id}`);
@@ -184,6 +188,13 @@ test.describe('Phase 406 — Retake Config ManagePackages (UAT e2e)', () => {
       `SELECT s.Id, '${uid}', s.Title, s.Category, 40, 0, 1, GETUTCDATE(), GETUTCDATE() FROM AssessmentSessions s WHERE s.Id = ${id} ` +
       `UNION ALL ` +
       `SELECT s.Id, '${uid}', s.Title, s.Category, 45, 0, 2, GETUTCDATE(), GETUTCDATE() FROM AssessmentSessions s WHERE s.Id = ${id}`
+    );
+    // Seed 1 child archive per history row supaya snapshot-presence filter (MaxInGroupAsync) lolos →
+    // MaxInGroup=2 → RetakeMaxAttemptsUsedInGroup=3 > MaxAttempts=1 → alert-warning render.
+    await execSql(
+      `INSERT INTO AssessmentAttemptResponseArchives (AttemptHistoryId, PackageQuestionId, QuestionText, IsCorrect, AwardedScore, ArchivedAt) ` +
+      `SELECT h.Id, 0, 'seed soal RTK406-S4', 0, 0, GETUTCDATE() FROM AssessmentAttemptHistory h ` +
+      `WHERE h.SessionId = ${id} AND h.UserId = '${uid}'`
     );
     await gotoMP(page, id);
 
