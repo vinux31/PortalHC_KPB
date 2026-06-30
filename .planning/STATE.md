@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v32.9
-milestone_name: EditQuestion Option-Edit Data Integrity (Identity-Based)
-status: milestone_complete
-stopped_at: v32.9 CLOSED + archived + tagged local 2026-06-25; ready for /gsd-new-milestone
-last_updated: "2026-06-25T02:45:55.106Z"
-last_activity: 2026-06-25 -- v32.9 milestone closed (audit PASSED 6/6, archived, tagged)
+milestone: v32.6
+milestone_name: via D-08)
+status: completed
+stopped_at: Phase 999.17 context gathered
+last_updated: "2026-06-30T06:31:06.985Z"
+last_activity: 2026-06-25 -- v32.9 closed (audit PASSED 6/6 REQ, integration SOUND, suite 702/702, Playwright UAT 3/3)
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: Portal HC KPB
@@ -84,7 +83,7 @@ Milestone **v32.9 EditQuestion Option-Edit Data Integrity (Identity-Based)** —
 
 Last activity: 2026-06-24
 
-Stopped at: Phase 420 COMPLETE (all gates green); milestone v32.9 ready for audit
+Stopped at: Phase 999.17 context gathered
 
 Next action: **`/gsd-plan-phase 420`** (atau `/gsd-discuss-phase 420` dulu — fix mengubah mekanisme spec-locked D-418-02, layak discuss). migration=FALSE.
 
