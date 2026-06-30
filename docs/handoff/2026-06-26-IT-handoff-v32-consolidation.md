@@ -7,6 +7,20 @@
 
 ---
 
+## Pembaruan 2026-06-30 (pasca-konsolidasi, **code-only, migration = FALSE**)
+
+Setelah handoff konsolidasi ini, ada **3 commit tambahan code-only** di atas `bcea1664` (HEAD sekarang `0c9a0d51`). **TIDAK ada migration baru** — daftar 6 migration di §2 TETAP, prosedur deploy IDENTIK.
+
+| Commit | Isi | Sifat |
+|---|---|---|
+| `1fe9e69a` | **Fix bug produk:** buat soal *Multiple Answer* lewat form gagal ("butuh min. 2 jawaban benar" walau sudah dicentang ≥2). Akar: `applyQTypeSwitch` tak panggil `reletterRows()` → `name` tetap `correctIndex` (harusnya `options[i].IsCorrect`). Fix di `Views/Admin/ManagePackageQuestions.cshtml`. Pre-existing Phase 418 (v32.6), bukan regresi merge. | **Bug produk** — perlu deploy |
+| `7f867619` | Perbaikan e2e test-debt (selector/teks) | Test saja |
+| `0c9a0d51` | Tuntaskan 6 e2e deferred (semua verified hijau) + quarantine blok stale Phase 307 panel (test.fixme) | Test saja |
+
+**Yang IT perlu tahu:** tarik `main` HEAD `0c9a0d51`. Karena nol migration baru, cukup **build + deploy kode** (tidak perlu `dotnet ef database update` ulang jika 6 migration konsolidasi sudah ter-apply). Bug pembuatan soal Multiple Answer hilang setelah deploy.
+
+---
+
 ## 1. Perubahan rak pull (PENTING)
 
 Mulai handoff ini, **tarik kode dari branch `main`**, bukan `ITHandoff` lagi.
@@ -19,11 +33,11 @@ Mulai handoff ini, **tarik kode dari branch `main`**, bukan `ITHandoff` lagi.
 | Item | Nilai |
 |---|---|
 | Branch | `main` |
-| Commit HEAD | `bcea1664` (merge `9fa729f4` + handoff doc + 8 fix integrasi pasca-audit) |
+| Commit HEAD | `0c9a0d51` (3 commit code-only di atas `bcea1664` — lihat **Pembaruan 2026-06-30**; migration tetap 6, nol baru) |
 | Tag rilis | `v32-consolidated` (di `9fa729f4`; HEAD lebih baru, lihat catatan) |
 | Repo | `https://github.com/vinux31/PortalHC_KPB.git` |
 
-Verifikasi setelah pull: `git rev-parse HEAD` harus `bcea1664...`.
+Verifikasi setelah pull: `git rev-parse HEAD` harus `0c9a0d51...` (lihat Pembaruan 2026-06-30).
 
 > **Catatan:** setelah merge, audit multi-agent atas 19 seam hasil-resolve-tangan menemukan **8 bug integrasi lintas-fitur merge-only** (kombinasi v32.1/3/4/7/8 × v32.0/2/5/6/9 yang tak teruji per-branch). Semua sudah di-fix (commit `bcea1664`), terverifikasi build + xUnit 1004/0/2 + UAT live @5277. **Code-only — TIDAK ada migration baru.** Daftar migration di bawah TETAP 6.
 
