@@ -153,8 +153,17 @@ public class SectionImportTests : IClassFixture<SectionFixture>
 
     // ---- .xlsx fixture builders (ClosedXML) ----
 
-    // 13-col header (universal/new format). rows: tiap baris adalah string[13] sesuai urutan §9.1.
+    // 14-col header (universal/new format) — Phase 999.17-02: +kolom "Skor" (N/14) untuk bobot ScoreValue.
+    // rows: string[14] (Skor di index 13). string[13] (tanpa Skor) tetap valid → kolom 14 kosong = default 10.
     private static IFormFile BuildNewFormatFile(IEnumerable<string[]> dataRows)
+    {
+        var headers = new[] { "Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Opsi E", "Opsi F", "Jawaban Benar", "No. Section", "Nama Section", "Elemen Teknis", "QuestionType", "Rubrik", "Skor" };
+        return BuildFile(headers, dataRows);
+    }
+
+    // 13-col header (universal LAMA, TANPA kolom Skor) — regression LEGACY-SAFE (999.17-02): file Universal yang
+    // sudah beredar sebelum kolom Skor tetap terdeteksi format BARU (marker 6/7/9/10 utuh) + ScoreValue default 10.
+    private static IFormFile BuildUniversal13ColFile(IEnumerable<string[]> dataRows)
     {
         var headers = new[] { "Pertanyaan", "Opsi A", "Opsi B", "Opsi C", "Opsi D", "Opsi E", "Opsi F", "Jawaban Benar", "No. Section", "Nama Section", "Elemen Teknis", "QuestionType", "Rubrik" };
         return BuildFile(headers, dataRows);
@@ -475,6 +484,188 @@ public class SectionImportTests : IClassFixture<SectionFixture>
         await using (var verify = NewCtx())
         {
             Assert.Equal(1, await verify.PackageQuestions.CountAsync(q => q.AssessmentPackageId == packageId));
+        }
+    }
+
+    // ============================================================================================
+    // Phase 999.17-02 — kolom Skor (N/14) → PackageQuestion.ScoreValue + validasi server 1-100 (D-09)
+    //   + tolak-keras-atomic (D-12) + kompatibel-mundur (D-07/LEGACY-SAFE). Tuple/parser dijalankan apa-adanya.
+    // ============================================================================================
+
+    // SKOR-PARSE (D-06): kolom Skor="25" → ScoreValue=25 (ganti hardcode 10).
+    [Fact]
+    public async Task Import_UniversalWithSkor_StoresScoreValue()
+    {
+        int packageId; string actorId;
+        await using (var seed = NewCtx())
+        {
+            (_, packageId, _, _, _) = await SeedSessionPackageAsync(seed);
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+
+        // 1 soal MC Universal, kolom Skor (index 13) = "25". No.Section kosong → Lainnya (tanpa sibling → guard skip).
+        var file = BuildNewFormatFile(new[]
+        {
+            new[] { "Soal skor 25?", "A1", "A2", "A3", "A4", "", "", "A", "", "", "K3", "MultipleChoice", "", "25" },
+        });
+
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "ImportPackageQuestions");
+            var res = await ctrl.ImportPackageQuestions(packageId, file, null);
+            Assert.IsType<RedirectToActionResult>(res);
+        }
+
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.SingleAsync(x => x.AssessmentPackageId == packageId);
+            Assert.Equal(25, q.ScoreValue);   // RED sekarang: hardcode ScoreValue=10
+        }
+    }
+
+    // D-08: kolom Skor kosong → default 10 (guard kompatibilitas; hijau bahkan sebelum impl).
+    [Fact]
+    public async Task Import_UniversalBlankSkor_DefaultsTo10()
+    {
+        int packageId; string actorId;
+        await using (var seed = NewCtx())
+        {
+            (_, packageId, _, _, _) = await SeedSessionPackageAsync(seed);
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+
+        var file = BuildNewFormatFile(new[]
+        {
+            new[] { "Soal skor kosong?", "A1", "A2", "A3", "A4", "", "", "A", "", "", "K3", "MultipleChoice", "", "" },
+        });
+
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "ImportPackageQuestions");
+            var res = await ctrl.ImportPackageQuestions(packageId, file, null);
+            Assert.IsType<RedirectToActionResult>(res);
+        }
+
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.SingleAsync(x => x.AssessmentPackageId == packageId);
+            Assert.Equal(10, q.ScoreValue);
+        }
+    }
+
+    // SKOR-VAL atomic (D-12): ≥1 baris Skor invalid → 0 write + daftar error LENGKAP via TempData["ScoreErrors"].
+    [Fact]
+    public async Task Import_InvalidSkor_AtomicReject_FullList_ZeroWrites()
+    {
+        int packageId; string actorId;
+        await using (var seed = NewCtx())
+        {
+            (_, packageId, _, _, _) = await SeedSessionPackageAsync(seed);
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+
+        // 3 soal: baris-1 valid (25), baris-2 Skor="0" (≤0), baris-3 Skor="abc" (non-angka) → 2 error → tolak SEMUA.
+        var file = BuildNewFormatFile(new[]
+        {
+            new[] { "Soal valid?",   "A1", "A2", "A3", "A4", "", "", "A", "", "", "K3", "MultipleChoice", "", "25" },
+            new[] { "Soal skor 0?",  "B1", "B2", "B3", "B4", "", "", "A", "", "", "K3", "MultipleChoice", "", "0" },
+            new[] { "Soal skor abc?","C1", "C2", "C3", "C4", "", "", "A", "", "", "K3", "MultipleChoice", "", "abc" },
+        });
+
+        TempDataDictionary capturedTempData;
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "ImportPackageQuestions");
+            var res = await ctrl.ImportPackageQuestions(packageId, file, null);
+            Assert.IsType<RedirectToActionResult>(res);
+            capturedTempData = (TempDataDictionary)ctrl.TempData;
+        }
+
+        var seJson = capturedTempData["ScoreErrors"] as string;
+        Assert.False(string.IsNullOrWhiteSpace(seJson));
+        var list = System.Text.Json.JsonSerializer.Deserialize<List<string>>(seJson!);
+        Assert.NotNull(list);
+        Assert.Equal(2, list!.Count);   // daftar LENGKAP (bukan stop-at-first), baris valid pun tak lolos
+
+        // 0 write (atomic reject D-12).
+        await using (var verify = NewCtx())
+        {
+            Assert.Equal(0, await verify.PackageQuestions.CountAsync(q => q.AssessmentPackageId == packageId));
+        }
+    }
+
+    // SKOR-VAL varian (D-09): >100, desimal, negatif → masing-masing ditolak (0 write).
+    [Theory]
+    [InlineData("101")]
+    [InlineData("5.5")]
+    [InlineData("-3")]
+    public async Task Import_SkorOutOfRangeOrDecimal_Rejected_ZeroWrites(string badScore)
+    {
+        int packageId; string actorId;
+        await using (var seed = NewCtx())
+        {
+            (_, packageId, _, _, _) = await SeedSessionPackageAsync(seed);
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+
+        var file = BuildNewFormatFile(new[]
+        {
+            new[] { "Soal skor bad?", "A1", "A2", "A3", "A4", "", "", "A", "", "", "K3", "MultipleChoice", "", badScore },
+        });
+
+        TempDataDictionary capturedTempData;
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "ImportPackageQuestions");
+            var res = await ctrl.ImportPackageQuestions(packageId, file, null);
+            Assert.IsType<RedirectToActionResult>(res);
+            capturedTempData = (TempDataDictionary)ctrl.TempData;
+        }
+
+        var seJson = capturedTempData["ScoreErrors"] as string;
+        Assert.False(string.IsNullOrWhiteSpace(seJson));
+        await using (var verify = NewCtx())
+        {
+            Assert.Equal(0, await verify.PackageQuestions.CountAsync(q => q.AssessmentPackageId == packageId));
+        }
+    }
+
+    // LEGACY-SAFE (a): file Universal 13-kolom LAMA (tanpa Skor) → tetap NEW + section dibuat + ScoreValue=10.
+    [Fact]
+    public async Task Import_Universal13ColOld_NoSkorColumn_StillNewFormat_Default10()
+    {
+        int packageId; string actorId;
+        await using (var seed = NewCtx())
+        {
+            (_, packageId, _, _, _) = await SeedSessionPackageAsync(seed);
+            actorId = (await SeedActorAsync(seed)).Id;
+        }
+
+        // 13-kolom (tanpa Skor) + No.Section=1 → terdeteksi NEW (marker 6/7/9/10 utuh) + section auto-create.
+        var file = BuildUniversal13ColFile(new[]
+        {
+            new[] { "Soal lama?", "A1", "A2", "A3", "A4", "", "", "A", "1", "Pompa", "K3", "MultipleChoice", "" },
+        });
+
+        await using (var ctx = NewCtx())
+        {
+            var actor = await ctx.Users.FindAsync(actorId);
+            var ctrl = MakeController(ctx, actor!, "ImportPackageQuestions");
+            var res = await ctrl.ImportPackageQuestions(packageId, file, null);
+            Assert.IsType<RedirectToActionResult>(res);
+        }
+
+        await using (var verify = NewCtx())
+        {
+            var q = await verify.PackageQuestions.Include(x => x.Options)
+                .SingleAsync(x => x.AssessmentPackageId == packageId);
+            Assert.Equal(10, q.ScoreValue);                 // default (tak ada kolom Skor)
+            Assert.NotNull(q.SectionId);                    // terdeteksi NEW → section auto-create
+            Assert.Equal(4, q.Options.Count);               // A–D
         }
     }
 }
