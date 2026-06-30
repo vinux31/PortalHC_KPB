@@ -55,7 +55,7 @@ Last activity: 2026-06-30
 | Item | Status |
 |------|--------|
 | Notify IT — 2 migration carry lama (`PendingProtonBypass`+index/360, `ShuffleToggles`/372) | ⏳ kasih commit hash + flag ke IT |
-| Push bundle ke `origin/main` (v32.2 + v32.5 + v32.6 + **999.17**) | ⏳ koordinasi IT — **migration=TRUE:** Phase 409 `AddParticipantRemovalColumns` (v32.5) + Phase 415 `AddAssessmentPackageSection` (v32.6). 999.17 = 10 commit unpushed (`ade2425c`..`7720fffa`), migration=FALSE |
+| Deploy IT ke Dev/Prod + apply migration (v32.2 + v32.5 + v32.6 + 999.17) | ⏳ koordinasi IT — kode SUDAH di `origin/main` (HEAD `58bfd301`, fully synced). **migration=TRUE on deploy:** Phase 409 `AddParticipantRemovalColumns` (v32.5) + Phase 415 `AddAssessmentPackageSection` (v32.6) → IT jalankan `dotnet ef database update`. 999.17 = migration=FALSE |
 
 **✅ DONE (tidak perlu aksi — jejak audit):**
 
